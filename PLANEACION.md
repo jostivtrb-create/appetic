@@ -4,8 +4,8 @@
 > Cómo se usa: responde debajo de cada pregunta donde dice **✍️ Tu respuesta:** y guarda el archivo.
 > Claude lee tus respuestas, consolida las decisiones arriba y agrega la siguiente fase.
 
-- **Última actualización:** 2026-06-26
-- **Estado:** Fases 1–6 ✅ respondidas y consolidadas → **Checklist de Preparación** (paso previo a programar)
+- **Última actualización:** 2026-06-27
+- **Estado:** ✅ **Capa 1 EN VIVO** + 🔵 **Capa 2 EN CONSTRUCCIÓN** (login por roles, buscador y panel de superadmin ya hechos). → Ver **§8 Pendientes y próximos pasos**.
 - **Nombre de la app:** 🎉 **APPETIC** (logo en `assets/brand/appetic-logo.png`)
 - **Forma de lanzar:** app **completa y funcional** (Capa 1), sin demos. Ver D36.
 - **🛠️ Construcción:** ✅ **Capa 1 COMPLETA Y EN VIVO** 🎉 — Etapas 1-4. Repo: `jostivtrb-create/appetic`.
@@ -672,9 +672,12 @@ TODO TOCA IRLO PROBANDO PERO NO QUIERO VERSIONES DE PRUEBA NI DEMOS SI NO ESTO Y
 - ✅ **Fase 4** — Arquitectura técnica + multi-tenant. *Completada.*
 - ✅ **Fase 5** — Nombre + identidad. *Completada → **APPETIC**.*
 - ✅ **Fase 6** — Alcance v1 + local piloto + Kit de Bienvenida. *Completada.*
-- 🔵 **→ Checklist de Preparación** (sección 6) — ejecutar las cuentas reales. *SIGUIENTE PASO.*
-- **→ ¡A PROGRAMAR Appetic!** (Capa 1 completa)
-- **Fase 7** *(después de lanzar la Capa 1)* — Capa 2: explorador, búsqueda por comida, GPS y suscripción.
+- ✅ **Checklist de Preparación** (sección 6) — cuentas reales listas (GitHub, Firebase, Vercel).
+- ✅ **Capa 1 PROGRAMADA Y EN VIVO** — menú, carrito, checkout, panel del local, métricas, PWA.
+- 🔵 **Fase 7 / Capa 2 — EN CONSTRUCCIÓN** — explorador, login por roles, suscripción.
+  - ✅ Ya hecho: login con roles (`/cuenta`), buscador en el inicio, panel de superadmin (`/superadmin`), perfil del cliente (datos guardados/prellenados).
+  - ⏳ Falta: filtro por GPS/radio en el buscador, cobro real de la suscripción (pasarela), beneficios extra del cliente, Kit de Bienvenida.
+  - 👉 **Detalle accionable en §8.**
 
 ---
 
@@ -748,3 +751,49 @@ TODO TOCA IRLO PROBANDO PERO NO QUIERO VERSIONES DE PRUEBA NI DEMOS SI NO ESTO Y
 
 **🏷️ Tarjeta de empaque (texto):**
 > ¿Disfrutaste tu pedido de **[Local]**? 🧡 Vuelve a pedir escaneando este código 👇 — más rápido, con fotos y a un toque.
+
+---
+
+## 8. 🔧 Pendientes y próximos pasos (estado real tras programar)
+
+> Estado a **2026-06-27**. Capa 1 en vivo. Capa 2 a medio construir.
+
+### 🌅 PARA MAÑANA (cuando esté en el PC) — acción de Camilo
+
+- [ ] **Desplegar las reglas de Firestore** (¡importante! sin esto la Capa 2 nueva da "permiso denegado").
+  Cambiamos `firestore.rules` para que: (a) el **superadmin** (jostivtrb@gmail.com) pueda activar/desactivar suscripciones, y (b) cada **cliente** guarde su perfil en `usuarios/{uid}`. Comando:
+  ```
+  firebase deploy --only firestore:rules
+  ```
+- [ ] **Re-sembrar el local piloto** para que salga en el buscador del inicio (ya tiene `suscripcion.activa: true` en el seed):
+  ```
+  node scripts/seed-local.mjs
+  ```
+  *(Alternativa: una vez desplegadas las reglas, activarlo a mano desde `/superadmin`.)*
+- [ ] **Probar el flujo nuevo de punta a punta:** entrar a `/cuenta` con jostivtrb@gmail.com → ver el panel 👑 → activar/desactivar `burgerdemo` → confirmar que aparece/desaparece en el inicio. Probar también iniciar sesión como cliente y que se guarden los datos del checkout.
+
+### 🛵 SIGUIENTE TAREA DE PRODUCTO (acordada para mañana)
+
+- [ ] **Que el local configure sus tarifas de domicilio por radio desde su panel.**
+  Hoy las tarifas por intervalos de 0.5 km (`domicilio.tarifas`) y el `maxKm` los configura Appetic en el seed; el motor de cobro ya funciona (`utils/delivery.js`). Falta una sección en `/:slug/admin` → Configuración para que el dueño edite esas tarifas y la distancia máxima él mismo (sin depender de nosotros).
+
+### 🔵 CAPA 2 — lo que falta para completarla
+
+- [ ] **Filtro por GPS / radio en el buscador del inicio** (D4/B1): hoy el inicio muestra *todos* los locales con suscripción; falta ordenarlos/filtrarlos por la distancia al cliente (reusar `utils/geo.js` Haversine).
+- [ ] **Cobro real de la suscripción** (D6, pregunta abierta línea 130): hoy el superadmin activa/desactiva a mano. Falta definir **precio** y conectar una **pasarela** (Wompi/MercadoPago) para cobrarles a los locales. *Precio: aún "suave/leve", sin número.*
+- [ ] **Beneficios del cliente registrado** (pregunta abierta línea 134): ya se guardan nombre/teléfono/dirección. Faltan extras como **favoritos** e **historial de pedidos**.
+- [ ] **Kit de Bienvenida del local** (§7): producción manual (QR, plantillas de WhatsApp, artes de Instagram, tarjeta de empaque). Aún no se ha armado para ningún local.
+
+### 🧹 DEUDAS TÉCNICAS (no urgentes, pero anotadas — ⛔ ojo costos D32)
+
+- [ ] **Métricas del local** leen *toda* la subcolección `pedidos` cada vez (`adminLocal.js` → `obtenerMetricas`). Con mucho volumen sube el costo de lecturas; cambiar a un **contador incremental** si crece.
+- [ ] **Regla de `pedidos`** permite crear casi libremente (vector de spam que infla métricas/costos). Endurecer validación (campos/tamaño) más adelante.
+- [ ] **Autonomía del local en el panel:** hoy no edita desde su panel las tarifas de domicilio, los métodos de pago, ni los precios de adicionales/combos (solo precio base y tamaños). Es a propósito (D18), pero revisar cuánto darle.
+
+### ✅ HECHO RECIENTEMENTE (2026-06-27)
+
+- ✅ **PWA se actualiza sola** (sin desinstalar/reinstalar): registro del service worker + chequeo de versión periódico y al volver a la app.
+- ✅ **Banner de instalación** bonito (vidrio esmerilado) con guía para iPhone; aparece en toda la app si no está instalada.
+- ✅ **Bug horario:** fuera de horario el cliente ve el menú pero no puede pedir (antes no se aplicaba).
+- ✅ **Bug foto:** la foto se guarda al *crear* un producto (antes solo al editar).
+- ✅ **Capa 2 base:** login por roles (`/cuenta`), buscador en el inicio, panel de superadmin (`/superadmin`), perfil del cliente.
