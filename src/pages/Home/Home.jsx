@@ -143,7 +143,6 @@ export default function Home() {
                         )}
                       </div>
                     </div>
-                    <span className="loc-card-go">›</span>
                   </Link>
                 </li>
               )
