@@ -1,0 +1,163 @@
+/* ===== Login / sin acceso ===== */
+.admin-login {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(120% 80% at 50% -10%, var(--brand-orange-tint), transparent 60%), var(--bg);
+}
+.admin-login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 32px 26px;
+  text-align: center;
+  max-width: 360px;
+  animation: rise 0.5s ease both;
+}
+.admin-login-emoji { font-size: 46px; }
+.admin-login-card h1 { font-size: 22px; font-weight: 800; margin: 12px 0 8px; }
+.admin-login-card p { font-size: 14.5px; color: var(--text-soft); margin-bottom: 22px; }
+.admin-google { width: 100%; }
+
+/* ===== Shell del panel ===== */
+.admin { min-height: 100dvh; padding-bottom: 80px; }
+.admin-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 18px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.admin-top-eyebrow { font-size: 11px; font-weight: 700; color: var(--brand-orange-strong); text-transform: uppercase; letter-spacing: 0.05em; }
+.admin-top-nombre { font-size: 21px; font-weight: 800; }
+.admin-salir { font-size: 13px; font-weight: 600; color: var(--text-soft); padding: 8px 12px; border-radius: var(--radius-pill); background: var(--surface-2); }
+.admin-demo-badge { font-size: 11px; font-weight: 800; color: #fff; background: var(--brand-orange); padding: 4px 10px; border-radius: var(--radius-pill); }
+
+.admin-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.admin-tabs button {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-soft);
+  background: var(--surface-2);
+}
+.admin-tabs button.on { background: var(--brand-orange); color: #fff; }
+
+.admin-body { padding: 18px 16px; }
+
+.admin-ver-menu {
+  position: fixed;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  background: var(--brand-ink);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 12px 20px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lg);
+  z-index: 20;
+}
+
+/* ===== Productos ===== */
+.ap-add { width: 100%; margin-bottom: 16px; }
+.ap-vacio { text-align: center; color: var(--text-soft); padding: 30px 0; font-size: 14px; }
+.ap-lista { display: flex; flex-direction: column; gap: 10px; }
+.ap-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+}
+.ap-item-off { opacity: 0.6; }
+.ap-item-foto {
+  width: 52px; height: 52px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ap-item-foto img { width: 100%; height: 100%; object-fit: cover; }
+.ap-item-info { flex: 1; min-width: 0; }
+.ap-item-info h4 { font-size: 14.5px; font-weight: 700; }
+.ap-item-precio { font-size: 13px; color: var(--text-soft); font-weight: 600; }
+.ap-item-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.ap-toggle { font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: var(--radius-pill); }
+.ap-toggle.on { color: var(--success); background: #EAF7EF; }
+.ap-toggle.off { color: var(--danger); background: #FCEEEE; }
+.ap-edit { font-size: 12.5px; font-weight: 700; color: var(--brand-orange-strong); padding: 4px 8px; }
+
+/* Editor */
+.ap-label { display: block; font-size: 13px; font-weight: 700; color: var(--text-soft); margin: 16px 0 0; }
+.ap-foto-pick {
+  display: flex; align-items: center; justify-content: center;
+  height: 150px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text-soft);
+  font-weight: 700;
+  font-size: 14px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.ap-foto-pick img { width: 100%; height: 100%; object-fit: cover; }
+.ap-variante { display: flex; align-items: center; gap: 10px; }
+.ap-variante span { flex: 1; font-size: 14px; font-weight: 600; }
+.ap-variante .co-input { width: 120px; margin-top: 6px; }
+.ap-borrar { width: 100%; margin-top: 22px; color: var(--danger); font-weight: 700; font-size: 14px; padding: 12px; border-radius: var(--radius-sm); background: #FCEEEE; }
+
+/* ===== Config ===== */
+.ac-sec { margin-bottom: 24px; }
+.ac-sec h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+.ac-hint { font-size: 12.5px; color: var(--text-faint); margin: 6px 0 0; }
+.ac-horas { display: flex; gap: 14px; margin-top: 10px; }
+.ac-horas label { flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-soft); }
+.ac-horas input { padding: 11px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; background: var(--surface); }
+.ac-switch {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 9px;
+  font-size: 14.5px; font-weight: 600;
+}
+.ac-switch input { width: 22px; height: 22px; accent-color: var(--brand-orange); }
+.ac-guardar { width: 100%; margin-top: 10px; }
+
+/* ===== Métricas ===== */
+.am-intro { font-size: 14px; color: var(--text-soft); margin-bottom: 16px; }
+.am-cards { display: flex; gap: 12px; }
+.am-card {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 14px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.am-num { display: block; font-size: 26px; font-weight: 800; color: var(--brand-orange-strong); }
+.am-label { font-size: 12.5px; color: var(--text-soft); font-weight: 600; }

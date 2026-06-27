@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home/Home.jsx'
 import LocalPage from './pages/Local/LocalPage.jsx'
+import AdminPage from './pages/Admin/AdminPage.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
 
 export default function App() {
@@ -9,6 +10,9 @@ export default function App() {
       <Routes>
         {/* Inicio / bienvenida de marca (el explorador llega en la Capa 2) */}
         <Route path="/" element={<Home />} />
+
+        {/* Panel del local (modo administrador) */}
+        <Route path="/:slug/admin" element={<AdminPage />} />
 
         {/* Cada local vive en su propio slug: appetic.app/su-negocio */}
         <Route path="/:slug" element={<LocalPage />} />

@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// 🔒 Reglas de Appetic
+// - Menú (locales/productos): lectura pública (los clientes ven sin login).
+// - Escritura: solo el admin del local (su correo en local.admins).
+// - Pedidos: cualquiera puede CREAR (registro anónimo para métricas, sin login),
+//   pero solo el admin los lee. Nadie los edita/borra.
+// - Crear/borrar locales: solo desde la consola/seed (nosotros), no desde el cliente.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function esAdminDe(localId) {
+      return request.auth != null
+        && request.auth.token.email in get(/databases/$(database)/documents/locales/$(localId)).data.admins;
+    }
+
+    match /locales/{localId} {
+      allow read: if true;
+      allow update: if esAdminDe(localId);
+      allow create, delete: if false;
+
+      match /productos/{productoId} {
+        allow read: if true;
+        allow write: if esAdminDe(localId);
+      }
+
+      match /pedidos/{pedidoId} {
+        // Registro anónimo: solo crear, con campos mínimos válidos.
+        allow create: if request.resource.data.total is number
+                      && request.resource.data.total >= 0;
+        allow read: if esAdminDe(localId);
+        allow update, delete: if false;
+      }
+    }
+  }
+}

@@ -1,0 +1,157 @@
+import { useEffect, useState } from 'react'
+import { useParams, Link } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
+import { getLocalBySlug } from '../../services/locales'
+import { getProductos } from '../../services/productos'
+import {
+  agregarProducto, actualizarProducto, borrarProducto, actualizarLocal, obtenerMetricas,
+} from '../../services/adminLocal'
+import { subirFotoProducto } from '../../services/storage'
+import AdminProductos from './AdminProductos'
+import AdminConfig from './AdminConfig'
+import AdminMetricas from './AdminMetricas'
+import './Admin.css'
+
+const ES_DEMO = (slug) => import.meta.env.DEV && slug === 'demo'
+
+export default function AdminPage() {
+  const { slug } = useParams()
+  const { user, cargando: authCargando, entrar, salir } = useAuth()
+  const demo = ES_DEMO(slug)
+
+  const [estado, setEstado] = useState('cargando') // cargando | ok | no-existe | error
+  const [local, setLocal] = useState(null)
+  const [productos, setProductos] = useState([])
+  const [tab, setTab] = useState('productos')
+
+  // Usuario efectivo (en demo, admin falso)
+  const usuario = demo ? { email: 'demo@appetic.app', displayName: 'Admin Demo' } : user
+  const esAdmin = demo || (local?.admins?.includes(usuario?.email))
+
+  useEffect(() => {
+    let activo = true
+    async function cargar() {
+      if (demo) {
+        const { MOCK_LOCAL, MOCK_PRODUCTOS } = await import('../../dev/mockLocal')
+        if (!activo) return
+        setLocal({ ...MOCK_LOCAL, admins: ['demo@appetic.app'] })
+        setProductos(MOCK_PRODUCTOS.map(p => ({ ...p })))
+        setEstado('ok')
+        return
+      }
+      const data = await getLocalBySlug(slug)
+      if (!activo) return
+      if (!data) { setEstado('no-existe'); return }
+      const prods = await getProductos(data.id)
+      if (!activo) return
+      setLocal(data)
+      setProductos(prods)
+      setEstado('ok')
+    }
+    cargar().catch(err => { console.error(err); if (activo) setEstado('error') })
+    return () => { activo = false }
+  }, [slug, demo])
+
+  // ---- Operaciones (en demo solo tocan el estado; en real, Firestore + estado) ----
+  async function addProducto(data) {
+    if (demo) { setProductos(p => [...p, { ...data, id: 'tmp-' + Date.now() }]); return }
+    const id = await agregarProducto(local.id, data)
+    setProductos(p => [...p, { ...data, id }])
+  }
+  async function updateProducto(id, cambios) {
+    setProductos(p => p.map(x => x.id === id ? { ...x, ...cambios } : x))
+    if (!demo) await actualizarProducto(local.id, id, cambios)
+  }
+  async function deleteProducto(id) {
+    setProductos(p => p.filter(x => x.id !== id))
+    if (!demo) await borrarProducto(local.id, id)
+  }
+  async function updateLocal(cambios) {
+    setLocal(l => ({ ...l, ...cambios }))
+    if (!demo) await actualizarLocal(local.id, cambios)
+  }
+  async function subirFoto(productoId, file) {
+    if (demo) { const url = URL.createObjectURL(file); await updateProducto(productoId, { foto: url }); return url }
+    const url = await subirFotoProducto(local.id, productoId, file)
+    await updateProducto(productoId, { foto: url })
+    return url
+  }
+
+  // ---------- Estados de carga / acceso ----------
+  if (estado === 'cargando' || (!demo && authCargando)) {
+    return <div className="local-loading"><div className="local-spinner" /><p>Cargando panel…</p></div>
+  }
+  if (estado === 'no-existe') {
+    return <div className="local-msg"><div className="local-msg-emoji">🤔</div><h2>Local no encontrado</h2><Link to="/" className="btn btn-ghost">Inicio</Link></div>
+  }
+  if (estado === 'error') {
+    return <div className="local-msg"><div className="local-msg-emoji">📡</div><h2>Error al cargar</h2><button className="btn btn-primary" onClick={() => location.reload()}>Reintentar</button></div>
+  }
+
+  // No logueado → pantalla de login
+  if (!usuario) {
+    return (
+      <div className="admin-login">
+        <div className="admin-login-card">
+          <div className="admin-login-emoji">🔐</div>
+          <h1>Panel de {local.nombre}</h1>
+          <p>Inicia sesión con el correo autorizado de tu negocio para administrar tu menú.</p>
+          <button className="btn btn-primary admin-google" onClick={entrar}>
+            Entrar con Google
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Logueado pero no autorizado para ESTE local
+  if (!esAdmin) {
+    return (
+      <div className="admin-login">
+        <div className="admin-login-card">
+          <div className="admin-login-emoji">🚫</div>
+          <h1>Sin acceso</h1>
+          <p>El correo <strong>{usuario.email}</strong> no está autorizado para administrar <strong>{local.nombre}</strong>.</p>
+          <button className="btn btn-ghost" onClick={salir}>Cerrar sesión</button>
+        </div>
+      </div>
+    )
+  }
+
+  // ---------- Panel ----------
+  return (
+    <div className="admin">
+      <header className="admin-top">
+        <div>
+          <span className="admin-top-eyebrow">Panel · Appetic</span>
+          <h1 className="admin-top-nombre">{local.nombre}</h1>
+        </div>
+        {!demo && <button className="admin-salir" onClick={salir}>Salir</button>}
+        {demo && <span className="admin-demo-badge">DEMO</span>}
+      </header>
+
+      <nav className="admin-tabs">
+        <button className={tab === 'productos' ? 'on' : ''} onClick={() => setTab('productos')}>🍔 Menú</button>
+        <button className={tab === 'config' ? 'on' : ''} onClick={() => setTab('config')}>⚙️ Configuración</button>
+        <button className={tab === 'metricas' ? 'on' : ''} onClick={() => setTab('metricas')}>📊 Métricas</button>
+      </nav>
+
+      <main className="admin-body">
+        {tab === 'productos' && (
+          <AdminProductos
+            local={local}
+            productos={productos}
+            onAdd={addProducto}
+            onUpdate={updateProducto}
+            onDelete={deleteProducto}
+            onFoto={subirFoto}
+          />
+        )}
+        {tab === 'config' && <AdminConfig local={local} onUpdate={updateLocal} />}
+        {tab === 'metricas' && <AdminMetricas local={local} demo={demo} obtener={obtenerMetricas} />}
+      </main>
+
+      <Link to={`/${slug}`} className="admin-ver-menu">👁️ Ver mi menú</Link>
+    </div>
+  )
+}
