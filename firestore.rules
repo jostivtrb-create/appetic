@@ -1,5 +1,8 @@
 rules_version = '2';
 
+// Última actualización: 2026-06-26
+// Último cambio: reglas iniciales de Appetic (menú público, escritura admin, pedidos anónimos).
+//
 // 🔒 Reglas de Appetic
 // - Menú (locales/productos): lectura pública (los clientes ven sin login).
 // - Escritura: solo el admin del local (su correo en local.admins).
