@@ -1,0 +1,154 @@
+/* ============================================================
+   APPETIC — Sistema de diseño base
+   Paleta derivada del logo: naranja apetito + crema.
+   Cada local podrá sobreescribir --local-* para su propio "mundo".
+   ============================================================ */
+
+:root {
+  /* --- Marca Appetic (fijos) --- */
+  --brand-orange: #ED7D2B;
+  --brand-orange-strong: #E0692A;
+  --brand-orange-soft: #F6A45C;
+  --brand-orange-tint: #FCEBD9;
+  --brand-cream: #F7EDD6;
+  --brand-ink: #2A211C;
+
+  /* --- Tema activo (por defecto = marca; un local lo sobreescribe) --- */
+  --local-primary: var(--brand-orange);
+  --local-primary-strong: var(--brand-orange-strong);
+  --local-primary-soft: var(--brand-orange-soft);
+  --local-on-primary: #FFFFFF;
+  --local-accent: var(--brand-cream);
+
+  /* --- Superficies y texto --- */
+  --bg: #FFFBF4;
+  --surface: #FFFFFF;
+  --surface-2: #FAF4EA;
+  --border: #EFE6D8;
+  --text: #2A211C;
+  --text-soft: #6E635B;
+  --text-faint: #A89E94;
+
+  /* --- Estados --- */
+  --success: #2FAE66;
+  --danger: #E5484D;
+  --warning: #E8A33D;
+
+  /* --- Forma y profundidad --- */
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(42, 33, 28, 0.06), 0 1px 3px rgba(42, 33, 28, 0.08);
+  --shadow: 0 4px 16px rgba(42, 33, 28, 0.10);
+  --shadow-lg: 0 12px 40px rgba(42, 33, 28, 0.16);
+
+  /* --- Tipografía --- */
+  --font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* --- Layout --- */
+  --app-max: 480px; /* ancho tipo móvil, centrado en escritorio */
+
+  color-scheme: light;
+}
+
+/* ===================== Reset ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root { height: 100%; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  line-height: 1.5;
+  overscroll-behavior-y: none;
+}
+
+img { display: block; max-width: 100%; }
+button, input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
+button { cursor: pointer; border: none; background: none; }
+a { color: inherit; text-decoration: none; }
+ul, ol { list-style: none; }
+
+/* Quitar resaltado azul al tocar en móvil */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* ===================== Utilidades base ===================== */
+.app-shell {
+  width: 100%;
+  max-width: var(--app-max);
+  margin: 0 auto;
+  min-height: 100%;
+  background: var(--bg);
+  position: relative;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 22px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 15px;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  will-change: transform;
+}
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--local-primary-soft), var(--local-primary) 55%, var(--local-primary-strong));
+  color: var(--local-on-primary);
+  box-shadow: var(--shadow);
+}
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Animaciones suaves reutilizables */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ===================== Estados de carga / mensajes (compartidos) ===================== */
+.local-loading,
+.local-msg {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  padding: 32px 28px;
+  color: var(--text-soft);
+}
+.local-msg h2 { color: var(--text); font-size: 22px; font-weight: 800; }
+.local-msg p { font-size: 15px; max-width: 320px; }
+.local-msg .btn { margin-top: 8px; }
+.local-msg-emoji { font-size: 52px; }
+
+.local-spinner {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 4px solid var(--brand-orange-tint);
+  border-top-color: var(--brand-orange);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
