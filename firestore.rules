@@ -1,7 +1,8 @@
 rules_version = '2';
 
-// Última actualización: 2026-06-26
-// Último cambio: reglas iniciales de Appetic (menú público, escritura admin, pedidos anónimos).
+// Última actualización: 2026-06-27
+// Último cambio: Capa 2 — colección usuarios/{uid} (perfil + favoritos, solo el dueño),
+//   rol superadmin (gestiona suscripciones de locales) y update de locales por superadmin.
 //
 // 🔒 Reglas de Appetic
 // - Menú (locales/productos): lectura pública (los clientes ven sin login).
