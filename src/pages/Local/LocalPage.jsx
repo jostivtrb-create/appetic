@@ -1,28 +1,47 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getLocalBySlug } from '../../services/locales'
-import { localThemeVars } from '../../utils/theme'
+import { getProductos } from '../../services/productos'
+import { CartProvider } from '../../contexts/CartContext'
+import LocalMenu from './LocalMenu'
 import './LocalPage.css'
 
 export default function LocalPage() {
   const { slug } = useParams()
   const [estado, setEstado] = useState('cargando') // cargando | ok | no-existe | error
   const [local, setLocal] = useState(null)
+  const [productos, setProductos] = useState([])
 
   useEffect(() => {
     let activo = true
     setEstado('cargando')
-    getLocalBySlug(slug)
-      .then((data) => {
+
+    async function cargar() {
+      // 🧪 Local de desarrollo (solo en DEV, slug "demo")
+      if (import.meta.env.DEV && slug === 'demo') {
+        const { MOCK_LOCAL, MOCK_PRODUCTOS } = await import('../../dev/mockLocal')
         if (!activo) return
-        if (!data) { setEstado('no-existe'); return }
-        setLocal(data)
+        setLocal(MOCK_LOCAL)
+        setProductos(MOCK_PRODUCTOS)
         setEstado('ok')
-      })
-      .catch((err) => {
-        console.error('Error cargando local:', err)
-        if (activo) setEstado('error')
-      })
+        return
+      }
+
+      const data = await getLocalBySlug(slug)
+      if (!activo) return
+      if (!data) { setEstado('no-existe'); return }
+      const prods = await getProductos(data.id)
+      if (!activo) return
+      setLocal(data)
+      setProductos(prods)
+      setEstado('ok')
+    }
+
+    cargar().catch(err => {
+      console.error('Error cargando local:', err)
+      if (activo) setEstado('error')
+    })
+
     return () => { activo = false }
   }, [slug])
 
@@ -57,26 +76,9 @@ export default function LocalPage() {
     )
   }
 
-  // estado === 'ok'
   return (
-    <div className="local-page" style={localThemeVars(local.tema)}>
-      <header className="local-hero">
-        {local.banner && <img className="local-banner" src={local.banner} alt="" />}
-        <div className="local-hero-overlay" />
-        <div className="local-hero-content">
-          {local.logo && <img className="local-logo" src={local.logo} alt={local.nombre} />}
-          <h1 className="local-name">{local.nombre}</h1>
-          {local.descripcion && <p className="local-desc">{local.descripcion}</p>}
-        </div>
-      </header>
-
-      <main className="local-body">
-        <div className="local-soon-card">
-          <span className="local-soon-badge">🚧 En construcción</span>
-          <h3>El menú de {local.nombre} viene en camino</h3>
-          <p>Estamos montando su carta digital con Appetic. ¡Muy pronto vas a poder pedir desde aquí!</p>
-        </div>
-      </main>
-    </div>
+    <CartProvider localId={local.id}>
+      <LocalMenu local={local} productos={productos} />
+    </CartProvider>
   )
 }

@@ -45,6 +45,41 @@
 
 .local-body { padding: 22px; }
 
+/* ===== Menú ===== */
+.local-menu { padding: 8px 16px 0; }
+.menu-section { padding-top: 18px; scroll-margin-top: 64px; }
+.menu-section-title {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.menu-grid { display: flex; flex-direction: column; gap: 12px; }
+.menu-bottom-space { height: 96px; }
+
+/* ===== Toast ===== */
+.local-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(86px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 70;
+  background: var(--brand-ink);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 11px 18px;
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.25s ease both;
+  max-width: calc(var(--app-max) - 40px);
+  text-align: center;
+}
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
 .local-soon-card {
   background: var(--surface);
   border: 1px solid var(--border);
