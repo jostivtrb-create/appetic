@@ -781,7 +781,7 @@ TODO TOCA IRLO PROBANDO PERO NO QUIERO VERSIONES DE PRUEBA NI DEMOS SI NO ESTO Y
 
 - [x] ✅ **Filtro por GPS / radio en el buscador del inicio** (D4/B1) *(Hecho 2026-06-27)*: el inicio tiene botón "ver los más cercanos a mí" que ordena por distancia (Haversine) y muestra los km en cada tarjeta. *(Mejora futura: ocultar los que están fuera de un radio máximo.)*
 - [ ] **Cobro real de la suscripción** (D6, pregunta abierta línea 130): hoy el superadmin activa/desactiva a mano. Falta definir **precio** y conectar una **pasarela** (Wompi/MercadoPago) para cobrarles a los locales. *Precio: aún "suave/leve", sin número.*
-- [ ] **Beneficios del cliente registrado** (pregunta abierta línea 134): ya se guardan nombre/teléfono/dirección. Faltan extras como **favoritos** e **historial de pedidos**.
+- [~] **Beneficios del cliente registrado** (pregunta abierta línea 134): ya se guardan nombre/teléfono/dirección **y favoritos** ✅. Falta el **historial de pedidos** (hoy los pedidos se guardan anónimos sin vínculo al cliente; habría que registrar también el pedido en su perfil).
 - [ ] **Kit de Bienvenida del local** (§7): producción manual (QR, plantillas de WhatsApp, artes de Instagram, tarjeta de empaque). Aún no se ha armado para ningún local.
 
 ### 🧹 DEUDAS TÉCNICAS (no urgentes, pero anotadas — ⛔ ojo costos D32)
@@ -799,3 +799,4 @@ TODO TOCA IRLO PROBANDO PERO NO QUIERO VERSIONES DE PRUEBA NI DEMOS SI NO ESTO Y
 - ✅ **Capa 2 base:** login por roles (`/cuenta`), buscador en el inicio, panel de superadmin (`/superadmin`), perfil del cliente.
 - ✅ **Domicilio por radio editable por el local** desde su panel (ubicación + distancia máxima + precio por tramo de 0,5 km).
 - ✅ **GPS en el buscador:** ordena los locales por cercanía y muestra la distancia.
+- ✅ **Favoritos del cliente:** corazón en los locales + sección "Mis favoritos" en la cuenta (persiste al desplegar las reglas).
