@@ -147,6 +147,64 @@
 .ac-switch input { width: 22px; height: 22px; accent-color: var(--brand-orange); }
 .ac-guardar { width: 100%; margin-top: 10px; }
 
+/* ===== Domicilio por distancia ===== */
+.ac-ubic { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 4px; }
+.ac-ubic-btn {
+  align-self: flex-start;
+  padding: 11px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1.5px solid var(--brand-orange-soft);
+  color: var(--brand-orange-strong);
+  font-weight: 700;
+  font-size: 14px;
+}
+.ac-ubic-btn:active { transform: scale(0.98); }
+.ac-ubic-btn:disabled { opacity: 0.6; }
+.ac-ubic-ok { font-size: 13px; font-weight: 700; color: var(--success); }
+.ac-ubic-err { font-size: 13px; color: var(--danger); }
+.ac-ubic-warn { font-size: 13px; color: var(--warning); }
+
+.ac-maxkm {
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: 13px; font-weight: 700; color: var(--text-soft);
+  margin: 16px 0 6px;
+}
+.ac-maxkm input {
+  width: 120px;
+  padding: 11px; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 15px; background: var(--surface);
+}
+
+.ac-tarifas { margin-top: 10px; }
+.ac-tarifas-head {
+  display: flex; justify-content: space-between;
+  font-size: 12px; font-weight: 700; color: var(--text-faint);
+  padding: 0 4px 6px;
+}
+.ac-tarifa-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 7px 0;
+}
+.ac-tarifa-km { font-size: 14px; font-weight: 700; color: var(--text); min-width: 64px; }
+.ac-tarifa-input {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface); border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 0 10px;
+}
+.ac-tarifa-input:focus-within { border-color: var(--brand-orange-soft); }
+.ac-tarifa-cur { color: var(--text-faint); font-weight: 700; }
+.ac-tarifa-input input {
+  width: 92px; border: none; outline: none; background: none;
+  padding: 10px 0; font-size: 15px; font-weight: 600; text-align: right; color: var(--text);
+}
+.ac-tarifa-fill {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--surface-2); color: var(--text-soft);
+  font-weight: 800; font-size: 15px;
+}
+.ac-tarifa-fill:active { transform: scale(0.9); }
+
 /* ===== Métricas ===== */
 .am-intro { font-size: 14px; color: var(--text-soft); margin-bottom: 16px; }
 .am-cards { display: flex; gap: 12px; }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import logo from '../../assets/appetic-logo.png'
 import { getLocalesExplorador } from '../../services/locales'
 import { estaAbierto } from '../../utils/horario'
+import { distanciaKm } from '../../utils/geo'
 import { useAuth } from '../../contexts/AuthContext'
 import './Home.css'
 
@@ -11,6 +12,8 @@ export default function Home() {
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [locales, setLocales] = useState([])
   const [busqueda, setBusqueda] = useState('')
+  const [coord, setCoord] = useState(null)
+  const [ubic, setUbic] = useState('idle') // idle | cargando | ok | error
 
   useEffect(() => {
     let activo = true
@@ -20,16 +23,33 @@ export default function Home() {
     return () => { activo = false }
   }, [])
 
+  function usarMiUbicacion() {
+    if (!navigator.geolocation) { setUbic('error'); return }
+    setUbic('cargando')
+    navigator.geolocation.getCurrentPosition(
+      pos => { setCoord({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setUbic('ok') },
+      () => setUbic('error'),
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
+
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase()
-    if (!q) return locales
-    return locales.filter(l => {
+    const base = !q ? locales : locales.filter(l => {
       const enNombre = l.nombre?.toLowerCase().includes(q)
       const enDesc = l.descripcion?.toLowerCase().includes(q)
       const enCats = (l.categorias || []).some(c => c.nombre?.toLowerCase().includes(q))
       return enNombre || enDesc || enCats
     })
-  }, [locales, busqueda])
+    // Distancia + orden por cercanía si el cliente compartió ubicación.
+    const conDist = base.map(l => ({ ...l, distancia: coord ? distanciaKm(l.ubicacion, coord) : null }))
+    if (!coord) return conDist
+    return conDist.sort((a, b) => {
+      if (a.distancia == null) return 1
+      if (b.distancia == null) return -1
+      return a.distancia - b.distancia
+    })
+  }, [locales, busqueda, coord])
 
   return (
     <div className="home">
@@ -62,6 +82,17 @@ export default function Home() {
             onChange={e => setBusqueda(e.target.value)}
           />
         </div>
+
+        <button
+          className={`home-ubic ${ubic === 'ok' ? 'on' : ''}`}
+          onClick={usarMiUbicacion}
+          disabled={ubic === 'cargando'}
+        >
+          📍 {ubic === 'cargando' ? 'Buscando…'
+            : ubic === 'ok' ? 'Ordenado por cercanía'
+            : ubic === 'error' ? 'No pudimos ubicarte · reintentar'
+            : 'Ver los más cercanos a mí'}
+        </button>
 
         {estado === 'cargando' && (
           <div className="home-skeletons">
@@ -101,9 +132,14 @@ export default function Home() {
                     <div className="loc-card-info">
                       <h3>{l.nombre}</h3>
                       {l.descripcion && <p>{l.descripcion}</p>}
-                      <span className={`loc-chip ${abierto ? 'on' : 'off'}`}>
-                        {abierto ? 'Abierto ahora' : 'Cerrado'}
-                      </span>
+                      <div className="loc-chips">
+                        <span className={`loc-chip ${abierto ? 'on' : 'off'}`}>
+                          {abierto ? 'Abierto ahora' : 'Cerrado'}
+                        </span>
+                        {l.distancia != null && (
+                          <span className="loc-chip dist">a {l.distancia.toFixed(1)} km</span>
+                        )}
+                      </div>
                     </div>
                     <span className="loc-card-go">›</span>
                   </Link>
