@@ -772,14 +772,14 @@ TODO TOCA IRLO PROBANDO PERO NO QUIERO VERSIONES DE PRUEBA NI DEMOS SI NO ESTO Y
   *(Alternativa: una vez desplegadas las reglas, activarlo a mano desde `/superadmin`.)*
 - [ ] **Probar el flujo nuevo de punta a punta:** entrar a `/cuenta` con jostivtrb@gmail.com → ver el panel 👑 → activar/desactivar `burgerdemo` → confirmar que aparece/desaparece en el inicio. Probar también iniciar sesión como cliente y que se guarden los datos del checkout.
 
-### 🛵 SIGUIENTE TAREA DE PRODUCTO (acordada para mañana)
+### 🛵 TAREA DE PRODUCTO
 
-- [ ] **Que el local configure sus tarifas de domicilio por radio desde su panel.**
-  Hoy las tarifas por intervalos de 0.5 km (`domicilio.tarifas`) y el `maxKm` los configura Appetic en el seed; el motor de cobro ya funciona (`utils/delivery.js`). Falta una sección en `/:slug/admin` → Configuración para que el dueño edite esas tarifas y la distancia máxima él mismo (sin depender de nosotros).
+- [x] ✅ **Que el local configure sus tarifas de domicilio por radio desde su panel.** *(Hecho 2026-06-27)*
+  En `/:slug/admin` → Configuración el dueño ya fija la ubicación del local (GPS), la distancia máxima y el precio por cada tramo de 0,5 km, con un botón para copiar un precio a los tramos siguientes. Sin depender de Appetic.
 
 ### 🔵 CAPA 2 — lo que falta para completarla
 
-- [ ] **Filtro por GPS / radio en el buscador del inicio** (D4/B1): hoy el inicio muestra *todos* los locales con suscripción; falta ordenarlos/filtrarlos por la distancia al cliente (reusar `utils/geo.js` Haversine).
+- [x] ✅ **Filtro por GPS / radio en el buscador del inicio** (D4/B1) *(Hecho 2026-06-27)*: el inicio tiene botón "ver los más cercanos a mí" que ordena por distancia (Haversine) y muestra los km en cada tarjeta. *(Mejora futura: ocultar los que están fuera de un radio máximo.)*
 - [ ] **Cobro real de la suscripción** (D6, pregunta abierta línea 130): hoy el superadmin activa/desactiva a mano. Falta definir **precio** y conectar una **pasarela** (Wompi/MercadoPago) para cobrarles a los locales. *Precio: aún "suave/leve", sin número.*
 - [ ] **Beneficios del cliente registrado** (pregunta abierta línea 134): ya se guardan nombre/teléfono/dirección. Faltan extras como **favoritos** e **historial de pedidos**.
 - [ ] **Kit de Bienvenida del local** (§7): producción manual (QR, plantillas de WhatsApp, artes de Instagram, tarjeta de empaque). Aún no se ha armado para ningún local.
@@ -797,3 +797,5 @@ TODO TOCA IRLO PROBANDO PERO NO QUIERO VERSIONES DE PRUEBA NI DEMOS SI NO ESTO Y
 - ✅ **Bug horario:** fuera de horario el cliente ve el menú pero no puede pedir (antes no se aplicaba).
 - ✅ **Bug foto:** la foto se guarda al *crear* un producto (antes solo al editar).
 - ✅ **Capa 2 base:** login por roles (`/cuenta`), buscador en el inicio, panel de superadmin (`/superadmin`), perfil del cliente.
+- ✅ **Domicilio por radio editable por el local** desde su panel (ubicación + distancia máxima + precio por tramo de 0,5 km).
+- ✅ **GPS en el buscador:** ordena los locales por cercanía y muestra la distancia.
