@@ -26,6 +26,8 @@ export default function AdminConfig({ local, onUpdate }) {
   const [guardado, setGuardado] = useState(false)
 
   const keys = useMemo(() => intervalosHasta(maxKm), [maxKm])
+  // ¿Algún tramo mostrará el botón ↓? (tiene precio y hay vacíos debajo)
+  const hayFill = keys.some((k, i) => !!tarifas[k] && keys.slice(i + 1).some(kk => !tarifas[kk]))
 
   function setTarifa(key, valor) {
     setTarifas(t => ({ ...t, [key]: valor.replace(/\D/g, '') }))
@@ -134,24 +136,30 @@ export default function AdminConfig({ local, onUpdate }) {
             <div className="ac-tarifas-head">
               <span>Hasta…</span><span>Precio del domicilio</span>
             </div>
-            {keys.map(k => (
-              <div key={k} className="ac-tarifa-row">
-                <span className="ac-tarifa-km">{k} km</span>
-                <div className="ac-tarifa-input">
-                  <span className="ac-tarifa-cur">$</span>
-                  <input
-                    inputMode="numeric"
-                    placeholder="0"
-                    value={tarifas[k] || ''}
-                    onChange={e => setTarifa(k, e.target.value)}
-                  />
-                  <button className="ac-tarifa-fill" onClick={() => rellenarDesde(k)} title="Copiar este precio a los tramos siguientes vacíos">↓</button>
+            {keys.map((k, i) => {
+              // El ↓ solo sirve si esta fila tiene precio y hay tramos vacíos debajo.
+              const mostrarFill = !!tarifas[k] && keys.slice(i + 1).some(kk => !tarifas[kk])
+              return (
+                <div key={k} className="ac-tarifa-row">
+                  <span className="ac-tarifa-km">{k} km</span>
+                  <div className="ac-tarifa-input">
+                    <span className="ac-tarifa-cur">$</span>
+                    <input
+                      inputMode="numeric"
+                      placeholder="0"
+                      value={tarifas[k] || ''}
+                      onChange={e => setTarifa(k, e.target.value)}
+                    />
+                    {mostrarFill && (
+                      <button className="ac-tarifa-fill" onClick={() => rellenarDesde(k)} title="Copiar este precio a los tramos de abajo que estén vacíos">↓</button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
             {keys.length === 0 && <p className="ac-hint">Sube la distancia máxima para definir tramos.</p>}
           </div>
-          <p className="ac-hint">El botón ↓ copia ese precio a los tramos de abajo que estén vacíos.</p>
+          {hayFill && <p className="ac-hint">El botón ↓ copia ese precio a los tramos de abajo que estén vacíos.</p>}
         </section>
       )}
 
