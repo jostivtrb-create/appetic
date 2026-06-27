@@ -1,13 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useCart } from '../../contexts/CartContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { cop } from '../../utils/money'
 import { calcularDomicilio } from '../../utils/delivery'
 import { urlPedidoWhatsApp } from '../../utils/whatsapp'
 import { registrarPedido } from '../../services/pedidos'
+import { getPerfil, guardarPerfil } from '../../services/usuarios'
 import './Checkout.css'
 
 export default function Checkout({ local, onClose, abierto = true }) {
   const { items, subtotal, clear } = useCart()
+  const { user } = useAuth()
   const permiteDomicilio = local.domicilio?.activo
   const permiteRecoger = local.recoger !== false
 
@@ -22,6 +25,19 @@ export default function Checkout({ local, onClose, abierto = true }) {
   const [notas, setNotas] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [exito, setExito] = useState(null) // { url }
+
+  // Prellenar con los datos guardados del cliente (si inició sesión).
+  useEffect(() => {
+    if (!user) return
+    let activo = true
+    getPerfil(user.uid).then(p => {
+      if (!activo || !p) return
+      setNombre(prev => prev || p.nombre || user.displayName || '')
+      setTelefono(prev => prev || p.telefono || '')
+      setDireccion(prev => prev || p.direccion || '')
+    })
+    return () => { activo = false }
+  }, [user])
 
   const domicilio = useMemo(
     () => (entrega === 'domicilio' ? calcularDomicilio(local, coord) : null),
@@ -68,6 +84,15 @@ export default function Checkout({ local, onClose, abierto = true }) {
     }
     // Registro de métricas (best-effort, no en el local de prueba)
     if (local.id !== 'demo') registrarPedido(local.id, pedido)
+
+    // Guardar datos del cliente para la próxima (si inició sesión).
+    if (user) {
+      guardarPerfil(user.uid, {
+        nombre: nombre.trim(),
+        telefono: telefono.trim(),
+        direccion: direccion.trim(),
+      })
+    }
 
     const url = urlPedidoWhatsApp(local, pedido)
     window.open(url, '_blank')

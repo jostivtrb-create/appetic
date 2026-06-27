@@ -21,3 +21,24 @@ export async function getLocalBySlug(slug) {
   const docSnap = snap.docs[0]
   return { id: docSnap.id, ...docSnap.data() }
 }
+
+/**
+ * Locales visibles en el buscador del inicio (Capa 2): solo los que tienen
+ * suscripción activa. 1 sola lectura, sin listeners (cuida costos D32).
+ */
+export async function getLocalesExplorador() {
+  const q = query(collection(db, 'locales'), where('suscripcion.activa', '==', true))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+/**
+ * Locales que administra un correo (para enrutar al panel desde la cuenta).
+ * Devuelve [] si no administra ninguno.
+ */
+export async function getLocalesDeAdmin(email) {
+  if (!email) return []
+  const q = query(collection(db, 'locales'), where('admins', 'array-contains', email))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}

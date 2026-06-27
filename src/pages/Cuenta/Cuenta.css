@@ -1,0 +1,177 @@
+/* ===== Login (sin sesión) ===== */
+.cuenta-login {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 22px calc(32px + env(safe-area-inset-bottom));
+  overflow: hidden;
+  background:
+    radial-gradient(120% 60% at 50% -10%, var(--brand-orange-tint), transparent 60%),
+    var(--bg);
+}
+.cuenta-login-glow {
+  position: absolute;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  background: var(--brand-orange-soft);
+  filter: blur(80px);
+  opacity: 0.4;
+  top: -90px; right: -80px;
+  pointer-events: none;
+}
+.cuenta-volver {
+  position: absolute;
+  top: calc(16px + env(safe-area-inset-top));
+  left: 18px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+.cuenta-login-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 30px 24px;
+  text-align: center;
+  animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.cuenta-login-logo { width: 76px; height: 76px; border-radius: 20px; margin: 0 auto 16px; box-shadow: var(--shadow); }
+.cuenta-login-card h1 { font-size: 23px; font-weight: 800; color: var(--text); }
+.cuenta-login-card p { margin-top: 8px; font-size: 14.5px; color: var(--text-soft); line-height: 1.5; }
+
+.cuenta-google {
+  width: 100%;
+  margin-top: 22px;
+  background: #fff;
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.cuenta-google:active { transform: scale(0.98); }
+
+.cuenta-beneficios {
+  margin-top: 22px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cuenta-beneficios li { font-size: 13.5px; color: var(--text-soft); }
+
+/* ===== Con sesión ===== */
+.cuenta {
+  min-height: 100dvh;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: calc(14px + env(safe-area-inset-top)) 18px calc(40px + env(safe-area-inset-bottom));
+  background: var(--bg);
+}
+.cuenta-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.cuenta-volver-chip {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 22px;
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+.cuenta-top h1 { font-size: 22px; font-weight: 800; color: var(--text); }
+
+.cuenta-perfil {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.cuenta-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; flex: none; }
+.cuenta-avatar-fallback {
+  display: grid; place-items: center;
+  background: linear-gradient(135deg, var(--brand-orange-soft), var(--brand-orange-strong));
+  color: #fff; font-size: 22px; font-weight: 800;
+}
+.cuenta-perfil-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cuenta-perfil-info strong { font-size: 16px; font-weight: 800; color: var(--text); }
+.cuenta-perfil-info span { font-size: 13px; color: var(--text-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cuenta-salir {
+  flex: none;
+  font-size: 13px; font-weight: 700;
+  color: var(--danger);
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+
+/* Accesos por rol */
+.cuenta-rol {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 15px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  background: var(--surface);
+}
+.cuenta-rol:active { transform: scale(0.99); }
+.cuenta-rol-admin {
+  background: linear-gradient(135deg, #2A211C, #43352c);
+  border-color: transparent;
+  color: #fff;
+}
+.cuenta-rol-admin span { color: rgba(255,255,255,0.7); }
+.cuenta-rol-emoji { font-size: 26px; flex: none; }
+.cuenta-rol div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cuenta-rol strong { font-size: 15.5px; font-weight: 800; }
+.cuenta-rol div span { font-size: 12.5px; color: var(--text-soft); }
+.cuenta-rol-go { font-size: 24px; font-weight: 700; opacity: 0.6; }
+
+/* Datos del cliente */
+.cuenta-datos {
+  margin-top: 24px;
+  padding: 18px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.cuenta-datos h2 { font-size: 17px; font-weight: 800; color: var(--text); }
+.cuenta-datos-hint { font-size: 13px; color: var(--text-soft); margin: 4px 0 14px; }
+.cuenta-datos label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-soft);
+  margin-bottom: 12px;
+}
+.cuenta-datos input {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+.cuenta-datos input:focus { outline: 2px solid var(--brand-orange-soft); background: #fff; }
+.cuenta-guardar { width: 100%; margin-top: 4px; }
