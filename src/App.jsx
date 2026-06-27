@@ -3,10 +3,12 @@ import Home from './pages/Home/Home.jsx'
 import LocalPage from './pages/Local/LocalPage.jsx'
 import AdminPage from './pages/Admin/AdminPage.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
+import InstallPrompt from './components/InstallPrompt/InstallPrompt.jsx'
 
 export default function App() {
   return (
     <div className="app-shell">
+      <InstallPrompt />
       <Routes>
         {/* Inicio / bienvenida de marca (el explorador llega en la Capa 2) */}
         <Route path="/" element={<Home />} />
