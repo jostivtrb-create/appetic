@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { getLocalBySlug } from '../../services/locales'
 import { getProductos } from '../../services/productos'
+import { registrarVisita } from '../../services/stats'
 import { CartProvider } from '../../contexts/CartContext'
 import LocalMenu from './LocalMenu'
 import './LocalPage.css'
@@ -30,11 +31,14 @@ export default function LocalPage() {
       const data = await getLocalBySlug(slug)
       if (!activo) return
       if (!data) { setEstado('no-existe'); return }
-      const prods = await getProductos(data.id)
+      // Caché del menú por versión: si no cambió, no re-lee los productos.
+      const prods = await getProductos(data.id, data.menuVersion)
       if (!activo) return
       setLocal(data)
       setProductos(prods)
       setEstado('ok')
+      // Cuenta la visita (1 vez por sesión, best-effort, no bloquea la carga).
+      registrarVisita(data.id)
     }
 
     cargar().catch(err => {

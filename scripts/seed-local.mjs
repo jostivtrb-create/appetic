@@ -47,6 +47,7 @@ const LOCAL = {
   // Suscripción (Capa 2): controla si aparece en el buscador del inicio.
   // Lo activas/desactivas desde /superadmin. true = visible en el explorador.
   suscripcion: { activa: true, plan: 'piloto' },
+  menuVersion: 1,
 }
 
 const PRODUCTOS = [

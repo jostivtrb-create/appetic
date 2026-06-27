@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { getLocalBySlug } from '../../services/locales'
 import { getProductos } from '../../services/productos'
 import {
-  agregarProducto, actualizarProducto, borrarProducto, actualizarLocal, obtenerMetricas,
+  agregarProducto, actualizarProducto, borrarProducto, actualizarLocal,
 } from '../../services/adminLocal'
 import { subirFotoProducto } from '../../services/storage'
 import AdminProductos from './AdminProductos'
@@ -149,7 +149,7 @@ export default function AdminPage() {
           />
         )}
         {tab === 'config' && <AdminConfig local={local} onUpdate={updateLocal} />}
-        {tab === 'metricas' && <AdminMetricas local={local} demo={demo} obtener={obtenerMetricas} />}
+        {tab === 'metricas' && <AdminMetricas local={local} demo={demo} />}
       </main>
 
       <Link to={`/${slug}`} className="admin-ver-menu">👁️ Ver mi menú</Link>

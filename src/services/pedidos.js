@@ -1,11 +1,15 @@
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../config/firebase'
+import { registrarPedidoStats } from './stats'
 
-// 📊 Registra un pedido ANÓNIMO para métricas (D12): nº de pedidos y $ estimado.
+// 📊 Registra un pedido ANÓNIMO (D12): nº de pedidos y $ estimado.
 // Mide intención (pedidos enviados a WhatsApp), no venta confirmada.
 // Best-effort: si falla, NO debe romper el flujo del cliente.
-// Guarda lo mínimo (sin datos personales) para no inflar costos ni exponer privacidad.
+// - Suma a los contadores de stats (lectura barata para el panel).
+// - Guarda además el pedido (mínimo, sin datos personales) por si luego se usa.
 export async function registrarPedido(localId, pedido) {
+  // Contadores (lo que el panel lee de forma barata).
+  registrarPedidoStats(localId, pedido.total)
   try {
     await addDoc(collection(db, 'locales', localId, 'pedidos'), {
       total: pedido.total,

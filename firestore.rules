@@ -1,8 +1,9 @@
 rules_version = '2';
 
 // Última actualización: 2026-06-27
-// Último cambio: Capa 2 — colección usuarios/{uid} (perfil + favoritos, solo el dueño),
-//   rol superadmin (gestiona suscripciones de locales) y update de locales por superadmin.
+// Último cambio: subcolección stats/{dia} (contadores de visitas/pedidos/monto):
+//   lectura solo del admin del local; escritura anónima acotada a esos campos.
+//   (Antes: Capa 2 — usuarios/{uid}, superadmin.)
 //
 // 🔒 Reglas de Appetic
 // - Menú (locales/productos): lectura pública (los clientes ven sin login).
@@ -45,6 +46,13 @@ service cloud.firestore {
                       && request.resource.data.total >= 0;
         allow read: if esAdminDe(localId);
         allow update, delete: if false;
+      }
+
+      match /stats/{statId} {
+        // Contadores (visitas/pedidos/monto). El cliente los incrementa anónimo;
+        // solo el admin del local los lee. Escritura acotada a esos campos.
+        allow read: if esAdminDe(localId);
+        allow write: if request.resource.data.keys().hasOnly(['fecha', 'visitas', 'pedidos', 'monto']);
       }
     }
   }

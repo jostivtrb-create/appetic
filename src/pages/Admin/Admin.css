@@ -219,3 +219,24 @@
 }
 .am-num { display: block; font-size: 26px; font-weight: 800; color: var(--brand-orange-strong); }
 .am-label { font-size: 12.5px; color: var(--text-soft); font-weight: 600; }
+
+/* ===== Métricas (ampliado) ===== */
+.am-sec { font-size: 14px; font-weight: 800; color: var(--text); margin: 20px 0 10px; }
+.am-sec:first-child { margin-top: 2px; }
+.am-card { padding: 16px 8px; }
+.am-num { font-size: 22px; }
+.am-money { font-size: 15.5px; }
+.am-tabla { display: flex; flex-direction: column; gap: 6px; }
+.am-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+}
+.am-fila-fecha { font-weight: 800; min-width: 56px; }
+.am-fila-dato { color: var(--text-soft); }
+.am-fila-monto { margin-left: auto; font-weight: 800; color: var(--text); }
