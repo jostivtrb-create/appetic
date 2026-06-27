@@ -760,17 +760,9 @@ TODO TOCA IRLO PROBANDO PERO NO QUIERO VERSIONES DE PRUEBA NI DEMOS SI NO ESTO Y
 
 ### 🌅 PARA MAÑANA (cuando esté en el PC) — acción de Camilo
 
-- [ ] **Desplegar las reglas de Firestore** (¡importante! sin esto la Capa 2 nueva da "permiso denegado").
-  Cambiamos `firestore.rules` para que: (a) el **superadmin** (jostivtrb@gmail.com) pueda activar/desactivar suscripciones, y (b) cada **cliente** guarde su perfil en `usuarios/{uid}`. Comando:
-  ```
-  firebase deploy --only firestore:rules
-  ```
-- [ ] **Re-sembrar el local piloto** para que salga en el buscador del inicio (ya tiene `suscripcion.activa: true` en el seed):
-  ```
-  node scripts/seed-local.mjs
-  ```
-  *(Alternativa: una vez desplegadas las reglas, activarlo a mano desde `/superadmin`.)*
-- [ ] **Probar el flujo nuevo de punta a punta:** entrar a `/cuenta` con jostivtrb@gmail.com → ver el panel 👑 → activar/desactivar `burgerdemo` → confirmar que aparece/desaparece en el inicio. Probar también iniciar sesión como cliente y que se guarden los datos del checkout.
+- [x] ✅ **Reglas de Firestore desplegadas** *(2026-06-27)* — `usuarios/{uid}` (perfil + favoritos) y superadmin ya tienen permisos. Activo en producción.
+- [x] ✅ **Local piloto re-sembrado** *(2026-06-27)* — `burgerdemo` con `suscripcion.activa: true`. **Verificado:** ya aparece en el buscador del inicio.
+- [ ] **Probar el flujo nuevo de punta a punta** *(acción de Camilo — requiere login Google)*: entrar a `/cuenta` con jostivtrb@gmail.com → ver el panel 👑 → activar/desactivar `burgerdemo` → confirmar que aparece/desaparece en el inicio. Probar también iniciar sesión como cliente y que se guarden los datos del checkout y los favoritos. *(Las reglas y el seed ya están listos, así que esto ya debería funcionar.)*
 
 ### 🛵 TAREA DE PRODUCTO
 
