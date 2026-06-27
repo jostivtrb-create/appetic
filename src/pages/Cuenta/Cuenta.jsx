@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { useFavoritos } from '../../contexts/FavoritosContext'
 import { esSuperadmin } from '../../config/roles'
 import { getLocalesDeAdmin } from '../../services/locales'
 import { getPerfil, guardarPerfil } from '../../services/usuarios'
@@ -9,6 +10,7 @@ import './Cuenta.css'
 
 export default function Cuenta() {
   const { user, cargando, entrar, salir } = useAuth()
+  const { favoritos } = useFavoritos()
 
   const [misLocales, setMisLocales] = useState([])
   const [perfil, setPerfil] = useState({ nombre: '', telefono: '', direccion: '' })
@@ -113,6 +115,23 @@ export default function Cuenta() {
           <span className="cuenta-rol-go">›</span>
         </Link>
       ))}
+
+      {/* Favoritos */}
+      {favoritos.length > 0 && (
+        <section className="cuenta-favs">
+          <h2>❤️ Mis favoritos</h2>
+          <div className="cuenta-favs-lista">
+            {favoritos.map(f => (
+              <Link key={f.id} to={`/${f.slug}`} className="cuenta-fav">
+                <div className="cuenta-fav-logo">
+                  {f.logo ? <img src={f.logo} alt="" /> : <span>🍽️</span>}
+                </div>
+                <strong>{f.nombre}</strong>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Datos del cliente */}
       <section className="cuenta-datos">

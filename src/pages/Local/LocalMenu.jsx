@@ -8,6 +8,7 @@ import ProductCard from '../../components/Menu/ProductCard'
 import ProductModal from '../../components/Menu/ProductModal'
 import CartButton from '../../components/Cart/CartButton'
 import CartDrawer from '../../components/Cart/CartDrawer'
+import BotonFavorito from '../../components/Favorito/BotonFavorito'
 import Checkout from '../Checkout/Checkout'
 
 export default function LocalMenu({ local, productos }) {
@@ -86,6 +87,7 @@ export default function LocalMenu({ local, productos }) {
       <header className="local-hero">
         {local.banner && <img className="local-banner" src={local.banner} alt="" />}
         <div className="local-hero-overlay" />
+        <BotonFavorito local={local} variante="hero local-hero-fav" />
         <div className="local-hero-content">
           {local.logo && <img className="local-logo" src={local.logo} alt={local.nombre} />}
           <h1 className="local-name">{local.nombre}</h1>

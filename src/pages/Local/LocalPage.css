@@ -23,6 +23,12 @@
   position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.05));
 }
+.local-hero-fav {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top));
+  right: 14px;
+  z-index: 3;
+}
 .local-hero-content {
   position: relative;
   z-index: 1;
