@@ -8,8 +8,10 @@
 - **Estado:** Fases 1–6 ✅ respondidas y consolidadas → **Checklist de Preparación** (paso previo a programar)
 - **Nombre de la app:** 🎉 **APPETIC** (logo en `assets/brand/appetic-logo.png`)
 - **Forma de lanzar:** app **completa y funcional** (Capa 1), sin demos. Ver D36.
-- **🛠️ Construcción:** ✅ **Capa 1 CODE-COMPLETE** — Etapa 1 (esqueleto) · 2 (menú+carrito) · 3 (checkout+WhatsApp) · 4 (panel del local). Repo: `jostivtrb-create/appetic` (commit 7860c16). Todo verificado en DEV con slug `demo`.
-  - **Falta para SALIR EN VIVO (pasos en la nube, requieren a Camilo):** (1) desplegar `firestore.rules` con `firebase login`; (2) crear el local piloto real en Firestore (doc + productos + `admins`); (3) desplegar a Vercel; (4) autorizar el dominio en Firebase Auth.
+- **🛠️ Construcción:** ✅ **Capa 1 COMPLETA Y EN VIVO** 🎉 — Etapas 1-4. Repo: `jostivtrb-create/appetic`.
+  - 🌐 **EN PRODUCCIÓN:** https://appetic.vercel.app · Local piloto: **/burgerdemo** · Panel: **/burgerdemo/admin** (admin: jostivtrb@gmail.com)
+  - ✅ Reglas Firestore desplegadas · ✅ Local piloto creado · ✅ Desplegado en Vercel (env vars OK) · ✅ Dominio autorizado en Firebase Auth
+  - Firebase proyecto: `appetic-17477`. Alta de locales: `node scripts/seed-local.mjs` (necesita `scripts/serviceAccount.json`, gitignored).
 
 ---
 
