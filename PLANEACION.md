@@ -116,6 +116,8 @@ El producto se construye en **dos capas**:
 | D38 | Local piloto | Camilo **ya tiene un local en mente**; el siguiente paso comercial es **hablar con él** para conseguir su menú e info (formulario de intake). | 2026-06-26 |
 | D39 | Entrega estándar (Kit de Bienvenida) | A cada local se le entrega **siempre el Kit completo (A+B+C+D)**: link, QR, acceso al panel, plantillas de WhatsApp, artes de Instagram, QR impreso, tarjeta de empaque y mini guía. **Producción manual por local** (con skills de imagen). Detalle en §7. | 2026-06-26 |
 | D40 | Formulario de intake | Antes de montar un local se le pide SIEMPRE lo mismo: logo, fotos, menú con precios, WhatsApp, horario, zonas+precios de domicilio, métodos de pago (llaves/números), preferencia de colores. Detalle en §7. | 2026-06-26 |
+| D41 | Cobro de suscripción | **Manual con el local** (sin pasarela ni cobro automático por ahora). El superadmin activa/desactiva la visibilidad a mano y el cobro se acuerda directo con el negocio. Pasarela: solo si algún día hay volumen. | 2026-06-27 |
+| D42 | Cliente registrado → estadísticas | El foco del registro es darle al local **buenas estadísticas** (visitas, pedidos, monto estimado: hoy/acumulado/por día) con **contadores baratos** (⛔ D32). Implementado en `services/stats.js`. | 2026-06-27 |
 
 ---
 
@@ -772,14 +774,14 @@ TODO TOCA IRLO PROBANDO PERO NO QUIERO VERSIONES DE PRUEBA NI DEMOS SI NO ESTO Y
 ### 🔵 CAPA 2 — lo que falta para completarla
 
 - [x] ✅ **Filtro por GPS / radio en el buscador del inicio** (D4/B1) *(Hecho 2026-06-27)*: el inicio tiene botón "ver los más cercanos a mí" que ordena por distancia (Haversine) y muestra los km en cada tarjeta. *(Mejora futura: ocultar los que están fuera de un radio máximo.)*
-- [ ] **Cobro real de la suscripción** (D6, pregunta abierta línea 130): hoy el superadmin activa/desactiva a mano. Falta definir **precio** y conectar una **pasarela** (Wompi/MercadoPago) para cobrarles a los locales. *Precio: aún "suave/leve", sin número.*
-- [~] **Beneficios del cliente registrado** (pregunta abierta línea 134): ya se guardan nombre/teléfono/dirección **y favoritos** ✅. Falta el **historial de pedidos** (hoy los pedidos se guardan anónimos sin vínculo al cliente; habría que registrar también el pedido en su perfil).
+- [x] ✅ **Cobro de la suscripción = MANUAL con el local** *(decisión 2026-06-27, D41)*. **NO** se hace pasarela ni cobro automático por ahora: el superadmin activa/desactiva a mano y el cobro se acuerda directo con el negocio. (Si algún día hay volumen, se revisa una pasarela).
+- [x] ✅ **Beneficios del cliente registrado → enfocado en ESTADÍSTICAS para el local** *(decisión 2026-06-27, D42)*. Hecho: visitas, pedidos y monto estimado (hoy/acumulado/por día) con **contadores baratos** (no leen toda la colección). Ya se guardan nombre/teléfono/dirección y favoritos. *(Historial de pedidos del cliente: aún pendiente, opcional).*
 - [ ] **Kit de Bienvenida del local** (§7): producción manual (QR, plantillas de WhatsApp, artes de Instagram, tarjeta de empaque). Aún no se ha armado para ningún local.
 
 ### 🧹 DEUDAS TÉCNICAS (no urgentes, pero anotadas — ⛔ ojo costos D32)
 
-- [ ] **Métricas del local** leen *toda* la subcolección `pedidos` cada vez (`adminLocal.js` → `obtenerMetricas`). Con mucho volumen sube el costo de lecturas; cambiar a un **contador incremental** si crece.
-- [ ] **Regla de `pedidos`** permite crear casi libremente (vector de spam que infla métricas/costos). Endurecer validación (campos/tamaño) más adelante.
+- [x] ✅ **Métricas por contadores incrementales** *(2026-06-27)* — ya NO se lee toda la colección de pedidos. `services/stats.js` mantiene `stats/total` y `stats/d_YYYY-MM-DD`; el panel lee ~8 docs fijos. **Auditoría D32 hecha:** sin listeners en tiempo real; menú con caché por versión (visitas repetidas ~1 lectura).
+- [ ] **Reglas de `pedidos` y `stats`** permiten crear/escribir casi libremente (vector de spam que infla métricas/costos). Endurecer validación (rate, montos, increment exacto) cuando haya volumen.
 - [ ] **Autonomía del local en el panel:** hoy no edita desde su panel las tarifas de domicilio, los métodos de pago, ni los precios de adicionales/combos (solo precio base y tamaños). Es a propósito (D18), pero revisar cuánto darle.
 
 ### ✅ HECHO RECIENTEMENTE (2026-06-27)
@@ -792,3 +794,4 @@ TODO TOCA IRLO PROBANDO PERO NO QUIERO VERSIONES DE PRUEBA NI DEMOS SI NO ESTO Y
 - ✅ **Domicilio por radio editable por el local** desde su panel (ubicación + distancia máxima + precio por tramo de 0,5 km).
 - ✅ **GPS en el buscador:** ordena los locales por cercanía y muestra la distancia.
 - ✅ **Favoritos del cliente:** corazón en los locales + sección "Mis favoritos" en la cuenta (persiste al desplegar las reglas).
+- ✅ **Auditoría de costos Firebase (D32) + estadísticas:** contadores incrementales para visitas/pedidos/monto (no se lee toda la colección), conteo de visitas 1×sesión, caché del menú por versión, panel de métricas ampliado (hoy/acumulado/por día). Reglas de `stats` desplegadas.
