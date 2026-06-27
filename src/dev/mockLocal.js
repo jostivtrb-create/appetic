@@ -15,6 +15,23 @@ export const MOCK_LOCAL = {
     primarySoft: '#F6A45C',
     onPrimary: '#FFFFFF',
   },
+  // Ubicación del local (para calcular el domicilio por distancia)
+  ubicacion: { lat: 4.6486, lng: -74.0639 },
+  horario: { abre: '11:00', cierra: '22:00' },
+  recoger: true,
+  domicilio: {
+    activo: true,
+    maxKm: 5,
+    tarifas: {
+      '0.5': 2000, '1.0': 2000, '1.5': 3500, '2.0': 4000, '2.5': 4500,
+      '3.0': 5000, '3.5': 7500, '4.0': 10000, '4.5': 12500, '5.0': 15000,
+    },
+  },
+  pagos: [
+    { id: 'efectivo', nombre: 'Efectivo', tipo: 'efectivo' },
+    { id: 'nequi', nombre: 'Nequi / Daviplata', tipo: 'transferencia', llave: '3234971723' },
+    { id: 'datafono', nombre: 'Datáfono al recibir', tipo: 'datafono' },
+  ],
   categorias: [
     { id: 'hamburguesas', nombre: 'Hamburguesas', emoji: '🍔' },
     { id: 'salchipapas', nombre: 'Salchipapas', emoji: '🍟' },

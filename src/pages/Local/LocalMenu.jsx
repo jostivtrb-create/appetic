@@ -7,11 +7,13 @@ import ProductCard from '../../components/Menu/ProductCard'
 import ProductModal from '../../components/Menu/ProductModal'
 import CartButton from '../../components/Cart/CartButton'
 import CartDrawer from '../../components/Cart/CartDrawer'
+import Checkout from '../Checkout/Checkout'
 
 export default function LocalMenu({ local, productos }) {
   const { addItem } = useCart()
   const [modalProducto, setModalProducto] = useState(null)
   const [drawerAbierto, setDrawerAbierto] = useState(false)
+  const [checkoutAbierto, setCheckoutAbierto] = useState(false)
   const [toast, setToast] = useState('')
 
   // Categorías: usar las del local o derivarlas de los productos
@@ -68,8 +70,7 @@ export default function LocalMenu({ local, productos }) {
 
   function irACheckout() {
     setDrawerAbierto(false)
-    // 🚧 El checkout llega en la Etapa 3
-    mostrarToast('El pago/envío llega en el siguiente paso 🚧')
+    setCheckoutAbierto(true)
   }
 
   return (
@@ -117,6 +118,10 @@ export default function LocalMenu({ local, productos }) {
         onCerrar={() => setDrawerAbierto(false)}
         onCheckout={irACheckout}
       />
+
+      {checkoutAbierto && (
+        <Checkout local={local} onClose={() => setCheckoutAbierto(false)} />
+      )}
 
       {toast && <div className="local-toast">{toast}</div>}
     </div>

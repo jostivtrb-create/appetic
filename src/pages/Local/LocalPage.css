@@ -1,5 +1,9 @@
 /* ===== Local cargado ===== */
-.local-page { min-height: 100dvh; animation: rise 0.5s ease both; }
+/* Nota: NO usar animaciones con transform aquí. Un transform en este contenedor
+   crea un "containing block" que rompe el position:fixed de los overlays
+   (modal, carrito, checkout, botón flotante). Solo opacidad. */
+.local-page { min-height: 100dvh; animation: appear 0.35s ease both; }
+@keyframes appear { from { opacity: 0; } to { opacity: 1; } }
 
 .local-hero {
   position: relative;

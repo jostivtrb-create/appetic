@@ -8,7 +8,7 @@
 - **Estado:** Fases 1–6 ✅ respondidas y consolidadas → **Checklist de Preparación** (paso previo a programar)
 - **Nombre de la app:** 🎉 **APPETIC** (logo en `assets/brand/appetic-logo.png`)
 - **Forma de lanzar:** app **completa y funcional** (Capa 1), sin demos. Ver D36.
-- **🛠️ Construcción:** ✅ Etapa 1 (esqueleto + Firebase + GitHub) — repo: `jostivtrb-create/appetic`. → Etapa 2 (base multi-local + motor de menú).
+- **🛠️ Construcción:** ✅ Etapa 1 (esqueleto + Firebase + GitHub) · ✅ Etapa 2 (motor de menú + carrito). Repo: `jostivtrb-create/appetic`. → Etapa 3 (checkout: entrega, ubicación GPS, domicilio por zonas, pagos, mensaje a WhatsApp).
 
 ---
 
