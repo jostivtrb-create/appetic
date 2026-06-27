@@ -47,7 +47,8 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
           onCerrar={() => setEditando(null)}
           onGuardar={async (data, fotoFile) => {
             if (editando.nuevo) {
-              await onAdd({ disponible: true, ...data })
+              const nuevoId = await onAdd({ disponible: true, ...data })
+              if (fotoFile && nuevoId) await onFoto(nuevoId, fotoFile)
             } else {
               await onUpdate(editando.id, data)
               if (fotoFile) await onFoto(editando.id, fotoFile)

@@ -6,7 +6,7 @@ import { urlPedidoWhatsApp } from '../../utils/whatsapp'
 import { registrarPedido } from '../../services/pedidos'
 import './Checkout.css'
 
-export default function Checkout({ local, onClose }) {
+export default function Checkout({ local, onClose, abierto = true }) {
   const { items, subtotal, clear } = useCart()
   const permiteDomicilio = local.domicilio?.activo
   const permiteRecoger = local.recoger !== false
@@ -51,7 +51,7 @@ export default function Checkout({ local, onClose }) {
     if (!direccion.trim()) faltas.push('direccion')
     if (!domicilio?.ok) faltas.push('ubicacion')
   }
-  const valido = items.length > 0 && faltas.length === 0
+  const valido = items.length > 0 && faltas.length === 0 && abierto
 
   async function enviar() {
     if (!valido || enviando) return
@@ -195,7 +195,10 @@ export default function Checkout({ local, onClose }) {
       </div>
 
       <footer className="co-footer">
-        {!valido && items.length > 0 && (
+        {!abierto && (
+          <p className="co-hint">😴 El local está cerrado ahora. Abre a las {local.horario?.abre}.</p>
+        )}
+        {abierto && !valido && items.length > 0 && (
           <p className="co-hint">
             {faltas.includes('ubicacion') ? 'Falta tu ubicación · ' : ''}
             {faltas.includes('direccion') ? 'Falta la dirección · ' : ''}
@@ -205,7 +208,7 @@ export default function Checkout({ local, onClose }) {
           </p>
         )}
         <button className="btn btn-primary co-enviar" disabled={!valido || enviando} onClick={enviar}>
-          {enviando ? 'Enviando…' : `Enviar por WhatsApp · ${cop(total)}`}
+          {!abierto ? 'Cerrado ahora' : enviando ? 'Enviando…' : `Enviar por WhatsApp · ${cop(total)}`}
         </button>
       </footer>
     </div>

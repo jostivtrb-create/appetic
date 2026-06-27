@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { localThemeVars } from '../../utils/theme'
 import { useCart } from '../../contexts/CartContext'
 import { tieneOpciones } from '../../utils/price'
+import { estaAbierto } from '../../utils/horario'
 import CategoryNav from '../../components/Menu/CategoryNav'
 import ProductCard from '../../components/Menu/ProductCard'
 import ProductModal from '../../components/Menu/ProductModal'
@@ -30,6 +31,9 @@ export default function LocalMenu({ local, productos }) {
 
   const [catActiva, setCatActiva] = useState(categorias[0]?.id)
 
+  // Horario (D25): fuera de horario se ve el menú pero no se puede pedir.
+  const abierto = useMemo(() => estaAbierto(local.horario), [local.horario])
+
   // Productos agrupados por categoría
   const porCategoria = useMemo(() => {
     return categorias.map(cat => ({
@@ -48,6 +52,10 @@ export default function LocalMenu({ local, productos }) {
   }
 
   function pedirProducto(producto) {
+    if (!abierto) {
+      mostrarToast(`Cerrado ahora · abre a las ${local.horario?.abre}`)
+      return
+    }
     if (tieneOpciones(producto)) {
       setModalProducto(producto)
     } else {
@@ -85,6 +93,12 @@ export default function LocalMenu({ local, productos }) {
         </div>
       </header>
 
+      {!abierto && (
+        <div className="local-cerrado" role="status">
+          😴 <strong>Cerrado ahora.</strong> Puedes ver el menú; abre a las {local.horario?.abre}.
+        </div>
+      )}
+
       <CategoryNav categorias={categorias} activa={catActiva} onSelect={seleccionarCategoria} />
 
       <main className="local-body local-menu">
@@ -120,7 +134,7 @@ export default function LocalMenu({ local, productos }) {
       />
 
       {checkoutAbierto && (
-        <Checkout local={local} onClose={() => setCheckoutAbierto(false)} />
+        <Checkout local={local} abierto={abierto} onClose={() => setCheckoutAbierto(false)} />
       )}
 
       {toast && <div className="local-toast">{toast}</div>}

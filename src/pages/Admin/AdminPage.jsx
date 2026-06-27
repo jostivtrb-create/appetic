@@ -54,9 +54,10 @@ export default function AdminPage() {
 
   // ---- Operaciones (en demo solo tocan el estado; en real, Firestore + estado) ----
   async function addProducto(data) {
-    if (demo) { setProductos(p => [...p, { ...data, id: 'tmp-' + Date.now() }]); return }
+    if (demo) { const id = 'tmp-' + Date.now(); setProductos(p => [...p, { ...data, id }]); return id }
     const id = await agregarProducto(local.id, data)
     setProductos(p => [...p, { ...data, id }])
+    return id
   }
   async function updateProducto(id, cambios) {
     setProductos(p => p.map(x => x.id === id ? { ...x, ...cambios } : x))
