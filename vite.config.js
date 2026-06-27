@@ -11,6 +11,13 @@ export default defineConfig({
       includeAssets: ['icons/favicon.png', 'icons/apple-touch-icon.png'],
       // El service worker NO se activa en desarrollo (evita problemas de caché y de login).
       devOptions: { enabled: false },
+      workbox: {
+        // Activa la versión nueva de inmediato y borra las cachés viejas, para
+        // que la app instalada se actualice sola sin reinstalarla.
+        clientsClaim: true,
+        skipWaiting: true,
+        cleanupOutdatedCaches: true,
+      },
       manifest: {
         name: 'Appetic — el menú de tu barrio',
         short_name: 'Appetic',
