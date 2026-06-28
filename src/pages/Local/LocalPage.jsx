@@ -31,6 +31,20 @@ export default function LocalPage() {
         }
       }
 
+      // 👀 Vista previa en vivo (?preview=1): arma el menú desde el código, sin
+      // base de datos. Para revisar el diseño antes de sembrar el local.
+      if (new URLSearchParams(window.location.search).has('preview')) {
+        const { getPreviewLocal } = await import('../../preview')
+        const prev = await getPreviewLocal(slug)
+        if (prev) {
+          if (!activo) return
+          setLocal(prev.local)
+          setProductos(prev.productos)
+          setEstado('ok')
+          return
+        }
+      }
+
       const data = await getLocalBySlug(slug)
       if (!activo) return
       if (!data) { setEstado('no-existe'); return }
