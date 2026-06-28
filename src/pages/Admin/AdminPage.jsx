@@ -10,14 +10,13 @@ import { subirFotoProducto } from '../../services/storage'
 import AdminProductos from './AdminProductos'
 import AdminConfig from './AdminConfig'
 import AdminMetricas from './AdminMetricas'
+import { isDevSlug, getDevLocal } from '../../dev'
 import './Admin.css'
-
-const ES_DEMO = (slug) => import.meta.env.DEV && slug === 'demo'
 
 export default function AdminPage() {
   const { slug } = useParams()
   const { user, cargando: authCargando, entrar, salir } = useAuth()
-  const demo = ES_DEMO(slug)
+  const demo = isDevSlug(slug) // previsualización de local en DEV (no escribe en Firestore)
 
   const [estado, setEstado] = useState('cargando') // cargando | ok | no-existe | error
   const [local, setLocal] = useState(null)
@@ -32,10 +31,11 @@ export default function AdminPage() {
     let activo = true
     async function cargar() {
       if (demo) {
-        const { MOCK_LOCAL, MOCK_PRODUCTOS } = await import('../../dev/mockLocal')
-        if (!activo) return
-        setLocal({ ...MOCK_LOCAL, admins: ['demo@appetic.app'] })
-        setProductos(MOCK_PRODUCTOS.map(p => ({ ...p })))
+        const dev = await getDevLocal(slug)
+        if (!activo || !dev) return
+        // Admin falso en DEV: forzamos el correo demo en admins para entrar al panel.
+        setLocal({ ...dev.local, admins: ['demo@appetic.app'] })
+        setProductos(dev.productos.map(p => ({ ...p })))
         setEstado('ok')
         return
       }

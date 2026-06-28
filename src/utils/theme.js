@@ -7,5 +7,7 @@ export function localThemeVars(tema = {}) {
   if (tema.primarySoft) vars['--local-primary-soft'] = tema.primarySoft
   if (tema.onPrimary) vars['--local-on-primary'] = tema.onPrimary
   if (tema.accent) vars['--local-accent'] = tema.accent
+  // Fondo del "mundo" del local (detrás del menú). Si no lo define, cae al fondo de la app.
+  if (tema.bg) vars['--local-bg'] = tema.bg
   return vars
 }

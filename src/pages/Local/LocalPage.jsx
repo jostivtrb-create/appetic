@@ -18,14 +18,17 @@ export default function LocalPage() {
     setEstado('cargando')
 
     async function cargar() {
-      // 🧪 Local de desarrollo (solo en DEV, slug "demo")
-      if (import.meta.env.DEV && slug === 'demo') {
-        const { MOCK_LOCAL, MOCK_PRODUCTOS } = await import('../../dev/mockLocal')
-        if (!activo) return
-        setLocal(MOCK_LOCAL)
-        setProductos(MOCK_PRODUCTOS)
-        setEstado('ok')
-        return
+      // 🧪 Locales de desarrollo (solo en DEV: "demo", "perros-criollos", …)
+      if (import.meta.env.DEV) {
+        const { getDevLocal } = await import('../../dev')
+        const dev = await getDevLocal(slug)
+        if (dev) {
+          if (!activo) return
+          setLocal(dev.local)
+          setProductos(dev.productos)
+          setEstado('ok')
+          return
+        }
       }
 
       const data = await getLocalBySlug(slug)

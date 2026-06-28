@@ -2,8 +2,20 @@
 /* Nota: NO usar animaciones con transform aquí. Un transform en este contenedor
    crea un "containing block" que rompe el position:fixed de los overlays
    (modal, carrito, checkout, botón flotante). Solo opacidad. */
-.local-page { min-height: 100dvh; animation: appear 0.35s ease both; }
+.local-page {
+  min-height: 100dvh;
+  animation: appear 0.35s ease both;
+  /* "Mundo" del local: fondo cálido propio si el tema lo define. */
+  background: var(--local-bg, var(--bg));
+}
 @keyframes appear { from { opacity: 0; } to { opacity: 1; } }
+
+/* Solo para lectores de pantalla (texto accesible que no se ve). */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
 
 .local-hero {
   position: relative;
@@ -52,6 +64,45 @@
   text-shadow: 0 2px 12px rgba(0,0,0,0.3);
 }
 .local-desc { font-size: 14px; opacity: 0.95; max-width: 90%; }
+
+/* ===== Hero variante "logo" (logo grande sobre crema, sin foto) ===== */
+.local-hero--logo {
+  min-height: auto;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: calc(26px + env(safe-area-inset-top)) 20px 22px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255,255,255,0.65), transparent 60%),
+    linear-gradient(180deg, var(--local-primary-soft) 0%, var(--local-bg, var(--brand-cream)) 78%);
+  border-bottom: 1px solid var(--border);
+}
+.local-hero-content--logo {
+  align-items: center;
+  color: var(--brand-ink);
+  width: 100%;
+  gap: 6px;
+}
+.local-logo-full {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 20px rgba(42, 33, 28, 0.18));
+  animation: rise 0.5s ease both;
+}
+.local-desc--ink {
+  color: var(--local-primary-strong);
+  font-weight: 800;
+  font-size: 14.5px;
+  letter-spacing: 0.01em;
+  opacity: 1;
+  margin-top: 2px;
+  text-shadow: none;
+}
+/* Botón de favorito visible sobre crema */
+.local-hero-fav--light { color: var(--local-primary-strong); }
 
 .local-body { padding: 22px; }
 

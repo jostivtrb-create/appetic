@@ -90,3 +90,31 @@
 
 .pcard-agotado { opacity: 0.72; cursor: not-allowed; }
 .pcard-agotado .pcard-nombre, .pcard-agotado .pcard-precio { color: var(--text-faint); }
+
+/* ===== Producto destacado: el fuerte del local (ej. "Arma Tu Perro") ===== */
+.pcard-destacado {
+  border: 1.5px solid var(--local-primary-soft);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--local-primary-soft) 14%, var(--surface)), var(--surface) 70%);
+  box-shadow: 0 6px 22px rgba(42, 33, 28, 0.10);
+}
+.pcard-destacado:not(:disabled):hover { border-color: var(--local-primary); }
+.pcard-destacado .pcard-nombre { font-size: 17.5px; font-weight: 800; }
+.pcard-fuerte {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--local-on-primary);
+  background: linear-gradient(135deg, var(--local-primary-soft), var(--local-primary));
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  margin-bottom: 8px;
+  box-shadow: var(--shadow-sm);
+}
+.pcard-destacado .pcard-img-fallback {
+  font-size: 44px;
+  border: 1.5px dashed var(--local-primary-soft);
+  background: color-mix(in srgb, var(--local-primary-soft) 12%, var(--surface-2));
+}

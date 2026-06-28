@@ -82,17 +82,35 @@ export default function LocalMenu({ local, productos }) {
     setCheckoutAbierto(true)
   }
 
+  // Hero protagonizado por el logo (sobre crema, sin foto): para marcas cuyo
+  // logo ya trae el nombre. Se activa con tema.hero === 'logo'.
+  const heroLogo = local.tema?.hero === 'logo'
+
   return (
     <div className="local-page" style={localThemeVars(local.tema)}>
-      <header className="local-hero">
-        {local.banner && <img className="local-banner" src={local.banner} alt="" />}
-        <div className="local-hero-overlay" />
-        <BotonFavorito local={local} variante="hero local-hero-fav" />
-        <div className="local-hero-content">
-          {local.logo && <img className="local-logo" src={local.logo} alt={local.nombre} />}
-          <h1 className="local-name">{local.nombre}</h1>
-          {local.descripcion && <p className="local-desc">{local.descripcion}</p>}
-        </div>
+      <header className={`local-hero ${heroLogo ? 'local-hero--logo' : ''}`}>
+        {heroLogo ? (
+          <>
+            <BotonFavorito local={local} variante="hero local-hero-fav local-hero-fav--light" />
+            <div className="local-hero-content local-hero-content--logo">
+              {local.logo && <img className="local-logo-full" src={local.logo} alt={local.nombre} />}
+              {/* El nombre ya vive en el logo; lo dejamos accesible para lectores/SEO. */}
+              <h1 className="local-name sr-only">{local.nombre}</h1>
+              {local.descripcion && <p className="local-desc local-desc--ink">{local.descripcion}</p>}
+            </div>
+          </>
+        ) : (
+          <>
+            {local.banner && <img className="local-banner" src={local.banner} alt="" />}
+            <div className="local-hero-overlay" />
+            <BotonFavorito local={local} variante="hero local-hero-fav" />
+            <div className="local-hero-content">
+              {local.logo && <img className="local-logo" src={local.logo} alt={local.nombre} />}
+              <h1 className="local-name">{local.nombre}</h1>
+              {local.descripcion && <p className="local-desc">{local.descripcion}</p>}
+            </div>
+          </>
+        )}
       </header>
 
       {!abierto && (

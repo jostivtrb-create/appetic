@@ -17,11 +17,12 @@ export default function ProductCard({ producto, onPedir }) {
 
   return (
     <button
-      className={`pcard ${agotado ? 'pcard-agotado' : ''}`}
+      className={`pcard ${agotado ? 'pcard-agotado' : ''} ${producto.destacado ? 'pcard-destacado' : ''}`}
       onClick={() => !agotado && onPedir(producto)}
       disabled={agotado}
     >
       <div className="pcard-info">
+        {producto.destacado && <span className="pcard-fuerte">⭐ Nuestro fuerte</span>}
         <h3 className="pcard-nombre">{producto.nombre}</h3>
         {producto.descripcion && <p className="pcard-desc">{producto.descripcion}</p>}
         <div className="pcard-precio-row">
@@ -39,7 +40,7 @@ export default function ProductCard({ producto, onPedir }) {
         {mostrarFoto ? (
           <img className="pcard-img" src={producto.foto} alt={producto.nombre} loading="lazy" onError={() => setImgError(true)} />
         ) : (
-          <div className="pcard-img pcard-img-fallback">🍽️</div>
+          <div className="pcard-img pcard-img-fallback">{producto.emoji || '🍽️'}</div>
         )}
         {agotado && <span className="pcard-badge-agotado">Agotado</span>}
       </div>

@@ -9,6 +9,7 @@ function intervalosHasta(maxKm) {
 }
 
 export default function AdminConfig({ local, onUpdate }) {
+  const [whatsapp, setWhatsapp] = useState(local.whatsapp || '')
   const [abre, setAbre] = useState(local.horario?.abre || '11:00')
   const [cierra, setCierra] = useState(local.horario?.cierra || '22:00')
   const [domicilio, setDomicilio] = useState(local.domicilio?.activo !== false)
@@ -63,6 +64,7 @@ export default function AdminConfig({ local, onUpdate }) {
     const tarifasLimpias = {}
     for (const k of keys) tarifasLimpias[k] = Number(tarifas[k]) || 0
     const cambios = {
+      whatsapp: whatsapp.replace(/\D/g, ''),
       horario: { ...(local.horario || {}), abre, cierra },
       domicilio: {
         ...(local.domicilio || {}),
@@ -81,6 +83,24 @@ export default function AdminConfig({ local, onUpdate }) {
 
   return (
     <div className="ac">
+      <section className="ac-sec">
+        <h3>Datos del negocio</h3>
+        <p className="ac-hint">El WhatsApp donde te llegan los pedidos de tus clientes. Va anclado a tu local.</p>
+        <label className="ac-maxkm">
+          📲 WhatsApp para pedidos
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="Ej: 3208435143"
+            value={whatsapp}
+            onChange={e => setWhatsapp(e.target.value)}
+          />
+        </label>
+        {!whatsapp.replace(/\D/g, '') && (
+          <span className="ac-ubic-warn">⚠️ Sin WhatsApp, los pedidos no pueden enviarse.</span>
+        )}
+      </section>
+
       <section className="ac-sec">
         <h3>Horario de atención</h3>
         <p className="ac-hint">Fuera de este horario, los clientes ven el menú pero no pueden pedir.</p>
