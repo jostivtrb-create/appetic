@@ -48,9 +48,12 @@ export const PERROS_LOCAL = {
     hero: 'logo',             // hero con el logo grande sobre crema (no foto)
     bg: '#FBF3E2',            // "mundo" crema cálido detrás del menú
   },
+  // Oculta la barra de pestañas de categorías (son pocos productos).
+  ocultarNav: true,
   // Ubicación de ejemplo (Bogotá). El dueño la fija desde el panel.
   ubicacion: { lat: 4.6486, lng: -74.0639 },
-  horario: { abre: '16:00', cierra: '23:00' },
+  // 24 horas (abre === cierra). Útil para pruebas; el dueño lo ajusta en el panel.
+  horario: { abre: '00:00', cierra: '00:00' },
   recoger: true,
   domicilio: {
     activo: true,
@@ -67,6 +70,7 @@ export const PERROS_LOCAL = {
   categorias: [
     { id: 'perros', nombre: 'Arma Tu Perro', emoji: '🌭' },
     { id: 'empanadas', nombre: 'Empanadas', emoji: '🥟' },
+    { id: 'bebidas', nombre: 'Bebidas', emoji: '🥤' },
   ],
   admins: [ADMIN_EMAIL],
   // Suscripción (Capa 2): visible en el buscador del inicio. Se controla en /superadmin.
@@ -106,4 +110,9 @@ export const PERROS_PRODUCTOS = [
       { id: 'v-pollo', nombre: 'Pollo', precio: 4000 },
     ],
   },
+  // Bebidas: todas $3.000, se agregan directo al carrito (sin opciones).
+  { id: 'coca-cola', categoria: 'bebidas', nombre: 'Coca-Cola personal', foto: '', emoji: '🥤', disponible: true, orden: 3, precio: 3000 },
+  { id: 'coca-cola-zero', categoria: 'bebidas', nombre: 'Coca-Cola Zero', foto: '', emoji: '🥤', disponible: true, orden: 4, precio: 3000 },
+  { id: 'jugo-del-valle', categoria: 'bebidas', nombre: 'Jugo del Valle', foto: '', emoji: '🧃', disponible: true, orden: 5, precio: 3000 },
+  { id: 'agua-manantial', categoria: 'bebidas', nombre: 'Agua Manantial', foto: '', emoji: '💧', disponible: true, orden: 6, precio: 3000 },
 ]

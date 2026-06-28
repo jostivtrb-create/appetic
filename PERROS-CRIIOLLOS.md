@@ -10,6 +10,9 @@ Todo lo que necesitas saber para probarlo ahora y dejarlo funcionando de verdad.
 - **Menú listo:**
   - **Arma Tu Perro · $7.000** — el cliente elige **todos los toppings y salsas que quiera, gratis** (el precio siempre es $7.000).
   - **Empanada · $4.000** — Carne o Pollo.
+  - **Bebidas · $3.000** — Coca-Cola personal, Coca-Cola Zero, Jugo del Valle, Agua Manantial.
+- Sin pestañas de categorías (el menú es un solo scroll) y **abierto 24 h** para que puedas
+  probarlo a cualquier hora. El horario real lo pones luego desde el panel.
 - **Estética propia** basada en el logo (rojo tomate + dorado maíz + verde campo sobre crema).
 - **Correo administrador:** `sinfiniity@gmail.com` (con ese correo se entra al panel a editar).
 
@@ -57,7 +60,7 @@ Si sale esto, quedó listo:
 
 ```
 ✓ Local creado: locales/perros-criollos (Perros Criiollos)
-✓ 2 productos cargados
+✓ 6 productos cargados
 🔗 Link del local: /perros-criollos
 ```
 

@@ -119,7 +119,9 @@ export default function LocalMenu({ local, productos }) {
         </div>
       )}
 
-      <CategoryNav categorias={categorias} activa={catActiva} onSelect={seleccionarCategoria} />
+      {!local.ocultarNav && categorias.length > 1 && (
+        <CategoryNav categorias={categorias} activa={catActiva} onSelect={seleccionarCategoria} />
+      )}
 
       <main className="local-body local-menu">
         {porCategoria.map(({ cat, items }) => (
