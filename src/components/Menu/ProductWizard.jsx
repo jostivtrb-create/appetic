@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { cop } from '../../utils/money'
 import { precioUnitario, validarSeleccion } from '../../utils/price'
+import ImagenApp from '../Imagen/ImagenApp'
 import './ProductWizard.css'
 
 // 🪄 Armador por PASOS para productos con `modo: 'pasos'` (ej. "arma tu perro").
@@ -203,7 +204,7 @@ function PasoGrupo({ grupo, elegidas, onToggle }) {
               onClick={() => onToggle(grupo, opc.id)}
             >
               <span className="pw-card-foto">
-                <OpcionFoto opc={opc} />
+                <ImagenApp className="pw-card-foto-img" src={opc.foto} alt="" />
                 {sel && <span className="pw-card-check">✓</span>}
               </span>
               <span className="pw-card-nombre">{opc.nombre}</span>
@@ -216,11 +217,3 @@ function PasoGrupo({ grupo, elegidas, onToggle }) {
   )
 }
 
-// Foto de la opción; si falla (o no hay), muestra el emoji.
-function OpcionFoto({ opc }) {
-  const [fallo, setFallo] = useState(false)
-  if (opc.foto && !fallo) {
-    return <img src={opc.foto} alt="" loading="lazy" onError={() => setFallo(true)} />
-  }
-  return <span className="pw-card-emoji">{opc.emoji || '🍽️'}</span>
-}

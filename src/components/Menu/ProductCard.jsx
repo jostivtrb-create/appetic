@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import { cop } from '../../utils/money'
 import { tieneOpciones } from '../../utils/price'
+import ImagenApp from '../Imagen/ImagenApp'
 import './ProductCard.css'
 
 // Precio "desde" para mostrar en la tarjeta
@@ -10,10 +10,8 @@ function precioDesde(p) {
 }
 
 export default function ProductCard({ producto, onPedir }) {
-  const [imgError, setImgError] = useState(false)
   const agotado = producto.disponible === false
   const conOpciones = tieneOpciones(producto)
-  const mostrarFoto = producto.foto && !imgError
 
   return (
     <button
@@ -39,11 +37,7 @@ export default function ProductCard({ producto, onPedir }) {
       </div>
 
       <div className="pcard-media">
-        {mostrarFoto ? (
-          <img className="pcard-img" src={producto.foto} alt={producto.nombre} loading="lazy" onError={() => setImgError(true)} />
-        ) : (
-          <div className="pcard-img pcard-img-fallback">{producto.emoji || '🍽️'}</div>
-        )}
+        <ImagenApp className="pcard-img" src={producto.foto} alt={producto.nombre} />
         {agotado && <span className="pcard-badge-agotado">Agotado</span>}
       </div>
     </button>

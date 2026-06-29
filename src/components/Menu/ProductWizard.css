@@ -120,6 +120,7 @@
   place-items: center;
 }
 .pw-card-foto img { width: 100%; height: 100%; object-fit: cover; }
+.pw-card-foto-img { position: absolute; inset: 0; width: 100%; height: 100%; }
 .pw-card-emoji { font-size: 34px; line-height: 1; }
 .pw-card.sel .pw-card-foto img { transform: scale(1.04); transition: transform 0.2s ease; }
 

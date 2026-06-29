@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { cop } from '../../utils/money'
+import ImagenApp from '../../components/Imagen/ImagenApp'
 
 export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
@@ -18,7 +19,7 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
         {productos.map(p => (
           <div key={p.id} className={`ap-item ${p.disponible === false ? 'ap-item-off' : ''}`}>
             <div className="ap-item-foto">
-              {p.foto ? <img src={p.foto} alt="" /> : <span>🍽️</span>}
+              <ImagenApp className="ap-item-foto-img" src={p.foto} alt="" />
             </div>
             <div className="ap-item-info">
               <h4>{p.nombre}</h4>
