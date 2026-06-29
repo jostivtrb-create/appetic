@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { cop } from '../../utils/money'
 import { precioUnitario, validarSeleccion } from '../../utils/price'
-import { resumenSeleccion } from '../../utils/selectionSummary'
 import './ProductWizard.css'
 
 // 🪄 Armador por PASOS para productos con `modo: 'pasos'` (ej. "arma tu perro").
@@ -11,7 +10,6 @@ import './ProductWizard.css'
 export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   const [varianteId, setVarianteId] = useState(producto.variantes?.length ? producto.variantes[0].id : null)
   const [grupos, setGrupos] = useState({}) // { grupoId: [opcionId, ...] }
-  const [notas, setNotas] = useState('')
   const [paso, setPaso] = useState(0)
 
   // Pasos: (variante si existe) → cada grupo → resumen
@@ -68,10 +66,18 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   function agregar() {
     if (validarSeleccion(producto, seleccion)) return
     // Cada perro se arma individual (cantidad 1); si quiere otro, lo arma de nuevo.
-    onAgregar({ producto, seleccion, cantidad: 1, notas: notas.trim() })
+    onAgregar({ producto, seleccion, cantidad: 1, notas: '' })
   }
 
-  const resumenTexto = resumenSeleccion(producto, seleccion)
+  // Detalle del resumen: variante elegida + grupos con sus opciones elegidas.
+  const varianteElegida = producto.variantes?.find(v => v.id === varianteId)
+  const gruposConSeleccion = useMemo(() => (
+    (producto.gruposOpciones || []).map(g => ({
+      id: g.id, nombre: g.nombre, emoji: g.emoji,
+      elegidas: (grupos[g.id] || []).map(id => g.opciones.find(o => o.id === id)).filter(Boolean),
+    })).filter(g => g.elegidas.length > 0)
+  ), [producto, grupos])
+  const hayDetalle = Boolean(varianteElegida) || gruposConSeleccion.length > 0
 
   return (
     <div className="pw-overlay" onClick={onCerrar}>
@@ -117,27 +123,41 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
             />
           )}
 
-          {/* Paso resumen */}
+          {/* Paso resumen — detalle vertical de lo que armó */}
           {esUltimo && (
             <>
               <h2 className="pw-titulo">{producto.emoji || '✅'} Tu perro está listo</h2>
               <p className="pw-sub">Revisa y agrégalo a tu orden.</p>
               <div className="pw-resumen">
-                <strong className="pw-resumen-nombre">{producto.nombre}</strong>
-                {resumenTexto
-                  ? <p className="pw-resumen-detalle">{resumenTexto}</p>
-                  : <p className="pw-resumen-vacio">Sencillo, sin toppings ni salsas.</p>}
-              </div>
+                <div className="pw-resumen-top">
+                  <strong className="pw-resumen-nombre">{producto.nombre}</strong>
+                  <span className="pw-resumen-precio">{cop(unitario)}</span>
+                </div>
 
-              <label className="pw-notas-label">¿Alguna indicación? <span>Opcional</span></label>
-              <textarea
-                className="pw-notas"
-                placeholder="Ej: bien caliente, salsa aparte…"
-                value={notas}
-                onChange={e => setNotas(e.target.value)}
-                maxLength={140}
-                rows={2}
-              />
+                {varianteElegida && (
+                  <div className="pw-resumen-grupo">
+                    <span className="pw-resumen-grupo-titulo">Opción</span>
+                    <ul className="pw-resumen-lista">
+                      <li>{varianteElegida.nombre}</li>
+                    </ul>
+                  </div>
+                )}
+
+                {gruposConSeleccion.map(g => (
+                  <div key={g.id} className="pw-resumen-grupo">
+                    <span className="pw-resumen-grupo-titulo">{g.emoji} {g.nombre} · {g.elegidas.length}</span>
+                    <ul className="pw-resumen-lista">
+                      {g.elegidas.map(o => (
+                        <li key={o.id}>{o.emoji ? `${o.emoji} ` : ''}{o.nombre}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+
+                {!hayDetalle && (
+                  <p className="pw-resumen-vacio">Sencillo, sin toppings ni salsas.</p>
+                )}
+              </div>
             </>
           )}
         </div>
