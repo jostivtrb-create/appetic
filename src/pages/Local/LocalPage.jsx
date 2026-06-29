@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getLocalBySlug } from '../../services/locales'
 import { getProductos } from '../../services/productos'
 import { registrarVisita } from '../../services/stats'
@@ -9,21 +9,23 @@ import './LocalPage.css'
 
 export default function LocalPage() {
   const { slug } = useParams()
+  const navigate = useNavigate()
   const [estado, setEstado] = useState('cargando') // cargando | ok | no-existe | error
   const [local, setLocal] = useState(null)
   const [productos, setProductos] = useState([])
 
-  // 🔙 Si el cliente entró DIRECTO al menú (link de WhatsApp, PWA instalada…), el
-  // botón "atrás" lo sacaría de la app. Insertamos el inicio detrás para que
-  // "atrás" lo lleve al inicio. Si ya navegó dentro de la app, no tocamos nada.
+  // 🔙 "Atrás" desde un menú SIEMPRE lleva al inicio (y nunca saca de la app),
+  // tanto si entró directo (link de WhatsApp, PWA) como si llegó desde el inicio.
+  // Ponemos una entrada "centinela" encima del menú; cuando el usuario presiona
+  // atrás, caemos en ella (popstate) y lo mandamos al inicio.
   useEffect(() => {
-    const st = window.history.state
-    const entroDirecto = !st || typeof st.idx !== 'number' || st.idx === 0
-    if (!entroDirecto) return
-    const menuUrl = window.location.pathname + window.location.search
-    window.history.replaceState({ usr: null, key: 'home', idx: 0 }, '', '/')
-    window.history.pushState({ usr: st?.usr ?? null, key: st?.key ?? 'menu', idx: 1 }, '', menuUrl)
-  }, [])
+    window.history.pushState(window.history.state, '')
+    function alPresionarAtras() {
+      navigate('/', { replace: true })
+    }
+    window.addEventListener('popstate', alPresionarAtras)
+    return () => window.removeEventListener('popstate', alPresionarAtras)
+  }, [navigate])
 
   useEffect(() => {
     let activo = true
