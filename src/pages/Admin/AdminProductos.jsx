@@ -135,8 +135,9 @@ function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar, o
       // reseteamos guardando aquí para evitar tocar un componente desmontado.
     } catch (err) {
       // Si algo falla (subir foto, guardar), no dejar el botón pegado en "Guardando…".
-      console.error('No se pudo guardar el producto:', err?.code || err)
-      alert('No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.')
+      const cod = err?.code || err?.message || String(err)
+      console.error('No se pudo guardar el producto:', cod, err)
+      alert(`No se pudo guardar.\n\nDetalle: ${cod}\n\nMándame este detalle si se repite.`)
       setGuardando(false)
     }
   }

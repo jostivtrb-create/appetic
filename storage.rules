@@ -8,17 +8,15 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // ¿El usuario es admin de este local? (lee la lista admins en Firestore)
-    function esAdminDe(localId) {
-      return request.auth != null
-        && request.auth.token.email in
-           firestore.get(/databases/(default)/documents/locales/$(localId)).data.admins;
-    }
-
-    // Todo lo del local: lectura pública, escritura solo de su admin.
+    // Imágenes del local (logos, fotos de productos y de opciones/toppings):
+    //   - Lectura pública: el menú las muestra a todos sin login.
+    //   - Escritura: cualquier usuario CON SESIÓN. El acceso al panel ya está
+    //     restringido al admin del local (firestore.rules), así que en la práctica
+    //     solo el admin sube fotos. Evitamos la lectura cruzada a Firestore aquí
+    //     porque es frágil y bloqueaba las subidas.
     match /locales/{localId}/{allPaths=**} {
       allow read: if true;
-      allow write: if esAdminDe(localId);
+      allow write: if request.auth != null;
     }
   }
 }
