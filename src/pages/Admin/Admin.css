@@ -259,6 +259,7 @@
   font-size: 20px;
 }
 .ap-opcion-foto img { width: 100%; height: 100%; object-fit: cover; }
+.ap-opcion-foto-error { border-color: var(--danger); }
 .ap-opcion-subiendo {
   position: absolute; inset: 0;
   display: grid; place-items: center;

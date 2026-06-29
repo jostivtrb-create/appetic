@@ -222,19 +222,31 @@ function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar, o
 function OpcionEditor({ opcion, onNombre, onQuitar, onFoto }) {
   const [preview, setPreview] = useState(opcion.foto || '')
   const [subiendo, setSubiendo] = useState(false)
+  const [error, setError] = useState(false)
 
   async function elegir(e) {
     const f = e.target.files?.[0]
     if (!f || !onFoto) return
+    const anterior = preview
+    setError(false)
     setPreview(URL.createObjectURL(f))
     setSubiendo(true)
-    try { await onFoto(f) } finally { setSubiendo(false) }
+    try {
+      await onFoto(f) // sube a Storage y guarda la URL real en la opción
+    } catch (err) {
+      // Si falla la subida, revierte la vista previa y avisa (no guardar en falso).
+      console.warn('No se pudo subir la foto de la opción:', err?.code || err)
+      setPreview(anterior)
+      setError(true)
+    } finally {
+      setSubiendo(false)
+    }
   }
 
   return (
     <div className="ap-opcion">
-      <label className="ap-opcion-foto" title="Cambiar foto">
-        {preview ? <img src={preview} alt="" /> : <span>{opcion.emoji || '📷'}</span>}
+      <label className={`ap-opcion-foto ${error ? 'ap-opcion-foto-error' : ''}`} title={error ? 'No se pudo subir, intenta de nuevo' : 'Cambiar foto'}>
+        {preview ? <img src={preview} alt="" /> : <span>{error ? '⚠️' : (opcion.emoji || '📷')}</span>}
         {subiendo && <span className="ap-opcion-subiendo">…</span>}
         <input type="file" accept="image/*" onChange={elegir} hidden disabled={!onFoto} />
       </label>

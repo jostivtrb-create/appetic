@@ -1,0 +1,24 @@
+rules_version = '2';
+
+// 🔒 Reglas de Storage de Appetic
+// - Lectura pública: las imágenes del menú (logos, fotos de productos y de
+//   opciones/toppings) se muestran a todos los clientes sin login.
+// - Escritura: solo el admin del local (su correo en locales/{localId}.admins),
+//   y únicamente dentro de la carpeta de ese local. Mismo criterio que Firestore.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ¿El usuario es admin de este local? (lee la lista admins en Firestore)
+    function esAdminDe(localId) {
+      return request.auth != null
+        && request.auth.token.email in
+           firestore.get(/databases/(default)/documents/locales/$(localId)).data.admins;
+    }
+
+    // Todo lo del local: lectura pública, escritura solo de su admin.
+    match /locales/{localId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if esAdminDe(localId);
+    }
+  }
+}
