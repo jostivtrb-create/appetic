@@ -13,6 +13,18 @@ export default function LocalPage() {
   const [local, setLocal] = useState(null)
   const [productos, setProductos] = useState([])
 
+  // 🔙 Si el cliente entró DIRECTO al menú (link de WhatsApp, PWA instalada…), el
+  // botón "atrás" lo sacaría de la app. Insertamos el inicio detrás para que
+  // "atrás" lo lleve al inicio. Si ya navegó dentro de la app, no tocamos nada.
+  useEffect(() => {
+    const st = window.history.state
+    const entroDirecto = !st || typeof st.idx !== 'number' || st.idx === 0
+    if (!entroDirecto) return
+    const menuUrl = window.location.pathname + window.location.search
+    window.history.replaceState({ usr: null, key: 'home', idx: 0 }, '', '/')
+    window.history.pushState({ usr: st?.usr ?? null, key: st?.key ?? 'menu', idx: 1 }, '', menuUrl)
+  }, [])
+
   useEffect(() => {
     let activo = true
     setEstado('cargando')
