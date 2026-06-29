@@ -30,8 +30,10 @@ export default function ProductCard({ producto, onPedir }) {
             {producto.variantes?.length ? <span className="pcard-desde">desde </span> : null}
             {cop(precioDesde(producto))}
           </span>
-          {!agotado && (
-            <span className="pcard-add">{conOpciones ? 'Personalizar' : 'Agregar'} +</span>
+          {/* Solo "Agregar +" en productos directos; los que tienen opciones
+              se abren tocando la tarjeta (no hace falta botón "Personalizar"). */}
+          {!agotado && !conOpciones && (
+            <span className="pcard-add">Agregar +</span>
           )}
         </div>
       </div>
