@@ -129,8 +129,16 @@ function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar, o
           .map(o => ({ ...o, nombre: o.nombre.trim(), precioExtra: Number(o.precioExtra) || 0 })),
       }))
     }
-    await onGuardar(data, fotoFile)
-    setGuardando(false)
+    try {
+      await onGuardar(data, fotoFile)
+      // En éxito, el editor se cierra (onGuardar hace setEditando(null)); no
+      // reseteamos guardando aquí para evitar tocar un componente desmontado.
+    } catch (err) {
+      // Si algo falla (subir foto, guardar), no dejar el botón pegado en "Guardando…".
+      console.error('No se pudo guardar el producto:', err?.code || err)
+      alert('No se pudo guardar. Revisa tu conexión e inténtalo de nuevo.')
+      setGuardando(false)
+    }
   }
 
   return (
