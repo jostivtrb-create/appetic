@@ -11,7 +11,11 @@ import './Checkout.css'
 export default function Checkout({ local, onClose, abierto = true }) {
   const { items, subtotal, clear } = useCart()
   const { user } = useAuth()
-  const permiteDomicilio = local.domicilio?.activo
+  // El domicilio solo se ofrece si el local registró su ubicación (sin ella no se
+  // puede calcular la distancia). Hasta que el admin la fije, solo "Recoger".
+  const tieneUbicacionLocal = local.ubicacion?.lat != null && local.ubicacion?.lng != null
+  const domicilioPendiente = local.domicilio?.activo && !tieneUbicacionLocal
+  const permiteDomicilio = local.domicilio?.activo && tieneUbicacionLocal
   const permiteRecoger = local.recoger !== false
 
   const [entrega, setEntrega] = useState(permiteDomicilio ? 'domicilio' : 'recoger')
@@ -138,6 +142,9 @@ export default function Checkout({ local, onClose, abierto = true }) {
               </button>
             )}
           </div>
+          {domicilioPendiente && (
+            <p className="co-hint co-hint-info">🛵 El domicilio aún no está disponible. Por ahora solo puedes recoger en el local.</p>
+          )}
         </section>
 
         {/* Ubicación (solo domicilio) */}

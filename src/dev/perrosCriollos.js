@@ -60,10 +60,8 @@ export const PERROS_LOCAL = {
   },
   // Oculta la barra de pestañas de categorías (son pocos productos).
   ocultarNav: true,
-  // Ubicación inicial de ejemplo (Bogotá) SOLO para la primera siembra.
-  // El dueño la fija de verdad desde el panel (📍 Usar mi ubicación actual);
-  // el seed ya NO la sobreescribe si el local existe (ver seed-perros-criollos.mjs).
-  ubicacion: { lat: 4.6486, lng: -74.0639 },
+  // SIN ubicación de ejemplo: hasta que el dueño la fije desde el panel
+  // (📍 Usar mi ubicación actual), el checkout no ofrece domicilio (solo recoger).
   // 24 horas (abre === cierra). Útil para pruebas; el dueño lo ajusta en el panel.
   horario: { abre: '00:00', cierra: '00:00' },
   recoger: true,
