@@ -30,14 +30,23 @@ async function sumar(localId, campos) {
   }
 }
 
-// Cuenta UNA visita por sesión (no por cada recarga) para no inflar escrituras.
+// Cuenta UNA visita por DISPOSITIVO y por DÍA (no por recarga, pestaña ni sesión).
+// Usa localStorage con la fecha en la clave: si este dispositivo ya visitó hoy,
+// no vuelve a contar; al día siguiente cuenta una vez más como máximo.
 export async function registrarVisita(localId) {
   if (!localId || localId === 'demo') return
-  const key = `appetic_visit_${localId}`
+  const hoy = fechaKey()
+  const prefijo = `appetic_visit_${localId}_`
+  const key = `${prefijo}${hoy}`
   try {
-    if (sessionStorage.getItem(key)) return
-    sessionStorage.setItem(key, '1')
-  } catch { /* sin sessionStorage igual contamos */ }
+    if (localStorage.getItem(key)) return // ya contó hoy en este dispositivo
+    // Limpia las marcas de días anteriores de este local (no acumular basura).
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i)
+      if (k && k.startsWith(prefijo) && k !== key) localStorage.removeItem(k)
+    }
+    localStorage.setItem(key, '1')
+  } catch { /* sin localStorage: igual contamos (mejor de más que de menos) */ }
   await sumar(localId, { visitas: increment(1) })
 }
 
