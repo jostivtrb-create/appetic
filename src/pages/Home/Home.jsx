@@ -5,7 +5,6 @@ import { getLocalesExplorador } from '../../services/locales'
 import { estaAbierto } from '../../utils/horario'
 import { distanciaKm } from '../../utils/geo'
 import { useAuth } from '../../contexts/AuthContext'
-import BotonFavorito from '../../components/Favorito/BotonFavorito'
 import './Home.css'
 
 export default function Home() {
@@ -126,7 +125,6 @@ export default function Home() {
               return (
                 <li key={l.id}>
                   <Link to={`/${l.slug}`} className="loc-card">
-                    <BotonFavorito local={l} variante="card" />
                     <div className="loc-card-img">
                       {l.logo
                         ? <img src={l.logo} alt={l.nombre} loading="lazy" />
