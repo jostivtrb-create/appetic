@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getLocalBySlug } from '../../services/locales'
 import { getProductos } from '../../services/productos'
@@ -15,8 +15,16 @@ import './Admin.css'
 
 export default function AdminPage() {
   const { slug } = useParams()
+  const navigate = useNavigate()
   const { user, cargando: authCargando, entrar, salir } = useAuth()
   const demo = isDevSlug(slug) // previsualización de local en DEV (no escribe en Firestore)
+
+  // Al cerrar sesión en el panel, volver al inicio (no quedar en la pantalla
+  // de login/bloqueo del local).
+  async function cerrarSesion() {
+    await salir()
+    navigate('/')
+  }
 
   const [estado, setEstado] = useState('cargando') // cargando | ok | no-existe | error
   const [local, setLocal] = useState(null)
@@ -119,7 +127,7 @@ export default function AdminPage() {
           <div className="admin-login-emoji">🚫</div>
           <h1>Sin acceso</h1>
           <p>El correo <strong>{usuario.email}</strong> no está autorizado para administrar <strong>{local.nombre}</strong>.</p>
-          <button className="btn btn-ghost" onClick={salir}>Cerrar sesión</button>
+          <button className="btn btn-ghost" onClick={cerrarSesion}>Cerrar sesión</button>
         </div>
       </div>
     )
@@ -133,7 +141,7 @@ export default function AdminPage() {
           <span className="admin-top-eyebrow">Panel · Appetic</span>
           <h1 className="admin-top-nombre">{local.nombre}</h1>
         </div>
-        {!demo && <button className="admin-salir" onClick={salir}>Salir</button>}
+        {!demo && <button className="admin-salir" onClick={cerrarSesion}>Salir</button>}
         {demo && <span className="admin-demo-badge">DEMO</span>}
       </header>
 
