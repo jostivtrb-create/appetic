@@ -8,6 +8,17 @@ import { registrarPedido } from '../../services/pedidos'
 import { getPerfil, guardarPerfil } from '../../services/usuarios'
 import './Checkout.css'
 
+// 💾 Datos del cliente guardados en el propio dispositivo, para recordarlos
+// aunque pida como invitado (sin iniciar sesión). Si inicia sesión, además se
+// guardan en su perfil (usuarios/{uid}).
+const CLIENTE_KEY = 'appetic_cliente'
+function leerClienteLocal() {
+  try { return JSON.parse(localStorage.getItem(CLIENTE_KEY)) || null } catch { return null }
+}
+function guardarClienteLocal(datos) {
+  try { localStorage.setItem(CLIENTE_KEY, JSON.stringify(datos)) } catch { /* sin espacio: no pasa nada */ }
+}
+
 export default function Checkout({ local, onClose, abierto = true }) {
   const { items, subtotal, clear } = useCart()
   const { user } = useAuth()
@@ -29,6 +40,15 @@ export default function Checkout({ local, onClose, abierto = true }) {
   const [notas, setNotas] = useState('')
   const [enviando, setEnviando] = useState(false)
   const [exito, setExito] = useState(null) // { url }
+
+  // Prellenar desde el dispositivo (funciona para invitados y al instante).
+  useEffect(() => {
+    const c = leerClienteLocal()
+    if (!c) return
+    setNombre(prev => prev || c.nombre || '')
+    setTelefono(prev => prev || c.telefono || '')
+    setDireccion(prev => prev || c.direccion || '')
+  }, [])
 
   // Prellenar con los datos guardados del cliente (si inició sesión).
   useEffect(() => {
@@ -89,14 +109,15 @@ export default function Checkout({ local, onClose, abierto = true }) {
     // Registro de métricas (best-effort, no en el local de prueba)
     if (local.id !== 'demo') registrarPedido(local.id, pedido)
 
-    // Guardar datos del cliente para la próxima (si inició sesión).
-    if (user) {
-      guardarPerfil(user.uid, {
-        nombre: nombre.trim(),
-        telefono: telefono.trim(),
-        direccion: direccion.trim(),
-      })
+    // Recordar datos para la próxima: siempre en el dispositivo (invitados) y,
+    // si inició sesión, además en su perfil.
+    const datosCliente = {
+      nombre: nombre.trim(),
+      telefono: telefono.trim(),
+      direccion: direccion.trim(),
     }
+    guardarClienteLocal(datosCliente)
+    if (user) guardarPerfil(user.uid, datosCliente)
 
     // Abre WhatsApp con el endpoint correcto según dispositivo (móvil/PC).
     const url = abrirPedidoWhatsApp(local, pedido)
