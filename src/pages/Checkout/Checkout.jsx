@@ -3,7 +3,7 @@ import { useCart } from '../../contexts/CartContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { cop } from '../../utils/money'
 import { calcularDomicilio } from '../../utils/delivery'
-import { urlPedidoWhatsApp } from '../../utils/whatsapp'
+import { abrirPedidoWhatsApp } from '../../utils/whatsapp'
 import { registrarPedido } from '../../services/pedidos'
 import { getPerfil, guardarPerfil } from '../../services/usuarios'
 import './Checkout.css'
@@ -98,8 +98,8 @@ export default function Checkout({ local, onClose, abierto = true }) {
       })
     }
 
-    const url = urlPedidoWhatsApp(local, pedido)
-    window.open(url, '_blank')
+    // Abre WhatsApp con el endpoint correcto según dispositivo (móvil/PC).
+    const url = abrirPedidoWhatsApp(local, pedido)
     clear()
     setExito({ url })
     setEnviando(false)

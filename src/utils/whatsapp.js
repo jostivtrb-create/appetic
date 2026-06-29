@@ -3,7 +3,20 @@ import { precioItem } from './price'
 import { resumenSeleccion } from './selectionSummary'
 import { mapsUrl } from './geo'
 
-// Normaliza un número colombiano a formato wa.me (57XXXXXXXXXX)
+// Mensajes de WhatsApp a prueba de rombos (ver skill Mensajes_Whatsapp):
+//   Regla 1 — emojis como escapes \u (no el carácter literal) -> el archivo queda
+//             ASCII puro y el emoji no se corrompe aunque se re-guarde en otro encoding.
+//   Regla 2 — el texto se pasa por encodeURIComponent (una sola vez).
+//   Regla 3 — endpoint según dispositivo: PC usa api.whatsapp.com/send (NO wa.me,
+//             que corrompe los emojis en WhatsApp Web); móvil usa el deep link.
+
+// ¿El navegador es de un celular? (para elegir el endpoint correcto)
+export function isMobileBrowser() {
+  return typeof navigator !== 'undefined' &&
+    /android|iphone|ipad|ipod/i.test(navigator.userAgent || '')
+}
+
+// Normaliza un número colombiano a 57XXXXXXXXXX (sin '+', sin espacios).
 export function normalizarTel(numero) {
   const limpio = String(numero || '').replace(/\D/g, '')
   if (!limpio) return ''
@@ -15,17 +28,17 @@ export function textoPedido(local, pedido) {
   const { items, entrega, cliente, pago, domicilio, notas, subtotal, total } = pedido
   const L = []
 
-  L.push(`*Nuevo pedido — ${local.nombre}* 🍔`)
+  L.push(`*Nuevo pedido — ${local.nombre}* \u{1F354}`)
   L.push('')
-  L.push(`👤 *Cliente:* ${cliente.nombre}`)
-  if (cliente.telefono) L.push(`📞 *Tel:* ${cliente.telefono}`)
+  L.push(`\u{1F464} *Cliente:* ${cliente.nombre}`)
+  if (cliente.telefono) L.push(`\u{1F4DE} *Tel:* ${cliente.telefono}`)
 
   if (entrega === 'domicilio') {
-    L.push('🛵 *Entrega:* Domicilio')
-    if (cliente.direccion) L.push(`📍 *Dirección:* ${cliente.direccion}`)
-    if (cliente.coord) L.push(`🗺️ Ubicación: ${mapsUrl(cliente.coord)}`)
+    L.push('\u{1F6F5} *Entrega:* Domicilio')
+    if (cliente.direccion) L.push(`\u{1F4CD} *Dirección:* ${cliente.direccion}`)
+    if (cliente.coord) L.push(`\u{1F5FA} Ubicación: ${mapsUrl(cliente.coord)}`)
   } else {
-    L.push('🏪 *Entrega:* Recoger en el local')
+    L.push('\u{1F3EA} *Entrega:* Recoger en el local')
   }
 
   // Pago
@@ -36,7 +49,7 @@ export function textoPedido(local, pedido) {
   } else if (pago?.llave) {
     pagoTxt = `${pago.nombre}`
   }
-  L.push(`💳 *Pago:* ${pagoTxt}`)
+  L.push(`\u{1F4B3} *Pago:* ${pagoTxt}`)
 
   // Items
   L.push('')
@@ -55,18 +68,29 @@ export function textoPedido(local, pedido) {
 
   if (notas) {
     L.push('')
-    L.push(`📝 *Notas:* ${notas}`)
+    L.push(`\u{1F4DD} *Notas:* ${notas}`)
   }
 
   L.push('')
-  L.push('_Pedido enviado con Appetic 🧡_')
+  L.push('_Pedido enviado con Appetic \u{1F9E1}_')
 
   return L.join('\n')
 }
 
-// URL final wa.me con el mensaje codificado (emojis se ven bien con encodeURIComponent).
+// URL final con el mensaje codificado. Endpoint según dispositivo (Regla 3):
+//   móvil -> whatsapp://send  ·  PC -> api.whatsapp.com/send (NO wa.me).
 export function urlPedidoWhatsApp(local, pedido) {
   const tel = normalizarTel(local.whatsapp)
   const texto = encodeURIComponent(textoPedido(local, pedido))
-  return `https://wa.me/${tel}?text=${texto}`
+  return isMobileBrowser()
+    ? `whatsapp://send?phone=${tel}&text=${texto}`
+    : `https://api.whatsapp.com/send?phone=${tel}&text=${texto}`
+}
+
+// Abre WhatsApp con el pedido. En móvil navega al deep link; en PC abre pestaña.
+export function abrirPedidoWhatsApp(local, pedido) {
+  const url = urlPedidoWhatsApp(local, pedido)
+  if (isMobileBrowser()) window.location.href = url
+  else window.open(url, '_blank')
+  return url
 }
