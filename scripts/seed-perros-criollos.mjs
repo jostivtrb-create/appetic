@@ -17,12 +17,27 @@ const serviceAccount = JSON.parse(readFileSync(join(__dirname, 'serviceAccount.j
 initializeApp({ credential: cert(serviceAccount) })
 const db = getFirestore()
 
+// Campos que el DUEÑO configura desde el panel: si el local ya existe con ellos,
+// el seed NO debe pisarlos (la ubicación, el WhatsApp y el horario son suyos).
+const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario']
+
 async function run() {
   // El doc del local usa el slug como id. Quitamos `id` (no se guarda dentro del doc).
   const { id, ...localData } = PERROS_LOCAL
   const localRef = db.collection('locales').doc(SLUG)
+
+  // Preservar lo que el dueño ya configuró: quitamos esos campos del payload
+  // de ejemplo para no sobreescribirlos al re-sembrar.
+  const prev = await localRef.get()
+  if (prev.exists) {
+    const data = prev.data() || {}
+    for (const campo of CAMPOS_DEL_DUENO) {
+      if (data[campo] != null) delete localData[campo]
+    }
+  }
+
   await localRef.set(localData, { merge: true })
-  console.log(`✓ Local creado: locales/${SLUG} (${localData.nombre})`)
+  console.log(`✓ Local ${prev.exists ? 'actualizado' : 'creado'}: locales/${SLUG} (${PERROS_LOCAL.nombre})`)
 
   for (const p of PERROS_PRODUCTOS) {
     const { id: pid, ...data } = p
