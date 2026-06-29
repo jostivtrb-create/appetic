@@ -6,6 +6,7 @@ import { estaAbierto } from '../../utils/horario'
 import CategoryNav from '../../components/Menu/CategoryNav'
 import ProductCard from '../../components/Menu/ProductCard'
 import ProductModal from '../../components/Menu/ProductModal'
+import ProductWizard from '../../components/Menu/ProductWizard'
 import CartButton from '../../components/Cart/CartButton'
 import CartDrawer from '../../components/Cart/CartDrawer'
 import BotonFavorito from '../../components/Favorito/BotonFavorito'
@@ -142,11 +143,17 @@ export default function LocalMenu({ local, productos }) {
       <CartButton onAbrir={() => setDrawerAbierto(true)} />
 
       {modalProducto && (
-        <ProductModal
-          producto={modalProducto}
-          onCerrar={() => setModalProducto(null)}
-          onAgregar={agregarDesdeModal}
-        />
+        modalProducto.modo === 'pasos'
+          ? <ProductWizard
+              producto={modalProducto}
+              onCerrar={() => setModalProducto(null)}
+              onAgregar={agregarDesdeModal}
+            />
+          : <ProductModal
+              producto={modalProducto}
+              onCerrar={() => setModalProducto(null)}
+              onAgregar={agregarDesdeModal}
+            />
       )}
 
       <CartDrawer

@@ -15,6 +15,7 @@ export default function Home() {
   const [busqueda, setBusqueda] = useState('')
   const [coord, setCoord] = useState(null)
   const [ubic, setUbic] = useState('idle') // idle | cargando | ok | error
+  const [avatarFallo, setAvatarFallo] = useState(false)
 
   useEffect(() => {
     let activo = true
@@ -64,8 +65,8 @@ export default function Home() {
           <span>Appetic</span>
         </div>
         <Link to="/cuenta" className="home-cuenta">
-          {user?.photoURL
-            ? <img className="home-cuenta-avatar" src={user.photoURL} alt="" />
+          {user?.photoURL && !avatarFallo
+            ? <img className="home-cuenta-avatar" src={user.photoURL} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFallo(true)} />
             : <span className="home-cuenta-icon">👤</span>}
           <span>{user ? 'Mi cuenta' : 'Entrar'}</span>
         </Link>

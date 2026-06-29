@@ -1,0 +1,195 @@
+/* 🪄 Armador por pasos (modo: 'pasos') — toppings/salsas con tarjetas de foto. */
+
+.pw-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(20, 14, 10, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fade 0.2s ease both;
+}
+
+.pw-sheet {
+  position: relative;
+  width: 100%;
+  max-width: var(--app-max);
+  height: 92dvh;
+  background: var(--bg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: sheetUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* --- Encabezado: progreso --- */
+.pw-top {
+  position: relative;
+  flex-shrink: 0;
+  padding: 16px 20px 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.pw-close {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.pw-progreso {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+.pw-dot {
+  width: 26px; height: 6px;
+  border-radius: 99px;
+  background: var(--border);
+  transition: background 0.25s ease, width 0.25s ease;
+}
+.pw-dot.done { background: var(--local-primary-soft, var(--local-primary)); }
+.pw-dot.on { background: var(--local-primary); width: 34px; }
+.pw-paso-num { font-size: 12px; font-weight: 700; color: var(--text-faint); letter-spacing: 0.02em; }
+
+/* --- Cuerpo scrolleable --- */
+.pw-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 18px 10px;
+  animation: pwSlide 0.28s ease both;
+}
+@keyframes pwSlide { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+
+.pw-titulo { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+.pw-sub { margin-top: 4px; font-size: 13.5px; color: var(--text-soft); }
+.pw-contador {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--local-primary-strong);
+  background: var(--brand-orange-tint);
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+}
+
+/* --- Cuadrícula de tarjetas --- */
+.pw-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 11px;
+  margin-top: 14px;
+}
+@media (max-width: 360px) { .pw-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.pw-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px 11px;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md, 16px);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.pw-card:active { transform: scale(0.95); }
+.pw-card.sel {
+  border-color: var(--local-primary);
+  box-shadow: 0 0 0 3px var(--brand-orange-tint);
+}
+
+.pw-card-foto {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-2);
+  display: grid;
+  place-items: center;
+}
+.pw-card-foto img { width: 100%; height: 100%; object-fit: cover; }
+.pw-card-emoji { font-size: 34px; line-height: 1; }
+.pw-card.sel .pw-card-foto img { transform: scale(1.04); transition: transform 0.2s ease; }
+
+.pw-card-check {
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--local-primary);
+  color: var(--local-on-primary, #fff);
+  font-size: 14px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow-sm);
+  animation: pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+
+.pw-card-nombre { font-size: 12.5px; font-weight: 700; line-height: 1.15; color: var(--text); }
+.pw-card-precio { font-size: 11.5px; font-weight: 700; color: var(--text-soft); }
+
+/* --- Resumen --- */
+.pw-resumen {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md, 16px);
+}
+.pw-resumen-nombre { font-size: 16px; font-weight: 800; }
+.pw-resumen-detalle { margin-top: 6px; font-size: 14px; color: var(--text-soft); line-height: 1.4; }
+.pw-resumen-vacio { margin-top: 6px; font-size: 13.5px; color: var(--text-faint); }
+
+.pw-notas-label {
+  display: block;
+  margin: 18px 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.pw-notas-label span { font-weight: 500; color: var(--text-faint); font-size: 12px; }
+.pw-notas {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 14px;
+  resize: none;
+  background: var(--surface);
+}
+.pw-notas:focus { outline: none; border-color: var(--local-primary); }
+
+/* --- Pie: navegación --- */
+.pw-footer {
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 18px calc(16px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.pw-atras {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-soft);
+  padding: 13px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+}
+.pw-next { flex: 1; }
+.pw-next:disabled { opacity: 0.55; }

@@ -17,6 +17,7 @@ export default function Cuenta() {
   const [cargandoDatos, setCargandoDatos] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
+  const [avatarFallo, setAvatarFallo] = useState(false)
 
   const superadmin = esSuperadmin(user?.email)
 
@@ -83,8 +84,8 @@ export default function Cuenta() {
       </header>
 
       <div className="cuenta-perfil">
-        {user.photoURL
-          ? <img className="cuenta-avatar" src={user.photoURL} alt="" />
+        {user.photoURL && !avatarFallo
+          ? <img className="cuenta-avatar" src={user.photoURL} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFallo(true)} />
           : <div className="cuenta-avatar cuenta-avatar-fallback">{(perfil.nombre || user.email)[0]?.toUpperCase()}</div>}
         <div className="cuenta-perfil-info">
           <strong>{perfil.nombre || user.displayName || 'Hola 👋'}</strong>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { cop } from '../../utils/money'
 
-export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto }) {
+export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
 
   const categorias = local.categorias || []
@@ -57,23 +57,52 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
           }}
           onBorrar={editando.nuevo ? null : async () => { await onDelete(editando.id); setEditando(null) }}
           onFotoNueva={onFoto}
+          onFotoOpcion={onFotoOpcion}
         />
       )}
     </div>
   )
 }
 
-function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar }) {
+function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar, onFotoOpcion }) {
   const [nombre, setNombre] = useState(producto.nombre || '')
   const [descripcion, setDescripcion] = useState(producto.descripcion || '')
   const [categoria, setCategoria] = useState(producto.categoria || categorias[0]?.id || '')
   const [precio, setPrecio] = useState(producto.precio || '')
   const [variantes, setVariantes] = useState(producto.variantes ? producto.variantes.map(v => ({ ...v })) : null)
+  // Copia editable de los grupos de opciones (toppings/salsas) con sus fotos.
+  const [grupos, setGrupos] = useState(
+    producto.gruposOpciones
+      ? producto.gruposOpciones.map(g => ({ ...g, opciones: (g.opciones || []).map(o => ({ ...o })) }))
+      : null
+  )
   const [fotoFile, setFotoFile] = useState(null)
   const [fotoPreview, setFotoPreview] = useState(producto.foto || '')
   const [guardando, setGuardando] = useState(false)
 
   const tieneVariantes = Array.isArray(variantes) && variantes.length > 0
+  const tieneGrupos = Array.isArray(grupos) && grupos.length > 0
+
+  // --- Edición de opciones (toppings/salsas) dentro de un grupo ---
+  function setOpcion(gi, oi, cambios) {
+    setGrupos(gs => gs.map((g, j) => j !== gi ? g
+      : { ...g, opciones: g.opciones.map((o, k) => k === oi ? { ...o, ...cambios } : o) }))
+  }
+  function quitarOpcion(gi, oi) {
+    setGrupos(gs => gs.map((g, j) => j !== gi ? g
+      : { ...g, opciones: g.opciones.filter((_, k) => k !== oi) }))
+  }
+  function agregarOpcion(gi) {
+    setGrupos(gs => gs.map((g, j) => {
+      if (j !== gi) return g
+      const usados = g.opciones.map(o => o.id)
+      let n = g.opciones.length + 1
+      const prefijo = g.id.includes('salsa') ? 's' : (g.id.includes('topping') ? 't' : 'o')
+      let nuevoId = `${prefijo}${n}`
+      while (usados.includes(nuevoId)) { n++; nuevoId = `${prefijo}${n}` }
+      return { ...g, opciones: [...g.opciones, { id: nuevoId, nombre: '', precioExtra: 0, emoji: '', foto: '' }] }
+    }))
+  }
 
   function elegirFoto(e) {
     const f = e.target.files?.[0]
@@ -92,6 +121,14 @@ function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar })
     }
     if (tieneVariantes) data.variantes = variantes.map(v => ({ ...v, precio: Number(v.precio) || 0 }))
     else data.precio = Number(precio) || 0
+    if (tieneGrupos) {
+      data.gruposOpciones = grupos.map(g => ({
+        ...g,
+        opciones: g.opciones
+          .filter(o => o.nombre.trim()) // descarta opciones sin nombre
+          .map(o => ({ ...o, nombre: o.nombre.trim(), precioExtra: Number(o.precioExtra) || 0 })),
+      }))
+    }
     await onGuardar(data, fotoFile)
     setGuardando(false)
   }
@@ -141,6 +178,32 @@ function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar })
             </>
           )}
 
+          {/* Grupos de opciones (toppings / salsas) con su foto */}
+          {tieneGrupos && grupos.map((g, gi) => (
+            <div key={g.id} className="ap-grupo">
+              <label className="ap-label">{g.emoji} {g.nombre}</label>
+              <div className="ap-opciones">
+                {g.opciones.map((o, oi) => (
+                  <OpcionEditor
+                    key={o.id}
+                    opcion={o}
+                    onNombre={val => setOpcion(gi, oi, { nombre: val })}
+                    onQuitar={() => quitarOpcion(gi, oi)}
+                    onFoto={onFotoOpcion
+                      ? async file => {
+                          const url = await onFotoOpcion(g.id, o.id, file)
+                          setOpcion(gi, oi, { foto: url })
+                        }
+                      : null}
+                  />
+                ))}
+              </div>
+              <button type="button" className="ap-add-opcion" onClick={() => agregarOpcion(gi)}>
+                + Agregar a {g.nombre.toLowerCase()}
+              </button>
+            </div>
+          ))}
+
           {onBorrar && (
             <button className="ap-borrar" onClick={onBorrar}>Borrar producto</button>
           )}
@@ -151,6 +214,37 @@ function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar })
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+// Una opción (topping/salsa): mini-foto + nombre editable + quitar.
+function OpcionEditor({ opcion, onNombre, onQuitar, onFoto }) {
+  const [preview, setPreview] = useState(opcion.foto || '')
+  const [subiendo, setSubiendo] = useState(false)
+
+  async function elegir(e) {
+    const f = e.target.files?.[0]
+    if (!f || !onFoto) return
+    setPreview(URL.createObjectURL(f))
+    setSubiendo(true)
+    try { await onFoto(f) } finally { setSubiendo(false) }
+  }
+
+  return (
+    <div className="ap-opcion">
+      <label className="ap-opcion-foto" title="Cambiar foto">
+        {preview ? <img src={preview} alt="" /> : <span>{opcion.emoji || '📷'}</span>}
+        {subiendo && <span className="ap-opcion-subiendo">…</span>}
+        <input type="file" accept="image/*" onChange={elegir} hidden disabled={!onFoto} />
+      </label>
+      <input
+        className="co-input ap-opcion-nombre"
+        value={opcion.nombre}
+        onChange={e => onNombre(e.target.value)}
+        placeholder="Nombre"
+      />
+      <button type="button" className="ap-opcion-quitar" onClick={onQuitar} aria-label="Quitar">✕</button>
     </div>
   )
 }

@@ -18,16 +18,26 @@ export const SLUG = 'perros-criollos'
 export const ADMIN_EMAIL = 'sinfiniity@gmail.com'
 
 // Toppings: todos gratis y sin límite (el corazón del "arma tu perro a tu gusto").
+// Cada uno trae emoji (respaldo visual) y foto (ruta a la imagen apetitosa).
+// La foto puede venir de aquí (archivo en public/) o subirse luego desde el panel.
 const TOPPINGS = [
-  'Queso rallado', 'Maíz tierno', 'Chicharrón rayado', 'Trozos de piña', 'Maní',
-  'Jalapeños', 'Pepinillos', 'Pico de gallo', 'Platanitos', 'Papa chip',
-  'Zanahoria rayada', 'Cebolla rayada',
-].map((nombre, i) => ({ id: `t${i + 1}`, nombre, precioExtra: 0 }))
+  ['Queso rallado', '🧀'], ['Maíz tierno', '🌽'], ['Chicharrón rayado', '🥓'],
+  ['Trozos de piña', '🍍'], ['Maní', '🥜'], ['Jalapeños', '🌶️'],
+  ['Pepinillos', '🥒'], ['Pico de gallo', '🍅'], ['Platanitos', '🍌'],
+  ['Papa chip', '🍟'], ['Zanahoria rayada', '🥕'], ['Cebolla rayada', '🧅'],
+].map(([nombre, emoji], i) => ({
+  id: `t${i + 1}`, nombre, emoji, precioExtra: 0,
+  foto: `/locales/perros-criollos/toppings/t${i + 1}.webp`,
+}))
 
 // Salsas: también gratis y sin límite.
 const SALSAS = [
-  'BBQ', 'Maíz dulce', 'Piña', 'Tomate', 'Guacamole', 'Showy', 'Queso cheddar',
-].map((nombre, i) => ({ id: `s${i + 1}`, nombre, precioExtra: 0 }))
+  ['BBQ', '🍖'], ['Maíz dulce', '🌽'], ['Piña', '🍍'], ['Tomate', '🍅'],
+  ['Guacamole', '🥑'], ['Showy', '🩷'], ['Queso cheddar', '🧀'],
+].map(([nombre, emoji], i) => ({
+  id: `s${i + 1}`, nombre, emoji, precioExtra: 0,
+  foto: `/locales/perros-criollos/salsas/s${i + 1}.webp`,
+}))
 
 export const PERROS_LOCAL = {
   id: SLUG,
@@ -75,7 +85,9 @@ export const PERROS_LOCAL = {
   admins: [ADMIN_EMAIL],
   // Suscripción (Capa 2): visible en el buscador del inicio. Se controla en /superadmin.
   suscripcion: { activa: true, plan: 'piloto' },
-  menuVersion: 1,
+  // Súbelo cada vez que cambie el menú: invalida la caché del menú en los clientes.
+  // v2: armador por pasos + fotos de toppings/salsas.
+  menuVersion: 2,
 }
 
 export const PERROS_PRODUCTOS = [
@@ -90,10 +102,14 @@ export const PERROS_PRODUCTOS = [
     disponible: true,
     orden: 1,
     precio: 7000,
+    // 🪄 Modo "pasos": abre el armador por pasos (toppings → salsas → resumen)
+    // en vez de la lista corrida. Cada perro se arma de cero y entra único al carrito.
+    modo: 'pasos',
     gruposOpciones: [
       // Sin `max` => sin tope: puede elegir todos los que quiera (gratis).
-      { id: 'g-toppings', nombre: 'Toppings · los que quieras, gratis', tipo: 'multiple', min: 0, opciones: TOPPINGS },
-      { id: 'g-salsas', nombre: 'Salsas · las que quieras, gratis', tipo: 'multiple', min: 0, opciones: SALSAS },
+      // emoji/paso para el armador visual.
+      { id: 'g-toppings', nombre: 'Toppings', subtitulo: 'Los que quieras · todos gratis 🎉', emoji: '🧀', tipo: 'multiple', min: 0, opciones: TOPPINGS },
+      { id: 'g-salsas', nombre: 'Salsas', subtitulo: 'Las que quieras · todas gratis 🎉', emoji: '🥫', tipo: 'multiple', min: 0, opciones: SALSAS },
     ],
   },
   {

@@ -6,7 +6,7 @@ import { getProductos } from '../../services/productos'
 import {
   agregarProducto, actualizarProducto, borrarProducto, actualizarLocal,
 } from '../../services/adminLocal'
-import { subirFotoProducto } from '../../services/storage'
+import { subirFotoProducto, subirFotoOpcion } from '../../services/storage'
 import AdminProductos from './AdminProductos'
 import AdminConfig from './AdminConfig'
 import AdminMetricas from './AdminMetricas'
@@ -77,6 +77,12 @@ export default function AdminPage() {
     await updateProducto(productoId, { foto: url })
     return url
   }
+  // Sube la foto de una opción (topping/salsa) y devuelve su URL (no toca Firestore
+  // aquí: el editor la guarda dentro de gruposOpciones al pulsar "Guardar").
+  async function subirFotoDeOpcion(grupoId, opcId, file) {
+    if (demo) return URL.createObjectURL(file)
+    return await subirFotoOpcion(local.id, grupoId, opcId, file)
+  }
 
   // ---------- Estados de carga / acceso ----------
   if (estado === 'cargando' || (!demo && authCargando)) {
@@ -146,6 +152,7 @@ export default function AdminPage() {
             onUpdate={updateProducto}
             onDelete={deleteProducto}
             onFoto={subirFoto}
+            onFotoOpcion={subirFotoDeOpcion}
           />
         )}
         {tab === 'config' && <AdminConfig local={local} onUpdate={updateLocal} />}

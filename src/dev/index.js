@@ -3,7 +3,9 @@
 // Devuelve { local, productos } o null si el slug no es un local de dev.
 //
 // Producción: estos locales se crean de verdad con sus scripts seed-*.mjs.
-const DEV_SLUGS = ['demo', 'perros-criollos']
+// Perros Criiollos ya está sembrado en Firebase, así que se administra como local
+// real (sin modo DEMO ni métricas de ejemplo); solo queda 'demo' como plantilla.
+const DEV_SLUGS = ['demo']
 
 // ¿Este slug es un local de previsualización en DEV? (síncrono, para decidir modo)
 export function isDevSlug(slug) {
@@ -16,11 +18,6 @@ export async function getDevLocal(slug) {
   if (slug === 'demo') {
     const { MOCK_LOCAL, MOCK_PRODUCTOS } = await import('./mockLocal')
     return { local: MOCK_LOCAL, productos: MOCK_PRODUCTOS }
-  }
-
-  if (slug === 'perros-criollos') {
-    const { PERROS_LOCAL, PERROS_PRODUCTOS } = await import('./perrosCriollos')
-    return { local: PERROS_LOCAL, productos: PERROS_PRODUCTOS }
   }
 
   return null
