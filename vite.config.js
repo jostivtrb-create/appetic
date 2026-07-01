@@ -17,6 +17,8 @@ export default defineConfig({
         clientsClaim: true,
         skipWaiting: true,
         cleanupOutdatedCaches: true,
+        // El PDF de la propuesta es un archivo real: que el SW no lo desvíe al index.html.
+        navigateFallbackDenylist: [/^\/propuesta-appetic\.pdf/],
       },
       manifest: {
         name: 'Appetic — el menú de tu barrio',

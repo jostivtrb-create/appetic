@@ -92,6 +92,14 @@ export default function Superadmin() {
         <strong>{activos}</strong> de <strong>{locales.length}</strong> locales activos en el buscador
       </div>
 
+      <a className="sa-descarga" href="/propuesta-appetic.pdf" download="Propuesta-Appetic.pdf">
+        <span className="sa-descarga-ico">⬇️</span>
+        <span className="sa-descarga-txt">
+          <strong>Descargar propuesta comercial</strong>
+          <small>PDF · Menú digital Appetic · $79.900</small>
+        </span>
+      </a>
+
       <div className="sa-search">
         <span>🔎</span>
         <input placeholder="Buscar local…" value={busqueda} onChange={e => setBusqueda(e.target.value)} />
