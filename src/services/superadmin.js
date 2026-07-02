@@ -12,3 +12,11 @@ export async function listarTodosLocales() {
 export async function setSuscripcion(localId, activa) {
   await updateDoc(doc(db, 'locales', localId), { 'suscripcion.activa': !!activa })
 }
+
+// Define el correo del ADMIN (dueño) del local. Con ese Google el dueño entra a
+// /<slug>/admin. Guarda el correo normalizado (minúsculas, sin espacios) como único
+// admin del local. Solo el superadmin puede hacerlo (ver firestore.rules).
+export async function setAdminEmail(localId, email) {
+  const correo = String(email || '').trim().toLowerCase()
+  await updateDoc(doc(db, 'locales', localId), { admins: [correo] })
+}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
-import { listarTodosLocales, setSuscripcion } from '../../services/superadmin'
+import { listarTodosLocales, setSuscripcion, setAdminEmail } from '../../services/superadmin'
 import './Superadmin.css'
 
 export default function Superadmin() {
@@ -13,6 +13,29 @@ export default function Superadmin() {
   const [locales, setLocales] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [guardandoId, setGuardandoId] = useState(null)
+  const [adminEdits, setAdminEdits] = useState({}) // localId -> correo en edición
+  const [adminMsg, setAdminMsg] = useState({})     // localId -> 'guardando' | 'ok' | 'err'
+
+  const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
+
+  async function guardarAdmin(local) {
+    const actual = local.admins?.[0] || ''
+    const correo = (adminEdits[local.id] ?? actual).trim().toLowerCase()
+    if (!emailValido(correo)) {
+      setAdminMsg(m => ({ ...m, [local.id]: 'err' }))
+      return
+    }
+    setAdminMsg(m => ({ ...m, [local.id]: 'guardando' }))
+    try {
+      await setAdminEmail(local.id, correo)
+      setLocales(ls => ls.map(l => l.id === local.id ? { ...l, admins: [correo] } : l))
+      setAdminEdits(m => { const n = { ...m }; delete n[local.id]; return n })
+      setAdminMsg(m => ({ ...m, [local.id]: 'ok' }))
+      setTimeout(() => setAdminMsg(m => { const n = { ...m }; delete n[local.id]; return n }), 2200)
+    } catch {
+      setAdminMsg(m => ({ ...m, [local.id]: 'err' }))
+    }
+  }
 
   useEffect(() => {
     if (!superadmin) return
@@ -117,23 +140,54 @@ export default function Superadmin() {
         <ul className="sa-lista">
           {filtrados.map(l => {
             const activa = !!l.suscripcion?.activa
+            const adminActual = l.admins?.[0] || ''
+            const valorAdmin = adminEdits[l.id] ?? adminActual
+            const cambiado = valorAdmin.trim().toLowerCase() !== adminActual
+            const msg = adminMsg[l.id]
             return (
               <li key={l.id} className="sa-item">
-                <div className="sa-item-logo">
-                  {l.logo ? <img src={l.logo} alt="" /> : <span>🍽️</span>}
+                <div className="sa-item-main">
+                  <div className="sa-item-logo">
+                    {l.logo ? <img src={l.logo} alt="" /> : <span>🍽️</span>}
+                  </div>
+                  <div className="sa-item-info">
+                    <strong>{l.nombre}</strong>
+                    <span>/{l.slug}</span>
+                  </div>
+                  <button
+                    className={`sa-toggle ${activa ? 'on' : ''}`}
+                    onClick={() => alternar(l)}
+                    disabled={guardandoId === l.id}
+                    aria-label={activa ? 'Desactivar' : 'Activar'}
+                  >
+                    <span className="sa-toggle-knob" />
+                  </button>
                 </div>
-                <div className="sa-item-info">
-                  <strong>{l.nombre}</strong>
-                  <span>/{l.slug}</span>
+
+                <div className="sa-admin">
+                  <span className="sa-admin-ico">👤</span>
+                  <input
+                    className={`sa-admin-input ${msg === 'err' ? 'err' : ''}`}
+                    type="email"
+                    inputMode="email"
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    spellCheck="false"
+                    placeholder="correo del dueño (Gmail)"
+                    value={valorAdmin}
+                    onChange={e => { setAdminEdits(m => ({ ...m, [l.id]: e.target.value })); setAdminMsg(m => ({ ...m, [l.id]: undefined })) }}
+                  />
+                  <button
+                    className="sa-admin-save"
+                    onClick={() => guardarAdmin(l)}
+                    disabled={!cambiado || msg === 'guardando'}
+                  >
+                    {msg === 'guardando' ? '…' : msg === 'ok' ? '✓' : 'Guardar'}
+                  </button>
                 </div>
-                <button
-                  className={`sa-toggle ${activa ? 'on' : ''}`}
-                  onClick={() => alternar(l)}
-                  disabled={guardandoId === l.id}
-                  aria-label={activa ? 'Desactivar' : 'Activar'}
-                >
-                  <span className="sa-toggle-knob" />
-                </button>
+                {msg === 'err' && <p className="sa-admin-hint">Escribe un correo válido (ej. dueño@gmail.com).</p>}
+                {msg === 'ok' && <p className="sa-admin-hint ok">Guardado. El dueño ya puede entrar a /{l.slug}/admin.</p>}
+                {!adminActual && msg !== 'ok' && <p className="sa-admin-hint warn">Sin admin asignado.</p>}
               </li>
             )
           })}
