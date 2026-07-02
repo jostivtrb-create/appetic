@@ -56,7 +56,7 @@ export const PILOTOS_LOCAL = {
   descripcion: 'Volamos por los sabores · hamburguesas, perros, pizzas y más 🛫',
   // El dueño lo confirma desde el panel. Pre-cargado con la línea de DOMICILIOS del menú.
   whatsapp: '573214226828',
-  logo: '/locales/pilotos/logo.png',
+  logo: '/locales/pilotos/logo.webp',
   banner: '/locales/pilotos/banner.webp',
   tema: {
     primary: '#8A1212',        // rojo vino / maroon (el sello del PDF)
@@ -102,25 +102,25 @@ export const PILOTOS_LOCAL = {
   ],
   admins: [ADMIN_EMAIL],
   suscripcion: { activa: true, plan: 'piloto' },
-  menuVersion: 2,
+  menuVersion: 3,
 }
 
 export const PILOTOS_PRODUCTOS = [
   // ── 🛫 ZONA DE DESPEGUE (entradas para picar)
-  { id: 'empanadas-coctel', categoria: 'despegue', nombre: 'Empanadas tipo cóctel', descripcion: '8 unidades crocantes acompañadas de papa criolla.', foto: '', emoji: '🥟', disponible: true, orden: 1, precio: 11800 },
-  { id: 'laminas-patacon', categoria: 'despegue', nombre: 'Láminas de patacón con ahogado', descripcion: 'Patacón en láminas bañado en ahogado de la casa.', foto: '', emoji: '🫓', disponible: true, orden: 2, precio: 9800 },
-  { id: 'chorizos-santarrosanos', categoria: 'despegue', nombre: 'Chorizos santarrosanos', descripcion: '2 unidades a la parrilla con arepa.', foto: '', emoji: '🌭', disponible: true, orden: 3, precio: 12800 },
+  { id: 'empanadas-coctel', categoria: 'despegue', nombre: 'Empanadas tipo cóctel', descripcion: '8 unidades crocantes acompañadas de papa criolla.', foto: '/locales/pilotos/empanadas.webp', emoji: '🥟', disponible: true, orden: 1, precio: 11800 },
+  { id: 'laminas-patacon', categoria: 'despegue', nombre: 'Láminas de patacón con ahogado', descripcion: 'Patacón en láminas bañado en ahogado de la casa.', foto: '/locales/pilotos/laminas-patacon.webp', emoji: '🫓', disponible: true, orden: 2, precio: 9800 },
+  { id: 'chorizos-santarrosanos', categoria: 'despegue', nombre: 'Chorizos santarrosanos', descripcion: '2 unidades a la parrilla con arepa.', foto: '/locales/pilotos/chorizo.webp', emoji: '🌭', disponible: true, orden: 3, precio: 12800 },
   { id: 'nachos-pista09', categoria: 'despegue', nombre: 'Nachos Pista 09', descripcion: 'Nachos con carne, chorizo, guacamole y pico de gallo.', foto: '/locales/pilotos/nachos.webp', emoji: '🧀', destacado: true, disponible: true, orden: 4, precio: 16000 },
   { id: 'mini-picada', categoria: 'despegue', nombre: 'Mini picada', descripcion: 'Papa criolla + 5 empanadas y chorizo. Para compartir.', foto: '/locales/pilotos/picada.webp', emoji: '🍢', disponible: true, orden: 5, precio: 15000 },
 
   // ── 🍟 PORCIONES DE VUELO
-  { id: 'porcion-papa-criolla', categoria: 'porciones', nombre: 'Papas criollas', descripcion: 'Doraditas y crocantes.', foto: '', emoji: '🥔', disponible: true, orden: 6, precio: 5000 },
-  { id: 'porcion-papa-francesa', categoria: 'porciones', nombre: 'Papas francesas', descripcion: 'Recién hechas, con sal.', foto: '', emoji: '🍟', disponible: true, orden: 7, precio: 6000 },
-  { id: 'porcion-papa-francesa-xl', categoria: 'porciones', nombre: 'Papas francesas XL', descripcion: 'Porción grande para compartir.', foto: '', emoji: '🍟', disponible: true, orden: 8, precio: 11000 },
-  { id: 'porcion-aros-cebolla', categoria: 'porciones', nombre: 'Aros de cebolla x6', descripcion: '6 aros de cebolla apanados y crocantes.', foto: '', emoji: '🧅', disponible: true, orden: 9, precio: 6000 },
-  { id: 'porcion-chorizo', categoria: 'porciones', nombre: 'Chorizo santarrosano', descripcion: 'Un chorizo a la parrilla.', foto: '', emoji: '🌭', disponible: true, orden: 10, precio: 5500 },
-  { id: 'porcion-nuggets', categoria: 'porciones', nombre: 'Nuggets (5 und)', descripcion: '5 nuggets de pollo crocantes.', foto: '', emoji: '🍗', disponible: true, orden: 11, precio: 5500 },
-  { id: 'porcion-huevos-codorniz', categoria: 'porciones', nombre: 'Huevos de codorniz x5', descripcion: '5 huevitos de codorniz.', foto: '', emoji: '🥚', disponible: true, orden: 12, precio: 3000 },
+  { id: 'porcion-papa-criolla', categoria: 'porciones', nombre: 'Papas criollas', descripcion: 'Doraditas y crocantes.', foto: '/locales/pilotos/papa-criolla.webp', emoji: '🥔', disponible: true, orden: 6, precio: 5000 },
+  { id: 'porcion-papa-francesa', categoria: 'porciones', nombre: 'Papas francesas', descripcion: 'Recién hechas, con sal.', foto: '/locales/pilotos/papa-francesa.webp', emoji: '🍟', disponible: true, orden: 7, precio: 6000 },
+  { id: 'porcion-papa-francesa-xl', categoria: 'porciones', nombre: 'Papas francesas XL', descripcion: 'Porción grande para compartir.', foto: '/locales/pilotos/papa-francesa.webp', emoji: '🍟', disponible: true, orden: 8, precio: 11000 },
+  { id: 'porcion-aros-cebolla', categoria: 'porciones', nombre: 'Aros de cebolla x6', descripcion: '6 aros de cebolla apanados y crocantes.', foto: '/locales/pilotos/aros-cebolla.webp', emoji: '🧅', disponible: true, orden: 9, precio: 6000 },
+  { id: 'porcion-chorizo', categoria: 'porciones', nombre: 'Chorizo santarrosano', descripcion: 'Un chorizo a la parrilla.', foto: '/locales/pilotos/chorizo.webp', emoji: '🌭', disponible: true, orden: 10, precio: 5500 },
+  { id: 'porcion-nuggets', categoria: 'porciones', nombre: 'Nuggets (5 und)', descripcion: '5 nuggets de pollo crocantes.', foto: '/locales/pilotos/nuggets.webp', emoji: '🍗', disponible: true, orden: 11, precio: 5500 },
+  { id: 'porcion-huevos-codorniz', categoria: 'porciones', nombre: 'Huevos de codorniz x5', descripcion: '5 huevitos de codorniz.', foto: '/locales/pilotos/huevos-codorniz.webp', emoji: '🥚', disponible: true, orden: 12, precio: 3000 },
 
   // ── 🍔 HAMBURGUESAS (con hangar de adiciones + combo opcional)
   { id: 'burger-clasica', categoria: 'hamburguesas', nombre: 'La Clásica', descripcion: 'Carne artesanal 100% de res, queso cheddar, vegetales frescos y salsas de la casa.', foto: '/locales/pilotos/burger-clasica.webp', emoji: '🍔', destacado: true, disponible: true, orden: 13, precio: 15000, gruposOpciones: [ADICIONES, COMBO] },
@@ -338,15 +338,15 @@ export const PILOTOS_PRODUCTOS = [
           { id: 'so-pina-hierba', nombre: 'Piña-hierbabuena', emoji: '🍍', precioExtra: 0, foto: '' },
         ] },
     ] },
-  { id: 'gaseosa', categoria: 'bebidas', nombre: 'Gaseosa', descripcion: 'Bien fría.', foto: '', emoji: '🥤', disponible: true, orden: 68,
+  { id: 'gaseosa', categoria: 'bebidas', nombre: 'Gaseosa', descripcion: 'Bien fría.', foto: '/locales/pilotos/gaseosa.webp', emoji: '🥤', disponible: true, orden: 68,
     variantes: [
       { id: 'gas-350', nombre: '350 ml', precio: 4000 },
       { id: 'gas-15', nombre: '1.5 L', precio: 8000 },
     ] },
-  { id: 'jugo-hit', categoria: 'bebidas', nombre: 'Jugo Hit', descripcion: 'Individual, bien frío.', foto: '', emoji: '🧃', disponible: true, orden: 69, precio: 4500 },
+  { id: 'jugo-hit', categoria: 'bebidas', nombre: 'Jugo Hit', descripcion: 'Individual, bien frío.', foto: '/locales/pilotos/jugo-hit.webp', emoji: '🧃', disponible: true, orden: 69, precio: 4500 },
 
   // ── 🍺 CERVEZAS
-  { id: 'cerveza', categoria: 'cervezas', nombre: 'Cerveza', descripcion: 'Bien fría. Elige tu marca.', foto: '', emoji: '🍺', disponible: true, orden: 70,
+  { id: 'cerveza', categoria: 'cervezas', nombre: 'Cerveza', descripcion: 'Bien fría. Elige tu marca.', foto: '/locales/pilotos/cerveza.webp', emoji: '🍺', disponible: true, orden: 70,
     variantes: [
       { id: 'cer-aguila', nombre: 'Águila', precio: 4500 },
       { id: 'cer-club', nombre: 'Club Colombia', precio: 7000 },

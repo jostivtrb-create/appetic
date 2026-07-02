@@ -34,6 +34,19 @@ export default function LocalMenu({ local, productos }) {
 
   const [catActiva, setCatActiva] = useState(categorias[0]?.id)
 
+  // 🔎 Buscador: aparece solo cuando hay muchos productos (menús largos).
+  const [query, setQuery] = useState('')
+  const q = query.trim().toLowerCase()
+  const buscando = q.length > 0
+  const mostrarBuscador = productos.length > 12
+  const resultados = useMemo(() => {
+    if (!buscando) return []
+    return productos.filter(p =>
+      p.nombre.toLowerCase().includes(q) ||
+      (p.descripcion || '').toLowerCase().includes(q)
+    )
+  }, [buscando, q, productos])
+
   // Horario (D25): fuera de horario se ve el menú pero no se puede pedir.
   const abierto = useMemo(() => estaAbierto(local.horario), [local.horario])
 
@@ -122,23 +135,64 @@ export default function LocalMenu({ local, productos }) {
         </div>
       )}
 
-      {!local.ocultarNav && categorias.length > 1 && (
+      {mostrarBuscador && (
+        <div className="local-search">
+          <div className="local-search-box">
+            <svg className="local-search-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
+              <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <input
+              type="search"
+              className="local-search-input"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Buscar en el menú…"
+              aria-label="Buscar en el menú"
+            />
+            {query && (
+              <button className="local-search-clear" onClick={() => setQuery('')} aria-label="Limpiar búsqueda">✕</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {!buscando && !local.ocultarNav && categorias.length > 1 && (
         <CategoryNav categorias={categorias} activa={catActiva} onSelect={seleccionarCategoria} />
       )}
 
       <main className="local-body local-menu">
-        {porCategoria.map(({ cat, items }) => (
-          <section key={cat.id} id={`sec-${cat.id}`} className="menu-section">
-            <h2 className="menu-section-title">
-              {cat.emoji && <span>{cat.emoji}</span>} {cat.nombre}
-            </h2>
-            <div className="menu-grid">
-              {items.map(p => (
-                <ProductCard key={p.id} producto={p} onPedir={pedirProducto} />
-              ))}
+        {buscando ? (
+          resultados.length > 0 ? (
+            <section className="menu-section">
+              <h2 className="menu-section-title">Resultados · {resultados.length}</h2>
+              <div className="menu-grid">
+                {resultados.map(p => (
+                  <ProductCard key={p.id} producto={p} onPedir={pedirProducto} />
+                ))}
+              </div>
+            </section>
+          ) : (
+            <div className="local-search-empty">
+              <span className="local-search-empty-icon">🔍</span>
+              <p>No encontramos “<strong>{query}</strong>”.</p>
+              <p className="local-search-empty-hint">Prueba con otra palabra.</p>
             </div>
-          </section>
-        ))}
+          )
+        ) : (
+          porCategoria.map(({ cat, items }) => (
+            <section key={cat.id} id={`sec-${cat.id}`} className="menu-section">
+              <h2 className="menu-section-title">
+                {cat.emoji && <span>{cat.emoji}</span>} {cat.nombre}
+              </h2>
+              <div className="menu-grid">
+                {items.map(p => (
+                  <ProductCard key={p.id} producto={p} onPedir={pedirProducto} />
+                ))}
+              </div>
+            </section>
+          ))
+        )}
         <div className="menu-bottom-space" />
       </main>
 

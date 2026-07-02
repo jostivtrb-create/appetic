@@ -141,3 +141,18 @@
 /* ===== MODAL de opciones sobre la noche (el overlay es descendiente de .local-page) ===== */
 .local-skin-jet .pm-nombre { font-family: var(--font-cond); text-transform: uppercase; letter-spacing: 0.02em; }
 .local-skin-jet .pm-opt-precio { color: #E8A03D; }
+
+/* ===== Buscador en modo jet ===== */
+.local-skin-jet .local-search-box { background: #1B1310; border-color: #3A2822; }
+.local-skin-jet .local-search-box:focus-within {
+  border-color: #E8A03D;
+  box-shadow: 0 0 0 3px rgba(232, 160, 61, 0.20);
+}
+.local-skin-jet .local-search-icon { color: #8C7A6E; }
+.local-skin-jet .local-search-box:focus-within .local-search-icon { color: #E8A03D; }
+.local-skin-jet .local-search-input {
+  font-family: var(--font-cond);
+  letter-spacing: 0.02em;
+  font-size: 15.5px;
+}
+.local-skin-jet .local-search-clear { background: linear-gradient(135deg, #A61A1A, #7A1010); color: #fff; }
