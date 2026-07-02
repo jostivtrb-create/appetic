@@ -1,5 +1,4 @@
 import { cop } from '../../utils/money'
-import { tieneOpciones } from '../../utils/price'
 import ImagenApp from '../Imagen/ImagenApp'
 import './ProductCard.css'
 
@@ -11,7 +10,6 @@ function precioDesde(p) {
 
 export default function ProductCard({ producto, onPedir }) {
   const agotado = producto.disponible === false
-  const conOpciones = tieneOpciones(producto)
 
   return (
     <button
@@ -28,11 +26,9 @@ export default function ProductCard({ producto, onPedir }) {
             {producto.variantes?.length ? <span className="pcard-desde">desde </span> : null}
             {cop(precioDesde(producto))}
           </span>
-          {/* Solo "Agregar +" en productos directos; los que tienen opciones
-              se abren tocando la tarjeta (no hace falta botón "Personalizar"). */}
-          {!agotado && !conOpciones && (
-            <span className="pcard-add">Agregar +</span>
-          )}
+          {/* Tocar la tarjeta abre el panel de detalle (ver más grande + Agregar).
+              Un chip discreto "Ver" invita a tocar, sin prometer que agrega directo. */}
+          {!agotado && <span className="pcard-add">Ver</span>}
         </div>
       </div>
 

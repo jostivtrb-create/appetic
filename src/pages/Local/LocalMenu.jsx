@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { localThemeVars } from '../../utils/theme'
 import { useCart } from '../../contexts/CartContext'
-import { tieneOpciones } from '../../utils/price'
 import { estaAbierto } from '../../utils/horario'
 import CategoryNav from '../../components/Menu/CategoryNav'
 import ProductCard from '../../components/Menu/ProductCard'
@@ -72,12 +71,10 @@ export default function LocalMenu({ local, productos }) {
       mostrarToast(`Cerrado ahora · abre a las ${local.horario?.abre}`)
       return
     }
-    if (tieneOpciones(producto)) {
-      setModalProducto(producto)
-    } else {
-      addItem({ producto, cantidad: 1 })
-      mostrarToast(`${producto.nombre} agregado`)
-    }
+    // Tocar la tarjeta SIEMPRE abre el panel de detalle (ver el producto más grande +
+    // descripción). Nada se agrega al carrito por tocar: solo con el botón "Agregar" del
+    // panel. Los productos con opciones o "arma tu X" usan el mismo panel con sus opciones.
+    setModalProducto(producto)
   }
 
   function agregarDesdeModal(payload) {
