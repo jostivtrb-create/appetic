@@ -17,5 +17,9 @@ export async function getPreviewLocal(slug) {
     const { SABOR_LOCAL, SABOR_PRODUCTOS } = await import('./dev/saborDelDia')
     return { local: SABOR_LOCAL, productos: SABOR_PRODUCTOS }
   }
+  if (slug === 'pilotos') {
+    const { PILOTOS_LOCAL, PILOTOS_PRODUCTOS } = await import('./dev/pilotos')
+    return { local: PILOTOS_LOCAL, productos: PILOTOS_PRODUCTOS }
+  }
   return null
 }
