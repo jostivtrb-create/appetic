@@ -35,7 +35,9 @@
   box-shadow: var(--shadow-sm);
   font-size: 15px;
   font-weight: 700;
-  color: var(--text);
+  /* Color FIJO oscuro: el fondo del botón es siempre blanco, así la ✕ se ve
+     también en skins oscuros (donde --text es claro y quedaba invisible). */
+  color: var(--brand-ink);
 }
 
 .pm-hero { height: 200px; flex-shrink: 0; }
