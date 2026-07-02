@@ -94,10 +94,9 @@ export default function Superadmin() {
 
       <a
         className="sa-descarga"
-        href="/propuesta-appetic.pdf"
+        href="https://appetic-17477.web.app/propuesta-appetic.pdf"
         target="_blank"
         rel="noopener noreferrer"
-        download="Propuesta-Appetic.pdf"
       >
         <span className="sa-descarga-ico">⬇️</span>
         <span className="sa-descarga-txt">
