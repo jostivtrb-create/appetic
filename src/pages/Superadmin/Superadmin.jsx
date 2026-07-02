@@ -148,7 +148,7 @@ export default function Superadmin() {
               <li key={l.id} className="sa-item">
                 <div className="sa-item-main">
                   <div className="sa-item-logo">
-                    {l.logo ? <img src={l.logo} alt="" /> : <span>🍽️</span>}
+                    {(l.icono || l.logo) ? <img src={l.icono || l.logo} alt="" /> : <span>🍽️</span>}
                   </div>
                   <div className="sa-item-info">
                     <strong>{l.nombre}</strong>

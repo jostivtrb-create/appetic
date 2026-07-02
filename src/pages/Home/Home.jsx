@@ -126,8 +126,8 @@ export default function Home() {
                 <li key={l.id}>
                   <Link to={`/${l.slug}`} className="loc-card">
                     <div className="loc-card-img">
-                      {l.logo
-                        ? <img src={l.logo} alt={l.nombre} loading="lazy" />
+                      {(l.icono || l.logo)
+                        ? <img src={l.icono || l.logo} alt={l.nombre} loading="lazy" />
                         : <span>🍽️</span>}
                     </div>
                     <div className="loc-card-info">

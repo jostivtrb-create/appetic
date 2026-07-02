@@ -56,7 +56,8 @@ export const PILOTOS_LOCAL = {
   descripcion: 'Volamos por los sabores · hamburguesas, perros, pizzas y más 🛫',
   // El dueño lo confirma desde el panel. Pre-cargado con la línea de DOMICILIOS del menú.
   whatsapp: '573214226828',
-  logo: '/locales/pilotos/logo.webp',
+  logo: '/locales/pilotos/logo.webp',        // ancho y transparente: FLOTA grande en el hero
+  icono: '/locales/pilotos/icono.webp',      // cuadrado (badge oscuro): para el cuadrito de la lista/superadmin
   banner: '/locales/pilotos/banner.webp',
   tema: {
     primary: '#8A1212',        // rojo vino / maroon (el sello del PDF)
@@ -102,7 +103,7 @@ export const PILOTOS_LOCAL = {
   ],
   admins: [ADMIN_EMAIL],
   suscripcion: { activa: true, plan: 'piloto' },
-  menuVersion: 3,
+  menuVersion: 4,
 }
 
 export const PILOTOS_PRODUCTOS = [
