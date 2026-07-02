@@ -158,3 +158,19 @@
   font-size: 15.5px;
 }
 .local-skin-jet .local-search-clear { background: linear-gradient(135deg, #A61A1A, #7A1010); color: #fff; }
+
+/* ===== Checkout en modo jet (evitar vino-sobre-oscuro ilegible) ===== */
+/* Opción de entrega/pago seleccionada: texto CLARO (antes vino oscuro invisible) */
+.local-skin-jet .co-toggle button.on {
+  background: rgba(232, 160, 61, 0.16);
+  border-color: #E8A03D;
+  color: #F5ECE2;
+}
+.local-skin-jet .co-pago.on {
+  background: rgba(232, 160, 61, 0.14);
+  border-color: #E8A03D;
+}
+/* Botón de ubicación (domicilio) y avisos: legibles sobre oscuro */
+.local-skin-jet .co-ubic-btn { border-color: #E8A03D; background: rgba(232, 160, 61, 0.14); color: #E8A03D; }
+.local-skin-jet .co-ubic-ok { background: rgba(47, 174, 102, 0.16); }
+.local-skin-jet .co-ubic-error { background: rgba(229, 72, 77, 0.16); }
