@@ -11,6 +11,7 @@ import CartButton from '../../components/Cart/CartButton'
 import CartDrawer from '../../components/Cart/CartDrawer'
 import BotonFavorito from '../../components/Favorito/BotonFavorito'
 import Checkout from '../Checkout/Checkout'
+import './LocalSkinJet.css'
 
 export default function LocalMenu({ local, productos }) {
   const { addItem } = useCart()
@@ -86,9 +87,10 @@ export default function LocalMenu({ local, productos }) {
   // Hero protagonizado por el logo (sobre crema, sin foto): para marcas cuyo
   // logo ya trae el nombre. Se activa con tema.hero === 'logo'.
   const heroLogo = local.tema?.hero === 'logo'
+  const skinJet = local.tema?.skin === 'jet'
 
   return (
-    <div className="local-page" style={localThemeVars(local.tema)}>
+    <div className={`local-page ${skinJet ? 'local-skin-jet' : ''}`} style={localThemeVars(local.tema)}>
       <header className={`local-hero ${heroLogo ? 'local-hero--logo' : ''}`}>
         {heroLogo ? (
           <>

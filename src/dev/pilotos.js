@@ -59,12 +59,14 @@ export const PILOTOS_LOCAL = {
   logo: '/locales/pilotos/logo.png',
   banner: '/locales/pilotos/banner.webp',
   tema: {
-    primary: '#D11A2A',        // rojo aeronáutico (bandas del logo)
-    primaryStrong: '#9E0E1E',  // rojo oscuro
-    primarySoft: '#F26A21',    // brasa / fuego (glow del logo)
+    primary: '#8A1212',        // rojo vino / maroon (el sello del PDF)
+    primaryStrong: '#5E0C0C',  // vino oscuro
+    primarySoft: '#E8A03D',    // dorado / ámbar de brasa (atardecer de pista)
     onPrimary: '#FFFFFF',
-    accent: '#3B4A5A',         // gunmetal / acero de las alas
-    bg: '#ECEFF4',             // "mundo" acero-cielo frío detrás del menú
+    accent: '#E8A03D',         // dorado para precios y detalles
+    bg: '#100B0A',             // negro cálido: el "mundo" nocturno de la marca
+    hero: 'logo',              // el logo de las alas + estrella en GRANDE en el header
+    skin: 'jet',               // piel oscura dramática (src/pages/Local/LocalSkinJet.css)
   },
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.
   horario: { abre: '00:00', cierra: '00:00' },
@@ -74,32 +76,33 @@ export const PILOTOS_LOCAL = {
     { id: 'efectivo', nombre: 'Efectivo', tipo: 'efectivo' },
     { id: 'nequi', nombre: 'Nequi / Daviplata', tipo: 'transferencia', llave: '' },
   ],
+  // Sin emojis: la marca usa la silueta del jet (la pone el skin 'jet' por CSS).
   categorias: [
-    { id: 'despegue', nombre: 'Zona de Despegue', emoji: '🛫' },
-    { id: 'porciones', nombre: 'Porciones de Vuelo', emoji: '🍟' },
-    { id: 'hamburguesas', nombre: 'Hamburguesas', emoji: '🍔' },
-    { id: 'perros', nombre: 'Perros Calientes', emoji: '🌭' },
-    { id: 'papas', nombre: 'Papas Turbulentas', emoji: '🍟' },
-    { id: 'mazorcadas', nombre: 'Mazorcadas', emoji: '🌽' },
-    { id: 'salchipapas', nombre: 'Salchipapas', emoji: '🥓' },
-    { id: 'patacones', nombre: 'Patacones', emoji: '🫓' },
-    { id: 'burritos', nombre: 'Burritos & Dorilocos', emoji: '🌯' },
-    { id: 'alitas', nombre: 'Alitas', emoji: '🍗' },
-    { id: 'costillas', nombre: 'Costillas BBQ', emoji: '🍖' },
-    { id: 'picadas', nombre: 'Picadas', emoji: '🍢' },
-    { id: 'sandwich', nombre: 'Sándwich', emoji: '🥪' },
-    { id: 'especiales', nombre: 'Especiales', emoji: '🥩' },
-    { id: 'lasanas', nombre: 'Lasañas', emoji: '🍝' },
-    { id: 'panzerottis', nombre: 'Panzerottis', emoji: '🥟' },
-    { id: 'pizzas', nombre: 'Pizzas', emoji: '🍕' },
-    { id: 'infantil', nombre: 'Menú Infantil', emoji: '🧒' },
-    { id: 'malteadas', nombre: 'Malteadas', emoji: '🥤' },
-    { id: 'bebidas', nombre: 'Bebidas', emoji: '🧃' },
-    { id: 'cervezas', nombre: 'Cervezas', emoji: '🍺' },
+    { id: 'despegue', nombre: 'Zona de Despegue', emoji: '' },
+    { id: 'porciones', nombre: 'Porciones de Vuelo', emoji: '' },
+    { id: 'hamburguesas', nombre: 'Hamburguesas', emoji: '' },
+    { id: 'perros', nombre: 'Perros Calientes', emoji: '' },
+    { id: 'papas', nombre: 'Papas Turbulentas', emoji: '' },
+    { id: 'mazorcadas', nombre: 'Mazorcadas', emoji: '' },
+    { id: 'salchipapas', nombre: 'Salchipapas', emoji: '' },
+    { id: 'patacones', nombre: 'Patacones', emoji: '' },
+    { id: 'burritos', nombre: 'Burritos & Dorilocos', emoji: '' },
+    { id: 'alitas', nombre: 'Alitas', emoji: '' },
+    { id: 'costillas', nombre: 'Costillas BBQ', emoji: '' },
+    { id: 'picadas', nombre: 'Picadas', emoji: '' },
+    { id: 'sandwich', nombre: 'Sándwich', emoji: '' },
+    { id: 'especiales', nombre: 'Especiales', emoji: '' },
+    { id: 'lasanas', nombre: 'Lasañas', emoji: '' },
+    { id: 'panzerottis', nombre: 'Panzerottis', emoji: '' },
+    { id: 'pizzas', nombre: 'Pizzas', emoji: '' },
+    { id: 'infantil', nombre: 'Menú Infantil', emoji: '' },
+    { id: 'malteadas', nombre: 'Malteadas', emoji: '' },
+    { id: 'bebidas', nombre: 'Bebidas', emoji: '' },
+    { id: 'cervezas', nombre: 'Cervezas', emoji: '' },
   ],
   admins: [ADMIN_EMAIL],
   suscripcion: { activa: true, plan: 'piloto' },
-  menuVersion: 1,
+  menuVersion: 2,
 }
 
 export const PILOTOS_PRODUCTOS = [
