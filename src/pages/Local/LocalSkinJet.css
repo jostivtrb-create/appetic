@@ -30,6 +30,8 @@
 
 /* ===== HERO: el logo de las alas en grande sobre la noche ===== */
 .local-skin-jet .local-hero--logo {
+  /* Más aire arriba para que el botón de favorito (esquina) no tape la punta del ala. */
+  padding-top: calc(62px + env(safe-area-inset-top));
   background:
     radial-gradient(100% 80% at 50% 0%, rgba(242, 120, 40, 0.22), transparent 60%),
     linear-gradient(180deg, #1A0F0C 0%, #100B0A 88%);
