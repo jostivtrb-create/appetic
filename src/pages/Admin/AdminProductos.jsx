@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { cop } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
 
-export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
+export default function AdminProductos({ local, slug, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
   const [menuCatOrden, setMenuCatOrden] = useState(null) // id de la categoría con el menú Subir/Bajar abierto
   const [colapsadas, setColapsadas] = useState(() => new Set()) // ids de categorías minimizadas
@@ -51,6 +52,14 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
 
   return (
     <div className="ap">
+      {slug && (
+        <Link to={`/${slug}`} className="ap-ver-menu">
+          <span className="ap-ver-menu-icon" aria-hidden="true">👁️</span>
+          Ver mi menú
+          <span className="ap-ver-menu-arrow" aria-hidden="true">→</span>
+        </Link>
+      )}
+
       <button className="btn btn-primary ap-add" onClick={() => setEditando({ nuevo: true, categoria: categorias[0]?.id })}>
         + Agregar producto
       </button>

@@ -205,6 +205,7 @@ export default function AdminPage() {
         {tab === 'productos' && (
           <AdminProductos
             local={local}
+            slug={slug}
             productos={productos}
             onAdd={addProducto}
             onUpdate={updateProducto}
@@ -218,8 +219,6 @@ export default function AdminPage() {
         {tab === 'config' && <AdminConfig local={local} onUpdate={updateLocal} />}
         {tab === 'metricas' && <AdminMetricas local={local} demo={demo} />}
       </main>
-
-      <Link to={`/${slug}`} className="admin-ver-menu">👁️ Ver mi menú</Link>
     </div>
   )
 }
