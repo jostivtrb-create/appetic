@@ -14,7 +14,7 @@ export default function Cuenta() {
 
   const [misLocales, setMisLocales] = useState([])
   const [perfil, setPerfil] = useState({ nombre: '', telefono: '', direccion: '' })
-  const [cargandoDatos, setCargandoDatos] = useState(false)
+  const [cargandoDatos, setCargandoDatos] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
   const [avatarFallo, setAvatarFallo] = useState(false)
@@ -82,7 +82,7 @@ export default function Cuenta() {
   return (
     <div className="cuenta">
       <header className="cuenta-top">
-        {!esDuenio && <Link to="/" className="cuenta-volver-chip">‹</Link>}
+        {!cargandoDatos && !esDuenio && <Link to="/" className="cuenta-volver-chip">‹</Link>}
         <h1>Mi cuenta</h1>
       </header>
 
@@ -137,8 +137,10 @@ export default function Cuenta() {
         </section>
       )}
 
-      {/* Datos del cliente (solo para clientes; un dueño no los necesita) */}
-      {!esDuenio && (
+      {/* Datos del cliente (solo para clientes; un dueño no los necesita). No se
+          muestra hasta terminar de cargar, para no parpadear mientras se sabe
+          si la persona es dueña. */}
+      {!cargandoDatos && !esDuenio && (
       <section className="cuenta-datos">
         <h2>Tus datos</h2>
         <p className="cuenta-datos-hint">Los usamos para llenar tu pedido automáticamente. Solo tú los ves.</p>
