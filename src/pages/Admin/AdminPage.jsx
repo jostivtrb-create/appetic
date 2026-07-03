@@ -10,6 +10,7 @@ import { subirFotoProducto, subirFotoOpcion } from '../../services/storage'
 import AdminProductos from './AdminProductos'
 import AdminConfig from './AdminConfig'
 import AdminMetricas from './AdminMetricas'
+import AdminDifundir from './AdminDifundir'
 import { isDevSlug, getDevLocal } from '../../dev'
 import './Admin.css'
 
@@ -205,6 +206,7 @@ export default function AdminPage() {
 
       <nav className="admin-tabs">
         <button className={tab === 'productos' ? 'on' : ''} onClick={() => setTab('productos')}>🍔 Menú</button>
+        <button className={tab === 'difundir' ? 'on' : ''} onClick={() => setTab('difundir')}>📣 Difundir</button>
         <button className={tab === 'config' ? 'on' : ''} onClick={() => setTab('config')}>⚙️ Configuración</button>
         <button className={tab === 'metricas' ? 'on' : ''} onClick={() => setTab('metricas')}>📊 Métricas</button>
       </nav>
@@ -224,6 +226,7 @@ export default function AdminPage() {
             onReorderCategorias={reordenarCategorias}
           />
         )}
+        {tab === 'difundir' && <AdminDifundir local={local} slug={slug} />}
         {tab === 'config' && <AdminConfig local={local} onUpdate={updateLocal} />}
         {tab === 'metricas' && <AdminMetricas local={local} demo={demo} />}
       </main>
