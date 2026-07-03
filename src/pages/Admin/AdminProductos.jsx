@@ -5,7 +5,16 @@ import ImagenApp from '../../components/Imagen/ImagenApp'
 export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
   const [menuCatOrden, setMenuCatOrden] = useState(null) // id de la categoría con el menú Subir/Bajar abierto
+  const [colapsadas, setColapsadas] = useState(() => new Set()) // ids de categorías minimizadas
   const [query, setQuery] = useState('')
+
+  function toggleColapsada(id) {
+    setColapsadas(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
 
   const categorias = local.categorias || []
 
@@ -77,12 +86,20 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
         // no es una categoría de verdad: no se puede reordenar.
         const idx = categorias.findIndex(c => c.id === cat.id)
         const reordenable = onReorderCategorias && categorias.length > 1 && idx >= 0
+        // Al buscar, se ignora el minimizado para no esconder resultados.
+        const colapsada = colapsadas.has(cat.id) && !buscando
         return (
         <section key={cat.id} className="ap-grupo-cat">
           <div className="ap-grupo-cat-head">
-            <h3 className="ap-grupo-cat-title">
+            <button
+              className="ap-grupo-cat-title"
+              onClick={() => toggleColapsada(cat.id)}
+              aria-expanded={!colapsada}
+              title={colapsada ? 'Desplegar' : 'Minimizar'}
+            >
+              <span className={`ap-grupo-cat-chevron ${colapsada ? 'col' : ''}`}>⌄</span>
               {cat.emoji ? `${cat.emoji} ` : ''}{cat.nombre} <span className="ap-grupo-cat-count">· {items.length}</span>
-            </h3>
+            </button>
             {reordenable && (
               <div className="ap-cat-orden">
                 <button
@@ -107,6 +124,7 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
               </div>
             )}
           </div>
+          {!colapsada && (
           <div className="ap-lista">
             {items.map(p => (
               <div key={p.id} className={`ap-item ${p.disponible === false ? 'ap-item-off' : ''}`}>
@@ -132,6 +150,7 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
               </div>
             ))}
           </div>
+          )}
         </section>
         )
       })}

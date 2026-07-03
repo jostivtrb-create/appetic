@@ -128,13 +128,27 @@
   margin-bottom: 9px;
 }
 .ap-grupo-cat-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+  background: none;
+  text-align: left;
   font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-soft);
-  min-width: 0;
 }
+.ap-grupo-cat-chevron {
+  flex: none;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--text-faint);
+  transition: transform 0.2s ease;
+}
+.ap-grupo-cat-chevron.col { transform: rotate(-90deg); }
 .ap-grupo-cat-count { font-weight: 600; color: var(--text-faint); }
 
 /* Botón de orden por categoría (Subir/Bajar) en el encabezado */
