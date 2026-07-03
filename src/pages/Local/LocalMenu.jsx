@@ -12,12 +12,26 @@ import BotonFavorito from '../../components/Favorito/BotonFavorito'
 import Checkout from '../Checkout/Checkout'
 import './LocalSkinJet.css'
 
-export default function LocalMenu({ local, productos }) {
+export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   const { addItem } = useCart()
   const [modalProducto, setModalProducto] = useState(null)
   const [drawerAbierto, setDrawerAbierto] = useState(false)
   const [checkoutAbierto, setCheckoutAbierto] = useState(false)
   const [toast, setToast] = useState('')
+
+  // 🔙 Le decimos a LocalPage cómo cerrar la "capa superior" cuando el usuario
+  // presiona atrás: primero el checkout, luego el detalle de producto y por
+  // último el carrito. Si no hay ninguna abierta, devuelve false y LocalPage
+  // lleva al inicio. Se refresca en cada render para leer el estado más nuevo.
+  useEffect(() => {
+    if (!cerrarCapaRef) return
+    cerrarCapaRef.current = () => {
+      if (checkoutAbierto) { setCheckoutAbierto(false); return true }
+      if (modalProducto) { setModalProducto(null); return true }
+      if (drawerAbierto) { setDrawerAbierto(false); return true }
+      return false
+    }
+  })
 
   // Categorías: usar las del local o derivarlas de los productos
   const categorias = useMemo(() => {

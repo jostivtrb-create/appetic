@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getLocalBySlug } from '../../services/locales'
 import { getProductos } from '../../services/productos'
@@ -14,14 +14,22 @@ export default function LocalPage() {
   const [local, setLocal] = useState(null)
   const [productos, setProductos] = useState([])
 
-  // 🔙 "Atrás" desde un menú SIEMPRE lleva al inicio (y nunca saca de la app),
-  // tanto si entró directo (link de WhatsApp, PWA) como si llegó desde el inicio.
-  // Ponemos una entrada "centinela" encima del menú; cuando el usuario presiona
-  // atrás, caemos en ella (popstate) y lo mandamos al inicio.
+  // 🔙 Botón "atrás" del teléfono. Ponemos una entrada "centinela" encima del
+  // menú; cuando el usuario presiona atrás, caemos en ella (popstate) y decidimos:
+  //   • Si hay una capa abierta (detalle de producto, carrito o checkout), la
+  //     cerramos y te dejamos en el menú donde estabas — y reponemos el centinela.
+  //   • Si no hay ninguna capa, "atrás" lleva al inicio (y nunca saca de la app),
+  //     tanto si entró directo (link de WhatsApp, PWA) como si llegó desde el inicio.
+  // LocalMenu conecta aquí su "cerrar capa superior" a través de este ref.
+  const cerrarCapaRef = useRef(() => false)
   useEffect(() => {
     window.history.pushState(window.history.state, '')
     function alPresionarAtras() {
-      navigate('/', { replace: true })
+      if (cerrarCapaRef.current()) {
+        window.history.pushState(window.history.state, '')
+      } else {
+        navigate('/', { replace: true })
+      }
     }
     window.addEventListener('popstate', alPresionarAtras)
     return () => window.removeEventListener('popstate', alPresionarAtras)
@@ -113,7 +121,7 @@ export default function LocalPage() {
 
   return (
     <CartProvider localId={local.id}>
-      <LocalMenu local={local} productos={productos} />
+      <LocalMenu local={local} productos={productos} cerrarCapaRef={cerrarCapaRef} />
     </CartProvider>
   )
 }
