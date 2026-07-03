@@ -25,7 +25,7 @@ export function normalizarTel(numero) {
 
 // Construye el texto del pedido para el WhatsApp del local.
 export function textoPedido(local, pedido) {
-  const { items, entrega, cliente, pago, domicilio, notas, subtotal, total } = pedido
+  const { items, entrega, cliente, pago, domicilio, domicilioAConvenir, notas, subtotal, total } = pedido
   const L = []
 
   L.push(`*Nuevo pedido — ${local.nombre}* \u{1F354}`)
@@ -37,6 +37,7 @@ export function textoPedido(local, pedido) {
     L.push('\u{1F6F5} *Entrega:* Domicilio')
     if (cliente.direccion) L.push(`\u{1F4CD} *Dirección:* ${cliente.direccion}`)
     if (cliente.coord) L.push(`\u{1F5FA} Ubicación: ${mapsUrl(cliente.coord)}`)
+    if (domicilioAConvenir) L.push('\u{26A0}\u{FE0F} *Domicilio A CONVENIR* (no se pudo tomar la ubicación del cliente)')
   } else {
     L.push('\u{1F3EA} *Entrega:* Recoger en el local')
   }
@@ -64,7 +65,9 @@ export function textoPedido(local, pedido) {
   L.push('')
   L.push(`Subtotal: ${cop(subtotal)}`)
   if (entrega === 'domicilio' && domicilio?.ok) L.push(`Domicilio: ${cop(domicilio.costo)}`)
+  else if (domicilioAConvenir) L.push('Domicilio: a convenir (NO incluido en el total)')
   L.push(`*Total: ${cop(total)}*`)
+  if (domicilioAConvenir) L.push('_El total NO incluye el domicilio._')
 
   if (notas) {
     L.push('')

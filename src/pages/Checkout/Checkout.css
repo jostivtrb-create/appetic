@@ -97,6 +97,32 @@
   border-radius: var(--radius-sm);
 }
 
+/* Domicilio A CONVENIR (cuando falla la ubicación): aviso súper resaltado. */
+.co-convenir {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 13px 14px;
+  border-radius: var(--radius-sm);
+  background: #FFF3E0;
+  border: 2px solid #F59E0B;
+  color: #7A3E00;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.co-convenir strong { font-weight: 800; }
+.co-convenir-reintentar {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: #F59E0B;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .co-pago {
   display: flex;
   align-items: center;
@@ -140,6 +166,20 @@
   font-weight: 800;
   font-size: 18px;
 }
+.co-res-convenir { color: #B45309; font-weight: 800; }
+.co-res-nota {
+  margin-top: 10px;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  background: #FFF3E0;
+  border: 1.5px solid #F59E0B;
+  color: #7A3E00;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.4;
+}
+.co-res-nota strong { font-weight: 900; }
 
 .co-footer {
   flex-shrink: 0;

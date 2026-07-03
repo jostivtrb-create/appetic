@@ -72,6 +72,12 @@ export default function Checkout({ local, onClose, abierto = true }) {
   const pago = local.pagos?.find(p => p.id === pagoId)
   const cashNum = Number(String(cash).replace(/\D/g, '')) || 0
 
+  // 🛵 Si la ubicación FALLA (permiso denegado o error), no bloqueamos el pedido:
+  // se puede pedir a domicilio solo con la dirección y el valor del domicilio
+  // queda "a convenir" con el negocio (el total va SIN domicilio).
+  const ubicacionFallo = ubic === 'error' || ubic === 'denegado'
+  const domicilioAConvenir = entrega === 'domicilio' && ubicacionFallo
+
   function obtenerUbicacion() {
     if (!navigator.geolocation) { setUbic('error'); return }
     setUbic('cargando')
@@ -89,7 +95,9 @@ export default function Checkout({ local, onClose, abierto = true }) {
   if (!pagoId) faltas.push('pago')
   if (entrega === 'domicilio') {
     if (!direccion.trim()) faltas.push('direccion')
-    if (!domicilio?.ok) faltas.push('ubicacion')
+    // La ubicación solo es obligatoria si NO falló su captura. Si falló, se
+    // permite pedir con la dirección y el domicilio queda a convenir.
+    if (!domicilio?.ok && !ubicacionFallo) faltas.push('ubicacion')
   }
   const valido = items.length > 0 && faltas.length === 0 && abierto
 
@@ -102,6 +110,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
       cliente: { nombre: nombre.trim(), telefono: telefono.trim(), direccion: direccion.trim(), coord },
       pago: { ...pago, cashAmount: pago?.tipo === 'efectivo' ? cashNum : 0 },
       domicilio,
+      domicilioAConvenir,
       notas: notas.trim(),
       subtotal,
       total,
@@ -184,8 +193,16 @@ export default function Checkout({ local, onClose, abierto = true }) {
             {ubic === 'ok' && domicilio && !domicilio.ok && domicilio.motivo === 'fuera-cobertura' && (
               <div className="co-ubic-error">Estás fuera del área de domicilio (máx {local.domicilio.maxKm} km).</div>
             )}
-            {ubic === 'denegado' && <div className="co-ubic-error">Activa el permiso de ubicación para calcular el domicilio.</div>}
-            {ubic === 'error' && <div className="co-ubic-error">No pudimos obtener tu ubicación. Intenta de nuevo.</div>}
+
+            {/* Si la ubicación falló, no bloqueamos: se pide con la dirección y el
+                domicilio queda a convenir. Aviso súper resaltado. */}
+            {domicilioAConvenir && (
+              <div className="co-convenir">
+                <strong>⚠️ No pudimos tomar tu ubicación.</strong>
+                <span>Puedes pedir igual escribiendo tu dirección abajo. El <strong>valor del domicilio lo acuerdas con el negocio</strong> por WhatsApp — el total <strong>NO incluye el domicilio</strong>.</span>
+                <button type="button" className="co-convenir-reintentar" onClick={obtenerUbicacion}>Reintentar ubicación</button>
+              </div>
+            )}
 
             <input
               className="co-input"
@@ -241,9 +258,17 @@ export default function Checkout({ local, onClose, abierto = true }) {
         <section className="co-resumen">
           <div className="co-res-row"><span>Subtotal</span><span>{cop(subtotal)}</span></div>
           {entrega === 'domicilio' && (
-            <div className="co-res-row"><span>Domicilio</span><span>{domicilio?.ok ? cop(costoEnvio) : '—'}</span></div>
+            <div className="co-res-row">
+              <span>Domicilio</span>
+              <span className={domicilioAConvenir ? 'co-res-convenir' : ''}>
+                {domicilio?.ok ? cop(costoEnvio) : domicilioAConvenir ? 'A convenir' : '—'}
+              </span>
+            </div>
           )}
           <div className="co-res-row co-res-total"><span>Total</span><span>{cop(total)}</span></div>
+          {domicilioAConvenir && (
+            <p className="co-res-nota">⚠️ Este total <strong>NO incluye el domicilio</strong>. Lo acuerdas con el negocio.</p>
+          )}
         </section>
       </div>
 
@@ -261,7 +286,8 @@ export default function Checkout({ local, onClose, abierto = true }) {
           </p>
         )}
         <button className="btn btn-primary co-enviar" disabled={!valido || enviando} onClick={enviar}>
-          {!abierto ? 'Cerrado ahora' : enviando ? 'Enviando…' : `Enviar por WhatsApp · ${cop(total)}`}
+          {!abierto ? 'Cerrado ahora' : enviando ? 'Enviando…'
+            : `Enviar por WhatsApp · ${cop(total)}${domicilioAConvenir ? ' (sin domicilio)' : ''}`}
         </button>
       </footer>
     </div>
