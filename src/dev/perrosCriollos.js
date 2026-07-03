@@ -47,8 +47,8 @@ export const PERROS_LOCAL = {
   // El dueño lo configura desde el panel (Configuración → Datos del negocio).
   whatsapp: '',
   logo: '/locales/perros-criollos/logo.png',
-  // Ícono cuadrado (recorte HD de la ilustración) para el cuadrito de la lista/superadmin.
-  icono: '/locales/perros-criollos/icono.webp',
+  // Ícono cuadrado (logo HD completo) para el cuadrito de la lista/superadmin.
+  icono: '/locales/perros-criollos/icono-2.webp',
   // Sin foto de banner: el hero protagoniza el logo sobre crema (variante 'logo').
   banner: '',
   tema: {
@@ -89,7 +89,7 @@ export const PERROS_LOCAL = {
   suscripcion: { activa: true, plan: 'piloto' },
   // Súbelo cada vez que cambie el menú: invalida la caché del menú en los clientes.
   // v2: armador por pasos + fotos de toppings/salsas.
-  menuVersion: 3,
+  menuVersion: 4,
 }
 
 export const PERROS_PRODUCTOS = [
