@@ -1,6 +1,9 @@
-/* 🎬 Entrada épica del logo en tres bloques macizos que caen con golpe.
-   Dos variantes de dirección: --arriba (caen desde arriba) y --lado (entran
-   desde los costados, alternando izquierda/derecha). */
+/* 🎬 Animación EN BUCLE del logo: cada ~5 s se desarma en tres bloques (se van
+   en partes) y vuelve a armarse con golpe (pum · pum · pum). El resto del tiempo
+   el logo está quieto y completo.
+   Dos variantes: --arriba (los bloques se van hacia arriba) y --lado (se van a
+   los costados, alternando izquierda/derecha). El escalonado se logra con delays
+   negativos: cada bloque va un poco adelantado en el mismo ciclo de 5 s. */
 
 .logo-epico {
   position: relative;
@@ -8,7 +11,6 @@
   width: 100%;
   max-width: 360px;
   margin: 0 auto;
-  /* Sombra proyectada del logo completo (como .local-logo-full). */
   filter: drop-shadow(0 8px 20px rgba(42, 33, 28, 0.18));
 }
 
@@ -21,14 +23,15 @@
   visibility: hidden;
 }
 
-/* Cada bloque es la MISMA imagen, recortada a su tercio, encimada al sizer. */
+/* Cada bloque es la MISMA imagen, recortada a su tercio, encimada al sizer.
+   En reposo (opacity 1) los tres forman el logo completo. */
 .logo-epico-band {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  opacity: 0;
+  opacity: 1;
   will-change: transform, opacity, filter;
   backface-visibility: hidden;
 }
@@ -39,66 +42,46 @@
 .logo-epico .lb2 { clip-path: inset(33.2% 0 33.2% 0); }
 .logo-epico .lb3 { clip-path: inset(66.4% 0 0 0); }
 
-/* ===== Variante: DESDE ARRIBA (caen) ===== */
-.logo-epico--arriba { animation: logoTemblorY 1.5s ease both; }
-.logo-epico--arriba .lb1 { animation: logoGolpeY 0.46s cubic-bezier(0.22, 0.7, 0.2, 1) 0.15s both; }
-.logo-epico--arriba .lb2 { animation: logoGolpeY 0.46s cubic-bezier(0.22, 0.7, 0.2, 1) 0.50s both; }
-.logo-epico--arriba .lb3 { animation: logoGolpeY 0.46s cubic-bezier(0.22, 0.7, 0.2, 1) 0.85s both; }
+/* ===== Variante: DESDE ARRIBA (se van/vuelven por arriba) ===== */
+.logo-epico--arriba .lb1 { animation: logoLoopY 5s ease-in-out -0.40s infinite; }
+.logo-epico--arriba .lb2 { animation: logoLoopY 5s ease-in-out -0.20s infinite; }
+.logo-epico--arriba .lb3 { animation: logoLoopY 5s ease-in-out 0s infinite; }
 
-@keyframes logoGolpeY {
-  0%   { opacity: 0; transform: translateY(-78px); filter: brightness(2.2) contrast(1.08); }
-  45%  { opacity: 1; }
-  55%  { transform: translateY(6px); filter: brightness(1); }   /* impacto: pasa la línea */
-  72%  { transform: translateY(-2px); }                          /* rebote mínimo (es macizo) */
-  86%  { transform: translateY(1px); }
-  100% { opacity: 1; transform: translateY(0); filter: brightness(1); }
+@keyframes logoLoopY {
+  0%, 62% { transform: translateY(0); opacity: 1; filter: brightness(1); }
+  68%     { transform: translateY(-14px); filter: brightness(1.5); }   /* toma impulso */
+  75%     { transform: translateY(-95px); opacity: 0; }                 /* se va (arriba) */
+  80%     { transform: translateY(-95px); opacity: 0; }                 /* fuera */
+  90%     { transform: translateY(7px); opacity: 1; filter: brightness(1); } /* vuelve con golpe */
+  94%     { transform: translateY(-2px); }
+  98%, 100% { transform: translateY(0); opacity: 1; }
 }
 
-/* ===== Variante: DE LADO (entran alternando izq/der) ===== */
-.logo-epico--lado { animation: logoTemblorX 1.5s ease both; }
-.logo-epico--lado .lb1 { animation: logoGolpeIzq 0.46s cubic-bezier(0.22, 0.7, 0.2, 1) 0.15s both; }
-.logo-epico--lado .lb2 { animation: logoGolpeDer 0.46s cubic-bezier(0.22, 0.7, 0.2, 1) 0.50s both; }
-.logo-epico--lado .lb3 { animation: logoGolpeIzq 0.46s cubic-bezier(0.22, 0.7, 0.2, 1) 0.85s both; }
+/* ===== Variante: DE LADO (alternan izquierda/derecha) ===== */
+.logo-epico--lado .lb1 { animation: logoLoopIzq 5s ease-in-out -0.40s infinite; }
+.logo-epico--lado .lb2 { animation: logoLoopDer 5s ease-in-out -0.20s infinite; }
+.logo-epico--lado .lb3 { animation: logoLoopIzq 5s ease-in-out 0s infinite; }
 
-@keyframes logoGolpeIzq {
-  0%   { opacity: 0; transform: translateX(-110px); filter: brightness(2.2) contrast(1.08); }
-  45%  { opacity: 1; }
-  55%  { transform: translateX(8px); filter: brightness(1); }   /* impacto: pasa la línea */
-  72%  { transform: translateX(-3px); }
-  86%  { transform: translateX(1px); }
-  100% { opacity: 1; transform: translateX(0); filter: brightness(1); }
+@keyframes logoLoopIzq {
+  0%, 62% { transform: translateX(0); opacity: 1; filter: brightness(1); }
+  68%     { transform: translateX(14px); filter: brightness(1.5); }
+  75%     { transform: translateX(-125px); opacity: 0; }
+  80%     { transform: translateX(-125px); opacity: 0; }
+  90%     { transform: translateX(8px); opacity: 1; filter: brightness(1); }
+  94%     { transform: translateX(-2px); }
+  98%, 100% { transform: translateX(0); opacity: 1; }
 }
-@keyframes logoGolpeDer {
-  0%   { opacity: 0; transform: translateX(110px); filter: brightness(2.2) contrast(1.08); }
-  45%  { opacity: 1; }
-  55%  { transform: translateX(-8px); filter: brightness(1); }
-  72%  { transform: translateX(3px); }
-  86%  { transform: translateX(-1px); }
-  100% { opacity: 1; transform: translateX(0); filter: brightness(1); }
-}
-
-/* Temblorcitos del logo completo, sincronizados con los tres aterrizajes. */
-@keyframes logoTemblorY {
-  0%, 100% { transform: translateY(0); }
-  40% { transform: translateY(1.5px); }   /* pum 1 (~0.6s) */
-  41% { transform: translateY(0); }
-  63% { transform: translateY(1.5px); }   /* pum 2 (~0.95s) */
-  64% { transform: translateY(0); }
-  86% { transform: translateY(2px); }      /* pum 3 (~1.3s), el más fuerte */
-  88% { transform: translateY(0); }
-}
-@keyframes logoTemblorX {
-  0%, 100% { transform: translateX(0); }
-  40% { transform: translateX(-1.5px); }
-  41% { transform: translateX(0); }
-  63% { transform: translateX(1.5px); }
-  64% { transform: translateX(0); }
-  86% { transform: translateX(-2px); }
-  88% { transform: translateX(0); }
+@keyframes logoLoopDer {
+  0%, 62% { transform: translateX(0); opacity: 1; filter: brightness(1); }
+  68%     { transform: translateX(-14px); filter: brightness(1.5); }
+  75%     { transform: translateX(125px); opacity: 0; }
+  80%     { transform: translateX(125px); opacity: 0; }
+  90%     { transform: translateX(-8px); opacity: 1; filter: brightness(1); }
+  94%     { transform: translateX(2px); }
+  98%, 100% { transform: translateX(0); opacity: 1; }
 }
 
-/* Accesibilidad: sin animación, el logo simplemente aparece. */
+/* Accesibilidad: sin animación, el logo queda completo y quieto. */
 @media (prefers-reduced-motion: reduce) {
-  .logo-epico { animation: none !important; }
   .logo-epico-band { animation: none !important; opacity: 1; transform: none; filter: none; }
 }
