@@ -15,25 +15,17 @@
 }
 .catnav-track::-webkit-scrollbar { display: none; }
 
-/* ===== Carrusel continuo (las pastillas se deslizan solas en bucle) ===== */
-.catnav-marquee { overflow: hidden; }
+/* ===== Carrusel: se desliza solo por JS y el dedo puede arrastrarlo (scroll nativo) ===== */
 .catnav-marquee .catnav-track {
-  overflow: visible;
-  width: max-content;
-  gap: 0;                         /* usamos margin-right para un bucle sin costura */
+  gap: 0;                         /* margin-right en cada pastilla → bucle sin costura */
   padding: 12px 0;
-  animation: catnav-scroll var(--catnav-dur, 24s) linear infinite;
-  will-change: transform;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: auto;          /* el auto-scroll por JS no debe ser "smooth" */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 .catnav-marquee .catnav-tab { margin-right: 8px; }
-.catnav-marquee .catnav-track.is-paused { animation-play-state: paused; }
-@keyframes catnav-scroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .catnav-marquee .catnav-track { animation: none; padding: 12px 16px; }
-}
 
 .catnav-tab {
   flex-shrink: 0;
