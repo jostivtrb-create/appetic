@@ -111,7 +111,11 @@ export default function Cuenta() {
 
       {misLocales.map(l => (
         <Link key={l.id} to={`/${l.slug}/admin`} className="cuenta-rol cuenta-rol-local">
-          <span className="cuenta-rol-emoji">🏪</span>
+          <span className="cuenta-rol-logo">
+            {(l.icono || l.logo)
+              ? <img src={l.icono || l.logo} alt="" loading="lazy" />
+              : <span className="cuenta-rol-emoji">🏪</span>}
+          </span>
           <div>
             <strong>Administrar {l.nombre}</strong>
             <span>Edita tu menú, precios, horario y más</span>
