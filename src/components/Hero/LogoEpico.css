@@ -43,10 +43,10 @@
 .logo-epico .lb2 { clip-path: inset(33.2% 0 33.2% 0); }
 .logo-epico .lb3 { clip-path: inset(66.4% 0 0 0); }
 
-/* Delays: ~2 s de misterio al inicio + escalonado (arriba → abajo). */
-.logo-epico-band.lb1 { animation-delay: 2.00s; }
-.logo-epico-band.lb2 { animation-delay: 2.25s; }
-.logo-epico-band.lb3 { animation-delay: 2.50s; }
+/* Delays: ~1 s de misterio al inicio + escalonado (arriba → abajo). */
+.logo-epico-band.lb1 { animation-delay: 1.00s; }
+.logo-epico-band.lb2 { animation-delay: 1.25s; }
+.logo-epico-band.lb3 { animation-delay: 1.50s; }
 
 /* ===== Variante: DESDE ARRIBA (entra/se va por arriba) ===== */
 .logo-epico--arriba .logo-epico-band { animation-name: logoCicloY; animation-duration: 8s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-fill-mode: both; }
