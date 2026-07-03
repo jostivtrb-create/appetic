@@ -6,11 +6,11 @@ import ImagenApp from '../../components/Imagen/ImagenApp'
 export default function AdminProductos({ local, slug, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
   const [menuCatOrden, setMenuCatOrden] = useState(null) // id de la categoría con el menú Subir/Bajar abierto
-  const [colapsadas, setColapsadas] = useState(() => new Set()) // ids de categorías minimizadas
+  const [expandidas, setExpandidas] = useState(() => new Set()) // ids desplegadas (por defecto: todas minimizadas)
   const [query, setQuery] = useState('')
 
-  function toggleColapsada(id) {
-    setColapsadas(prev => {
+  function toggleCategoria(id) {
+    setExpandidas(prev => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
       return next
@@ -95,14 +95,15 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
         // no es una categoría de verdad: no se puede reordenar.
         const idx = categorias.findIndex(c => c.id === cat.id)
         const reordenable = onReorderCategorias && categorias.length > 1 && idx >= 0
-        // Al buscar, se ignora el minimizado para no esconder resultados.
-        const colapsada = colapsadas.has(cat.id) && !buscando
+        // Por defecto minimizada; se despliega si está en `expandidas`. Al buscar,
+        // se ignora el minimizado para no esconder resultados.
+        const colapsada = !expandidas.has(cat.id) && !buscando
         return (
         <section key={cat.id} className="ap-grupo-cat">
           <div className="ap-grupo-cat-head">
             <button
               className="ap-grupo-cat-title"
-              onClick={() => toggleColapsada(cat.id)}
+              onClick={() => toggleCategoria(cat.id)}
               aria-expanded={!colapsada}
               title={colapsada ? 'Desplegar' : 'Minimizar'}
             >
