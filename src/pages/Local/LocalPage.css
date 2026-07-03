@@ -121,6 +121,11 @@
 .menu-grid { display: flex; flex-direction: column; gap: 12px; }
 .menu-bottom-space { height: 96px; }
 
+/* Transición suave al cambiar de pestaña de categoría */
+.menu-section--tab { animation: tabIn 0.28s ease both; }
+@keyframes tabIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .menu-section--tab { animation: none; } }
+
 /* ===== Buscador (menús largos) ===== */
 .local-search { padding: 14px 16px 2px; }
 .local-search-box {

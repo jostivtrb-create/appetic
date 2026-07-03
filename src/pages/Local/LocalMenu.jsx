@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { localThemeVars } from '../../utils/theme'
 import { useCart } from '../../contexts/CartContext'
 import { estaAbierto } from '../../utils/horario'
@@ -49,7 +49,7 @@ export default function LocalMenu({ local, productos }) {
   // Horario (D25): fuera de horario se ve el menú pero no se puede pedir.
   const abierto = useMemo(() => estaAbierto(local.horario), [local.horario])
 
-  // Productos agrupados por categoría
+  // Productos agrupados por categoría (solo las que tienen productos)
   const porCategoria = useMemo(() => {
     return categorias.map(cat => ({
       cat,
@@ -57,13 +57,47 @@ export default function LocalMenu({ local, productos }) {
     })).filter(g => g.items.length > 0)
   }, [categorias, productos])
 
-  function seleccionarCategoria(id) {
-    setCatActiva(id)
-    const el = document.getElementById(`sec-${id}`)
-    if (el) {
-      const y = el.getBoundingClientRect().top + window.scrollY - 64
-      window.scrollTo({ top: y, behavior: 'smooth' })
-    }
+  // 🗂️ Pestañas: se ve UNA categoría a la vez. La activa siempre es válida
+  // (existe y tiene productos); si no, cae a la primera.
+  const activaId = useMemo(
+    () => (porCategoria.some(s => s.cat.id === catActiva) ? catActiva : porCategoria[0]?.cat.id),
+    [porCategoria, catActiva]
+  )
+  const activaIndex = porCategoria.findIndex(s => s.cat.id === activaId)
+  const activaSeccion = activaIndex >= 0 ? porCategoria[activaIndex] : null
+
+  // Al cambiar de categoría, sube el contenido justo bajo la barra (sin sacudir el 1er render).
+  const mainRef = useRef(null)
+  const primeraVez = useRef(true)
+  useEffect(() => {
+    if (primeraVez.current) { primeraVez.current = false; return }
+    const main = mainRef.current
+    if (!main) return
+    const nav = document.querySelector('.catnav')
+    const navH = nav ? nav.offsetHeight : 0
+    const y = main.getBoundingClientRect().top + window.scrollY - navH
+    window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
+  }, [activaId])
+
+  function cambiarCategoria(dir) {
+    if (activaIndex < 0) return
+    const next = Math.min(porCategoria.length - 1, Math.max(0, activaIndex + dir))
+    const id = porCategoria[next]?.cat.id
+    if (id && id !== activaId) setCatActiva(id)
+  }
+
+  // Swipe horizontal en el contenido para pasar de categoría (sin tocar el scroll vertical).
+  const touch = useRef({ x: 0, y: 0 })
+  function onTouchStart(e) {
+    const t = e.changedTouches[0]
+    touch.current = { x: t.clientX, y: t.clientY }
+  }
+  function onTouchEnd(e) {
+    if (buscando) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - touch.current.x
+    const dy = t.clientY - touch.current.y
+    if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.4) cambiarCategoria(dx < 0 ? 1 : -1)
   }
 
   function pedirProducto(producto) {
@@ -154,11 +188,11 @@ export default function LocalMenu({ local, productos }) {
         </div>
       )}
 
-      {!buscando && !local.ocultarNav && categorias.length > 1 && (
-        <CategoryNav categorias={categorias} activa={catActiva} onSelect={seleccionarCategoria} />
+      {!buscando && !local.ocultarNav && porCategoria.length > 1 && (
+        <CategoryNav categorias={porCategoria.map(s => s.cat)} activa={activaId} onSelect={setCatActiva} />
       )}
 
-      <main className="local-body local-menu">
+      <main ref={mainRef} className="local-body local-menu" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         {buscando ? (
           resultados.length > 0 ? (
             <section className="menu-section">
@@ -176,20 +210,19 @@ export default function LocalMenu({ local, productos }) {
               <p className="local-search-empty-hint">Prueba con otra palabra.</p>
             </div>
           )
-        ) : (
-          porCategoria.map(({ cat, items }) => (
-            <section key={cat.id} id={`sec-${cat.id}`} className="menu-section">
-              <h2 className="menu-section-title">
-                {cat.emoji && <span>{cat.emoji}</span>} {cat.nombre}
-              </h2>
-              <div className="menu-grid">
-                {items.map(p => (
-                  <ProductCard key={p.id} producto={p} onPedir={pedirProducto} />
-                ))}
-              </div>
-            </section>
-          ))
-        )}
+        ) : activaSeccion ? (
+          // Solo la categoría activa (pestañas). key = re-monta → animación al cambiar.
+          <section key={activaSeccion.cat.id} className="menu-section menu-section--tab">
+            <h2 className="menu-section-title">
+              {activaSeccion.cat.emoji && <span>{activaSeccion.cat.emoji}</span>} {activaSeccion.cat.nombre}
+            </h2>
+            <div className="menu-grid">
+              {activaSeccion.items.map(p => (
+                <ProductCard key={p.id} producto={p} onPedir={pedirProducto} />
+              ))}
+            </div>
+          </section>
+        ) : null}
         <div className="menu-bottom-space" />
       </main>
 

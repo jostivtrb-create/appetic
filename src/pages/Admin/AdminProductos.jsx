@@ -2,16 +2,48 @@ import { useState } from 'react'
 import { cop } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
 
-export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria }) {
+export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
+  const [ordenAbierto, setOrdenAbierto] = useState(false)
 
   const categorias = local.categorias || []
+
+  function moverCategoria(i, dir) {
+    const j = i + dir
+    if (j < 0 || j >= categorias.length) return
+    const nuevas = categorias.slice()
+    ;[nuevas[i], nuevas[j]] = [nuevas[j], nuevas[i]]
+    onReorderCategorias?.(nuevas)
+  }
 
   return (
     <div className="ap">
       <button className="btn btn-primary ap-add" onClick={() => setEditando({ nuevo: true, categoria: categorias[0]?.id })}>
         + Agregar producto
       </button>
+
+      {onReorderCategorias && categorias.length > 1 && (
+        <div className="ap-cats">
+          <button className="ap-cats-head" onClick={() => setOrdenAbierto(o => !o)}>
+            <span>🗂️ Orden de categorías</span>
+            <span className={`ap-cats-chevron ${ordenAbierto ? 'open' : ''}`}>⌄</span>
+          </button>
+          {ordenAbierto && (
+            <div className="ap-cats-lista">
+              <p className="ap-cats-hint">Así se ven en el menú. Usa las flechas para reordenar.</p>
+              {categorias.map((c, i) => (
+                <div key={c.id} className="ap-cat-row">
+                  <span className="ap-cat-nombre">{c.emoji ? `${c.emoji} ` : ''}{c.nombre}</span>
+                  <div className="ap-cat-move">
+                    <button onClick={() => moverCategoria(i, -1)} disabled={i === 0} aria-label="Subir">↑</button>
+                    <button onClick={() => moverCategoria(i, 1)} disabled={i === categorias.length - 1} aria-label="Bajar">↓</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {productos.length === 0 && <p className="ap-vacio">Aún no hay productos. Agrega el primero.</p>}
 

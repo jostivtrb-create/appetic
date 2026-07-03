@@ -101,6 +101,11 @@ export default function AdminPage() {
     return id
   }
 
+  // Reordena las categorías del local (el orden manda en el menú del cliente).
+  async function reordenarCategorias(nuevas) {
+    await updateLocal({ categorias: nuevas })
+  }
+
   // Quita del local las categorías que ya no tiene ningún producto (que desaparezcan).
   async function podarCategoriasVacias(prods) {
     const cats = local.categorias
@@ -192,6 +197,7 @@ export default function AdminPage() {
             onFoto={subirFoto}
             onFotoOpcion={subirFotoDeOpcion}
             onAddCategoria={addCategoria}
+            onReorderCategorias={reordenarCategorias}
           />
         )}
         {tab === 'config' && <AdminConfig local={local} onUpdate={updateLocal} />}
