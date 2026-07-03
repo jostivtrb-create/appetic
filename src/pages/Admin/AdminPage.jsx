@@ -68,16 +68,46 @@ export default function AdminPage() {
     return id
   }
   async function updateProducto(id, cambios) {
-    setProductos(p => p.map(x => x.id === id ? { ...x, ...cambios } : x))
+    const nuevos = productos.map(x => x.id === id ? { ...x, ...cambios } : x)
+    setProductos(nuevos)
     if (!demo) await actualizarProducto(local.id, id, cambios)
+    // Si cambió de categoría, alguna pudo quedar vacía → que desaparezca.
+    if ('categoria' in cambios) await podarCategoriasVacias(nuevos)
   }
   async function deleteProducto(id) {
-    setProductos(p => p.filter(x => x.id !== id))
+    const nuevos = productos.filter(x => x.id !== id)
+    setProductos(nuevos)
     if (!demo) await borrarProducto(local.id, id)
+    await podarCategoriasVacias(nuevos)
   }
   async function updateLocal(cambios) {
     setLocal(l => ({ ...l, ...cambios }))
     if (!demo) await actualizarLocal(local.id, cambios)
+  }
+
+  // Crea una categoría nueva (nombre + emoji opcional) y la agrega al local.
+  // Devuelve su id para asignársela al producto que la está creando.
+  async function addCategoria(nombre, emoji) {
+    const nom = (nombre || '').trim()
+    if (!nom) return null
+    // id ascii-safe desde el nombre (NFD + quitar no alfanuméricos = sin acentos).
+    const base = nom.toLowerCase().normalize('NFD')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'cat'
+    const existentes = new Set((local.categorias || []).map(c => c.id))
+    let id = base, n = 2
+    while (existentes.has(id)) id = `${base}-${n++}`
+    const categorias = [...(local.categorias || []), { id, nombre: nom, emoji: (emoji || '').trim() }]
+    await updateLocal({ categorias })
+    return id
+  }
+
+  // Quita del local las categorías que ya no tiene ningún producto (que desaparezcan).
+  async function podarCategoriasVacias(prods) {
+    const cats = local.categorias
+    if (!cats?.length) return
+    const usadas = new Set(prods.map(p => p.categoria).filter(Boolean))
+    const filtradas = cats.filter(c => usadas.has(c.id))
+    if (filtradas.length !== cats.length) await updateLocal({ categorias: filtradas })
   }
   async function subirFoto(productoId, file) {
     if (demo) { const url = URL.createObjectURL(file); await updateProducto(productoId, { foto: url }); return url }
@@ -161,6 +191,7 @@ export default function AdminPage() {
             onDelete={deleteProducto}
             onFoto={subirFoto}
             onFotoOpcion={subirFotoDeOpcion}
+            onAddCategoria={addCategoria}
           />
         )}
         {tab === 'config' && <AdminConfig local={local} onUpdate={updateLocal} />}

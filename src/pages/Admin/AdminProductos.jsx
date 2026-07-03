@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { cop } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
 
-export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion }) {
+export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
 
   const categorias = local.categorias || []
@@ -45,6 +45,7 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
         <EditorProducto
           producto={editando}
           categorias={categorias}
+          onAddCategoria={onAddCategoria}
           onCerrar={() => setEditando(null)}
           onGuardar={async (data, fotoFile) => {
             if (editando.nuevo) {
@@ -65,10 +66,13 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
   )
 }
 
-function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar, onFotoOpcion }) {
+function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuardar, onBorrar, onFotoOpcion }) {
   const [nombre, setNombre] = useState(producto.nombre || '')
   const [descripcion, setDescripcion] = useState(producto.descripcion || '')
   const [categoria, setCategoria] = useState(producto.categoria || categorias[0]?.id || '')
+  const [nuevaCat, setNuevaCat] = useState('')          // nombre de categoría nueva
+  const [nuevaCatEmoji, setNuevaCatEmoji] = useState('')
+  const creandoCat = categoria === '__nueva__'
   const [precio, setPrecio] = useState(producto.precio || '')
   const [variantes, setVariantes] = useState(producto.variantes ? producto.variantes.map(v => ({ ...v })) : null)
   // Copia editable de los grupos de opciones (toppings/salsas) con sus fotos.
@@ -114,11 +118,26 @@ function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar, o
 
   async function guardar() {
     if (!nombre.trim()) return
+    if (creandoCat && !nuevaCat.trim()) { alert('Escribe el nombre de la nueva categoría.'); return }
     setGuardando(true)
+    // Si eligió "crear categoría nueva", créala primero y usa su id.
+    let categoriaFinal = categoria
+    if (creandoCat) {
+      try {
+        const id = await onAddCategoria(nuevaCat, nuevaCatEmoji)
+        if (!id) { setGuardando(false); return }
+        categoriaFinal = id
+      } catch (err) {
+        console.error('No se pudo crear la categoría:', err)
+        alert('No se pudo crear la categoría. Intenta de nuevo.')
+        setGuardando(false)
+        return
+      }
+    }
     const data = {
       nombre: nombre.trim(),
       descripcion: descripcion.trim(),
-      categoria,
+      categoria: categoriaFinal,
     }
     if (tieneVariantes) data.variantes = variantes.map(v => ({ ...v, precio: Number(v.precio) || 0 }))
     else data.precio = Number(precio) || 0
@@ -164,7 +183,27 @@ function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar, o
           <label className="ap-label">Categoría</label>
           <select className="co-input" value={categoria} onChange={e => setCategoria(e.target.value)}>
             {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+            {onAddCategoria && <option value="__nueva__">➕ Crear categoría nueva…</option>}
           </select>
+          {creandoCat && (
+            <div className="ap-nueva-cat">
+              <input
+                className="co-input"
+                value={nuevaCat}
+                onChange={e => setNuevaCat(e.target.value)}
+                placeholder="Nombre de la categoría (ej: Postres)"
+                autoFocus
+              />
+              <input
+                className="co-input ap-cat-emoji"
+                value={nuevaCatEmoji}
+                onChange={e => setNuevaCatEmoji(e.target.value)}
+                placeholder="🍮"
+                maxLength={2}
+                aria-label="Emoji (opcional)"
+              />
+            </div>
+          )}
 
           {tieneVariantes ? (
             <>
@@ -219,7 +258,7 @@ function EditorProducto({ producto, categorias, onCerrar, onGuardar, onBorrar, o
           )}
         </div>
         <div className="pm-footer">
-          <button className="btn btn-primary pm-add" onClick={guardar} disabled={guardando || !nombre.trim()}>
+          <button className="btn btn-primary pm-add" onClick={guardar} disabled={guardando || !nombre.trim() || (creandoCat && !nuevaCat.trim())}>
             {guardando ? 'Guardando…' : 'Guardar'}
           </button>
         </div>
