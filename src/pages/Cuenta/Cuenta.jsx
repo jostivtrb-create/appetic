@@ -20,6 +20,9 @@ export default function Cuenta() {
   const [avatarFallo, setAvatarFallo] = useState(false)
 
   const superadmin = esSuperadmin(user?.email)
+  // Dueño = administra al menos un local. A él no le mostramos ni el botón de
+  // volver al inicio ni la sección "Tus datos" (esos son cosas de cliente).
+  const esDuenio = misLocales.length > 0
 
   useEffect(() => {
     if (!user) return
@@ -79,7 +82,7 @@ export default function Cuenta() {
   return (
     <div className="cuenta">
       <header className="cuenta-top">
-        <Link to="/" className="cuenta-volver-chip">‹</Link>
+        {!esDuenio && <Link to="/" className="cuenta-volver-chip">‹</Link>}
         <h1>Mi cuenta</h1>
       </header>
 
@@ -134,7 +137,8 @@ export default function Cuenta() {
         </section>
       )}
 
-      {/* Datos del cliente */}
+      {/* Datos del cliente (solo para clientes; un dueño no los necesita) */}
+      {!esDuenio && (
       <section className="cuenta-datos">
         <h2>Tus datos</h2>
         <p className="cuenta-datos-hint">Los usamos para llenar tu pedido automáticamente. Solo tú los ves.</p>
@@ -151,6 +155,7 @@ export default function Cuenta() {
           {guardando ? 'Guardando…' : guardado ? 'Guardado ✓' : 'Guardar mis datos'}
         </button>
       </section>
+      )}
     </div>
   )
 }
