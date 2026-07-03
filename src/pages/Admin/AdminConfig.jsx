@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { LOGO_ANIMS, resolverLogoAnim } from '../../utils/logoAnim'
 
 // Genera los intervalos de 0.5 km hasta el máximo: ['0.5','1.0',...,'maxKm']
 function intervalosHasta(maxKm) {
@@ -21,8 +22,7 @@ export default function AdminConfig({ local, onUpdate }) {
     for (const k of Object.keys(base)) limpio[k] = String(base[k] ?? '')
     return limpio
   })
-  const [animarLogo, setAnimarLogo] = useState(local.animarLogo !== false)
-  const [logoAnimDir, setLogoAnimDir] = useState(local.logoAnimDir === 'lado' ? 'lado' : 'arriba')
+  const [logoAnim, setLogoAnim] = useState(resolverLogoAnim(local))
   const [ubicacion, setUbicacion] = useState(local.ubicacion || null)
   const [ubicEstado, setUbicEstado] = useState('idle') // idle | cargando | ok | error
   const [guardando, setGuardando] = useState(false)
@@ -75,8 +75,7 @@ export default function AdminConfig({ local, onUpdate }) {
         tarifas: tarifasLimpias,
       },
       recoger,
-      animarLogo,
-      logoAnimDir,
+      logoAnim,
     }
     if (ubicacion) cambios.ubicacion = ubicacion
     await onUpdate(cambios)
@@ -129,33 +128,21 @@ export default function AdminConfig({ local, onUpdate }) {
       {/* Solo tiene sentido cuando el hero es el logo grande. */}
       {local.tema?.hero === 'logo' && (
         <section className="ac-sec">
-          <h3>Apariencia</h3>
-          <label className="ac-switch">
-            <span>🎬 Animación épica del logo</span>
-            <input type="checkbox" checked={animarLogo} onChange={e => setAnimarLogo(e.target.checked)} />
-          </label>
-          <p className="ac-hint">El logo entra en tres bloques que caen con golpe (pum · pum · pum). Apágalo si prefieres el logo quieto.</p>
-          {animarLogo && (
-            <>
-              <div className="ac-seg" role="group" aria-label="Dirección de la animación">
-                <button
-                  type="button"
-                  className={logoAnimDir === 'arriba' ? 'on' : ''}
-                  onClick={() => setLogoAnimDir('arriba')}
-                >
-                  ⬇️ Desde arriba
-                </button>
-                <button
-                  type="button"
-                  className={logoAnimDir === 'lado' ? 'on' : ''}
-                  onClick={() => setLogoAnimDir('lado')}
-                >
-                  ↔️ De lado
-                </button>
-              </div>
-              <p className="ac-hint">Por dónde llegan los bloques: cayendo desde arriba, o entrando por los costados.</p>
-            </>
-          )}
+          <h3>Animación del logo</h3>
+          <p className="ac-hint">Cómo aparece tu logo al abrir el menú. Pronto habrá más estilos para elegir.</p>
+          <div className="ac-opciones" role="group" aria-label="Animación del logo">
+            {LOGO_ANIMS.map(op => (
+              <button
+                key={op.id}
+                type="button"
+                className={`ac-opcion ${logoAnim === op.id ? 'on' : ''}`}
+                onClick={() => setLogoAnim(op.id)}
+              >
+                <span>{op.label}</span>
+                {logoAnim === op.id && <span className="ac-opcion-check">✓</span>}
+              </button>
+            ))}
+          </div>
         </section>
       )}
 

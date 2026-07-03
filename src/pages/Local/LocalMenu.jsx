@@ -10,6 +10,7 @@ import CartButton from '../../components/Cart/CartButton'
 import CartDrawer from '../../components/Cart/CartDrawer'
 import BotonFavorito from '../../components/Favorito/BotonFavorito'
 import LogoEpico from '../../components/Hero/LogoEpico'
+import { resolverLogoAnim } from '../../utils/logoAnim'
 import Checkout from '../Checkout/Checkout'
 import './LocalSkinJet.css'
 
@@ -147,11 +148,9 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   // logo ya trae el nombre. Se activa con tema.hero === 'logo'.
   const heroLogo = local.tema?.hero === 'logo'
   const skinJet = local.tema?.skin === 'jet'
-  // 🎬 Entrada épica del logo (3 bloques). Encendida por defecto; el dueño la apaga
-  // desde el panel (Configuración → Animación del logo) y elige la dirección:
-  // 'arriba' (caen) o 'lado' (entran por los costados).
-  const animarLogo = local.animarLogo !== false
-  const logoAnimDir = local.logoAnimDir === 'lado' ? 'lado' : 'arriba'
+  // 🎬 Entrada del logo: 'arriba' (cae en 3 bloques), 'lado' (entran por los
+  // costados) o 'ninguna'. El dueño lo elige en el panel (Configuración → Apariencia).
+  const logoAnim = resolverLogoAnim(local)
 
   return (
     <div className={`local-page ${skinJet ? 'local-skin-jet' : ''}`} style={localThemeVars(local.tema)}>
@@ -160,9 +159,9 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
           <>
             <BotonFavorito local={local} variante="hero local-hero-fav local-hero-fav--light" />
             <div className="local-hero-content local-hero-content--logo">
-              {local.logo && (animarLogo
-                ? <LogoEpico src={local.logo} alt={local.nombre} direccion={logoAnimDir} />
-                : <img className="local-logo-full" src={local.logo} alt={local.nombre} />
+              {local.logo && (logoAnim === 'ninguna'
+                ? <img className="local-logo-full" src={local.logo} alt={local.nombre} />
+                : <LogoEpico src={local.logo} alt={local.nombre} direccion={logoAnim} />
               )}
               {/* El nombre ya vive en el logo; lo dejamos accesible para lectores/SEO. */}
               <h1 className="local-name sr-only">{local.nombre}</h1>
