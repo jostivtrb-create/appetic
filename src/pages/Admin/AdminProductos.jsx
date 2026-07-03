@@ -4,7 +4,7 @@ import ImagenApp from '../../components/Imagen/ImagenApp'
 
 export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
-  const [ordenAbierto, setOrdenAbierto] = useState(false)
+  const [menuCatOrden, setMenuCatOrden] = useState(null) // id de la categoría con el menú Subir/Bajar abierto
   const [query, setQuery] = useState('')
 
   const categorias = local.categorias || []
@@ -46,29 +46,6 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
         + Agregar producto
       </button>
 
-      {onReorderCategorias && categorias.length > 1 && (
-        <div className="ap-cats">
-          <button className="ap-cats-head" onClick={() => setOrdenAbierto(o => !o)}>
-            <span>🗂️ Orden de categorías</span>
-            <span className={`ap-cats-chevron ${ordenAbierto ? 'open' : ''}`}>⌄</span>
-          </button>
-          {ordenAbierto && (
-            <div className="ap-cats-lista">
-              <p className="ap-cats-hint">Así se ven en el menú. Usa las flechas para reordenar.</p>
-              {categorias.map((c, i) => (
-                <div key={c.id} className="ap-cat-row">
-                  <span className="ap-cat-nombre">{c.emoji ? `${c.emoji} ` : ''}{c.nombre}</span>
-                  <div className="ap-cat-move">
-                    <button onClick={() => moverCategoria(i, -1)} disabled={i === 0} aria-label="Subir">↑</button>
-                    <button onClick={() => moverCategoria(i, 1)} disabled={i === categorias.length - 1} aria-label="Bajar">↓</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
       {productos.length > 0 && (
         <div className="ap-buscar">
           <svg className="ap-buscar-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
@@ -95,11 +72,41 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
         <p className="ap-vacio">No encontramos “<strong>{query}</strong>”.</p>
       )}
 
-      {grupos.map(({ cat, items }) => (
+      {grupos.map(({ cat, items }) => {
+        // Índice real de la categoría (para Subir/Bajar). "Sin categoría" (__sin__)
+        // no es una categoría de verdad: no se puede reordenar.
+        const idx = categorias.findIndex(c => c.id === cat.id)
+        const reordenable = onReorderCategorias && categorias.length > 1 && idx >= 0
+        return (
         <section key={cat.id} className="ap-grupo-cat">
-          <h3 className="ap-grupo-cat-title">
-            {cat.emoji ? `${cat.emoji} ` : ''}{cat.nombre} <span className="ap-grupo-cat-count">· {items.length}</span>
-          </h3>
+          <div className="ap-grupo-cat-head">
+            <h3 className="ap-grupo-cat-title">
+              {cat.emoji ? `${cat.emoji} ` : ''}{cat.nombre} <span className="ap-grupo-cat-count">· {items.length}</span>
+            </h3>
+            {reordenable && (
+              <div className="ap-cat-orden">
+                <button
+                  className="ap-cat-orden-btn"
+                  onClick={() => setMenuCatOrden(menuCatOrden === cat.id ? null : cat.id)}
+                  aria-haspopup="true"
+                  aria-expanded={menuCatOrden === cat.id}
+                  aria-label="Ordenar categoría"
+                >
+                  ⇅
+                </button>
+                {menuCatOrden === cat.id && (
+                  <div className="ap-cat-orden-menu">
+                    {idx > 0 && (
+                      <button onClick={() => { moverCategoria(idx, -1); setMenuCatOrden(null) }}>↑ Subir</button>
+                    )}
+                    {idx < categorias.length - 1 && (
+                      <button onClick={() => { moverCategoria(idx, 1); setMenuCatOrden(null) }}>↓ Bajar</button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <div className="ap-lista">
             {items.map(p => (
               <div key={p.id} className={`ap-item ${p.disponible === false ? 'ap-item-off' : ''}`}>
@@ -126,7 +133,8 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
             ))}
           </div>
         </section>
-      ))}
+        )
+      })}
 
       {editando && (
         <EditorProducto
@@ -157,6 +165,7 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
   const [nombre, setNombre] = useState(producto.nombre || '')
   const [descripcion, setDescripcion] = useState(producto.descripcion || '')
   const [categoria, setCategoria] = useState(producto.categoria || categorias[0]?.id || '')
+  const [destacado, setDestacado] = useState(!!producto.destacado)
   const [nuevaCat, setNuevaCat] = useState('')          // nombre de categoría nueva
   const [nuevaCatEmoji, setNuevaCatEmoji] = useState('')
   const creandoCat = categoria === '__nueva__'
@@ -225,6 +234,7 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
       nombre: nombre.trim(),
       descripcion: descripcion.trim(),
       categoria: categoriaFinal,
+      destacado,
     }
     if (tieneVariantes) data.variantes = variantes.map(v => ({ ...v, precio: Number(v.precio) || 0 }))
     else data.precio = Number(precio) || 0
@@ -291,6 +301,12 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
               />
             </div>
           )}
+
+          <label className="ac-switch ap-fuerte">
+            <span>⭐ Nuestro fuerte</span>
+            <input type="checkbox" checked={destacado} onChange={e => setDestacado(e.target.checked)} />
+          </label>
+          <p className="ac-hint">Resáltalo como el plato estrella de su categoría. Solo uno por categoría: al marcar este, se quita el de los demás.</p>
 
           {tieneVariantes ? (
             <>

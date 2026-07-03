@@ -61,14 +61,29 @@ export default function AdminPage() {
   }, [slug, demo])
 
   // ---- Operaciones (en demo solo tocan el estado; en real, Firestore + estado) ----
+  // ⭐ "Nuestro fuerte" es UNO por categoría: al marcar uno, desmarca los demás de
+  // esa misma categoría (en Firestore y en el estado). Devuelve la lista corregida.
+  async function desmarcarFuertesDeCategoria(lista, categoria, exceptoId) {
+    const otros = lista.filter(x => x.id !== exceptoId && x.categoria === categoria && x.destacado)
+    if (!otros.length) return lista
+    if (!demo) for (const p of otros) await actualizarProducto(local.id, p.id, { destacado: false })
+    const ids = new Set(otros.map(x => x.id))
+    return lista.map(x => ids.has(x.id) ? { ...x, destacado: false } : x)
+  }
+
   async function addProducto(data) {
-    if (demo) { const id = 'tmp-' + Date.now(); setProductos(p => [...p, { ...data, id }]); return id }
-    const id = await agregarProducto(local.id, data)
-    setProductos(p => [...p, { ...data, id }])
+    const id = demo ? 'tmp-' + Date.now() : await agregarProducto(local.id, data)
+    let nuevos = [...productos, { ...data, id }]
+    if (data.destacado === true) nuevos = await desmarcarFuertesDeCategoria(nuevos, data.categoria, id)
+    setProductos(nuevos)
     return id
   }
   async function updateProducto(id, cambios) {
-    const nuevos = productos.map(x => x.id === id ? { ...x, ...cambios } : x)
+    let nuevos = productos.map(x => x.id === id ? { ...x, ...cambios } : x)
+    if (cambios.destacado === true) {
+      const cat = nuevos.find(x => x.id === id)?.categoria
+      nuevos = await desmarcarFuertesDeCategoria(nuevos, cat, id)
+    }
     setProductos(nuevos)
     if (!demo) await actualizarProducto(local.id, id, cambios)
     // Si cambió de categoría, alguna pudo quedar vacía → que desaparezca.
