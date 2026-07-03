@@ -78,6 +78,8 @@ async function run() {
 
   for (const p of PRODUCTOS) {
     const { id, ...data } = p
+    // No pisar con '' la foto que el dueño haya subido desde el panel.
+    if (!data.foto) delete data.foto
     await localRef.collection('productos').doc(id).set(data, { merge: true })
   }
   console.log(`✓ ${PRODUCTOS.length} productos cargados`)

@@ -41,6 +41,10 @@ async function run() {
 
   for (const p of PERROS_PRODUCTOS) {
     const { id: pid, ...data } = p
+    // ⚠️ NO pisar la foto que el dueño subió desde el panel. El ejemplo trae
+    // `foto: ''` (las fotos se suben luego); con merge, ese '' sobrescribiría la
+    // foto real y la dejaría en blanco. Si viene vacía, la quitamos del payload.
+    if (!data.foto) delete data.foto
     await localRef.collection('productos').doc(pid).set(data, { merge: true })
   }
   console.log(`✓ ${PERROS_PRODUCTOS.length} productos cargados`)

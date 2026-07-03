@@ -202,7 +202,11 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
         </div>
       )}
 
-      {!buscando && !local.ocultarNav && porCategoria.length > 1 && (
+      {/* Con el menú por pestañas (una categoría a la vez), la barra es la ÚNICA
+          forma de llegar a las demás categorías: si hay más de una, SIEMPRE se
+          muestra. `ocultarNav` ya no puede esconderla cuando hay varias, porque
+          dejaría categorías (Empanadas, Bebidas…) inalcanzables. */}
+      {!buscando && porCategoria.length > 1 && (
         <CategoryNav categorias={porCategoria.map(s => s.cat)} activa={activaId} onSelect={setCatActiva} />
       )}
 
