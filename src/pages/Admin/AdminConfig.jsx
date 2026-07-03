@@ -21,6 +21,7 @@ export default function AdminConfig({ local, onUpdate }) {
     for (const k of Object.keys(base)) limpio[k] = String(base[k] ?? '')
     return limpio
   })
+  const [animarLogo, setAnimarLogo] = useState(local.animarLogo !== false)
   const [ubicacion, setUbicacion] = useState(local.ubicacion || null)
   const [ubicEstado, setUbicEstado] = useState('idle') // idle | cargando | ok | error
   const [guardando, setGuardando] = useState(false)
@@ -73,6 +74,7 @@ export default function AdminConfig({ local, onUpdate }) {
         tarifas: tarifasLimpias,
       },
       recoger,
+      animarLogo,
     }
     if (ubicacion) cambios.ubicacion = ubicacion
     await onUpdate(cambios)
@@ -121,6 +123,18 @@ export default function AdminConfig({ local, onUpdate }) {
           <input type="checkbox" checked={recoger} onChange={e => setRecoger(e.target.checked)} />
         </label>
       </section>
+
+      {/* Solo tiene sentido cuando el hero es el logo grande. */}
+      {local.tema?.hero === 'logo' && (
+        <section className="ac-sec">
+          <h3>Apariencia</h3>
+          <label className="ac-switch">
+            <span>🎬 Animación épica del logo</span>
+            <input type="checkbox" checked={animarLogo} onChange={e => setAnimarLogo(e.target.checked)} />
+          </label>
+          <p className="ac-hint">El logo entra en tres bloques que caen con golpe (pum · pum · pum). Apágalo si prefieres el logo quieto.</p>
+        </section>
+      )}
 
       {/* Domicilio por radio: ubicación + tarifas por distancia */}
       {domicilio && (

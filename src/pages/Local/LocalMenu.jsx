@@ -9,6 +9,7 @@ import ProductWizard from '../../components/Menu/ProductWizard'
 import CartButton from '../../components/Cart/CartButton'
 import CartDrawer from '../../components/Cart/CartDrawer'
 import BotonFavorito from '../../components/Favorito/BotonFavorito'
+import LogoEpico from '../../components/Hero/LogoEpico'
 import Checkout from '../Checkout/Checkout'
 import './LocalSkinJet.css'
 
@@ -146,6 +147,9 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   // logo ya trae el nombre. Se activa con tema.hero === 'logo'.
   const heroLogo = local.tema?.hero === 'logo'
   const skinJet = local.tema?.skin === 'jet'
+  // 🎬 Entrada épica del logo (cae en 3 bloques). Encendida por defecto; el dueño
+  // la apaga desde el panel (Configuración → Animación del logo) con animarLogo:false.
+  const animarLogo = local.animarLogo !== false
 
   return (
     <div className={`local-page ${skinJet ? 'local-skin-jet' : ''}`} style={localThemeVars(local.tema)}>
@@ -154,7 +158,10 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
           <>
             <BotonFavorito local={local} variante="hero local-hero-fav local-hero-fav--light" />
             <div className="local-hero-content local-hero-content--logo">
-              {local.logo && <img className="local-logo-full" src={local.logo} alt={local.nombre} />}
+              {local.logo && (animarLogo
+                ? <LogoEpico src={local.logo} alt={local.nombre} />
+                : <img className="local-logo-full" src={local.logo} alt={local.nombre} />
+              )}
               {/* El nombre ya vive en el logo; lo dejamos accesible para lectores/SEO. */}
               <h1 className="local-name sr-only">{local.nombre}</h1>
               {local.descripcion && <p className="local-desc local-desc--ink">{local.descripcion}</p>}
