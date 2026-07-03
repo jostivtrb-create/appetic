@@ -1,20 +1,39 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import logo from '../../assets/appetic-logo.png'
-import { getLocalesExplorador } from '../../services/locales'
+import { getLocalesExplorador, getLocalesDeAdmin } from '../../services/locales'
 import { estaAbierto } from '../../utils/horario'
 import { distanciaKm } from '../../utils/geo'
 import { useAuth } from '../../contexts/AuthContext'
 import './Home.css'
 
 export default function Home() {
-  const { user } = useAuth()
+  const { user, cargando: authCargando } = useAuth()
+  const navigate = useNavigate()
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [locales, setLocales] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [coord, setCoord] = useState(null)
   const [ubic, setUbic] = useState('idle') // idle | cargando | ok | error
   const [avatarFallo, setAvatarFallo] = useState(false)
+  // 🔑 El dueño de un local NO ve el inicio: apenas entra va directo a su panel
+  // (si administra uno) o a su perfil para elegir (si administra varios).
+  const [verificandoAdmin, setVerificandoAdmin] = useState(true)
+
+  useEffect(() => {
+    if (authCargando) return
+    if (!user) { setVerificandoAdmin(false); return }
+    let activo = true
+    getLocalesDeAdmin(user.email)
+      .then(admin => {
+        if (!activo) return
+        if (admin.length === 1) { navigate(`/${admin[0].slug}/admin`, { replace: true }); return }
+        if (admin.length > 1) { navigate('/cuenta', { replace: true }); return }
+        setVerificandoAdmin(false) // no administra locales: cliente normal
+      })
+      .catch(() => { if (activo) setVerificandoAdmin(false) })
+    return () => { activo = false }
+  }, [user, authCargando, navigate])
 
   useEffect(() => {
     let activo = true
@@ -51,6 +70,12 @@ export default function Home() {
       return a.distancia - b.distancia
     })
   }, [locales, busqueda, coord])
+
+  // Mientras se resuelve la sesión / se verifica si es dueño, no mostramos el
+  // inicio (evita el parpadeo del explorador antes de redirigir al panel).
+  if (authCargando || verificandoAdmin) {
+    return <div className="local-loading"><div className="local-spinner" /><p>Cargando…</p></div>
+  }
 
   return (
     <div className="home">
