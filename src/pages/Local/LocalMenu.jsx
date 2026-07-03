@@ -11,6 +11,7 @@ import CartDrawer from '../../components/Cart/CartDrawer'
 import BotonFavorito from '../../components/Favorito/BotonFavorito'
 import LogoEpico from '../../components/Hero/LogoEpico'
 import { resolverLogoAnim } from '../../utils/logoAnim'
+import { useBloquearScroll } from '../../utils/useBloquearScroll'
 import Checkout from '../Checkout/Checkout'
 import './LocalSkinJet.css'
 
@@ -20,6 +21,10 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   const [drawerAbierto, setDrawerAbierto] = useState(false)
   const [checkoutAbierto, setCheckoutAbierto] = useState(false)
   const [toast, setToast] = useState('')
+
+  // 🔒 Con cualquier popup abierto (detalle de producto, carrito o checkout),
+  // se congela el fondo para que no se siga deslizando por detrás.
+  useBloquearScroll(Boolean(modalProducto) || drawerAbierto || checkoutAbierto)
 
   // 🔙 Le decimos a LocalPage cómo cerrar la "capa superior" cuando el usuario
   // presiona atrás: primero el checkout, luego el detalle de producto y por

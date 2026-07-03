@@ -215,25 +215,45 @@
 }
 .ac-switch input { width: 22px; height: 22px; accent-color: var(--brand-orange); }
 
-/* Lista de opciones seleccionables (ej. animación del logo). Vertical para que
-   escale bien al agregar más estilos. */
-.ac-opciones { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-.ac-opcion {
-  display: flex; align-items: center; justify-content: space-between;
+/* Desplegable de opciones (ej. animación del logo). Ocupa poco: un botón que
+   muestra la opción actual y despliega la lista. Escala al agregar más estilos. */
+.ac-select { position: relative; margin-top: 4px; }
+.ac-select-head {
   width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
   padding: 13px 14px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--border);
   background: var(--surface);
+  color: var(--text);
+  font-size: 14.5px; font-weight: 700;
+  text-align: left;
+}
+.ac-select-chevron { transition: transform 0.2s ease; color: var(--text-soft); }
+.ac-select-chevron.open { transform: rotate(180deg); }
+.ac-select-panel {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 0; right: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: rise 0.16s ease both;
+}
+.ac-select-item {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 14px;
+  background: none;
   color: var(--text-soft);
   font-size: 14.5px; font-weight: 700;
   text-align: left;
 }
-.ac-opcion.on {
-  border-color: var(--brand-orange);
-  background: var(--brand-orange-tint);
-  color: var(--brand-orange-strong);
-}
+.ac-select-item + .ac-select-item { border-top: 1px solid var(--border); }
+.ac-select-item.on { background: var(--brand-orange-tint); color: var(--brand-orange-strong); }
 .ac-opcion-check { color: var(--brand-orange-strong); font-weight: 800; }
 .ac-guardar { width: 100%; margin-top: 10px; }
 

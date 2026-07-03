@@ -23,6 +23,7 @@ export default function AdminConfig({ local, onUpdate }) {
     return limpio
   })
   const [logoAnim, setLogoAnim] = useState(resolverLogoAnim(local))
+  const [logoMenuAbierto, setLogoMenuAbierto] = useState(false)
   const [ubicacion, setUbicacion] = useState(local.ubicacion || null)
   const [ubicEstado, setUbicEstado] = useState('idle') // idle | cargando | ok | error
   const [guardando, setGuardando] = useState(false)
@@ -130,18 +131,34 @@ export default function AdminConfig({ local, onUpdate }) {
         <section className="ac-sec">
           <h3>Animación del logo</h3>
           <p className="ac-hint">Cómo aparece tu logo al abrir el menú. Pronto habrá más estilos para elegir.</p>
-          <div className="ac-opciones" role="group" aria-label="Animación del logo">
-            {LOGO_ANIMS.map(op => (
-              <button
-                key={op.id}
-                type="button"
-                className={`ac-opcion ${logoAnim === op.id ? 'on' : ''}`}
-                onClick={() => setLogoAnim(op.id)}
-              >
-                <span>{op.label}</span>
-                {logoAnim === op.id && <span className="ac-opcion-check">✓</span>}
-              </button>
-            ))}
+          <div className="ac-select">
+            <button
+              type="button"
+              className="ac-select-head"
+              onClick={() => setLogoMenuAbierto(o => !o)}
+              aria-haspopup="listbox"
+              aria-expanded={logoMenuAbierto}
+            >
+              <span>{LOGO_ANIMS.find(o => o.id === logoAnim)?.label || 'Elegir…'}</span>
+              <span className={`ac-select-chevron ${logoMenuAbierto ? 'open' : ''}`}>⌄</span>
+            </button>
+            {logoMenuAbierto && (
+              <div className="ac-select-panel" role="listbox">
+                {LOGO_ANIMS.map(op => (
+                  <button
+                    key={op.id}
+                    type="button"
+                    role="option"
+                    aria-selected={logoAnim === op.id}
+                    className={`ac-select-item ${logoAnim === op.id ? 'on' : ''}`}
+                    onClick={() => { setLogoAnim(op.id); setLogoMenuAbierto(false) }}
+                  >
+                    <span>{op.label}</span>
+                    {logoAnim === op.id && <span className="ac-opcion-check">✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
