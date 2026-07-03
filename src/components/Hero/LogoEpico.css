@@ -1,9 +1,11 @@
-/* 🎬 Animación EN BUCLE del logo: cada ~5 s se desarma en tres bloques (se van
-   en partes) y vuelve a armarse con golpe (pum · pum · pum). El resto del tiempo
-   el logo está quieto y completo.
-   Dos variantes: --arriba (los bloques se van hacia arriba) y --lado (se van a
-   los costados, alternando izquierda/derecha). El escalonado se logra con delays
-   negativos: cada bloque va un poco adelantado en el mismo ciclo de 5 s. */
+/* 🎬 Animación EN BUCLE del logo con entrada misteriosa.
+   Al cargar: ~2 s oculto (misterio) → el logo llega en tres bloques con golpe.
+   Luego, en bucle: 6 s quieto y completo → se va en partes → vuelve a llegar.
+
+   Cómo funciona el ciclo (8 s): 0% = fuera/oculto → entra con golpe (pum·pum·pum)
+   → 6 s en reposo → se va → vuelve a 0% (fuera). El escalonado entre bloques se
+   logra con delays distintos (arriba primero, abajo al final); ese mismo delay
+   inicial (~2 s) crea el misterio de entrada, gracias a animation-fill-mode both. */
 
 .logo-epico {
   position: relative;
@@ -23,8 +25,7 @@
   visibility: hidden;
 }
 
-/* Cada bloque es la MISMA imagen, recortada a su tercio, encimada al sizer.
-   En reposo (opacity 1) los tres forman el logo completo. */
+/* Cada bloque es la MISMA imagen, recortada a su tercio, encimada al sizer. */
 .logo-epico-band {
   position: absolute;
   inset: 0;
@@ -42,46 +43,53 @@
 .logo-epico .lb2 { clip-path: inset(33.2% 0 33.2% 0); }
 .logo-epico .lb3 { clip-path: inset(66.4% 0 0 0); }
 
-/* ===== Variante: DESDE ARRIBA (se van/vuelven por arriba) ===== */
-.logo-epico--arriba .lb1 { animation: logoLoopY 5s ease-in-out -0.40s infinite; }
-.logo-epico--arriba .lb2 { animation: logoLoopY 5s ease-in-out -0.20s infinite; }
-.logo-epico--arriba .lb3 { animation: logoLoopY 5s ease-in-out 0s infinite; }
+/* Delays: ~2 s de misterio al inicio + escalonado (arriba → abajo). */
+.logo-epico-band.lb1 { animation-delay: 2.00s; }
+.logo-epico-band.lb2 { animation-delay: 2.25s; }
+.logo-epico-band.lb3 { animation-delay: 2.50s; }
 
-@keyframes logoLoopY {
-  0%, 62% { transform: translateY(0); opacity: 1; filter: brightness(1); }
-  68%     { transform: translateY(-14px); filter: brightness(1.5); }   /* toma impulso */
-  75%     { transform: translateY(-95px); opacity: 0; }                 /* se va (arriba) */
-  80%     { transform: translateY(-95px); opacity: 0; }                 /* fuera */
-  90%     { transform: translateY(7px); opacity: 1; filter: brightness(1); } /* vuelve con golpe */
-  94%     { transform: translateY(-2px); }
-  98%, 100% { transform: translateY(0); opacity: 1; }
+/* ===== Variante: DESDE ARRIBA (entra/se va por arriba) ===== */
+.logo-epico--arriba .logo-epico-band { animation-name: logoCicloY; animation-duration: 8s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-fill-mode: both; }
+
+@keyframes logoCicloY {
+  0%   { transform: translateY(-95px); opacity: 0; filter: brightness(1.7); }  /* fuera/oculto */
+  5%   { transform: translateY(7px);   opacity: 1; filter: brightness(1); }    /* llega con golpe */
+  8%   { transform: translateY(-2px); }
+  11%  { transform: translateY(0); }
+  11%, 86% { transform: translateY(0); opacity: 1; }                            /* 6 s en reposo */
+  89%  { transform: translateY(-14px); filter: brightness(1.5); }              /* toma impulso */
+  96%  { transform: translateY(-95px); opacity: 0; }                            /* se va */
+  100% { transform: translateY(-95px); opacity: 0; }
 }
 
 /* ===== Variante: DE LADO (alternan izquierda/derecha) ===== */
-.logo-epico--lado .lb1 { animation: logoLoopIzq 5s ease-in-out -0.40s infinite; }
-.logo-epico--lado .lb2 { animation: logoLoopDer 5s ease-in-out -0.20s infinite; }
-.logo-epico--lado .lb3 { animation: logoLoopIzq 5s ease-in-out 0s infinite; }
+.logo-epico--lado .lb1 { animation-name: logoCicloIzq; }
+.logo-epico--lado .lb2 { animation-name: logoCicloDer; }
+.logo-epico--lado .lb3 { animation-name: logoCicloIzq; }
+.logo-epico--lado .logo-epico-band { animation-duration: 8s; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-fill-mode: both; }
 
-@keyframes logoLoopIzq {
-  0%, 62% { transform: translateX(0); opacity: 1; filter: brightness(1); }
-  68%     { transform: translateX(14px); filter: brightness(1.5); }
-  75%     { transform: translateX(-125px); opacity: 0; }
-  80%     { transform: translateX(-125px); opacity: 0; }
-  90%     { transform: translateX(8px); opacity: 1; filter: brightness(1); }
-  94%     { transform: translateX(-2px); }
-  98%, 100% { transform: translateX(0); opacity: 1; }
+@keyframes logoCicloIzq {
+  0%   { transform: translateX(-130px); opacity: 0; filter: brightness(1.7); }
+  5%   { transform: translateX(8px);    opacity: 1; filter: brightness(1); }
+  8%   { transform: translateX(-2px); }
+  11%  { transform: translateX(0); }
+  11%, 86% { transform: translateX(0); opacity: 1; }
+  89%  { transform: translateX(14px); filter: brightness(1.5); }
+  96%  { transform: translateX(-130px); opacity: 0; }
+  100% { transform: translateX(-130px); opacity: 0; }
 }
-@keyframes logoLoopDer {
-  0%, 62% { transform: translateX(0); opacity: 1; filter: brightness(1); }
-  68%     { transform: translateX(-14px); filter: brightness(1.5); }
-  75%     { transform: translateX(125px); opacity: 0; }
-  80%     { transform: translateX(125px); opacity: 0; }
-  90%     { transform: translateX(-8px); opacity: 1; filter: brightness(1); }
-  94%     { transform: translateX(2px); }
-  98%, 100% { transform: translateX(0); opacity: 1; }
+@keyframes logoCicloDer {
+  0%   { transform: translateX(130px); opacity: 0; filter: brightness(1.7); }
+  5%   { transform: translateX(-8px);  opacity: 1; filter: brightness(1); }
+  8%   { transform: translateX(2px); }
+  11%  { transform: translateX(0); }
+  11%, 86% { transform: translateX(0); opacity: 1; }
+  89%  { transform: translateX(-14px); filter: brightness(1.5); }
+  96%  { transform: translateX(130px); opacity: 0; }
+  100% { transform: translateX(130px); opacity: 0; }
 }
 
-/* Accesibilidad: sin animación, el logo queda completo y quieto. */
+/* Accesibilidad: sin animación, el logo queda completo y quieto (sin misterio). */
 @media (prefers-reduced-motion: reduce) {
   .logo-epico-band { animation: none !important; opacity: 1; transform: none; filter: none; }
 }
