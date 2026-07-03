@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { cop } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
 
 export default function AdminProductos({ local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
   const [ordenAbierto, setOrdenAbierto] = useState(false)
+  const [query, setQuery] = useState('')
 
   const categorias = local.categorias || []
 
@@ -15,6 +16,29 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
     ;[nuevas[i], nuevas[j]] = [nuevas[j], nuevas[i]]
     onReorderCategorias?.(nuevas)
   }
+
+  // 🔎 Buscador: filtra por nombre o descripción (igual que en el menú).
+  const q = query.trim().toLowerCase()
+  const buscando = q.length > 0
+  const productosFiltrados = useMemo(() => {
+    if (!buscando) return productos
+    return productos.filter(p =>
+      p.nombre.toLowerCase().includes(q) ||
+      (p.descripcion || '').toLowerCase().includes(q)
+    )
+  }, [buscando, q, productos])
+
+  // 🗂️ Agrupados por categoría en el MISMO orden del menú. Los productos cuya
+  // categoría ya no existe (o que no tienen) caen al final en "Sin categoría".
+  const grupos = useMemo(() => {
+    const secciones = categorias
+      .map(cat => ({ cat, items: productosFiltrados.filter(p => p.categoria === cat.id) }))
+      .filter(g => g.items.length > 0)
+    const idsValidos = new Set(categorias.map(c => c.id))
+    const sueltos = productosFiltrados.filter(p => !idsValidos.has(p.categoria))
+    if (sueltos.length) secciones.push({ cat: { id: '__sin__', nombre: 'Sin categoría' }, items: sueltos })
+    return secciones
+  }, [categorias, productosFiltrados])
 
   return (
     <div className="ap">
@@ -45,33 +69,64 @@ export default function AdminProductos({ local, productos, onAdd, onUpdate, onDe
         </div>
       )}
 
+      {productos.length > 0 && (
+        <div className="ap-buscar">
+          <svg className="ap-buscar-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
+            <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <input
+            type="search"
+            className="ap-buscar-input"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Buscar producto…"
+            aria-label="Buscar producto"
+          />
+          {query && (
+            <button className="ap-buscar-clear" onClick={() => setQuery('')} aria-label="Limpiar búsqueda">✕</button>
+          )}
+        </div>
+      )}
+
       {productos.length === 0 && <p className="ap-vacio">Aún no hay productos. Agrega el primero.</p>}
 
-      <div className="ap-lista">
-        {productos.map(p => (
-          <div key={p.id} className={`ap-item ${p.disponible === false ? 'ap-item-off' : ''}`}>
-            <div className="ap-item-foto">
-              <ImagenApp className="ap-item-foto-img" src={p.foto} alt="" />
-            </div>
-            <div className="ap-item-info">
-              <h4>{p.nombre}</h4>
-              <span className="ap-item-precio">
-                {p.variantes?.length ? `desde ${cop(Math.min(...p.variantes.map(v => v.precio)))}` : cop(p.precio)}
-              </span>
-            </div>
-            <div className="ap-item-actions">
-              <button
-                className={`ap-toggle ${p.disponible === false ? 'off' : 'on'}`}
-                onClick={() => onUpdate(p.id, { disponible: p.disponible === false })}
-                title={p.disponible === false ? 'Agotado' : 'Disponible'}
-              >
-                {p.disponible === false ? 'Agotado' : 'Disponible'}
-              </button>
-              <button className="ap-edit" onClick={() => setEditando(p)}>Editar</button>
-            </div>
+      {productos.length > 0 && grupos.length === 0 && (
+        <p className="ap-vacio">No encontramos “<strong>{query}</strong>”.</p>
+      )}
+
+      {grupos.map(({ cat, items }) => (
+        <section key={cat.id} className="ap-grupo-cat">
+          <h3 className="ap-grupo-cat-title">
+            {cat.emoji ? `${cat.emoji} ` : ''}{cat.nombre} <span className="ap-grupo-cat-count">· {items.length}</span>
+          </h3>
+          <div className="ap-lista">
+            {items.map(p => (
+              <div key={p.id} className={`ap-item ${p.disponible === false ? 'ap-item-off' : ''}`}>
+                <div className="ap-item-foto">
+                  <ImagenApp className="ap-item-foto-img" src={p.foto} alt="" />
+                </div>
+                <div className="ap-item-info">
+                  <h4>{p.nombre}</h4>
+                  <span className="ap-item-precio">
+                    {p.variantes?.length ? `desde ${cop(Math.min(...p.variantes.map(v => v.precio)))}` : cop(p.precio)}
+                  </span>
+                </div>
+                <div className="ap-item-actions">
+                  <button
+                    className={`ap-toggle ${p.disponible === false ? 'off' : 'on'}`}
+                    onClick={() => onUpdate(p.id, { disponible: p.disponible === false })}
+                    title={p.disponible === false ? 'Agotado' : 'Disponible'}
+                  >
+                    {p.disponible === false ? 'Agotado' : 'Disponible'}
+                  </button>
+                  <button className="ap-edit" onClick={() => setEditando(p)}>Editar</button>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </section>
+      ))}
 
       {editando && (
         <EditorProducto
