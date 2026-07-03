@@ -22,6 +22,7 @@ export default function AdminConfig({ local, onUpdate }) {
     return limpio
   })
   const [animarLogo, setAnimarLogo] = useState(local.animarLogo !== false)
+  const [logoAnimDir, setLogoAnimDir] = useState(local.logoAnimDir === 'lado' ? 'lado' : 'arriba')
   const [ubicacion, setUbicacion] = useState(local.ubicacion || null)
   const [ubicEstado, setUbicEstado] = useState('idle') // idle | cargando | ok | error
   const [guardando, setGuardando] = useState(false)
@@ -75,6 +76,7 @@ export default function AdminConfig({ local, onUpdate }) {
       },
       recoger,
       animarLogo,
+      logoAnimDir,
     }
     if (ubicacion) cambios.ubicacion = ubicacion
     await onUpdate(cambios)
@@ -133,6 +135,27 @@ export default function AdminConfig({ local, onUpdate }) {
             <input type="checkbox" checked={animarLogo} onChange={e => setAnimarLogo(e.target.checked)} />
           </label>
           <p className="ac-hint">El logo entra en tres bloques que caen con golpe (pum · pum · pum). Apágalo si prefieres el logo quieto.</p>
+          {animarLogo && (
+            <>
+              <div className="ac-seg" role="group" aria-label="Dirección de la animación">
+                <button
+                  type="button"
+                  className={logoAnimDir === 'arriba' ? 'on' : ''}
+                  onClick={() => setLogoAnimDir('arriba')}
+                >
+                  ⬇️ Desde arriba
+                </button>
+                <button
+                  type="button"
+                  className={logoAnimDir === 'lado' ? 'on' : ''}
+                  onClick={() => setLogoAnimDir('lado')}
+                >
+                  ↔️ De lado
+                </button>
+              </div>
+              <p className="ac-hint">Por dónde llegan los bloques: cayendo desde arriba, o entrando por los costados.</p>
+            </>
+          )}
         </section>
       )}
 

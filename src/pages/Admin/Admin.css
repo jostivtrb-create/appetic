@@ -214,6 +214,23 @@
   font-size: 14.5px; font-weight: 600;
 }
 .ac-switch input { width: 22px; height: 22px; accent-color: var(--brand-orange); }
+
+/* Segmentado (elegir entre 2 opciones, ej. dirección de la animación) */
+.ac-seg { display: flex; gap: 8px; margin-top: 10px; }
+.ac-seg button {
+  flex: 1;
+  padding: 11px 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 14px; font-weight: 700;
+}
+.ac-seg button.on {
+  border-color: var(--brand-orange);
+  background: var(--brand-orange-tint);
+  color: var(--brand-orange-strong);
+}
 .ac-guardar { width: 100%; margin-top: 10px; }
 
 /* ===== Domicilio por distancia ===== */

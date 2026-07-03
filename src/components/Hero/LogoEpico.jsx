@@ -9,9 +9,10 @@ import './LogoEpico.css'
 // - Un "sizer" invisible da el tamaño real y el texto para lectores de pantalla.
 // - Respeta `prefers-reduced-motion` (aparece sin brincos).
 // - Se activa/desactiva desde el panel (Configuración → Animación del logo).
-export default function LogoEpico({ src, alt = '', className = '' }) {
+export default function LogoEpico({ src, alt = '', className = '', direccion = 'arriba' }) {
+  const dir = direccion === 'lado' ? 'lado' : 'arriba'
   return (
-    <div className={`logo-epico ${className}`} role="img" aria-label={alt}>
+    <div className={`logo-epico logo-epico--${dir} ${className}`} role="img" aria-label={alt}>
       <img className="logo-epico-sizer" src={src} alt={alt} />
       <img className="logo-epico-band lb1" src={src} alt="" aria-hidden="true" />
       <img className="logo-epico-band lb2" src={src} alt="" aria-hidden="true" />
