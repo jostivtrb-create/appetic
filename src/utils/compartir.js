@@ -114,7 +114,7 @@ export function aficheHTML(local, url, qrDataUrl) {
 <style>
   @page { margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  html, body { height: 100%; -webkit-print-color-adjust: exact; print-color-adjust: exact;
     background:
       radial-gradient(120% 70% at 50% -8%, ${rgba(primary, oscuro ? 0.55 : 0.22)}, transparent 60%),
       radial-gradient(90% 55% at 50% 108%, ${rgba(primaryStrong, oscuro ? 0.45 : 0.14)}, transparent 60%),
@@ -122,33 +122,33 @@ export function aficheHTML(local, url, qrDataUrl) {
     color: ${texto};
     font-family: -apple-system, "Segoe UI", Roboto, system-ui, sans-serif; }
   .wrap {
-    min-height: 100vh; max-width: 150mm; margin: 0 auto;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-align: center; padding: 14mm 12mm; gap: 7mm;
+    width: 100%; min-height: 100%; margin: 0; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+    text-align: center; padding: 16mm 14mm; gap: 6mm;
     box-shadow: inset 0 0 0 2px ${marco};
   }
   .top { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; }
-  .logo { max-width: 82mm; max-height: 34mm; width: auto; height: auto; object-fit: contain;
+  .logo { max-width: 120mm; max-height: 46mm; width: auto; height: auto; object-fit: contain;
     filter: ${sombraLogo}; }
-  .eyebrow { margin-top: 8mm; font-size: 10.5pt; font-weight: 800; letter-spacing: .26em;
+  .eyebrow { margin-top: 9mm; font-size: 12.5pt; font-weight: 800; letter-spacing: .28em;
     text-transform: uppercase; color: ${accent}; }
-  .titulo { margin-top: 3mm; font-size: 46pt; font-weight: 900; line-height: .92;
+  .titulo { margin-top: 3mm; font-size: 56pt; font-weight: 900; line-height: .92;
     letter-spacing: -.01em; color: ${tituloColor}; text-shadow: ${oscuro ? '0 2px 18px ' + rgba(accent, 0.35) : 'none'}; }
-  .bajada { margin-top: 4mm; font-size: 12.5pt; font-weight: 600; line-height: 1.35;
-    color: ${textoSuave}; max-width: 110mm; }
+  .bajada { margin-top: 5mm; font-size: 14.5pt; font-weight: 600; line-height: 1.35;
+    color: ${textoSuave}; max-width: 150mm; }
   .qrwrap { flex: 0 0 auto; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-  .qrbox { background: #fff; padding: 6.5mm; border-radius: 18px;
+  .qrbox { background: #fff; padding: 8mm; border-radius: 20px;
     box-shadow: 0 12px 34px rgba(0,0,0,${oscuro ? '.5' : '.16'}); }
-  .qrbox img { display: block; width: 58mm; height: 58mm; image-rendering: pixelated; }
-  .escanea { margin-top: 5mm; font-size: 12.5pt; font-weight: 800; color: ${texto}; }
+  .qrbox img { display: block; width: 72mm; height: 72mm; image-rendering: pixelated; }
+  .escanea { margin-top: 6mm; font-size: 15pt; font-weight: 800; color: ${texto}; }
   .escanea b { color: ${accent}; }
   .bottom { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; }
   .tel { display: inline-flex; align-items: center; gap: 8px;
-    background: ${primary}; color: ${onPrimary}; font-weight: 900; font-size: 17pt;
-    padding: 8px 22px; border-radius: 999px; box-shadow: 0 6px 18px rgba(0,0,0,.28); }
-  .nom { margin-top: 6mm; font-size: 15pt; font-weight: 900; color: ${texto}; }
-  .link { margin-top: 1.5mm; font-size: 10.5pt; font-weight: 700; color: ${accent}; }
-  .marca { margin-top: 3mm; font-size: 8.5pt; letter-spacing: .04em; color: ${marcaColor}; }
+    background: ${primary}; color: ${onPrimary}; font-weight: 900; font-size: 21pt;
+    padding: 10px 28px; border-radius: 999px; box-shadow: 0 6px 18px rgba(0,0,0,.28); }
+  .nom { margin-top: 7mm; font-size: 19pt; font-weight: 900; color: ${texto}; }
+  .link { margin-top: 2mm; font-size: 12.5pt; font-weight: 700; color: ${accent}; }
+  .marca { margin-top: 4mm; font-size: 9.5pt; letter-spacing: .04em; color: ${marcaColor}; }
   .btnbar { position: fixed; top: 12px; left: 0; right: 0; text-align: center; z-index: 99; }
   .btnbar button { font: inherit; font-weight: 800; color: #fff; background: ${primary};
     border: 0; padding: 11px 22px; border-radius: 999px; cursor: pointer; box-shadow: 0 6px 20px rgba(0,0,0,.35); }
