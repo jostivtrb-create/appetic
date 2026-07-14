@@ -74,9 +74,13 @@ export default function AdminPage() {
   }
 
   async function addProducto(data) {
-    const id = demo ? 'tmp-' + Date.now() : await agregarProducto(local.id, data)
-    let nuevos = [...productos, { ...data, id }]
-    if (data.destacado === true) nuevos = await desmarcarFuertesDeCategoria(nuevos, data.categoria, id)
+    // Asignamos `orden` (al final del menú) al crear. Sin este campo, la lectura
+    // del menú omitía el producto y "desaparecía" al recargar.
+    const orden = productos.reduce((m, p) => Math.max(m, p.orden ?? 0), 0) + 1
+    const conOrden = { ...data, orden }
+    const id = demo ? 'tmp-' + Date.now() : await agregarProducto(local.id, conOrden)
+    let nuevos = [...productos, { ...conOrden, id }]
+    if (conOrden.destacado === true) nuevos = await desmarcarFuertesDeCategoria(nuevos, conOrden.categoria, id)
     setProductos(nuevos)
     return id
   }

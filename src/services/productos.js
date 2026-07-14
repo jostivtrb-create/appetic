@@ -1,5 +1,5 @@
 // 📦 Productos de un local en Firestore: locales/{localId}/productos
-import { collection, getDocs, query, orderBy } from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
 /**
@@ -26,15 +26,16 @@ export async function getProductos(localId, version) {
     } catch { /* caché corrupta: seguimos a leer */ }
   }
 
-  // 2) Leer de Firestore.
+  // 2) Leer de Firestore y ordenar en JS (NO con orderBy de Firestore).
+  // orderBy('orden') OMITE los documentos que no tienen el campo `orden`: un
+  // producto agregado sin ese campo "desaparecería" del menú al recargar. Al
+  // ordenar aquí, los que tengan `orden` van por su valor y los que no, al
+  // final — pero SIEMPRE aparecen.
   const col = collection(db, 'locales', localId, 'productos')
-  let snap
-  try {
-    snap = await getDocs(query(col, orderBy('orden', 'asc')))
-  } catch {
-    snap = await getDocs(col)
-  }
-  const productos = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const snap = await getDocs(col)
+  const productos = snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (a.orden ?? Infinity) - (b.orden ?? Infinity))
 
   // 3) Guardar en caché con la versión.
   try {
