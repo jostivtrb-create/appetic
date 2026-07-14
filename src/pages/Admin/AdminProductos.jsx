@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cop } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
@@ -209,6 +209,9 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
   const [fotoFile, setFotoFile] = useState(null)
   const [fotoPreview, setFotoPreview] = useState(producto.foto || '')
   const [guardando, setGuardando] = useState(false)
+  // Candado a prueba de doble-toque: evita crear productos duplicados si se
+  // pulsa "Guardar" muy rápido, antes de que el botón alcance a deshabilitarse.
+  const guardandoRef = useRef(false)
 
   const tieneVariantes = Array.isArray(variantes) && variantes.length > 0
   const tieneGrupos = Array.isArray(grupos) && grupos.length > 0
@@ -242,19 +245,22 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
   }
 
   async function guardar() {
+    if (guardandoRef.current) return // ya hay un guardado en curso: no dupliques
     if (!nombre.trim()) return
     if (creandoCat && !nuevaCat.trim()) { alert('Escribe el nombre de la nueva categoría.'); return }
+    guardandoRef.current = true
     setGuardando(true)
     // Si eligió "crear categoría nueva", créala primero y usa su id.
     let categoriaFinal = categoria
     if (creandoCat) {
       try {
         const id = await onAddCategoria(nuevaCat, nuevaCatEmoji)
-        if (!id) { setGuardando(false); return }
+        if (!id) { guardandoRef.current = false; setGuardando(false); return }
         categoriaFinal = id
       } catch (err) {
         console.error('No se pudo crear la categoría:', err)
         alert('No se pudo crear la categoría. Intenta de nuevo.')
+        guardandoRef.current = false
         setGuardando(false)
         return
       }
@@ -284,14 +290,15 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
       const cod = err?.code || err?.message || String(err)
       console.error('No se pudo guardar el producto:', cod, err)
       alert(`No se pudo guardar.\n\nDetalle: ${cod}\n\nMándame este detalle si se repite.`)
+      guardandoRef.current = false
       setGuardando(false)
     }
   }
 
   return (
-    <div className="pm-overlay" onClick={onCerrar}>
+    <div className="pm-overlay" onClick={guardando ? undefined : onCerrar}>
       <div className="pm-sheet" onClick={e => e.stopPropagation()}>
-        <button className="pm-close" onClick={onCerrar}>✕</button>
+        <button className="pm-close" onClick={onCerrar} disabled={guardando}>✕</button>
         <div className="pm-body">
           <h2 className="pm-nombre">{producto.nuevo ? 'Nuevo producto' : 'Editar producto'}</h2>
 
@@ -394,6 +401,18 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
             {guardando ? 'Guardando…' : 'Guardar'}
           </button>
         </div>
+
+        {/* Indicador de carga bloqueante: cubre el formulario mientras se guarda
+            (y sube la foto), para que se vea que está trabajando y no se pulse
+            "Guardar" de nuevo ni se cierre la app —evita productos duplicados. */}
+        {guardando && (
+          <div className="pm-loading" role="status" aria-live="polite">
+            <div className="local-spinner" />
+            <p className="pm-loading-txt">{fotoFile ? 'Subiendo foto y guardando…' : 'Guardando…'}</p>
+            <p className="pm-loading-sub">No cierres la app. Con fotos grandes puede tardar unos segundos.</p>
+            <div className="pm-loading-bar"><span /></div>
+          </div>
+        )}
       </div>
     </div>
   )

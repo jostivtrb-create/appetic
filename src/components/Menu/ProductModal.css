@@ -137,3 +137,43 @@
 }
 .pm-qty span { min-width: 26px; text-align: center; font-weight: 800; font-size: 16px; }
 .pm-add { flex: 1; }
+
+/* ---- Indicador de carga al guardar un producto (panel del dueño) ---- */
+/* Cubre toda la hoja del modal: deja claro que está trabajando y bloquea
+   cualquier toque, para no crear productos duplicados. */
+.pm-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 28px;
+  text-align: center;
+  animation: fade 0.15s ease both;
+}
+.pm-loading-txt { font-size: 16.5px; font-weight: 800; color: var(--text); }
+.pm-loading-sub { font-size: 13px; font-weight: 500; color: var(--text-soft); max-width: 260px; line-height: 1.4; }
+.pm-loading-bar {
+  width: min(220px, 70%);
+  height: 6px;
+  margin-top: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-orange-tint);
+  overflow: hidden;
+}
+.pm-loading-bar span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--brand-orange);
+  animation: pmSlide 1.1s ease-in-out infinite;
+}
+@keyframes pmSlide {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
