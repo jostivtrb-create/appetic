@@ -237,6 +237,39 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
     }))
   }
 
+  // --- Edición de "precios por tamaño" (variantes) ---
+  // id único para un tamaño nuevo (v1, v2, … evitando choques).
+  function nuevoVarianteId(vs) {
+    const usados = new Set((vs || []).map(v => v.id))
+    let n = (vs?.length || 0) + 1
+    let id = `v${n}`
+    while (usados.has(id)) { n++; id = `v${n}` }
+    return id
+  }
+  function setVariante(i, cambios) {
+    setVariantes(vs => vs.map((x, j) => j === i ? { ...x, ...cambios } : x))
+  }
+  function agregarVariante() {
+    setVariantes(vs => [...(vs || []), { id: nuevoVarianteId(vs), nombre: '', precio: '' }])
+  }
+  function quitarVariante(i) {
+    // Al quitar el último tamaño, el producto vuelve a "un solo precio".
+    setVariantes(vs => {
+      const next = (vs || []).filter((_, j) => j !== i)
+      return next.length ? next : null
+    })
+  }
+  function activarVariantes() {
+    // Convierte "un solo precio" en "precios por tamaño": siembra el 1er tamaño con el precio actual.
+    setVariantes([{ id: 'v1', nombre: '', precio: precio || '' }])
+  }
+  function usarPrecioUnico() {
+    // Vuelve a un solo precio; conserva el menor de los tamaños como base.
+    const precios = (variantes || []).map(v => Number(v.precio) || 0).filter(Boolean)
+    if (precios.length) setPrecio(String(Math.min(...precios)))
+    setVariantes(null)
+  }
+
   function elegirFoto(e) {
     const f = e.target.files?.[0]
     if (!f) return
@@ -271,8 +304,22 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
       categoria: categoriaFinal,
       destacado,
     }
-    if (tieneVariantes) data.variantes = variantes.map(v => ({ ...v, precio: Number(v.precio) || 0 }))
-    else data.precio = Number(precio) || 0
+    if (tieneVariantes) {
+      // Descarta tamaños sin nombre; guarda el resto con precio numérico.
+      const limpias = variantes.filter(v => v.nombre.trim())
+        .map(v => ({ ...v, nombre: v.nombre.trim(), precio: Number(v.precio) || 0 }))
+      if (limpias.length) {
+        data.variantes = limpias
+        data.precio = null // limpia el precio único viejo para que no reaparezca
+      } else {
+        // Todos los tamaños quedaron vacíos → guarda como precio único.
+        data.variantes = null
+        data.precio = Number(precio) || 0
+      }
+    } else {
+      data.precio = Number(precio) || 0
+      data.variantes = null // limpia tamaños viejos al pasar a precio único
+    }
     if (tieneGrupos) {
       data.gruposOpciones = grupos.map(g => ({
         ...g,
@@ -346,23 +393,48 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
 
           {tieneVariantes ? (
             <>
-              <label className="ap-label">Precios por tamaño</label>
+              <div className="ap-precio-head">
+                <label className="ap-label">Precios por tamaño</label>
+                <button type="button" className="ap-precio-modo" onClick={usarPrecioUnico}>
+                  Usar un solo precio
+                </button>
+              </div>
               {variantes.map((v, i) => (
                 <div key={v.id} className="ap-variante">
-                  <span>{v.nombre}</span>
                   <input
-                    className="co-input"
+                    className="co-input ap-variante-nombre"
+                    value={v.nombre}
+                    onChange={e => setVariante(i, { nombre: e.target.value })}
+                    placeholder="Tamaño (ej: 350 ml)"
+                  />
+                  <input
+                    className="co-input ap-variante-precio"
                     inputMode="numeric"
                     value={v.precio}
-                    onChange={e => setVariantes(vs => vs.map((x, j) => j === i ? { ...x, precio: e.target.value.replace(/\D/g, '') } : x))}
+                    onChange={e => setVariante(i, { precio: e.target.value.replace(/\D/g, '') })}
+                    placeholder="4000"
                   />
+                  <button
+                    type="button"
+                    className="ap-opcion-quitar"
+                    onClick={() => quitarVariante(i)}
+                    aria-label={`Quitar tamaño ${v.nombre || ''}`}
+                  >
+                    ✕
+                  </button>
                 </div>
               ))}
+              <button type="button" className="ap-add-opcion" onClick={agregarVariante}>
+                + Agregar tamaño
+              </button>
             </>
           ) : (
             <>
               <label className="ap-label">Precio</label>
               <input className="co-input" inputMode="numeric" value={precio} onChange={e => setPrecio(e.target.value.replace(/\D/g, ''))} placeholder="14000" />
+              <button type="button" className="ap-add-opcion ap-precio-tamano" onClick={activarVariantes}>
+                + Usar precios por tamaño
+              </button>
             </>
           )}
 

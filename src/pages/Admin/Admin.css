@@ -284,9 +284,21 @@
   cursor: pointer;
 }
 .ap-foto-pick img { width: 100%; height: 100%; object-fit: cover; }
-.ap-variante { display: flex; align-items: center; gap: 10px; }
+.ap-variante { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .ap-variante span { flex: 1; font-size: 14px; font-weight: 600; }
-.ap-variante .co-input { width: 120px; margin-top: 6px; }
+.ap-variante-nombre { flex: 1; min-width: 0; margin: 0; }
+.ap-variante-precio { width: 110px; flex-shrink: 0; margin: 0; }
+/* Encabezado de "Precios por tamaño" con el toggle a un solo precio */
+.ap-precio-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ap-precio-modo {
+  flex-shrink: 0;
+  font-size: 12.5px; font-weight: 700;
+  color: var(--text-soft);
+  background: var(--surface-2);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+}
+.ap-precio-tamano { margin-top: 8px; }
 .ap-nueva-cat { display: flex; gap: 8px; }
 .ap-nueva-cat .co-input { flex: 1; }
 .ap-nueva-cat .ap-cat-emoji { flex: none; width: 58px; text-align: center; font-size: 18px; }
