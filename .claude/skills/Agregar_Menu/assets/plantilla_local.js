@@ -15,6 +15,9 @@
 export const SLUG = '[[SLUG]]'              // minúsculas-con-guiones, es el link: /su-negocio
 
 // Correo del DUEÑO que administra el local (entra a /[[SLUG]]/admin con ese Google).
+// 👉 Si el dueño real no dio su Gmail, deja el DEFAULT 'sinfiniity@gmail.com' y sigue: se cambia
+//    después desde el panel de superadmin (campo 👤) sin tocar código. Ojo: con el default entra
+//    NUESTRA cuenta, no la del cliente — dilo al entregar.
 export const ADMIN_EMAIL = '[[ADMIN_EMAIL]]'
 
 export const [[CONST]]_LOCAL = {
@@ -22,7 +25,11 @@ export const [[CONST]]_LOCAL = {
   slug: SLUG,
   nombre: '[[NOMBRE]]',
   descripcion: '[[ESLOGAN]]',
-  whatsapp: '',                 // lo pone el dueño desde el panel (o déjalo listo con seed)
+  // 📱 A dónde llegan los pedidos. NUNCA lo dejes en '': con vacío el cliente arma el pedido y el
+  // botón no tiene destino. Si el local no dio su número, deja el DEFAULT '573208435143' para que
+  // el checkout funcione desde el minuto uno; el dueño pone el suyo en el panel
+  // (⚙️ Configuración → Datos del negocio). Es también el número del afiche de domicilios.
+  whatsapp: '573208435143',
 
   // 🎨 IDENTIDAD VISUAL — esto hace ÚNICO al local (se aplica como variables CSS).
   logo: '/locales/[[SLUG]]/logo.webp',      // '' = muestra la inicial del nombre

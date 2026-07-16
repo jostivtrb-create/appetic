@@ -29,7 +29,7 @@ async function run() {
   if (prev.exists) {
     const data = prev.data() || {}
     for (const campo of CAMPOS_DEL_DUENO) {
-      if (data[campo] != null) delete localData[campo]
+      if (data[campo]) delete localData[campo]
     }
   }
 

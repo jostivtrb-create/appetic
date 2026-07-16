@@ -12,6 +12,7 @@ import AdminConfig from './AdminConfig'
 import AdminMetricas from './AdminMetricas'
 import AdminDifundir from './AdminDifundir'
 import { isDevSlug, getDevLocal } from '../../dev'
+import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
 import './Admin.css'
 
 export default function AdminPage() {
@@ -35,7 +36,10 @@ export default function AdminPage() {
 
   // Usuario efectivo (en demo, admin falso)
   const usuario = demo ? { email: 'demo@appetic.app', displayName: 'Admin Demo' } : user
-  const esAdmin = demo || (local?.admins?.includes(usuario?.email))
+  // Entra el dueño (su correo en local.admins) y también el superadmin, que administra
+  // cualquier local como si fuera suyo (mismos permisos en firestore.rules).
+  const esAdmin = demo || puedeAdministrarLocal(usuario?.email, local)
+  const entraComoSuperadmin = !demo && esSuperadmin(usuario?.email) && !local?.admins?.includes(usuario?.email)
 
   useEffect(() => {
     let activo = true
@@ -207,6 +211,14 @@ export default function AdminPage() {
         )}
         {demo && <span className="admin-demo-badge">DEMO</span>}
       </header>
+
+      {/* Soporte: dejar claro que NO eres el dueño de este local, para no editar el equivocado. */}
+      {entraComoSuperadmin && (
+        <div className="admin-super-aviso">
+          👑 Entraste como <strong>superadmin</strong>, no como el dueño. Los cambios que guardes aquí
+          los verá <strong>{local.nombre}</strong>.
+        </div>
+      )}
 
       <nav className="admin-tabs">
         <button className={tab === 'productos' ? 'on' : ''} onClick={() => setTab('productos')}>🍔 Menú</button>

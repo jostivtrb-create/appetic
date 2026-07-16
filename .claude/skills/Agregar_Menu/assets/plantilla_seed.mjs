@@ -19,6 +19,9 @@ const db = getFirestore()
 
 // Campos que el DUEÑO configura desde el panel: si el local ya existe con ellos,
 // el seed NO los pisa (la ubicación, el WhatsApp y el horario son suyos).
+// Ojo: se comprueba por VALOR, no por != null. Un campo VACÍO ("") no es "configurado por el
+// dueño" — es que falta —, así que el seed sí debe poder rellenarlo.
+
 const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario']
 
 async function run() {
@@ -29,7 +32,7 @@ async function run() {
   if (prev.exists) {
     const data = prev.data() || {}
     for (const campo of CAMPOS_DEL_DUENO) {
-      if (data[campo] != null) delete localData[campo]
+      if (data[campo]) delete localData[campo]
     }
   }
 

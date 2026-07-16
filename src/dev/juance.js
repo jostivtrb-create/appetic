@@ -40,9 +40,11 @@ export const JUANCE_LOCAL = {
   slug: SLUG,
   nombre: 'JUANCE',
   descripcion: '¡Sabor que te encanta! · Pizzería y comidas rápidas 🔥',
-  // ⚠️ PENDIENTE: WhatsApp del local (ahí llegan los pedidos y es el número del afiche de
-  //    domicilios). El dueño también puede ponerlo desde su panel.
-  whatsapp: '',
+  // 📱 Número POR DEFECTO (320 843 5143), no el del local: deja el checkout funcionando mientras
+  //    JUANCE da el suyo. Los pedidos llegan a nosotros, no a ellos → por eso el local sigue
+  //    inactivo en el buscador (ver `suscripcion` abajo). El dueño pone el real desde su panel
+  //    (⚙️ Configuración → Datos del negocio); es también el número del afiche de domicilios.
+  whatsapp: '573208435143',
   logo: '/locales/juance/logo.webp',    // emblema transparente: FLOTA grande en el hero
   icono: '/locales/juance/icono.webp',  // cuadrado (la llama con pizza y hamburguesa): cuadritos
   banner: '/locales/juance/banner.webp',

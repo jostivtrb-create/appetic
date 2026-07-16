@@ -65,15 +65,17 @@ Si siembras antes, el local aparece con **todas las fotos rotas (404)** hasta qu
 ## 3) 🚩 ANTES de sembrar: `suscripcion.activa` y el WhatsApp
 
 `suscripcion.activa: true` hace que el local **salga en el buscador del inicio para cualquier
-cliente**. Y el local se siembra con `whatsapp: ''`.
+cliente**.
 
-**Sembrar `activa:true` sin WhatsApp = publicar un local donde el cliente arma el pedido y el
-pedido no llega a ninguna parte.** No lo hagas.
+**Nunca publiques un local con `whatsapp: ''`**: el cliente arma el pedido y el botón no tiene
+destino. Por eso el default es **`'573208435143'`** (ver SKILL.md §Paso 1), que deja el checkout
+funcionando desde el minuto uno aunque el dueño aún no haya dado su número.
 
-- **Sin WhatsApp todavía** → siembra con `suscripcion: { activa: false, plan: 'piloto' }`. El local
-  se ve en `/superadmin` y en su link directo, pero **no** en el buscador público. El usuario lo
-  enciende con el toggle cuando esté listo.
-- **Con WhatsApp y visto bueno del dueño** → `activa: true`.
+- **Con el WhatsApp por defecto** (los pedidos llegan a NUESTRO número, no al del local) →
+  `suscripcion: { activa: false, plan: 'piloto' }`. Se ve en `/superadmin` y por link directo, pero
+  **no** en el buscador público. El usuario lo enciende con el toggle cuando el local ya tenga su
+  número y dé el visto bueno.
+- **Con el WhatsApp real del local y visto bueno del dueño** → `activa: true`.
 
 ---
 
@@ -90,8 +92,16 @@ Salida esperada:
 
 ### Qué pasa al RE-correrlo (importante)
 No duplica: hace `merge`. Pero **solo protege tres campos** del dueño —
-`CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario']`. Todo lo demás **se pisa con lo que diga
-`src/dev/<file>.js`**. En particular:
+`CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario']`, y los protege **por valor**
+(`if (data[campo])`), no por `!= null`.
+
+> 🐛 **Fallo que ya se corrigió — no lo reintroduzcas.** La plantilla comprobaba
+> `if (data[campo] != null)`. Como `'' != null` es **true**, un local sembrado con `whatsapp: ''`
+> quedaba con el vacío **protegido para siempre**: el seed jamás podía rellenarlo y el checkout se
+> quedaba sin destino sin que nadie entendiera por qué. Un campo vacío **no** es "configurado por el
+> dueño" — es que falta. Comprueba siempre por valor.
+
+Todo lo demás **se pisa con lo que diga `src/dev/<file>.js`**. En particular:
 
 - ⚠️ **`suscripcion.activa` SE PISA.** Si el dueño encendió el local en el panel y luego re-corres
   el seed con `activa:false` en el archivo, **lo apagas sin querer**. Antes de re-sembrar un local
@@ -117,13 +127,19 @@ sin cambios**. No corras `firebase deploy` de reglas por esto.
 ## 6) El correo del ADMIN (el dueño)
 `ADMIN_EMAIL` en `src/dev/<file>.js` es **quien entra a `/<slug>/admin` con su Google**.
 
-- Debe ser el **Gmail real del dueño**. `sinfiniity@gmail.com` es solo para demos/pruebas — con ese
-  correo entra el usuario, **no el cliente**.
-- **Para cambiarlo después:** edita `ADMIN_EMAIL` en el archivo de datos y **re-corre el seed**
+- Lo ideal es el **Gmail real del dueño**. Si no lo dio, va el default **`sinfiniity@gmail.com`** y
+  se sigue — pero ojo: con ese correo entra **el usuario, no el cliente**. Dilo al entregar.
+- **Para cambiarlo después, sin tocar código:** panel de **superadmin** → campo 👤 del local →
+  escribe el correo → Guardar.
+- **O re-corriendo el seed:** edita `ADMIN_EMAIL` en el archivo de datos y córrelo otra vez
   (`admins` se pisa, así que basta con eso). No hace falta tocar reglas ni la consola.
 
-El **superadmin** de toda la app (control de suscripciones, `/superadmin`) es **`jostivtrb@gmail.com`**
-(fijo en `src/config/roles.js`).
+El **superadmin** de toda la app es **`jostivtrb@gmail.com`** (fijo en `src/config/roles.js`).
+Además de controlar suscripciones en `/superadmin`, **entra al panel de CUALQUIER local**
+(`/<slug>/admin`) como si fuera el dueño — para dar soporte sin pedirle la cuenta. Eso está
+concedido en dos capas que **deben ir juntas**: `puedeAdministrarLocal()` en `src/config/roles.js`
+(la puerta de la interfaz) y `puedeAdministrar()` en `firestore.rules` (quien manda de verdad).
+Si tocas una, toca la otra: si no, el panel abre pero los guardados fallan con "permiso denegado".
 
 ---
 

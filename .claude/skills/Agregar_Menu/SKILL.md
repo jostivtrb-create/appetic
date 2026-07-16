@@ -47,8 +47,22 @@ identidad visual + imágenes**.
 ### Paso 1 — Pedir el material (PUERTA DE ENTRADA obligatoria)
 **Lo PRIMERO, SIEMPRE: pide el 📋 MENÚ y el 🎨 LOGO del local. No empieces a construir sin ellos.**
 Pide también **📱 WhatsApp** y **correo del ADMIN** (si el menú ya los trae, no los repitas).
-- ⚠️ El **correo del ADMIN debe ser el del DUEÑO real** del local (con ese Google entra a su panel a
-  administrarlo). Usa `sinfiniity@gmail.com` **solo para demos/pruebas**, nunca para un cliente real.
+
+**🔑 Si NO te los dan, NO te bloquees ni dejes el local a medias: usa los valores por defecto y
+sigue.** Ambos se cambian después desde la app, sin tocar código:
+
+| Dato | Por defecto si no lo dan | Se cambia luego en |
+|---|---|---|
+| `ADMIN_EMAIL` | **`sinfiniity@gmail.com`** | Panel de **superadmin** (campo 👤 del local) — o re-corriendo el seed |
+| `whatsapp`    | **`'573208435143'`** (320 843 5143) | Panel del local → ⚙️ Configuración → Datos del negocio |
+
+- El **WhatsApp por defecto** deja el checkout **funcionando desde el minuto uno** (los pedidos
+  llegan a ese número mientras el dueño pone el suyo). **Nunca lo dejes en `''`**: con vacío el
+  cliente arma el pedido y el botón no tiene destino.
+- ⚠️ Aun usando los defaults, **dilo claro al entregar**: con `sinfiniity@gmail.com` entra al panel
+  **el usuario, no el cliente**, y los pedidos llegan al número por defecto, **no al del local**.
+  Son provisionales, no el estado final.
+- Si SÍ te dan los datos del dueño real, úsalos y olvídate de los defaults.
 - El **menú** es la fuente de verdad de productos/precios/opciones; el **logo**, de la paleta y el
   estilo de marca. Sin esos dos, detente y pídelos.
 - **Única excepción:** si el usuario dice explícitamente que es **demo** / "los nombres y el menú
@@ -161,6 +175,8 @@ afiche hereda su identidad (tema+logo+whatsapp): **`references/difundir.md`**.
 ## Reglas de oro
 - **Nunca arranques sin menú + logo.** Es la puerta de entrada: pídelos siempre primero (salvo demo
   explícita). El menú manda el contenido; el logo, la paleta.
+- **WhatsApp y admin NO bloquean.** Si no te los dan, van los defaults (`573208435143` y
+  `sinfiniity@gmail.com`) y se configuran luego desde la app. Avísalo al entregar (Paso 1).
 - **Motor intacto.** Nunca reprogramas carrito/checkout/admin: salen del código existente. Solo
   agregas **datos + identidad + imágenes**.
 - **Único de verdad.** Paleta, logo, banner, emojis y fotos propios del negocio. Si se parece a otro
