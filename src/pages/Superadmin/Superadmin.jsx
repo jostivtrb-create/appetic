@@ -188,6 +188,13 @@ export default function Superadmin() {
                 {msg === 'err' && <p className="sa-admin-hint">Escribe un correo válido (ej. dueño@gmail.com).</p>}
                 {msg === 'ok' && <p className="sa-admin-hint ok">Guardado. El dueño ya puede entrar a /{l.slug}/admin.</p>}
                 {!adminActual && msg !== 'ok' && <p className="sa-admin-hint warn">Sin admin asignado.</p>}
+
+                {/* Atajos: el superadmin administra cualquier local como si fuera el dueño
+                    (roles.js → puedeAdministrarLocal + firestore.rules → puedeAdministrar). */}
+                <div className="sa-acciones">
+                  <Link to={`/${l.slug}/admin`} className="sa-accion sa-accion--editar">✏️ Editar menú</Link>
+                  <Link to={`/${l.slug}`} className="sa-accion">👀 Ver local</Link>
+                </div>
               </li>
             )
           })}

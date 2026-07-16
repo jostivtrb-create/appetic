@@ -152,6 +152,31 @@
 .sa-admin-hint.ok { color: var(--success); }
 .sa-admin-hint.warn { color: var(--warning); }
 
+/* Atajos por local: entrar a su panel (como dueño) o ver el menú del cliente. */
+.sa-acciones { display: flex; gap: 8px; }
+.sa-accion {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.12s ease, border-color 0.18s ease;
+}
+.sa-accion:active { transform: scale(0.97); }
+.sa-accion--editar {
+  border-color: var(--brand-orange);
+  background: var(--brand-orange-tint, rgba(240, 122, 46, 0.12));
+  color: var(--brand-orange);
+}
+
 .sa-vacio { text-align: center; color: var(--text-faint); padding: 24px; font-size: 14px; }
 
 .sa-skel-wrap { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
