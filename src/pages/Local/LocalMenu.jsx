@@ -14,6 +14,7 @@ import { resolverLogoAnim } from '../../utils/logoAnim'
 import { useBloquearScroll } from '../../utils/useBloquearScroll'
 import Checkout from '../Checkout/Checkout'
 import './LocalSkinJet.css'
+import './LocalSkinJuance.css'
 
 export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   const { addItem } = useCart()
@@ -152,13 +153,15 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   // Hero protagonizado por el logo (sobre crema, sin foto): para marcas cuyo
   // logo ya trae el nombre. Se activa con tema.hero === 'logo'.
   const heroLogo = local.tema?.hero === 'logo'
-  const skinJet = local.tema?.skin === 'jet'
+  // 🎭 Piel propia del local (tema.skin): añade .local-skin-<x>, que su CSS estiliza scopeado
+  // (ej. 'jet' → Pilotos, 'juance' → JUANCE). Se sanea porque el valor viene de Firestore.
+  const skin = String(local.tema?.skin || '').toLowerCase().replace(/[^a-z0-9-]/g, '')
   // 🎬 Entrada del logo: 'arriba' (cae en 3 bloques), 'lado' (entran por los
   // costados) o 'ninguna'. El dueño lo elige en el panel (Configuración → Apariencia).
   const logoAnim = resolverLogoAnim(local)
 
   return (
-    <div className={`local-page ${skinJet ? 'local-skin-jet' : ''}`} style={localThemeVars(local.tema)}>
+    <div className={`local-page ${skin ? `local-skin-${skin}` : ''}`} style={localThemeVars(local.tema)}>
       <header className={`local-hero ${heroLogo ? 'local-hero--logo' : ''}`}>
         {heroLogo ? (
           <>

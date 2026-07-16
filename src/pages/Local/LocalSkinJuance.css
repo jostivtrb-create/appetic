@@ -1,0 +1,193 @@
+/* 🔥 SKIN "JUANCE" — piel a la medida de JUANCE (Pizzería y Comidas Rápidas).
+   Se activa SOLO cuando el local trae tema.skin === 'juance' (LocalMenu añade .local-skin-juance).
+   Es 100% presentación y está TODO scopeado a .local-skin-juance: no afecta a ningún otro local.
+
+   ADN de ESTA marca (sacado de SU logo y SU menú, no calcado de otro local):
+   • Su logo es un emblema de LLAMA con porción de pizza y hamburguesa, sobre madera negra
+     VIOLÁCEA, con el nombre en LILA y chispas lilas.
+   • Su menú impreso es negro con banderines ROJOS de brochazo y tipografía condensada pesada.
+   → De ahí: fondo noche-violeta, brasa naranja en los botones, y LILA en los precios.
+     El lila es la firma de JUANCE: es lo que la separa de cualquier otra comida rápida.
+     (Pilotos es vino+dorado con stencil de aviación; aquí no se reusa nada de eso.) */
+
+.local-page.local-skin-juance {
+  /* Superficies: noche violeta (la madera del emblema) */
+  --surface: #1E1428;
+  --surface-2: #271A34;
+  --border: #3D2B4E;
+  --text: #F6EEF8;
+  --text-soft: #BFA9CC;
+  --text-faint: #8A7599;
+  --bg: #140D1C;
+  /* El "pill" de Agregar reutiliza este tint: lo llevamos a brasa translúcida */
+  --brand-orange-tint: rgba(217, 83, 42, 0.16);
+
+  /* Fondo del "mundo": noche violeta con brasa arriba y resplandor lila abajo
+     (exactamente el halo que rodea el emblema en su logo original). */
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(240, 121, 60, 0.20), transparent 60%),
+    radial-gradient(90% 60% at 50% 108%, rgba(160, 90, 210, 0.26), transparent 62%),
+    linear-gradient(180deg, #1A1024 0%, #120B18 100%);
+  color: var(--text);
+
+  --font-display: 'Anton', 'Barlow Condensed', system-ui, sans-serif;
+  --font-cond: 'Barlow Condensed', system-ui, sans-serif;
+
+  /* La llama de la marca: sustituye a los emojis de categoría */
+  --juance-flame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z'/%3E%3C/svg%3E");
+}
+
+/* ===== HERO: el emblema en grande sobre la noche violeta ===== */
+.local-skin-juance .local-hero--logo {
+  /* Más aire arriba para que el botón de favorito (esquina) no tape el arco del emblema. */
+  padding-top: calc(58px + env(safe-area-inset-top));
+  background:
+    radial-gradient(100% 80% at 50% 0%, rgba(200, 155, 224, 0.22), transparent 62%),
+    linear-gradient(180deg, #221534 0%, #140D1C 88%);
+  border-bottom: 1px solid #3D2B4E;
+}
+.local-skin-juance .local-hero-content--logo { color: var(--text); }
+.local-skin-juance .local-logo-full {
+  max-width: 330px;
+  /* Doble sombra: brasa cálida + halo lila = el glow que trae su logo original */
+  filter: drop-shadow(0 6px 18px rgba(240, 121, 60, 0.30))
+          drop-shadow(0 0 30px rgba(200, 155, 224, 0.22));
+}
+.local-skin-juance .local-desc--ink {
+  color: #C9A2F0;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-family: var(--font-cond);
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+/* ===== BARRA DE CATEGORÍAS: condensada, en mayúsculas, sin emojis ===== */
+.local-skin-juance .catnav {
+  background: color-mix(in srgb, #140D1C 82%, transparent);
+  border-bottom: 1px solid #3D2B4E;
+}
+.local-skin-juance .catnav-tab {
+  font-family: var(--font-cond);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  font-size: 14px;
+  background: #1E1428;
+  border-color: #3D2B4E;
+  color: var(--text-soft);
+}
+.local-skin-juance .catnav-tab-active {
+  background: linear-gradient(135deg, #F0793C, #C0401C);
+  border-color: #C9A2F0;
+  color: #fff;
+}
+
+/* ===== TÍTULOS DE SECCIÓN: banderín de brasa con el borde cortado en diagonal,
+   como los brochazos rojos de su menú impreso. Abraza al texto (no ocupa el ancho). ===== */
+.local-skin-juance .menu-section-title {
+  width: fit-content;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 20px;
+  font-weight: 400; /* Anton ya es pesada; 800 la deforma */
+  color: #fff;
+  background: linear-gradient(120deg, #F0793C 0%, #B83A18 100%);
+  padding: 9px 22px 9px 14px;
+  border-radius: 4px;
+  /* El corte en diagonal del brochazo */
+  clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+/* La llama de la marca en vez del emoji */
+.local-skin-juance .menu-section-title > span:first-child { display: none; } /* oculta emoji residual */
+.local-skin-juance .menu-section-title::before {
+  content: '';
+  width: 20px; height: 20px;
+  flex-shrink: 0;
+  background: #FFE9B0;
+  -webkit-mask: var(--juance-flame) center / contain no-repeat;
+  mask: var(--juance-flame) center / contain no-repeat;
+}
+
+/* ===== TARJETAS: nombres condensados, PRECIOS EN LILA (la firma), "Ver" en brasa ===== */
+.local-skin-juance .pcard {
+  border-color: #37264A;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+.local-skin-juance .pcard-nombre {
+  font-family: var(--font-cond);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 700;
+  font-size: 17px;
+}
+.local-skin-juance .pcard-precio {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  color: #C9A2F0; /* lila: el sello de la marca */
+}
+.local-skin-juance .pcard-desde { color: var(--text-faint); font-weight: 600; }
+.local-skin-juance .pcard-add {
+  font-family: var(--font-cond);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #F0793C, #C0401C);
+}
+.local-skin-juance .pcard-badge-agotado { background: rgba(20, 13, 28, 0.74); color: #C9A2F0; }
+
+/* Producto destacado: borde lila y resplandor violeta (no dorado: eso es de otra marca) */
+.local-skin-juance .pcard-destacado {
+  border: 1.5px solid #C9A2F0;
+  background: linear-gradient(180deg, rgba(200, 155, 224, 0.14), #1E1428 72%);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.5);
+}
+.local-skin-juance .pcard-fuerte {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: linear-gradient(135deg, #F0793C, #C0401C);
+  color: #fff;
+}
+
+/* ===== MODAL de opciones sobre la noche (el overlay es descendiente de .local-page) ===== */
+.local-skin-juance .pm-nombre {
+  font-family: var(--font-cond);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 700;
+}
+.local-skin-juance .pm-opt-precio { color: #C9A2F0; }
+
+/* ===== Buscador (aparece solo si el dueño pasa de 12 productos) ===== */
+.local-skin-juance .local-search-box { background: #1E1428; border-color: #3D2B4E; }
+.local-skin-juance .local-search-box:focus-within {
+  border-color: #C9A2F0;
+  box-shadow: 0 0 0 3px rgba(200, 155, 224, 0.20);
+}
+.local-skin-juance .local-search-icon { color: #8A7599; }
+.local-skin-juance .local-search-box:focus-within .local-search-icon { color: #C9A2F0; }
+.local-skin-juance .local-search-input {
+  font-family: var(--font-cond);
+  letter-spacing: 0.02em;
+  font-size: 15.5px;
+}
+.local-skin-juance .local-search-clear { background: linear-gradient(135deg, #F0793C, #C0401C); color: #fff; }
+
+/* ===== Checkout sobre oscuro (evitar brasa-sobre-noche ilegible) ===== */
+.local-skin-juance .co-toggle button.on {
+  background: rgba(200, 155, 224, 0.18);
+  border-color: #C9A2F0;
+  color: #F6EEF8;
+}
+.local-skin-juance .co-pago.on {
+  background: rgba(200, 155, 224, 0.16);
+  border-color: #C9A2F0;
+}
+/* Botón de ubicación (domicilio) y avisos: legibles sobre oscuro */
+.local-skin-juance .co-ubic-btn { border-color: #C9A2F0; background: rgba(200, 155, 224, 0.16); color: #C9A2F0; }
+.local-skin-juance .co-ubic-ok { background: rgba(47, 174, 102, 0.16); }
+.local-skin-juance .co-ubic-error { background: rgba(229, 72, 77, 0.16); }

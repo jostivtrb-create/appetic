@@ -21,5 +21,9 @@ export async function getPreviewLocal(slug) {
     const { PILOTOS_LOCAL, PILOTOS_PRODUCTOS } = await import('./dev/pilotos')
     return { local: PILOTOS_LOCAL, productos: PILOTOS_PRODUCTOS }
   }
+  if (slug === 'juance') {
+    const { JUANCE_LOCAL, JUANCE_PRODUCTOS } = await import('./dev/juance')
+    return { local: JUANCE_LOCAL, productos: JUANCE_PRODUCTOS }
+  }
   return null
 }
