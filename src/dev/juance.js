@@ -73,7 +73,10 @@ export const JUANCE_LOCAL = {
     { id: 'bebidas', nombre: 'Bebidas', emoji: '' },
   ],
   admins: [ADMIN_EMAIL],
-  suscripcion: { activa: true, plan: 'piloto' },
+  // activa:false → NO sale todavía en el buscador del inicio. Se enciende desde el panel de
+  // superadmin cuando el local ya tenga su WhatsApp y el dueño dé el visto bueno (si saliera
+  // ahora, un cliente podría pedir y el pedido no tendría a dónde llegar).
+  suscripcion: { activa: false, plan: 'piloto' },
   menuVersion: 1,
 }
 
