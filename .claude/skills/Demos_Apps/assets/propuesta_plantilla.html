@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Propuesta App [[NEGOCIO]]</title>
+<!--
+  PLANTILLA DE PROPUESTA — Demos_Apps
+  1) Edita la PALETA en :root (variables --c-* y --grad) con los colores de la marca.
+  2) Reemplaza TODOS los [[TOKENS]] con el contenido real. No dejes ninguno sin reemplazar.
+  3) Exporta a PDF con Edge headless (ver references/propuesta.md).
+  Layout: 3 páginas A4. Cada .page es height:297mm; overflow:hidden. Footer absoluto al fondo.
+  Si una página se desborda (salen 4), MUEVE una sección a la siguiente página.
+-->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root{
+  /* ===== PALETA (editar por marca) ===== */
+  --c-bg:#FBF4E4;          /* fondo de página (claro) */
+  --c-bg2:#F6EAD2;         /* fondo secundario */
+  --paper:#FFFFFF;         /* tarjetas */
+  --c-primary:#C0272D;     /* color primario de marca */
+  --c-primary-d:#8E1B20;   /* primario oscuro (titulares CTA) */
+  --c-accent:#EF8420;      /* acento (fin del degradado) */
+  --c-accent2:#E9A93C;     /* acento 2 */
+  --c-gold:#C8861F;        /* eyebrows / etiquetas pequeñas */
+  --c-ink:#3C2A1C;         /* texto principal */
+  --c-ink-soft:#705542;    /* texto secundario */
+  --line:rgba(60,42,28,.10);
+  --grad:linear-gradient(125deg,#AE1C22 0%,#CE3320 42%,#F0871F 100%); /* banner + tarjeta precio */
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#cfcfcf}
+body{font-family:'Nunito',system-ui,'Segoe UI',sans-serif;color:var(--c-ink);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+.page{position:relative;width:210mm;height:297mm;background:var(--c-bg);
+  margin:0 auto;padding:0 18mm 24mm;overflow:hidden;page-break-after:always}
+.page:last-child{page-break-after:auto}
+
+/* ---------- BANNER ---------- */
+.banner{position:relative;margin:0 -18mm 30px;padding:46px 18mm 40px;background:var(--grad);color:#fff;overflow:hidden}
+.banner .eyebrow{color:#ffe6c9}
+.eyebrow{font-family:'Poppins';font-weight:700;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--c-gold)}
+.banner h1{font-family:'Poppins';font-weight:800;font-size:46px;line-height:1.04;margin:10px 0 6px;letter-spacing:-.5px;text-shadow:0 2px 10px rgba(120,20,10,.25)}
+.banner .sub{font-family:'Poppins';font-weight:500;font-size:19px;color:#fff;opacity:.95}
+.tag{display:inline-block;margin-top:18px;padding:7px 16px;border:1.5px solid rgba(255,255,255,.55);border-radius:30px;font-family:'Poppins';font-weight:600;font-size:11px;letter-spacing:2px;color:#fff}
+.cf{position:absolute;border-radius:20px;opacity:.9}
+.c1{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.35);top:30px;right:120px}
+.c2{width:46px;height:9px;background:#ffd27a;top:54px;right:48px;transform:rotate(-32deg)}
+.c3{width:34px;height:8px;background:rgba(255,255,255,.55);top:120px;right:90px;transform:rotate(28deg)}
+.c4{width:40px;height:9px;background:#ffb14e;bottom:34px;right:60px;transform:rotate(40deg)}
+.c5{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.25);bottom:48px;right:160px}
+.c6{width:22px;height:8px;background:rgba(255,255,255,.4);top:96px;right:200px;transform:rotate(-18deg)}
+
+/* ---------- TEXTO ---------- */
+.lead{font-size:16.5px;line-height:1.7;color:var(--c-ink-soft);margin-bottom:8px}
+.lead b{color:var(--c-ink);font-weight:800}
+.sec{margin-top:18px}
+.sec .eyebrow{color:var(--c-gold)}
+.sec h2{font-family:'Poppins';font-weight:800;font-size:26px;color:var(--c-ink);margin-top:5px;letter-spacing:-.3px}
+
+/* ---------- TARJETAS ---------- */
+.card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:20px 24px;margin-top:14px;box-shadow:0 10px 26px rgba(120,70,20,.06)}
+.card h3{font-family:'Poppins';font-weight:700;font-size:16.5px;color:var(--c-primary);display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.card h3::before{content:'';width:11px;height:11px;border-radius:50%;background:var(--grad)}
+ul.bul{list-style:none}
+ul.bul li{position:relative;padding-left:22px;margin-bottom:11px;font-size:14.5px;line-height:1.55;color:var(--c-ink-soft)}
+ul.bul li:last-child{margin-bottom:0}
+ul.bul li::before{content:'';position:absolute;left:0;top:7px;width:9px;height:9px;border-radius:50%;background:var(--grad)}
+ul.bul li b{color:var(--c-ink);font-weight:800}
+
+.opts .row{padding:11px 2px;border-bottom:1px dashed var(--line)}
+.opts .row:last-child{border-bottom:none}
+.opts .row p{font-size:14.5px;line-height:1.6;color:var(--c-ink-soft)}
+.opts .row .t{color:var(--c-primary);font-weight:800;font-family:'Poppins'}
+.chip{display:inline-block;padding:2px 10px;border-radius:20px;background:#FCEBD2;color:var(--c-gold);font-family:'Poppins';font-weight:700;font-size:10.5px;letter-spacing:.5px;vertical-align:middle;margin:0 2px}
+
+/* ---------- TARJETA DE PRECIO ---------- */
+.price{position:relative;background:var(--grad);color:#fff;border-radius:22px;padding:20px 26px;margin-top:14px;overflow:hidden;box-shadow:0 16px 34px rgba(170,40,20,.22)}
+.price .eyebrow{color:#ffe1c2}
+.price .big{font-family:'Poppins';font-weight:800;font-size:48px;line-height:1;margin:5px 0 3px}
+.price .big span{font-size:21px;font-weight:600;margin-left:6px}
+.pill{display:inline-block;padding:5px 15px;border:1.5px solid rgba(255,255,255,.5);border-radius:30px;font-family:'Poppins';font-weight:700;font-size:11px;letter-spacing:2px;margin-top:5px}
+.price table{width:100%;border-collapse:collapse;margin-top:12px;border-top:1px solid rgba(255,255,255,.28)}
+.price td{padding:6px 0;font-size:13px;vertical-align:top}
+.price td.k{font-family:'Poppins';font-weight:700;color:#fff;width:42%}
+.price td.v{color:#ffe9d6}
+.price tr{border-bottom:1px solid rgba(255,255,255,.16)}
+.price tr:last-child{border-bottom:none}
+.promo{margin-top:13px;background:rgba(255,255,255,.16);border:1.5px dashed rgba(255,255,255,.6);border-radius:14px;padding:10px 16px;font-family:'Poppins';font-weight:700;font-size:12.5px;color:#fff;text-align:center;letter-spacing:.2px}
+.price .cf2{position:absolute;top:30px;right:34px;width:44px;height:9px;background:#ffce86;transform:rotate(40deg);border-radius:10px}
+.price .cf3{position:absolute;top:46px;right:30px;width:30px;height:8px;background:rgba(255,255,255,.6);transform:rotate(-20deg);border-radius:10px}
+
+/* ---------- PILLS ---------- */
+.pills{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+.fpill{padding:13px 20px;background:var(--paper);border:1px solid var(--line);border-radius:30px;font-family:'Poppins';font-weight:600;font-size:13.5px;color:var(--c-primary-d);box-shadow:0 6px 16px rgba(120,70,20,.05)}
+
+/* ---------- CTA ---------- */
+.cta{background:linear-gradient(120deg,var(--c-bg),var(--c-bg2));border:1px solid var(--line);border-radius:22px;padding:26px 28px;margin-top:18px}
+.cta .eyebrow{color:var(--c-gold)}
+.cta h2{font-family:'Poppins';font-weight:800;font-size:23px;color:var(--c-primary-d);margin:6px 0 10px}
+.cta p{font-size:15px;line-height:1.65;color:var(--c-ink-soft)}
+.cta p b{color:var(--c-ink)}
+.cta .bar{width:120px;height:7px;border-radius:10px;background:var(--grad);margin-top:18px}
+
+.foot{position:absolute;left:18mm;right:18mm;bottom:11mm;padding-top:14px;border-top:1px solid var(--line);text-align:center;font-size:11.5px;color:#b09a82;font-family:'Poppins';letter-spacing:.3px}
+.closing{text-align:center;font-size:13px;color:var(--c-ink-soft);margin-top:30px;font-style:italic}
+
+@media print{html,body{background:#fff}.page{margin:0;box-shadow:none}@page{size:A4;margin:0}}
+</style>
+</head>
+<body>
+
+<!-- ============ PÁGINA 1 ============ -->
+<section class="page">
+  <div class="banner">
+    <span class="cf c1"></span><span class="cf c2"></span><span class="cf c3"></span>
+    <span class="cf c4"></span><span class="cf c5"></span><span class="cf c6"></span>
+    <div class="eyebrow">Propuesta de Proyecto</div>
+    <h1>[[TITULO]]</h1>            <!-- ej. "Aplicación de Pedidos" -->
+    <div class="sub">para [[NEGOCIO]]</div>
+    <div class="tag">[[TAG_CATEGORIAS]]</div>   <!-- ej. "SHAWARMAS · HAMBURGUESAS · PERROS" -->
+  </div>
+
+  <p class="lead">[[INTRO]]</p>     <!-- 2-3 líneas vendedoras; resalta el eslogan con <b> -->
+
+  <div class="sec">
+    <div class="eyebrow">El paquete</div>
+    <h2>Qué incluye la app</h2>
+
+    <div class="card">
+      <h3>Para tus clientes</h3>
+      <ul class="bul">
+        <li><b>Cuenta personal:</b> ingreso con Google o como invitado, en segundos.</li>
+        <li><b>Menú completo y organizado</b> [[CLIENTE_2_SECCIONES]]</li>
+        <li><b>Personalización del producto:</b> [[CLIENTE_3]]</li>
+        <li><b>Carrito de compras</b> para agregar productos, cambiar cantidades y ver el total antes de pedir.</li>
+        <li><b>El pedido se envía armado a tu WhatsApp</b> ([[TELEFONO]]) con un solo toque, listo para confirmar.</li>
+        <li><b>Historial con “volver a pedir”</b> y <b>modo claro y oscuro</b> a gusto del cliente.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Para el negocio · Panel de administración (aparte del cliente)</h3>
+      <ul class="bul">
+        <li><b>Pantalla separada de administrador:</b> al abrir, se elige entrar como cliente o como administrador.</li>
+        <li><b>Tablero de pedidos</b> que llegan, organizados por estado (Nuevo · En preparación · Listo).</li>
+        <li><b>Control del menú y los precios</b> y activar/desactivar productos (marcar “agotado”).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="foot">[[NEGOCIO]] · Propuesta de App de Pedidos · [[MES_ANIO]]</div>
+</section>
+
+<!-- ============ PÁGINA 2 ============ -->
+<section class="page">
+  <div class="card" style="margin-top:20px">
+    <h3>Instalación y experiencia</h3>
+    <ul class="bul">
+      <li>Funciona como una <b>aplicación web instalable</b>: se instala en <b>Android y iPhone</b> desde un enlace, con su ícono en la pantalla de inicio.</li>
+      <li>Diseño <b>minimalista, limpio y antojable</b>, pensado para usarse cómodamente desde el celular.</li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <div class="eyebrow">A tu gusto</div>
+    <h2>Opciones que la app puede tener</h2>
+    <div class="card opts">
+      <div class="row"><p><span class="t">Recepción de pedidos.</span> Pueden registrarse en una base de datos (visibles en el panel), llegar a un <b>WhatsApp</b> del negocio ([[TELEFONO]]), o <b>ambas a la vez</b>. Como ustedes deseen.</p></div>
+      <div class="row"><p><span class="t">Notificaciones.</span> La app puede enviar avisos automáticos al cliente, por ejemplo “tu pedido fue recibido”.</p></div>
+      <div class="row"><p><span class="t">Forma de pago del pedido.</span> Contra entrega o coordinado por WhatsApp, según como trabajen. Métodos: [[METODOS_PAGO]].</p></div>
+      <div class="row"><p><span class="t">Domicilio.</span> El cobro se maneja con un valor fijo o según la zona, como lo hacen hoy.</p></div>
+      <div class="row"><p><span class="t">Fotos de los productos.</span> Firebase <span class="chip">recomendada</span> es la opción más segura, confiable y con respaldo; su costo es prácticamente $0 y solo requiere registrar una tarjeta. ImgBB es gratuita y sin tarjeta, pero <b>menos segura</b> (imágenes públicas y con menos respaldo).</p></div>
+    </div>
+  </div>
+
+  <div class="foot">[[NEGOCIO]] · Propuesta de App de Pedidos · [[MES_ANIO]]</div>
+</section>
+
+<!-- ============ PÁGINA 3 ============ -->
+<section class="page">
+  <div class="sec" style="margin-top:34px">
+    <div class="eyebrow">Inversión y condiciones</div>
+    <h2>Una sola inversión, sin mensualidades</h2>
+    <div class="price">
+      <span class="cf2"></span><span class="cf3"></span>
+      <div class="eyebrow">Valor del proyecto</div>
+      <div class="big">[[VALOR]]<span>COP</span></div>     <!-- ej. $500.000 -->
+      <div class="pill">PAGO ÚNICO</div>
+      <table>
+        <tr><td class="k">Forma de pago</td><td class="v">[[FORMA_PAGO]]</td></tr>
+        <tr><td class="k">Tiempo de desarrollo</td><td class="v">2 semanas</td></tr>
+        <tr><td class="k">Garantía</td><td class="v">6 meses por errores o fallos dentro de la app</td></tr>
+        <tr><td class="k">Mensualidades</td><td class="v">Ninguna · corre sobre servicios con plan gratuito</td></tr>
+        <tr><td class="k">Entrega</td><td class="v">App instalada y funcionando</td></tr>
+        <tr><td class="k">Validez de la oferta</td><td class="v">[[VALIDEZ]]</td></tr>
+      </table>
+      <div class="promo">⏳ [[PROMO_NOTA]]</div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="eyebrow">Opcional</div>
+    <h2>Crecimiento a futuro</h2>
+    <p class="lead" style="font-size:15px;margin-top:8px">Si más adelante lo desean, la app puede crecer con funciones adicionales. Cada una tiene su <b>propia cotización y un costo aparte</b>, ya que no hacen parte de este paquete:</p>
+    <div class="pills">
+      <div class="fpill">Cobros dentro de la app</div>
+      <div class="fpill">Programa de puntos / clientes frecuentes</div>
+      <div class="fpill">Promociones y cupones</div>
+      <div class="fpill">Reportes y estadísticas de ventas</div>
+      <div class="fpill">Publicación en Google Play / App Store</div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <div class="eyebrow">El siguiente paso</div>
+    <h2>¿Le damos vida a la app de [[NEGOCIO]]?</h2>
+    <p>En cuanto des el visto bueno arrancamos, y en <b>2 semanas</b> tu negocio tiene su propia aplicación de pedidos lista para tus clientes. <b>[[PAGO_RESUMEN]]</b></p>
+    <div class="bar"></div>
+  </div>
+
+  <p class="closing">Propuesta preparada para [[NEGOCIO]] — [[ESLOGAN]]</p>
+
+  <div class="foot">[[NEGOCIO]] · Propuesta de App de Pedidos · [[MES_ANIO]]</div>
+</section>
+
+</body>
+</html>
