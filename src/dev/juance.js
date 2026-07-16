@@ -105,29 +105,28 @@ export const JUANCE_PRODUCTOS = [
   // ── 🍟 PARA PICAR
   { id: 'salchipapa', categoria: 'picar', nombre: 'Salchipapa', descripcion: 'Papa a la francesa con salchicha dorada y las salsas de la casa.', foto: '/locales/juance/salchipapa.webp', emoji: '🌭', disponible: true, orden: 7, precio: 5000 },
   { id: 'pastel-yuca', categoria: 'picar', nombre: 'Pastel de Yuca', descripcion: 'Masa de yuca crocante por fuera y suave por dentro, recién frita.', foto: '/locales/juance/pastel-yuca.webp', emoji: '🥟', disponible: true, orden: 8, precio: 3500 },
+  { id: 'empanada-carne', categoria: 'picar', nombre: 'Empanada de Carne', descripcion: 'Crocante por fuera, rellena de carne jugosa. Recién frita.', foto: '/locales/juance/empanada-carne.webp', emoji: '🥟', disponible: true, orden: 9, precio: 4000 },
 
-  // ── 🥤 BEBIDAS
-  // ⚠️ APROXIMACIÓN: no aparecen en el menú impreso. Son las típicas, con precios estimados;
-  //    el dueño ajusta precios (o las apaga) desde su panel.
-  { id: 'gaseosa', categoria: 'bebidas', nombre: 'Gaseosa', descripcion: 'Bien fría.', foto: '/locales/juance/gaseosa.webp', emoji: '🥤', disponible: true, orden: 9,
-    variantes: [
-      { id: 'gas-350', nombre: '350 ml', precio: 4000 },
-      { id: 'gas-15', nombre: '1.5 L', precio: 8000 },
-    ] },
-  { id: 'jugo-natural', categoria: 'bebidas', nombre: 'Jugo Natural', descripcion: 'Fruta fresca. Elige en agua o en leche y tu sabor.', foto: '/locales/juance/jugo.webp', emoji: '🧃', disponible: true, orden: 10,
-    variantes: [
-      { id: 'jugo-agua', nombre: 'En agua', precio: 6000 },
-      { id: 'jugo-leche', nombre: 'En leche', precio: 7000 },
-    ],
+  // ── 🥤 BEBIDAS (las reales de JUANCE)
+  { id: 'gaseosa', categoria: 'bebidas', nombre: 'Gaseosa', descripcion: 'Botella personal de 400 ml, bien fría. Elige tu sabor.', foto: '/locales/juance/gaseosa.webp', emoji: '🥤', disponible: true, orden: 9, precio: 3000,
     gruposOpciones: [
-      { id: 'g-jugo-sabor', nombre: 'Sabor', subtitulo: 'Elige 1', emoji: '🍓', tipo: 'unica', min: 1, max: 1,
+      { id: 'g-gaseosa-sabor', nombre: 'Sabor', subtitulo: 'Elige 1', emoji: '🥤', tipo: 'unica', min: 1, max: 1,
         opciones: [
-          { id: 'jn-mora', nombre: 'Mora', emoji: '🫐', precioExtra: 0, foto: '' },
-          { id: 'jn-maracuya', nombre: 'Maracuyá', emoji: '🟡', precioExtra: 0, foto: '' },
-          { id: 'jn-fresa', nombre: 'Fresa', emoji: '🍓', precioExtra: 0, foto: '' },
-          { id: 'jn-mango', nombre: 'Mango', emoji: '🥭', precioExtra: 0, foto: '' },
+          { id: 'gs-cocacola', nombre: 'Coca-Cola', emoji: '🥤', precioExtra: 0, foto: '' },
+          { id: 'gs-colombiana', nombre: 'Colombiana', emoji: '🥤', precioExtra: 0, foto: '' },
+          { id: 'gs-manzana', nombre: 'Manzana Postobón', emoji: '🍎', precioExtra: 0, foto: '' },
         ] },
     ] },
-  { id: 'limonada', categoria: 'bebidas', nombre: 'Limonada', descripcion: 'Refrescante, hecha al momento.', foto: '/locales/juance/limonada.webp', emoji: '🍋', disponible: true, orden: 11, precio: 6000 },
-  { id: 'agua', categoria: 'bebidas', nombre: 'Agua', descripcion: 'Botella personal.', foto: '/locales/juance/agua.webp', emoji: '💧', disponible: true, orden: 12, precio: 3000 },
+  { id: 'jugo-hit', categoria: 'bebidas', nombre: 'Jugo Hit', descripcion: 'Jugo Hit bien frío. Elige tu sabor.', foto: '/locales/juance/jugo-hit.webp', emoji: '🧃', disponible: true, orden: 10, precio: 4000,
+    gruposOpciones: [
+      { id: 'g-hit-sabor', nombre: 'Sabor', subtitulo: 'Elige 1', emoji: '🧃', tipo: 'unica', min: 1, max: 1,
+        opciones: [
+          { id: 'hit-mango', nombre: 'Mango', emoji: '🥭', precioExtra: 0, foto: '' },
+          { id: 'hit-lulo', nombre: 'Lulo', emoji: '🟢', precioExtra: 0, foto: '' },
+          { id: 'hit-tropical', nombre: 'Tropical', emoji: '🍹', precioExtra: 0, foto: '' },
+          { id: 'hit-mora', nombre: 'Mora', emoji: '🫐', precioExtra: 0, foto: '' },
+        ] },
+    ] },
+  { id: 'agua', categoria: 'bebidas', nombre: 'Agua', descripcion: 'Botella personal.', foto: '/locales/juance/agua.webp', emoji: '💧', disponible: true, orden: 11, precio: 3000 },
+  { id: 'agua-saborizada', categoria: 'bebidas', nombre: 'Agua Saborizada', descripcion: 'Botella de 250 ml, refrescante.', foto: '/locales/juance/agua-saborizada.webp', emoji: '💧', disponible: true, orden: 12, precio: 2000 },
 ]
