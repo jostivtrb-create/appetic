@@ -284,6 +284,69 @@
   cursor: pointer;
 }
 .ap-foto-pick img { width: 100%; height: 100%; object-fit: cover; }
+
+/* Foto del producto: preview + acciones (dispositivo / crear con IA) */
+.ap-foto-bloque { display: flex; flex-direction: column; gap: 10px; }
+.ap-foto-preview {
+  display: flex; align-items: center; justify-content: center;
+  height: 150px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: 30px;
+  overflow: hidden;
+}
+.ap-foto-preview img { width: 100%; height: 100%; object-fit: cover; }
+.ap-foto-acciones { display: flex; gap: 10px; }
+.ap-foto-btn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 11px 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-weight: 700; font-size: 13.5px;
+  cursor: pointer; text-align: center;
+}
+.ap-foto-btn-ia {
+  border-color: var(--local-primary, var(--brand-orange));
+  color: var(--local-primary-strong, var(--brand-orange-strong));
+  background: var(--brand-orange-tint);
+}
+
+/* Aviso del flujo "Crear con IA" (instrucciones + re-copiar el prompt) */
+.ap-ia-aviso {
+  position: relative;
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--brand-orange-tint);
+  border: 1px solid var(--border);
+}
+.ap-ia-aviso-x {
+  position: absolute; top: 8px; right: 10px;
+  color: var(--text-faint); font-size: 14px; font-weight: 700; background: none;
+}
+.ap-ia-aviso-tit { font-size: 14.5px; font-weight: 800; margin: 0 0 8px; }
+.ap-ia-aviso-pasos { margin: 0 0 10px; padding-left: 18px; font-size: 13px; color: var(--text-soft); line-height: 1.55; }
+.ap-ia-aviso-copiar {
+  font-size: 13px; font-weight: 700;
+  color: var(--local-primary-strong, var(--brand-orange-strong));
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  padding: 8px 14px; border-radius: var(--radius-pill);
+}
+
+/* Botón ✨ (crear con IA) en una opción/topping */
+.ap-opcion-ia {
+  flex-shrink: 0;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: var(--brand-orange-tint);
+  font-size: 14px;
+}
+
 .ap-variante { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
 .ap-variante span { flex: 1; font-size: 14px; font-weight: 600; }
 .ap-variante-nombre { flex: 1; min-width: 0; margin: 0; }

@@ -208,3 +208,4 @@ afiche hereda su identidad (tema+logo+whatsapp): **`references/difundir.md`**.
 - `references/imagenes.md` — generar e integrar banner/logo/fotos SIEMPRE con `/Generar_Imagen` (nunca Higgsfield); logo transparente con `/Quitar_Fondo_Mejorar_Calidad`.
 - `references/firebase.md` — las llaves de Firebase y el cierre del flujo (seed, reglas, panel, WhatsApp).
 - `references/difundir.md` — la pestaña **📣 Difundir** (QR, afiche de domicilios, link, mensaje): automática por local, hereda la identidad (tema+logo+whatsapp), y qué contarle al dueño en la entrega.
+- `references/prompt_ia_panel.md` — el botón **✨ Crear con IA** del panel (foto de producto y de opciones): la receta del prompt (foto realista + colores del local) y dónde vive (`src/utils/promptIA.js`).

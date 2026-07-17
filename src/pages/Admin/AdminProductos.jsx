@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cop } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
+import { construirPromptImagenIA } from '../../utils/promptIA'
 
 export default function AdminProductos({ local, slug, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
@@ -168,6 +169,7 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
       {editando && (
         <EditorProducto
           producto={editando}
+          local={local}
           categorias={categorias}
           onAddCategoria={onAddCategoria}
           onCerrar={() => setEditando(null)}
@@ -190,7 +192,7 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
   )
 }
 
-function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuardar, onBorrar, onFotoOpcion }) {
+function EditorProducto({ producto, local, categorias, onAddCategoria, onCerrar, onGuardar, onBorrar, onFotoOpcion }) {
   const [nombre, setNombre] = useState(producto.nombre || '')
   const [descripcion, setDescripcion] = useState(producto.descripcion || '')
   const [categoria, setCategoria] = useState(producto.categoria || categorias[0]?.id || '')
@@ -209,6 +211,8 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
   const [fotoFile, setFotoFile] = useState(null)
   const [fotoPreview, setFotoPreview] = useState(producto.foto || '')
   const [guardando, setGuardando] = useState(false)
+  // Aviso del flujo "Crear con IA": guarda el prompt para mostrar instrucciones + re-copiar.
+  const [avisoIA, setAvisoIA] = useState(null) // null | { prompt }
   // Candado a prueba de doble-toque: evita crear productos duplicados si se
   // pulsa "Guardar" muy rápido, antes de que el botón alcance a deshabilitarse.
   const guardandoRef = useRef(false)
@@ -275,6 +279,24 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
     if (!f) return
     setFotoFile(f)
     setFotoPreview(URL.createObjectURL(f))
+  }
+
+  // ✨ Crear foto con IA: arma el prompt (foto realista + colores del local), lo copia al
+  // portapapeles y abre Gemini en otra pestaña. El dueño pega, genera, descarga y la sube
+  // con "Del dispositivo". Sirve para la foto del producto (tipo 'producto') y de cada
+  // opción/topping (tipo 'opcion').
+  function crearFotoConIA({ nombre: n, descripcion: d = '', tipo = 'producto' }) {
+    if (!n || !n.trim()) {
+      alert(tipo === 'opcion'
+        ? 'Escribe primero el nombre de la opción para crear su foto.'
+        : 'Escribe primero el nombre del producto para crear su foto.')
+      return
+    }
+    const prompt = construirPromptImagenIA({ nombre: n, descripcion: d, tipo, local })
+    // Copiar al portapapeles (sin bloquear) y abrir Gemini en el MISMO gesto del click.
+    try { navigator.clipboard?.writeText(prompt) } catch { /* fallback: botón "Copiar" del aviso */ }
+    window.open('https://gemini.google.com/app', '_blank', 'noopener')
+    setAvisoIA({ prompt })
   }
 
   async function guardar() {
@@ -349,10 +371,43 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
         <div className="pm-body">
           <h2 className="pm-nombre">{producto.nuevo ? 'Nuevo producto' : 'Editar producto'}</h2>
 
-          <label className="ap-foto-pick">
-            {fotoPreview ? <img src={fotoPreview} alt="" /> : <span>📷 Agregar foto</span>}
-            <input type="file" accept="image/*" onChange={elegirFoto} hidden />
-          </label>
+          <div className="ap-foto-bloque">
+            <div className="ap-foto-preview">
+              {fotoPreview ? <img src={fotoPreview} alt="" /> : <span>📷</span>}
+            </div>
+            <div className="ap-foto-acciones">
+              <label className="ap-foto-btn">
+                📱 Del dispositivo
+                <input type="file" accept="image/*" onChange={elegirFoto} hidden />
+              </label>
+              <button
+                type="button"
+                className="ap-foto-btn ap-foto-btn-ia"
+                onClick={() => crearFotoConIA({ nombre, descripcion, tipo: 'producto' })}
+              >
+                ✨ Crear con IA
+              </button>
+            </div>
+          </div>
+
+          {avisoIA && (
+            <div className="ap-ia-aviso">
+              <button className="ap-ia-aviso-x" onClick={() => setAvisoIA(null)} aria-label="Cerrar">✕</button>
+              <p className="ap-ia-aviso-tit">✨ Abrimos <strong>Gemini</strong> en otra pestaña</p>
+              <ol className="ap-ia-aviso-pasos">
+                <li>Pega el prompt (ya copiado) con <strong>Ctrl/Cmd + V</strong> y envía.</li>
+                <li>Cuando Gemini genere la imagen, <strong>descárgala</strong>.</li>
+                <li>Vuelve aquí y súbela con <strong>📱 Del dispositivo</strong>.</li>
+              </ol>
+              <button
+                type="button"
+                className="ap-ia-aviso-copiar"
+                onClick={() => { try { navigator.clipboard?.writeText(avisoIA.prompt) } catch {} }}
+              >
+                📋 Copiar el prompt de nuevo
+              </button>
+            </div>
+          )}
 
           <label className="ap-label">Nombre</label>
           <input className="co-input" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Hamburguesa Clásica" />
@@ -449,6 +504,7 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
                     opcion={o}
                     onNombre={val => setOpcion(gi, oi, { nombre: val })}
                     onQuitar={() => quitarOpcion(gi, oi)}
+                    onCrearIA={() => crearFotoConIA({ nombre: o.nombre, tipo: 'opcion' })}
                     onFoto={onFotoOpcion
                       ? async file => {
                           const url = await onFotoOpcion(g.id, o.id, file)
@@ -490,8 +546,8 @@ function EditorProducto({ producto, categorias, onAddCategoria, onCerrar, onGuar
   )
 }
 
-// Una opción (topping/salsa): mini-foto + nombre editable + quitar.
-function OpcionEditor({ opcion, onNombre, onQuitar, onFoto }) {
+// Una opción (topping/salsa): mini-foto + nombre editable + crear con IA + quitar.
+function OpcionEditor({ opcion, onNombre, onQuitar, onCrearIA, onFoto }) {
   const [preview, setPreview] = useState(opcion.foto || '')
   const [subiendo, setSubiendo] = useState(false)
   const [error, setError] = useState(false)
@@ -528,6 +584,9 @@ function OpcionEditor({ opcion, onNombre, onQuitar, onFoto }) {
         onChange={e => onNombre(e.target.value)}
         placeholder="Nombre"
       />
+      {onCrearIA && (
+        <button type="button" className="ap-opcion-ia" onClick={onCrearIA} title="Crear foto con IA" aria-label="Crear foto con IA">✨</button>
+      )}
       <button type="button" className="ap-opcion-quitar" onClick={onQuitar} aria-label="Quitar">✕</button>
     </div>
   )
