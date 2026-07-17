@@ -3,7 +3,8 @@
 // Requiere: scripts/serviceAccount.json (llave de servicio de Firebase, NO se sube a git).
 //
 // Los datos del menú viven en src/dev/[[FILE]].js (fuente única, compartida con ?preview=1).
-// Aquí solo los escribimos en Firestore. Volver a correrlo NO duplica: actualiza (merge).
+// Aquí solo los escribimos en Firestore. Volver a correrlo NO duplica: sincroniza el menú
+// (borra los productos que ya no están y reemplaza el resto sin arrastrar campos viejos).
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -39,9 +40,22 @@ async function run() {
   await localRef.set(localData, { merge: true })
   console.log(`✓ Local ${prev.exists ? 'actualizado' : 'creado'}: locales/${SLUG} ([[NOMBRE]])`)
 
+  // Productos: sincronización COMPLETA con el archivo (fuente de verdad).
+  // 1) Borra los que ya NO están (menú actualizado: se quitaron ítems).
+  // 2) Reemplaza cada producto SIN merge, para que no arrastre campos viejos
+  //    (p.ej. quitar 'variantes' al pasar de tamaños a precio único).
+  const prodsRef = localRef.collection('productos')
+  const nuevosIds = new Set([[CONST]]_PRODUCTOS.map(p => p.id))
+  const existentes = await prodsRef.get()
+  let borrados = 0
+  for (const doc of existentes.docs) {
+    if (!nuevosIds.has(doc.id)) { await doc.ref.delete(); borrados++ }
+  }
+  if (borrados) console.log(`🗑️  ${borrados} producto(s) viejo(s) eliminado(s)`)
+
   for (const p of [[CONST]]_PRODUCTOS) {
     const { id: pid, ...data } = p
-    await localRef.collection('productos').doc(pid).set(data, { merge: true })
+    await prodsRef.doc(pid).set(data) // sin merge: reemplaza el doc completo
   }
   console.log(`✓ ${[[CONST]]_PRODUCTOS.length} productos cargados`)
 
