@@ -1,0 +1,63 @@
+/* 🎨 LogoManchon — bucle de 10s: el logo se PINTA con un trazo GRUESO en ZIGZAG
+   (de ida y vuelta, como la brocha) que termina cubriéndolo TODO → un DESTELLO
+   barre el logo → reposo largo → se despinta antes de reiniciar. */
+.logo-manchon {
+  position: relative;
+  display: inline-block;
+  width: min(78vw, 400px);
+  line-height: 0;
+  filter: drop-shadow(0 8px 20px rgba(42, 33, 28, 0.18));
+}
+/* El sizer (el logo) da el tamaño y el aspecto; invisible pero ocupa espacio. */
+.logo-manchon-sizer { width: 100%; height: auto; visibility: hidden; }
+
+/* Capas superpuestas exactas sobre la caja del sizer. */
+.logo-manchon-blob,
+.logo-manchon-shine {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* 🖌️ El trazo en ZIGZAG se dibuja (stroke-dashoffset 1→0 = pintado) y revela el
+   logo de ida y vuelta; grueso, así que en 0 cubre TODO. Al final se des-dibuja. */
+.logo-manchon-zig {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  will-change: stroke-dashoffset;
+  animation: lm-zig 10s ease-in-out infinite both;
+}
+@keyframes lm-zig {
+  0%   { stroke-dashoffset: 1; }   /* sin pintar */
+  20%  { stroke-dashoffset: 0; }   /* pintado (zigzag completo, TODO cubierto) */
+  90%  { stroke-dashoffset: 0; }   /* reposo largo */
+  99%  { stroke-dashoffset: 1; }   /* se despinta (en reverso) */
+  100% { stroke-dashoffset: 1; }
+}
+
+/* ✨ DESTELLO: un brillo diagonal recortado a la forma del logo (mask alpha) que
+   barre UNA vez cuando el logo ya está pintado (24→42%). Sin mix-blend (evita el
+   cuadro blanco); es un brillo blanco semitransparente sobre el logo. */
+.logo-manchon-shine {
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 42%, rgba(255,255,255,0.9) 50%, transparent 58%);
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  background-position: 150% 0;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;   mask-size: 100% 100%;
+  mask-mode: alpha;               /* recorta a la SILUETA del logo (canal alfa) */
+  animation: lm-shine 10s ease-in-out infinite both;
+}
+@keyframes lm-shine {
+  0%, 24%   { background-position: 150% 0; }   /* oculto (aún pintando) */
+  42%       { background-position: -50% 0; }   /* barre el destello */
+  43%, 100% { background-position: -50% 0; }   /* oculto después */
+}
+
+/* Accesibilidad: sin movimiento → logo completo y quieto, sin destello. */
+@media (prefers-reduced-motion: reduce) {
+  .logo-manchon-zig { animation: none; stroke-dashoffset: 0; }
+  .logo-manchon-shine { display: none; }
+}

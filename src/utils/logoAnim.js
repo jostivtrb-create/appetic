@@ -7,6 +7,7 @@
 export const LOGO_ANIMS = [
   { id: 'arriba', label: '⬇️ Desde arriba' },
   { id: 'lado', label: '↔️ De lado' },
+  { id: 'manchon', label: '🎨 Manchón pintado (2 capas)' },
   { id: 'ninguna', label: '🚫 Sin animación' },
 ]
 

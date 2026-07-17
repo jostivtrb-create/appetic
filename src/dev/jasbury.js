@@ -51,9 +51,11 @@ export const JASBURY_LOCAL = {
   //    desde su panel (⚙️ Configuración → Datos del negocio); es también el número del afiche de
   //    domicilios de la pestaña 📣 Difundir.
   whatsapp: '573208435143',
-  logo: '/locales/jasbury/logo.webp',    // el logo real del cliente (badge rojo con el nombre)
-  icono: '/locales/jasbury/icono.webp',  // cuadrado, para el cuadrito de la lista/superadmin
-  banner: '/locales/jasbury/banner.webp',
+  // 🎨 Hero "manchón pintado": el LOGO COMPLETO (pincel + texto) se pinta en zigzag.
+  logo: '/locales/jasbury/logo.webp',         // logo completo transparente (fondo quitado con IA)
+  logoAnim: 'manchon',                        // hero: se pinta en zigzag (LogoManchon)
+  icono: '/locales/jasbury/icono.webp',       // cuadrado (buscador de locales)
+  banner: '/locales/jasbury/banner.webp',     // queda por si se vuelve al hero de foto
   tema: {
     primary: '#FF3131',        // rojo puro del logo (botones, precios, chips activos)
     primaryStrong: '#C81B1B',  // rojo profundo (degradado / variante oscura)
@@ -61,6 +63,7 @@ export const JASBURY_LOCAL = {
     onPrimary: '#FFFFFF',      // texto sobre el rojo
     accent: '#FFC42E',         // amarillo dorado de la carta (acento secundario)
     bg: '#FBF2E6',             // "mundo" crema cálido (el fondo de su carta)
+    hero: 'logo',              // hero protagonizado por el logo (manchón), no banner de foto
   },
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.
   horario: { abre: '00:00', cierra: '00:00' },

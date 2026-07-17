@@ -10,6 +10,7 @@ import CartButton from '../../components/Cart/CartButton'
 import CartDrawer from '../../components/Cart/CartDrawer'
 import BotonFavorito from '../../components/Favorito/BotonFavorito'
 import LogoEpico from '../../components/Hero/LogoEpico'
+import LogoManchon from '../../components/Hero/LogoManchon'
 import { resolverLogoAnim } from '../../utils/logoAnim'
 import { useBloquearScroll } from '../../utils/useBloquearScroll'
 import Checkout from '../Checkout/Checkout'
@@ -167,9 +168,12 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
           <>
             <BotonFavorito local={local} variante="hero local-hero-fav local-hero-fav--light" />
             <div className="local-hero-content local-hero-content--logo">
-              {local.logo && (logoAnim === 'ninguna'
-                ? <img className="local-logo-full" src={local.logo} alt={local.nombre} />
-                : <LogoEpico src={local.logo} alt={local.nombre} direccion={logoAnim} />
+              {local.logo && (
+                logoAnim === 'manchon'
+                  ? <LogoManchon manchon={local.logo} texto={local.logoTexto} alt={local.nombre} />
+                  : logoAnim === 'ninguna'
+                    ? <img className="local-logo-full" src={local.logo} alt={local.nombre} />
+                    : <LogoEpico src={local.logo} alt={local.nombre} direccion={logoAnim} />
               )}
               {/* El nombre ya vive en el logo; lo dejamos accesible para lectores/SEO. */}
               <h1 className="local-name sr-only">{local.nombre}</h1>
