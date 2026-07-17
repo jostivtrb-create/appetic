@@ -25,5 +25,9 @@ export async function getPreviewLocal(slug) {
     const { JUANCE_LOCAL, JUANCE_PRODUCTOS } = await import('./dev/juance')
     return { local: JUANCE_LOCAL, productos: JUANCE_PRODUCTOS }
   }
+  if (slug === 'jasbury') {
+    const { JASBURY_LOCAL, JASBURY_PRODUCTOS } = await import('./dev/jasbury')
+    return { local: JASBURY_LOCAL, productos: JASBURY_PRODUCTOS }
+  }
   return null
 }
