@@ -77,7 +77,14 @@ function IconHeart() {
   return <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><path {...sw} d="M12 20s-7-4.6-7-9.4A3.6 3.6 0 0 1 12 8a3.6 3.6 0 0 1 7 2.6C19 15.4 12 20 12 20z" /></svg>
 }
 function IconBag() {
-  return <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path {...sw} d="M6 8h12l-1 11H7L6 8z" /><path {...sw} d="M9 8a3 3 0 0 1 6 0" /></svg>
+  // Carrito de compras (antes parecía una caneca de basura).
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+      <path {...sw} d="M3.5 4h1.7l2.1 10.4a1.2 1.2 0 0 0 1.2 1h7.3a1.2 1.2 0 0 0 1.2-.95L20 7.5H6" />
+      <circle {...sw} cx="9.5" cy="19" r="1.4" />
+      <circle {...sw} cx="16.5" cy="19" r="1.4" />
+    </svg>
+  )
 }
 function IconSearch() {
   return <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><circle {...sw} cx="11" cy="11" r="7" /><path {...sw} d="M16.5 16.5 21 21" /></svg>
