@@ -29,7 +29,7 @@ export default function Home() {
     getLocalesDeAdmin(user.email)
       .then(admin => {
         if (!activo) return
-        if (admin.length === 1) { navigate(`/${admin[0].slug}/admin`, { replace: true }); return }
+        if (admin.length === 1) { navigate(`/${admin[0].slug}/admin/catalogo`, { replace: true }); return }
         if (admin.length > 1) { navigate('/cuenta', { replace: true }); return }
         setVerificandoAdmin(false) // no administra locales: cliente normal
       })

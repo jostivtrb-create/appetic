@@ -22,7 +22,7 @@ export default function App() {
   // 🌎 Toda la app se transforma con el mundo del local activo (fondo incluido).
   // En los paneles internos (admin del local, superadmin) no se aplica: son de
   // gestión, no de cliente. Sin local activo → tokens Appetic de :root.
-  const enPanel = /\/admin\/?$/.test(pathname) || pathname.startsWith('/superadmin')
+  const enPanel = /\/admin(\/|$)/.test(pathname) || pathname.startsWith('/superadmin')
   useEffect(() => {
     const el = document.documentElement
     const vars = (activeLocal && !enPanel) ? appThemeVars(activeLocal.tema) : {}
@@ -53,8 +53,9 @@ export default function App() {
         {/* Panel interno de superadmin (suscripciones) */}
         <Route path="/superadmin" element={<Superadmin />} />
 
-        {/* Panel del local (modo administrador) */}
+        {/* Panel del local (modo administrador) — por secciones: catalogo/difundir/config */}
         <Route path="/:slug/admin" element={<AdminPage />} />
+        <Route path="/:slug/admin/:panel" element={<AdminPage />} />
 
         {/* Cada local vive en su propio slug: appetic.app/su-negocio */}
         <Route path="/:slug" element={<LocalPage />} />

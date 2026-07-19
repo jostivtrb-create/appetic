@@ -13,10 +13,13 @@ import AdminMetricas from './AdminMetricas'
 import AdminDifundir from './AdminDifundir'
 import { isDevSlug, getDevLocal } from '../../dev'
 import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
+import { useAdmin } from '../../contexts/AdminContext'
 import './Admin.css'
 
 export default function AdminPage() {
-  const { slug } = useParams()
+  const { slug, panel } = useParams()
+  const seccion = panel || 'catalogo' // catalogo | difundir | config | metricas
+  const { esDueno } = useAdmin()
   const navigate = useNavigate()
   const { user, cargando: authCargando, entrar, salir } = useAuth()
   const demo = isDevSlug(slug) // previsualización de local en DEV (no escribe en Firestore)
@@ -31,7 +34,6 @@ export default function AdminPage() {
   const [estado, setEstado] = useState('cargando') // cargando | ok | no-existe | error
   const [local, setLocal] = useState(null)
   const [productos, setProductos] = useState([])
-  const [tab, setTab] = useState('productos')
   const [avatarFallo, setAvatarFallo] = useState(false)
 
   // Usuario efectivo (en demo, admin falso)
@@ -220,31 +222,35 @@ export default function AdminPage() {
         </div>
       )}
 
-      <nav className="admin-tabs">
-        <button className={tab === 'productos' ? 'on' : ''} onClick={() => setTab('productos')}>🍔 Menú</button>
-        <button className={tab === 'difundir' ? 'on' : ''} onClick={() => setTab('difundir')}>📣 Difundir</button>
-        <button className={tab === 'config' ? 'on' : ''} onClick={() => setTab('config')}>⚙️ Configuración</button>
-        <button className={tab === 'metricas' ? 'on' : ''} onClick={() => setTab('metricas')}>📊 Métricas</button>
-      </nav>
+      {/* Los dueños navegan con la barra inferior; el superadmin/demo (que no la
+          ven) conservan estas pestañas internas para moverse entre secciones. */}
+      {!esDueno && (
+        <nav className="admin-tabs">
+          <button className={seccion === 'catalogo' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/catalogo`)}>🍔 Catálogo</button>
+          <button className={seccion === 'difundir' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/difundir`)}>📣 Difundir</button>
+          <button className={seccion === 'config' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/config`)}>⚙️ Configuración</button>
+          <button className={seccion === 'metricas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/metricas`)}>📊 Métricas</button>
+        </nav>
+      )}
 
       <main className="admin-body">
-        {tab === 'productos' && (
-          <AdminProductos
-            local={local}
-            slug={slug}
-            productos={productos}
-            onAdd={addProducto}
-            onUpdate={updateProducto}
-            onDelete={deleteProducto}
-            onFoto={subirFoto}
-            onFotoOpcion={subirFotoDeOpcion}
-            onAddCategoria={addCategoria}
-            onReorderCategorias={reordenarCategorias}
-          />
-        )}
-        {tab === 'difundir' && <AdminDifundir local={local} slug={slug} />}
-        {tab === 'config' && <AdminConfig local={local} onUpdate={updateLocal} />}
-        {tab === 'metricas' && <AdminMetricas local={local} demo={demo} />}
+        {seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} />
+          : seccion === 'config' ? <AdminConfig local={local} onUpdate={updateLocal} />
+            : seccion === 'metricas' ? <AdminMetricas local={local} demo={demo} />
+              : (
+                <AdminProductos
+                  local={local}
+                  slug={slug}
+                  productos={productos}
+                  onAdd={addProducto}
+                  onUpdate={updateProducto}
+                  onDelete={deleteProducto}
+                  onFoto={subirFoto}
+                  onFotoOpcion={subirFotoDeOpcion}
+                  onAddCategoria={addCategoria}
+                  onReorderCategorias={reordenarCategorias}
+                />
+              )}
       </main>
     </div>
   )

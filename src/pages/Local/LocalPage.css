@@ -121,6 +121,35 @@
 .menu-grid { display: flex; flex-direction: column; gap: 12px; }
 .menu-bottom-space { height: 96px; }
 
+/* 🛒 Carrito flotante de PRUEBA del dueño: por encima de la barra de admin. */
+.menu-test-cart {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(82px + env(safe-area-inset-bottom));
+  z-index: 44;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--local-primary-soft), var(--local-primary) 55%, var(--local-primary-strong));
+  color: var(--local-on-primary);
+  font-size: 14.5px;
+  font-weight: 800;
+  box-shadow: 0 10px 26px rgba(42, 33, 28, 0.28);
+  animation: testCartIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes testCartIn { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.menu-test-cart:active { transform: translateX(-50%) scale(0.97); }
+.menu-test-cart-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 22px; padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 13px; font-weight: 800;
+}
+
 /* Transición suave al cambiar de pestaña de categoría */
 .menu-section--tab { animation: tabIn 0.28s ease both; }
 @keyframes tabIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }

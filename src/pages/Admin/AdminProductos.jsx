@@ -1,5 +1,4 @@
 import { useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { cop } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
 import { construirPromptImagenIA } from '../../utils/promptIA'
@@ -53,14 +52,6 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
 
   return (
     <div className="ap">
-      {slug && (
-        <Link to={`/${slug}`} className="ap-ver-menu">
-          <span className="ap-ver-menu-icon" aria-hidden="true">👁️</span>
-          Ver mi menú
-          <span className="ap-ver-menu-arrow" aria-hidden="true">→</span>
-        </Link>
-      )}
-
       <button className="btn btn-primary ap-add" onClick={() => setEditando({ nuevo: true, categoria: categorias[0]?.id })}>
         + Agregar producto
       </button>

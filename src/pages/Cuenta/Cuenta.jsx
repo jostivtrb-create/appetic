@@ -1,40 +1,32 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import { esSuperadmin } from '../../config/roles'
-import { getLocalesDeAdmin } from '../../services/locales'
 import { getPerfil } from '../../services/usuarios'
+import AdminMetricas from '../Admin/AdminMetricas'
 import logo from '../../assets/appetic-logo.png'
 import './Cuenta.css'
 
 export default function Cuenta() {
   const { user, cargando, entrar, salir } = useAuth()
+  const { locales, cargando: adminCargando, esDueno, slug: adminSlug, localSel, setSlug } = useAdmin()
+  const navigate = useNavigate()
+  const [params] = useSearchParams()
+  const debeElegir = params.get('elegir') === '1' && !adminSlug
 
-  const [misLocales, setMisLocales] = useState([])
-  const [perfil, setPerfil] = useState({ nombre: '', telefono: '', direccion: '' })
-  const [cargandoDatos, setCargandoDatos] = useState(true)
+  const [perfil, setPerfil] = useState({ nombre: '' })
   const [avatarFallo, setAvatarFallo] = useState(false)
+  const [tab, setTab] = useState('cuenta') // cuenta | metricas (solo dueño)
 
   const superadmin = esSuperadmin(user?.email)
-  // Dueño = administra al menos un local. A él no le mostramos ni el botón de
-  // volver al inicio ni la sección "Tus datos" (esos son cosas de cliente).
-  const esDuenio = misLocales.length > 0
 
   useEffect(() => {
     if (!user) return
     let activo = true
-    setCargandoDatos(true)
-    Promise.all([getLocalesDeAdmin(user.email), getPerfil(user.uid)])
-      .then(([locales, p]) => {
-        if (!activo) return
-        setMisLocales(locales)
-        setPerfil({
-          nombre: p?.nombre || user.displayName || '',
-          telefono: p?.telefono || '',
-          direccion: p?.direccion || '',
-        })
-      })
-      .finally(() => { if (activo) setCargandoDatos(false) })
+    getPerfil(user.uid)
+      .then(p => { if (activo) setPerfil({ nombre: p?.nombre || user.displayName || '' }) })
+      .catch(() => {})
     return () => { activo = false }
   }, [user])
 
@@ -71,8 +63,8 @@ export default function Cuenta() {
   return (
     <div className="cuenta">
       <header className="cuenta-top">
-        {!cargandoDatos && !esDuenio && <Link to="/" className="cuenta-volver-chip">‹</Link>}
-        <h1>Mi cuenta</h1>
+        {!adminCargando && !esDueno && <Link to="/" className="cuenta-volver-chip">‹</Link>}
+        <h1>{esDueno ? 'Administración' : 'Mi cuenta'}</h1>
       </header>
 
       <div className="cuenta-perfil">
@@ -86,17 +78,6 @@ export default function Cuenta() {
         <button className="cuenta-salir" onClick={salir}>Salir</button>
       </div>
 
-      {/* Mis pedidos (historial guardado en este dispositivo) */}
-      <Link to="/pedidos" className="cuenta-rol cuenta-rol-pedidos">
-        <span className="cuenta-rol-emoji">🧾</span>
-        <div>
-          <strong>Mis pedidos</strong>
-          <span>Revisa lo que has pedido y vuelve a pedir</span>
-        </div>
-        <span className="cuenta-rol-go">›</span>
-      </Link>
-
-      {/* Accesos por rol */}
       {superadmin && (
         <Link to="/superadmin" className="cuenta-rol cuenta-rol-admin">
           <span className="cuenta-rol-emoji">👑</span>
@@ -108,31 +89,64 @@ export default function Cuenta() {
         </Link>
       )}
 
-      {misLocales.map(l => (
-        <Link key={l.id} to={`/${l.slug}/admin`} className="cuenta-rol cuenta-rol-local">
-          <span className="cuenta-rol-logo">
-            {(l.icono || l.logo)
-              ? <img src={l.icono || l.logo} alt="" loading="lazy" />
-              : <span className="cuenta-rol-emoji">🏪</span>}
-          </span>
-          <div>
-            <strong>Administrar {l.nombre}</strong>
-            <span>Edita tu menú, precios, horario y más</span>
-          </div>
-          <span className="cuenta-rol-go">›</span>
-        </Link>
-      ))}
+      {adminCargando ? null : esDueno ? (
+        <>
+          <nav className="cuenta-tabs">
+            <button className={tab === 'cuenta' ? 'on' : ''} onClick={() => setTab('cuenta')}>🏪 Cuenta</button>
+            <button className={tab === 'metricas' ? 'on' : ''} onClick={() => setTab('metricas')}>📊 Métricas</button>
+          </nav>
 
-      {/* Mis datos (para clientes; un dueño no los necesita). Abre su pantalla. */}
-      {!cargandoDatos && !esDuenio && (
-        <Link to="/datos" className="cuenta-rol cuenta-rol-datos">
-          <span className="cuenta-rol-emoji">📇</span>
-          <div>
-            <strong>Mis datos</strong>
-            <span>Nombre, teléfono y dirección para pedir más rápido</span>
-          </div>
-          <span className="cuenta-rol-go">›</span>
-        </Link>
+          {tab === 'cuenta' && (
+            <section className="cuenta-selector">
+              <h2 className="cuenta-selector-titulo">{locales.length > 1 ? 'Elige el local a administrar' : 'Tu local'}</h2>
+              {debeElegir && <p className="cuenta-selector-aviso">👆 Elige un local para administrar.</p>}
+              <div className="cuenta-selector-lista">
+                {locales.map(l => (
+                  <button
+                    key={l.id}
+                    className={`cuenta-local ${adminSlug === l.slug ? 'on' : ''}`}
+                    onClick={() => { setSlug(l.slug); navigate(`/${l.slug}/admin/catalogo`) }}
+                  >
+                    <span className="cuenta-local-logo">
+                      {(l.icono || l.logo) ? <img src={l.icono || l.logo} alt="" loading="lazy" /> : <span>🏪</span>}
+                    </span>
+                    <div>
+                      <strong>{l.nombre}</strong>
+                      <span>Menú, precios, horario y más</span>
+                    </div>
+                    {adminSlug === l.slug ? <span className="cuenta-local-check" aria-label="Seleccionado">✓</span> : <span className="cuenta-rol-go">›</span>}
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {tab === 'metricas' && (
+            localSel
+              ? <div className="cuenta-metricas"><AdminMetricas local={localSel} demo={false} /></div>
+              : <p className="cuenta-selector-aviso">Elige un local en la pestaña «Cuenta» para ver sus métricas.</p>
+          )}
+        </>
+      ) : (
+        <>
+          {/* Cliente: historial y datos personales */}
+          <Link to="/pedidos" className="cuenta-rol cuenta-rol-pedidos">
+            <span className="cuenta-rol-emoji">🧾</span>
+            <div>
+              <strong>Mis pedidos</strong>
+              <span>Revisa lo que has pedido y vuelve a pedir</span>
+            </div>
+            <span className="cuenta-rol-go">›</span>
+          </Link>
+          <Link to="/datos" className="cuenta-rol cuenta-rol-datos">
+            <span className="cuenta-rol-emoji">📇</span>
+            <div>
+              <strong>Mis datos</strong>
+              <span>Nombre, teléfono y dirección para pedir más rápido</span>
+            </div>
+            <span className="cuenta-rol-go">›</span>
+          </Link>
+        </>
       )}
     </div>
   )

@@ -2,6 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react'
 import { localThemeVars } from '../../utils/theme'
 import { useCart } from '../../contexts/CartContext'
 import { useNavUI } from '../../contexts/NavUIContext'
+import { useAdmin } from '../../contexts/AdminContext'
 import { estaAbierto } from '../../utils/horario'
 import CategoryNav from '../../components/Menu/CategoryNav'
 import ProductCard from '../../components/Menu/ProductCard'
@@ -20,6 +21,7 @@ import './LocalSkinJuance.css'
 export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   const { addItem, totalItems } = useCart()
   const { setActiveLocal, setCartCount, setLive } = useNavUI()
+  const { esDueno } = useAdmin()
   const [modalProducto, setModalProducto] = useState(null)
   // Si llegas desde el botón Pedido de la barra (fuera del local), abre el carrito.
   const [drawerAbierto, setDrawerAbierto] = useState(() => new URLSearchParams(window.location.search).has('pedido'))
@@ -298,6 +300,15 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
         ) : null}
         <div className="menu-bottom-space" />
       </main>
+
+      {/* 🛒 Carrito flotante de PRUEBA (solo para el dueño): la barra de admin no
+          tiene botón de pedido, así que aquí puede probar el flujo de compra. */}
+      {esDueno && totalItems > 0 && (
+        <button className="menu-test-cart" onClick={() => setDrawerAbierto(true)}>
+          <span className="menu-test-cart-count">{totalItems}</span>
+          Pedido de prueba
+        </button>
+      )}
 
       {modalProducto && (
         modalProducto.modo === 'pasos'
