@@ -19,26 +19,45 @@ import './LocalSkinJuance.css'
 
 export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   const { addItem, totalItems } = useCart()
-  const { setBarra } = useNavUI()
+  const { setActiveLocal, setCartCount, setLive } = useNavUI()
   const [modalProducto, setModalProducto] = useState(null)
-  const [drawerAbierto, setDrawerAbierto] = useState(false)
+  // Si llegas desde el botón Pedido de la barra (fuera del local), abre el carrito.
+  const [drawerAbierto, setDrawerAbierto] = useState(() => new URLSearchParams(window.location.search).has('pedido'))
   const [checkoutAbierto, setCheckoutAbierto] = useState(false)
   const [toast, setToast] = useState('')
 
-  // 🧭 Le damos a la barra inferior GLOBAL todo lo que solo conoce el menú del
-  // local: su tema (para pintarse con sus colores), cuántos items hay y cómo
-  // abrir el carrito / subir al menú. Se esconde cuando hay una capa abierta.
+  // 🧭 Fija este local como "activo" en la barra global: se conserva aunque
+  // salgas a Buscar/Cuenta, para que "Menú" y el carrito sigan apuntando aquí
+  // y la barra recuerde sus colores.
+  useEffect(() => {
+    setActiveLocal({ id: local.id, slug: local.slug, nombre: local.nombre, tema: local.tema })
+  }, [local, setActiveLocal])
+
+  // Mantiene el contador del carrito en la barra.
+  useEffect(() => { setCartCount(totalItems) }, [totalItems, setCartCount])
+
+  // 🧭 Handlers en vivo del menú (abrir carrito, subir) + si hay una capa
+  // abierta (para esconder la barra). Al salir del menú queda null → la barra
+  // vuelve a los colores de Appetic.
   const hayCapa = Boolean(modalProducto) || drawerAbierto || checkoutAbierto
   useEffect(() => {
-    setBarra({
-      local,
-      cartCount: totalItems,
+    setLive({
+      slug: local.slug,
       oculta: hayCapa,
       onCarrito: () => setDrawerAbierto(true),
       onMenu: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
     })
-    return () => setBarra(null)
-  }, [local, totalItems, hayCapa, setBarra])
+    return () => setLive(null)
+  }, [local.slug, hayCapa, setLive])
+
+  // Limpia el ?pedido=1 de la URL para que un refresco no reabra el carrito.
+  useEffect(() => {
+    const u = new URL(window.location.href)
+    if (u.searchParams.has('pedido')) {
+      u.searchParams.delete('pedido')
+      window.history.replaceState(window.history.state, '', u.pathname + u.search)
+    }
+  }, [])
 
   // 🔒 Con cualquier popup abierto (detalle de producto, carrito o checkout),
   // se congela el fondo para que no se siga deslizando por detrás.

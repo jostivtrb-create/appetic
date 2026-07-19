@@ -73,6 +73,7 @@ export default function Cuenta() {
             <li>🏪 Administra tu local si eres dueño</li>
             <li>🧡 Más rápido en cada pedido</li>
           </ul>
+          <Link to="/pedidos" className="cuenta-login-pedidos">🧾 Ver mis pedidos</Link>
         </div>
       </div>
     )
@@ -96,6 +97,16 @@ export default function Cuenta() {
         </div>
         <button className="cuenta-salir" onClick={salir}>Salir</button>
       </div>
+
+      {/* Mis pedidos (historial guardado en este dispositivo) */}
+      <Link to="/pedidos" className="cuenta-rol cuenta-rol-pedidos">
+        <span className="cuenta-rol-emoji">🧾</span>
+        <div>
+          <strong>Mis pedidos</strong>
+          <span>Revisa lo que has pedido y vuelve a pedir</span>
+        </div>
+        <span className="cuenta-rol-go">›</span>
+      </Link>
 
       {/* Accesos por rol */}
       {superadmin && (

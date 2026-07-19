@@ -155,6 +155,21 @@
 .cuenta-rol div span { font-size: 12.5px; color: var(--text-soft); }
 .cuenta-rol-go { font-size: 24px; font-weight: 700; opacity: 0.6; }
 
+/* Acceso a "Mis pedidos" (historial) */
+.cuenta-rol-pedidos { color: inherit; text-decoration: none; }
+.cuenta-rol-pedidos strong { color: var(--brand-ink, #2A211C); }
+
+/* Enlace a pedidos desde la pantalla de login (para invitados) */
+.cuenta-login-pedidos {
+  display: inline-block;
+  margin-top: 16px;
+  color: var(--brand-orange-strong);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.cuenta-login-pedidos:active { opacity: 0.7; }
+
 /* Favoritos */
 .cuenta-favs { margin-top: 24px; }
 .cuenta-favs h2 { font-size: 17px; font-weight: 800; color: var(--text); margin-bottom: 12px; }

@@ -5,6 +5,7 @@ import AdminPage from './pages/Admin/AdminPage.jsx'
 import NotFound from './pages/NotFound/NotFound.jsx'
 import Cuenta from './pages/Cuenta/Cuenta.jsx'
 import Pedidos from './pages/Pedidos/Pedidos.jsx'
+import Favoritos from './pages/Favoritos/Favoritos.jsx'
 import Superadmin from './pages/Superadmin/Superadmin.jsx'
 import InstallPrompt from './components/InstallPrompt/InstallPrompt.jsx'
 import BottomNav from './components/BottomNav/BottomNav.jsx'
@@ -22,6 +23,9 @@ export default function App() {
 
         {/* Mis pedidos (historial en el propio dispositivo) */}
         <Route path="/pedidos" element={<Pedidos />} />
+
+        {/* Mis favoritos (locales marcados por el cliente) */}
+        <Route path="/favoritos" element={<Favoritos />} />
 
         {/* Panel interno de superadmin (suscripciones) */}
         <Route path="/superadmin" element={<Superadmin />} />

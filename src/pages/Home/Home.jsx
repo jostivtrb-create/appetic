@@ -5,10 +5,12 @@ import { getLocalesExplorador, getLocalesDeAdmin } from '../../services/locales'
 import { estaAbierto } from '../../utils/horario'
 import { distanciaKm } from '../../utils/geo'
 import { useAuth } from '../../contexts/AuthContext'
+import { useNavUI } from '../../contexts/NavUIContext'
 import './Home.css'
 
 export default function Home() {
   const { user, cargando: authCargando } = useAuth()
+  const { confirmarCambioLocal } = useNavUI()
   const navigate = useNavigate()
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [locales, setLocales] = useState([])
@@ -149,7 +151,11 @@ export default function Home() {
               const abierto = estaAbierto(l.horario)
               return (
                 <li key={l.id}>
-                  <Link to={`/${l.slug}`} className="loc-card">
+                  <Link
+                    to={`/${l.slug}`}
+                    className="loc-card"
+                    onClick={e => { if (!confirmarCambioLocal(l.slug)) e.preventDefault() }}
+                  >
                     <div className="loc-card-img">
                       {(l.icono || l.logo)
                         ? <img src={l.icono || l.logo} alt={l.nombre} loading="lazy" />
