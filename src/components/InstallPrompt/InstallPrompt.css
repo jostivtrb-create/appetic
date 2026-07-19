@@ -6,7 +6,8 @@
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(16px + env(safe-area-inset-bottom));
+  /* Por ENCIMA de la barra inferior de navegación (≈62px + safe-area), no encima de ella. */
+  bottom: calc(82px + env(safe-area-inset-bottom));
   z-index: 60;
   width: calc(100% - 28px);
   max-width: calc(var(--app-max) - 28px);
@@ -72,18 +73,20 @@
   gap: 2px;
   padding-right: 6px;
 }
+/* La tarjeta es SIEMPRE clara (vidrio crema), así que el texto va fijo oscuro
+   para que se lea aunque el mundo del local activo sea oscuro. */
 .ip-title {
   font-size: 15.5px;
   font-weight: 800;
-  color: var(--text);
+  color: #2A211C;
   letter-spacing: -0.01em;
 }
 .ip-text {
   font-size: 12.5px;
   line-height: 1.35;
-  color: var(--text-soft);
+  color: #6E635B;
 }
-.ip-text b { color: var(--text); font-weight: 700; }
+.ip-text b { color: #2A211C; font-weight: 700; }
 
 /* Ícono "Compartir" de iOS, alineado con el texto */
 .ip-share {
@@ -93,7 +96,7 @@
   vertical-align: -3px;
   margin: 0 1px;
   fill: none;
-  stroke: var(--brand-orange-strong);
+  stroke: #E0692A;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -123,13 +126,13 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: var(--text-soft);
+  color: #6E635B;
   background: rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--border);
+  border: 1px solid rgba(42, 33, 28, 0.12);
   box-shadow: 0 4px 12px rgba(42, 33, 28, 0.16);
   transition: transform 0.12s ease, color 0.2s ease, background 0.2s ease;
 }
-.ip-close:hover { color: var(--text); background: #fff; }
+.ip-close:hover { color: #2A211C; background: #fff; }
 .ip-close:active { transform: scale(0.9); }
 .ip-close svg {
   width: 15px;

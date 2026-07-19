@@ -7,6 +7,17 @@ const yaInstalada = () =>
   window.matchMedia?.('(display-mode: standalone)').matches ||
   window.navigator.standalone === true
 
+// 🔕 Al cerrarlo, no volver a molestar por un tiempo (para que no reaparezca
+// en cada entrada). Se guarda la fecha en el dispositivo.
+const SNOOZE_KEY = 'appetic_install_snooze'
+const SNOOZE_MS = 14 * 24 * 60 * 60 * 1000 // 14 días
+const enSnooze = () => {
+  try {
+    const t = Number(localStorage.getItem(SNOOZE_KEY))
+    return Boolean(t) && (Date.now() - t) < SNOOZE_MS
+  } catch { return false }
+}
+
 // ¿Es un iPhone / iPad? (iPadOS 13+ se hace pasar por Mac, lo detectamos por el táctil)
 const esIOS = () => {
   const ua = window.navigator.userAgent || ''
@@ -48,6 +59,7 @@ export default function InstallPrompt() {
 
   useEffect(() => {
     if (yaInstalada()) return // ya la tiene, no molestamos
+    if (enSnooze()) return // la cerró hace poco: no reaparecer en cada entrada
 
     const ipad = esIOS()
     setIos(ipad)
@@ -82,6 +94,7 @@ export default function InstallPrompt() {
   }, [])
 
   const cerrar = () => {
+    try { localStorage.setItem(SNOOZE_KEY, String(Date.now())) } catch { /* nada */ }
     setCerrando(true)
     setTimeout(() => setVisible(false), 260)
   }
