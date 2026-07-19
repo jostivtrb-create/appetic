@@ -24,7 +24,7 @@ export default function Pedidos() {
   return (
     <div className="pedidos">
       <header className="pedidos-top">
-        <Link to="/" className="pedidos-volver" aria-label="Volver al inicio">‹</Link>
+        <Link to="/cuenta" className="pedidos-volver" aria-label="Volver a mi cuenta">‹</Link>
         <h1>Mis pedidos</h1>
         {pedidos.length > 0 && (
           <button className="pedidos-limpiar" onClick={limpiar}>Borrar</button>

@@ -11,10 +11,10 @@ export default function Favoritos() {
   const navigate = useNavigate()
   const { user, cargando, entrar } = useAuth()
   const { favoritos, toggleFavorito } = useFavoritos()
-  const { confirmarCambioLocal } = useNavUI()
+  const { irAOtroLocal } = useNavUI()
 
   function irALocal(fav) {
-    if (confirmarCambioLocal(fav.slug)) navigate(`/${fav.slug}`)
+    irAOtroLocal(fav.slug, () => navigate(`/${fav.slug}`))
   }
 
   if (cargando) {

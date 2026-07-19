@@ -10,7 +10,7 @@ import './Home.css'
 
 export default function Home() {
   const { user, cargando: authCargando } = useAuth()
-  const { confirmarCambioLocal } = useNavUI()
+  const { irAOtroLocal } = useNavUI()
   const navigate = useNavigate()
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [locales, setLocales] = useState([])
@@ -154,7 +154,7 @@ export default function Home() {
                   <Link
                     to={`/${l.slug}`}
                     className="loc-card"
-                    onClick={e => { if (!confirmarCambioLocal(l.slug)) e.preventDefault() }}
+                    onClick={e => { e.preventDefault(); irAOtroLocal(l.slug, () => navigate(`/${l.slug}`)) }}
                   >
                     <div className="loc-card-img">
                       {(l.icono || l.logo)

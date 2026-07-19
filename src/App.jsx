@@ -9,9 +9,11 @@ import NotFound from './pages/NotFound/NotFound.jsx'
 import Cuenta from './pages/Cuenta/Cuenta.jsx'
 import Pedidos from './pages/Pedidos/Pedidos.jsx'
 import Favoritos from './pages/Favoritos/Favoritos.jsx'
+import Datos from './pages/Datos/Datos.jsx'
 import Superadmin from './pages/Superadmin/Superadmin.jsx'
 import InstallPrompt from './components/InstallPrompt/InstallPrompt.jsx'
 import BottomNav from './components/BottomNav/BottomNav.jsx'
+import ConfirmCambioLocal from './components/ConfirmCambioLocal/ConfirmCambioLocal.jsx'
 
 export default function App() {
   const { activeLocal } = useNavUI()
@@ -45,6 +47,9 @@ export default function App() {
         {/* Mis favoritos (locales marcados por el cliente) */}
         <Route path="/favoritos" element={<Favoritos />} />
 
+        {/* Mis datos (nombre, teléfono, dirección para el checkout) */}
+        <Route path="/datos" element={<Datos />} />
+
         {/* Panel interno de superadmin (suscripciones) */}
         <Route path="/superadmin" element={<Superadmin />} />
 
@@ -59,6 +64,9 @@ export default function App() {
 
       {/* Barra inferior de navegación (se pinta con el tema del local activo) */}
       <BottomNav />
+
+      {/* Modal bonito al cambiar de local con carrito (reemplaza window.confirm) */}
+      <ConfirmCambioLocal />
     </div>
   )
 }

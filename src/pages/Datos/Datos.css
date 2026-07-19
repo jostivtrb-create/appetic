@@ -1,0 +1,64 @@
+.datos {
+  min-height: 100vh;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 16px calc(96px + env(safe-area-inset-bottom));
+  background: var(--bg);
+}
+
+.datos-top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(16px + env(safe-area-inset-top)) 0 12px;
+  background: var(--bg);
+}
+.datos-top h1 { flex: 1; margin: 0; font-size: 22px; color: var(--text); }
+.datos-volver {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+}
+
+.datos-hint { font-size: 13px; color: var(--text-soft); margin: 0 0 16px; }
+
+.datos-form {
+  padding: 18px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.datos-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+.datos-form input {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+.datos-form input:focus { outline: 2px solid var(--brand-orange-soft); background: var(--surface); }
+.datos-guardar { width: 100%; margin-top: 4px; }

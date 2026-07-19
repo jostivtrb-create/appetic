@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
 import { getLocalesDeAdmin } from '../../services/locales'
-import { getPerfil, guardarPerfil } from '../../services/usuarios'
+import { getPerfil } from '../../services/usuarios'
 import logo from '../../assets/appetic-logo.png'
 import './Cuenta.css'
 
@@ -13,8 +13,6 @@ export default function Cuenta() {
   const [misLocales, setMisLocales] = useState([])
   const [perfil, setPerfil] = useState({ nombre: '', telefono: '', direccion: '' })
   const [cargandoDatos, setCargandoDatos] = useState(true)
-  const [guardando, setGuardando] = useState(false)
-  const [guardado, setGuardado] = useState(false)
   const [avatarFallo, setAvatarFallo] = useState(false)
 
   const superadmin = esSuperadmin(user?.email)
@@ -39,14 +37,6 @@ export default function Cuenta() {
       .finally(() => { if (activo) setCargandoDatos(false) })
     return () => { activo = false }
   }, [user])
-
-  async function guardar() {
-    setGuardando(true)
-    await guardarPerfil(user.uid, perfil)
-    setGuardando(false)
-    setGuardado(true)
-    setTimeout(() => setGuardado(false), 1800)
-  }
 
   // ----- Cargando sesión -----
   if (cargando) {
@@ -133,26 +123,16 @@ export default function Cuenta() {
         </Link>
       ))}
 
-      {/* Datos del cliente (solo para clientes; un dueño no los necesita). No se
-          muestra hasta terminar de cargar, para no parpadear mientras se sabe
-          si la persona es dueña. */}
+      {/* Mis datos (para clientes; un dueño no los necesita). Abre su pantalla. */}
       {!cargandoDatos && !esDuenio && (
-      <section className="cuenta-datos">
-        <h2>Tus datos</h2>
-        <p className="cuenta-datos-hint">Los usamos para llenar tu pedido automáticamente. Solo tú los ves.</p>
-        <label>Nombre
-          <input value={perfil.nombre} onChange={e => setPerfil(p => ({ ...p, nombre: e.target.value }))} placeholder="Tu nombre" />
-        </label>
-        <label>WhatsApp / teléfono
-          <input value={perfil.telefono} inputMode="tel" onChange={e => setPerfil(p => ({ ...p, telefono: e.target.value }))} placeholder="300 000 0000" />
-        </label>
-        <label>Dirección habitual
-          <input value={perfil.direccion} onChange={e => setPerfil(p => ({ ...p, direccion: e.target.value }))} placeholder="Cra 10 #5-23, casa azul" />
-        </label>
-        <button className="btn btn-primary cuenta-guardar" onClick={guardar} disabled={guardando || cargandoDatos}>
-          {guardando ? 'Guardando…' : guardado ? 'Guardado ✓' : 'Guardar mis datos'}
-        </button>
-      </section>
+        <Link to="/datos" className="cuenta-rol cuenta-rol-datos">
+          <span className="cuenta-rol-emoji">📇</span>
+          <div>
+            <strong>Mis datos</strong>
+            <span>Nombre, teléfono y dirección para pedir más rápido</span>
+          </div>
+          <span className="cuenta-rol-go">›</span>
+        </Link>
       )}
     </div>
   )
