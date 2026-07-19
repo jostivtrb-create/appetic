@@ -1,12 +1,12 @@
 import { useMemo, useState, useRef, useEffect } from 'react'
 import { localThemeVars } from '../../utils/theme'
 import { useCart } from '../../contexts/CartContext'
+import { useNavUI } from '../../contexts/NavUIContext'
 import { estaAbierto } from '../../utils/horario'
 import CategoryNav from '../../components/Menu/CategoryNav'
 import ProductCard from '../../components/Menu/ProductCard'
 import ProductModal from '../../components/Menu/ProductModal'
 import ProductWizard from '../../components/Menu/ProductWizard'
-import CartButton from '../../components/Cart/CartButton'
 import CartDrawer from '../../components/Cart/CartDrawer'
 import BotonFavorito from '../../components/Favorito/BotonFavorito'
 import LogoEpico from '../../components/Hero/LogoEpico'
@@ -18,11 +18,27 @@ import './LocalSkinJet.css'
 import './LocalSkinJuance.css'
 
 export default function LocalMenu({ local, productos, cerrarCapaRef }) {
-  const { addItem } = useCart()
+  const { addItem, totalItems } = useCart()
+  const { setBarra } = useNavUI()
   const [modalProducto, setModalProducto] = useState(null)
   const [drawerAbierto, setDrawerAbierto] = useState(false)
   const [checkoutAbierto, setCheckoutAbierto] = useState(false)
   const [toast, setToast] = useState('')
+
+  // 🧭 Le damos a la barra inferior GLOBAL todo lo que solo conoce el menú del
+  // local: su tema (para pintarse con sus colores), cuántos items hay y cómo
+  // abrir el carrito / subir al menú. Se esconde cuando hay una capa abierta.
+  const hayCapa = Boolean(modalProducto) || drawerAbierto || checkoutAbierto
+  useEffect(() => {
+    setBarra({
+      local,
+      cartCount: totalItems,
+      oculta: hayCapa,
+      onCarrito: () => setDrawerAbierto(true),
+      onMenu: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+    })
+    return () => setBarra(null)
+  }, [local, totalItems, hayCapa, setBarra])
 
   // 🔒 Con cualquier popup abierto (detalle de producto, carrito o checkout),
   // se congela el fondo para que no se siga deslizando por detrás.
@@ -263,8 +279,6 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
         ) : null}
         <div className="menu-bottom-space" />
       </main>
-
-      <CartButton onAbrir={() => setDrawerAbierto(true)} />
 
       {modalProducto && (
         modalProducto.modo === 'pasos'

@@ -1,0 +1,117 @@
+/* 🧭 Barra inferior de navegación (global). Fija abajo, centrada al ancho de la
+   app, y pintada con el tema del local (o Appetic fuera de un local). */
+.bnav {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  z-index: 45;
+  width: 100%;
+  max-width: var(--app-max);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 2px;
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  box-shadow: 0 -6px 22px rgba(42, 33, 28, 0.10);
+  --bnav-dim: #9a9186;
+  --bnav-active: var(--local-primary);
+  animation: bnavIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes bnavIn { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* 🌙 Mundo oscuro (Juance, Pilotos…): barra oscura levantada del fondo, y el
+   estado activo usa el ACENTO del local (que fue elegido para brillar ahí). */
+.bnav--dark {
+  background: linear-gradient(rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.06)), var(--bnav-bg);
+  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.45);
+  --bnav-dim: rgba(255, 255, 255, 0.60);
+  --bnav-active: var(--local-accent);
+}
+
+/* --- Ítem normal --- */
+.bnav-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 2px;
+  border: none;
+  background: none;
+  color: var(--bnav-dim);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  transition: color 0.18s ease, transform 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.bnav-item span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bnav-item:active { transform: scale(0.9); }
+.bnav-item.is-active { color: var(--bnav-active); }
+.bnav-item.is-fav { color: var(--bnav-active); }
+
+/* --- Carrito central (elevado y protagónico) --- */
+.bnav-cart {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: none;
+  padding: 0 6px;
+  margin: 0 2px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bnav-cart-circle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin-top: -22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--local-primary-soft), var(--local-primary) 55%, var(--local-primary-strong));
+  color: var(--local-on-primary);
+  box-shadow: 0 8px 20px rgba(42, 33, 28, 0.28), 0 0 0 5px var(--bnav-cart-ring, #ffffff);
+  transition: transform 0.14s ease;
+}
+.bnav--dark .bnav-cart-circle { --bnav-cart-ring: var(--bnav-bg); }
+.bnav-cart:active .bnav-cart-circle { transform: scale(0.92); }
+.bnav-cart-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--bnav-dim);
+}
+.bnav-cart-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--local-accent);
+  color: #2a211c;
+  font-size: 12px;
+  font-weight: 800;
+  border: 2px solid var(--bnav-cart-ring, #ffffff);
+  animation: bnavPop 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes bnavPop { from { transform: scale(0); } to { transform: scale(1); } }

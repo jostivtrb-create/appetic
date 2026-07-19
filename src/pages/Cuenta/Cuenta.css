@@ -70,7 +70,7 @@
   min-height: 100dvh;
   max-width: 520px;
   margin: 0 auto;
-  padding: calc(14px + env(safe-area-inset-top)) 18px calc(40px + env(safe-area-inset-bottom));
+  padding: calc(14px + env(safe-area-inset-top)) 18px calc(96px + env(safe-area-inset-bottom));
   background: var(--bg);
 }
 .cuenta-top {

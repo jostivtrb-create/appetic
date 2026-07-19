@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './contexts/AuthContext.jsx'
 import { FavoritosProvider } from './contexts/FavoritosContext.jsx'
+import { NavUIProvider } from './contexts/NavUIContext.jsx'
 import './registerSW.js'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -12,7 +13,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <FavoritosProvider>
-          <App />
+          <NavUIProvider>
+            <App />
+          </NavUIProvider>
         </FavoritosProvider>
       </AuthProvider>
     </BrowserRouter>

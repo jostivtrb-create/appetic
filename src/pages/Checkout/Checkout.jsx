@@ -5,6 +5,7 @@ import { cop } from '../../utils/money'
 import { calcularDomicilio } from '../../utils/delivery'
 import { abrirPedidoWhatsApp } from '../../utils/whatsapp'
 import { registrarPedido } from '../../services/pedidos'
+import { guardarEnHistorial } from '../../services/historial'
 import { getPerfil, guardarPerfil } from '../../services/usuarios'
 import './Checkout.css'
 
@@ -117,6 +118,9 @@ export default function Checkout({ local, onClose, abierto = true }) {
     }
     // Registro de métricas (best-effort, no en el local de prueba)
     if (local.id !== 'demo') registrarPedido(local.id, pedido)
+
+    // Guarda el pedido en el historial de ESTE dispositivo (para "Mis pedidos").
+    guardarEnHistorial(local, pedido)
 
     // Recordar datos para la próxima: siempre en el dispositivo (invitados) y,
     // si inició sesión, además en su perfil.
