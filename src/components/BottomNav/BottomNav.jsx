@@ -48,8 +48,8 @@ export default function BottomNav() {
       <button className={`bnav-item ${activa === 'menu' ? 'is-active' : ''}`} onClick={irAMenu}>
         <IconMenu /><span>Menú</span>
       </button>
-      <button className={`bnav-item ${activa === 'favoritos' ? 'is-active' : ''}`} onClick={() => navigate('/favoritos')}>
-        <IconHeart /><span>Favoritos</span>
+      <button className={`bnav-item ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
+        <IconUser /><span>Cuenta</span>
       </button>
       <button className="bnav-cart" onClick={irACarrito} aria-label="Ver pedido">
         <span className="bnav-cart-circle">
@@ -58,11 +58,11 @@ export default function BottomNav() {
         </span>
         <span className="bnav-cart-label">Pedido</span>
       </button>
+      <button className={`bnav-item ${activa === 'favoritos' ? 'is-active' : ''}`} onClick={() => navigate('/favoritos')}>
+        <IconHeart /><span>Favoritos</span>
+      </button>
       <button className={`bnav-item ${activa === 'buscar' ? 'is-active' : ''}`} onClick={() => navigate('/')}>
         <IconSearch /><span>Buscar</span>
-      </button>
-      <button className={`bnav-item ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
-        <IconUser /><span>Cuenta</span>
       </button>
     </nav>
   )
