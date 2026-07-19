@@ -49,8 +49,10 @@
 .cuenta-google {
   width: 100%;
   margin-top: 22px;
+  /* Botón de Google: siempre blanco con texto oscuro (convención de marca),
+     legible incluso cuando el mundo del local es oscuro. */
   background: #fff;
-  color: var(--text);
+  color: #2A211C;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
 }
@@ -238,5 +240,5 @@
   font-weight: 500;
   color: var(--text);
 }
-.cuenta-datos input:focus { outline: 2px solid var(--brand-orange-soft); background: #fff; }
+.cuenta-datos input:focus { outline: 2px solid var(--brand-orange-soft); background: var(--surface); }
 .cuenta-guardar { width: 100%; margin-top: 4px; }

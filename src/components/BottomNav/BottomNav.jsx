@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNavUI } from '../../contexts/NavUIContext'
-import { localThemeVars } from '../../utils/theme'
+import { esColorOscuro } from '../../utils/theme'
 import './BottomNav.css'
 
 // 🧭 Barra inferior FIJA, la misma en toda la app:
@@ -21,11 +21,9 @@ export default function BottomNav() {
   // Con una capa abierta (detalle, carrito, checkout) la barra se esconde.
   if (enLocal && live.oculta) return null
 
-  const themed = enLocal && activeLocal
-  const oscuro = themed && bgEsOscuro(activeLocal.tema?.bg)
-  const style = themed
-    ? { ...localThemeVars(activeLocal.tema), '--bnav-bg': activeLocal.tema?.bg || '#141014' }
-    : undefined
+  // Los colores del tema los hereda de :root (App transforma toda la app con el
+  // local activo). Aquí solo decidimos si la barra va oscura.
+  const oscuro = activeLocal && esColorOscuro(activeLocal.tema?.bg)
 
   // Pestaña activa (resaltada).
   const activa = enLocal ? 'menu'
@@ -46,7 +44,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className={`bnav ${oscuro ? 'bnav--dark' : ''}`} style={style} aria-label="Navegación">
+    <nav className={`bnav ${oscuro ? 'bnav--dark' : ''}`} aria-label="Navegación">
       <button className={`bnav-item ${activa === 'menu' ? 'is-active' : ''}`} onClick={irAMenu}>
         <IconMenu /><span>Menú</span>
       </button>
@@ -68,18 +66,6 @@ export default function BottomNav() {
       </button>
     </nav>
   )
-}
-
-// ¿El "mundo" del local es oscuro? (para pintar la barra clara u oscura)
-function bgEsOscuro(hex) {
-  if (!hex || typeof hex !== 'string') return false
-  const m = hex.replace('#', '')
-  if (m.length < 6) return false
-  const r = parseInt(m.slice(0, 2), 16)
-  const g = parseInt(m.slice(2, 4), 16)
-  const b = parseInt(m.slice(4, 6), 16)
-  if ([r, g, b].some(Number.isNaN)) return false
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.45
 }
 
 // ---- Iconos (SVG, heredan el color con currentColor) ----
