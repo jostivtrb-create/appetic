@@ -51,7 +51,7 @@ export default function Home() {
     if (!navigator.geolocation) { setUbic('error'); return }
     setUbic('cargando')
     navigator.geolocation.getCurrentPosition(
-      pos => { setCoord({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setUbic('ok') },
+      pos => { setCoord({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }); setUbic('ok') },
       () => setUbic('error'),
       { enableHighAccuracy: true, timeout: 10000 }
     )
@@ -78,6 +78,11 @@ export default function Home() {
       return a.distancia - b.distancia
     })
   }, [locales, busqueda, coord])
+
+  // Precisión de la ubicación: en el celular el GPS da metros; en el PC (red/IP)
+  // suele dar miles de metros. Si es imprecisa, marcamos todo como aproximado y
+  // no afirmamos cobertura (podría estar mal). Umbral: 700 m.
+  const ubicImprecisa = coord?.accuracy != null && coord.accuracy > 700
 
   // Mientras se resuelve la sesión / se verifica si es dueño, no mostramos el
   // inicio (evita el parpadeo del explorador antes de redirigir al panel).
@@ -126,8 +131,14 @@ export default function Home() {
           <span>{ubic === 'cargando' ? 'Buscando…'
             : ubic === 'ok' ? 'Ordenado por cercanía'
             : ubic === 'error' ? 'No pudimos ubicarte · reintentar'
-            : 'Ver los más cercanos a mí'}</span>
+            : 'Toca aquí y mira cuánto vale el domicilio'}</span>
         </button>
+
+        {ubic === 'ok' && ubicImprecisa && (
+          <p className="home-ubic-nota">
+            📍 Ubicación aproximada. Para la distancia y el domicilio exactos, ábrelo desde el celular.
+          </p>
+        )}
 
         {estado === 'cargando' && (
           <div className="home-skeletons">
@@ -176,15 +187,15 @@ export default function Home() {
                           {abierto ? 'Abierto ahora' : 'Cerrado'}
                         </span>
                         {l.distancia != null && (
-                          <span className="loc-chip dist">a {l.distancia.toFixed(1)} km</span>
+                          <span className="loc-chip dist">{ubicImprecisa ? '~' : 'a '}{l.distancia.toFixed(1)} km</span>
                         )}
                         {l.domi?.ok && (
-                          <span className="loc-chip envio">🛵 Domicilio {cop(l.domi.costo)}</span>
+                          <span className="loc-chip envio">🛵 Domicilio {ubicImprecisa ? '~' : ''}{cop(l.domi.costo)}</span>
                         )}
-                        {l.domi && !l.domi.ok && l.domi.motivo === 'fuera-cobertura' && (
+                        {!ubicImprecisa && l.domi && !l.domi.ok && l.domi.motivo === 'fuera-cobertura' && (
                           <span className="loc-chip envio-off">🛵 Fuera de cobertura</span>
                         )}
-                        {l.domi && !l.domi.ok && l.domi.motivo === 'sin-tarifa' && (
+                        {!ubicImprecisa && l.domi && !l.domi.ok && l.domi.motivo === 'sin-tarifa' && (
                           <span className="loc-chip envio">🛵 Domicilio a convenir</span>
                         )}
                       </div>

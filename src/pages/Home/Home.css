@@ -145,6 +145,13 @@
 .home-ubic:disabled { opacity: 0.6; cursor: default; }
 .home-ubic.on { color: var(--brand-orange-strong); background: var(--brand-orange-tint); }
 .home-ubic.err { color: #b4571e; }
+.home-ubic-nota {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-faint);
+  max-width: 360px;
+}
 
 /* ===== Lista de locales ===== */
 .home-locales {
