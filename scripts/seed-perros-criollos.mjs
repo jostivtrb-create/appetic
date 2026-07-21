@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { initializeApp, cert } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
+import { guardSeed } from './_seed-guard.mjs'
 import { SLUG, ADMIN_EMAIL, PERROS_LOCAL, PERROS_PRODUCTOS } from '../src/dev/perrosCriollos.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -25,6 +26,7 @@ async function run() {
   // El doc del local usa el slug como id. Quitamos `id` (no se guarda dentro del doc).
   const { id, ...localData } = PERROS_LOCAL
   const localRef = db.collection('locales').doc(SLUG)
+  await guardSeed(db, SLUG)
 
   // Preservar lo que el dueño ya configuró: quitamos esos campos del payload
   // de ejemplo para no sobreescribirlos al re-sembrar.

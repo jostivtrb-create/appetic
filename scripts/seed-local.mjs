@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { initializeApp, cert } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
+import { guardSeed } from './_seed-guard.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const serviceAccount = JSON.parse(readFileSync(join(__dirname, 'serviceAccount.json'), 'utf8'))
@@ -73,6 +74,7 @@ const PRODUCTOS = [
 async function run() {
   // El doc del local usa el slug como id (simple y único)
   const localRef = db.collection('locales').doc(SLUG)
+  await guardSeed(db, SLUG)
   await localRef.set(LOCAL, { merge: true })
   console.log(`✓ Local creado: locales/${SLUG} (${LOCAL.nombre})`)
 

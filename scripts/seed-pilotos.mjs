@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { initializeApp, cert } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
+import { guardSeed } from './_seed-guard.mjs'
 import { SLUG, ADMIN_EMAIL, PILOTOS_LOCAL, PILOTOS_PRODUCTOS } from '../src/dev/pilotos.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -24,6 +25,7 @@ const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario']
 async function run() {
   const { id, ...localData } = PILOTOS_LOCAL
   const localRef = db.collection('locales').doc(SLUG)
+  await guardSeed(db, SLUG)
 
   const prev = await localRef.get()
   if (prev.exists) {

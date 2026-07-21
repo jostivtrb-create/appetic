@@ -35,3 +35,8 @@ firebase-debug.log
 # Llave de servicio (NUNCA subir — da acceso total al proyecto)
 scripts/serviceAccount.json
 serviceAccount*.json
+
+# Respaldos automáticos de los seeds y copias de recuperación (datos de negocio, no van a git)
+scripts/.seed-backups/
+scripts/_recovery-*.json
+scripts/_backup-*.json
