@@ -4,6 +4,8 @@ import logo from '../../assets/appetic-logo.png'
 import { getLocalesExplorador, getLocalesDeAdmin } from '../../services/locales'
 import { estaAbierto } from '../../utils/horario'
 import { distanciaKm } from '../../utils/geo'
+import { costoDomicilio } from '../../utils/delivery'
+import { cop } from '../../utils/money'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNavUI } from '../../contexts/NavUIContext'
 import './Home.css'
@@ -63,8 +65,12 @@ export default function Home() {
       const enCats = (l.categorias || []).some(c => c.nombre?.toLowerCase().includes(q))
       return enNombre || enDesc || enCats
     })
-    // Distancia + orden por cercanía si el cliente compartió ubicación.
-    const conDist = base.map(l => ({ ...l, distancia: coord ? distanciaKm(l.ubicacion, coord) : null }))
+    // Distancia + costo de domicilio + orden por cercanía si compartió ubicación.
+    const conDist = base.map(l => {
+      const distancia = coord ? distanciaKm(l.ubicacion, coord) : null
+      const domi = coord ? costoDomicilio(distancia, l.domicilio) : null
+      return { ...l, distancia, domi }
+    })
     if (!coord) return conDist
     return conDist.sort((a, b) => {
       if (a.distancia == null) return 1
@@ -170,6 +176,15 @@ export default function Home() {
                         </span>
                         {l.distancia != null && (
                           <span className="loc-chip dist">a {l.distancia.toFixed(1)} km</span>
+                        )}
+                        {l.domi?.ok && (
+                          <span className="loc-chip envio">🛵 Domicilio {cop(l.domi.costo)}</span>
+                        )}
+                        {l.domi && !l.domi.ok && l.domi.motivo === 'fuera-cobertura' && (
+                          <span className="loc-chip envio-off">🛵 Fuera de cobertura</span>
+                        )}
+                        {l.domi && !l.domi.ok && l.domi.motivo === 'sin-tarifa' && (
+                          <span className="loc-chip envio">🛵 Domicilio a convenir</span>
                         )}
                       </div>
                     </div>

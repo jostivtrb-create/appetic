@@ -190,6 +190,8 @@
 .loc-chip.on { color: #1c7a47; background: #DCF5E6; }
 .loc-chip.off { color: #9a6312; background: var(--brand-orange-tint); }
 .loc-chip.dist { color: var(--text-soft); background: var(--surface-2); }
+.loc-chip.envio { color: var(--brand-orange-strong); background: var(--brand-orange-tint); }
+.loc-chip.envio-off { color: var(--text-soft); background: var(--surface-2); }
 
 /* ===== Skeletons / vacío ===== */
 .home-skeletons { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; }
