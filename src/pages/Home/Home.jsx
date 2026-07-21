@@ -118,14 +118,15 @@ export default function Home() {
         </div>
 
         <button
-          className={`home-ubic ${ubic === 'ok' ? 'on' : ''}`}
+          className={`home-ubic ${ubic === 'ok' ? 'on' : ''} ${ubic === 'error' ? 'err' : ''}`}
           onClick={usarMiUbicacion}
           disabled={ubic === 'cargando'}
         >
-          📍 {ubic === 'cargando' ? 'Buscando…'
+          <IconPin />
+          <span>{ubic === 'cargando' ? 'Buscando…'
             : ubic === 'ok' ? 'Ordenado por cercanía'
             : ubic === 'error' ? 'No pudimos ubicarte · reintentar'
-            : 'Ver los más cercanos a mí'}
+            : 'Ver los más cercanos a mí'}</span>
         </button>
 
         {estado === 'cargando' && (
@@ -200,5 +201,15 @@ export default function Home() {
         Hecho con 🧡 en Bogotá · <span>Appetic</span>
       </footer>
     </div>
+  )
+}
+
+// 📍 Pin de ubicación (trazo, hereda el color del botón — mismo lenguaje que la barra inferior).
+function IconPin() {
+  return (
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true">
+      <path d="M12 21s-6-5.3-6-10a6 6 0 1 1 12 0c0 4.7-6 10-6 10z" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" />
+      <circle cx="12" cy="11" r="2.2" stroke="currentColor" strokeWidth="1.9" />
+    </svg>
   )
 }
