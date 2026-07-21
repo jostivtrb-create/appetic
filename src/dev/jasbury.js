@@ -64,6 +64,7 @@ export const JASBURY_LOCAL = {
     accent: '#FFC42E',         // amarillo dorado de la carta (acento secundario)
     bg: '#FBF2E6',             // "mundo" crema cálido (el fondo de su carta)
     hero: 'logo',              // hero protagonizado por el logo (manchón), no banner de foto
+    navSolid: true,            // barra inferior invertida: fondo ROJO dominante, íconos/texto en blanco
   },
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.
   horario: { abre: '00:00', cierra: '00:00' },

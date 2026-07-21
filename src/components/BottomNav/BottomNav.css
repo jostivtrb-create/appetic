@@ -32,6 +32,18 @@
   --bnav-active: var(--local-accent);
 }
 
+/* 🔴 Barra SÓLIDA (opt-in por local, ej. Jasbury): invierte el mundo claro —
+   fondo del color primario del local dominante y los íconos/texto en blanco. */
+.bnav--solid {
+  background: linear-gradient(135deg, var(--local-primary), var(--local-primary-strong) 92%);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 -6px 22px rgba(42, 33, 28, 0.28);
+  --bnav-dim: rgba(255, 255, 255, 0.74);
+  --bnav-active: #ffffff;
+}
+/* El carrito sigue en rojo pleno; su aro blanco lo despega de la barra roja. */
+.bnav--solid .bnav-cart-circle { --bnav-cart-ring: #ffffff; }
+
 /* --- Ítem normal --- */
 .bnav-item {
   flex: 1;

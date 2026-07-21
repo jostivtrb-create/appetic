@@ -27,6 +27,7 @@ export default function BottomNav() {
   // ---------- MODO DUEÑO (barra de administración) ----------
   if (esDueno) {
     const oscuro = localSel && esColorOscuro(localSel.tema?.bg)
+    const solido = Boolean(localSel?.tema?.navSolid)
     const style = localSel
       ? { ...localThemeVars(localSel.tema), '--bnav-bg': localSel.tema?.bg || '#141014' }
       : undefined
@@ -44,7 +45,7 @@ export default function BottomNav() {
     }
 
     return (
-      <nav className={`bnav ${oscuro ? 'bnav--dark' : ''}`} style={style} aria-label="Administración">
+      <nav className={`bnav ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''}`} style={style} aria-label="Administración">
         <button className={`bnav-item ${activa === 'menu' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}`)}>
           <IconMenu /><span>Menú</span>
         </button>
@@ -72,6 +73,7 @@ export default function BottomNav() {
   if (enLocal && live.oculta) return null
 
   const oscuro = activeLocal && esColorOscuro(activeLocal.tema?.bg)
+  const solido = Boolean(activeLocal?.tema?.navSolid)
   const activa = enLocal ? 'menu'
     : pathname === '/' ? 'buscar'
       : pathname.startsWith('/favoritos') ? 'favoritos'
@@ -90,7 +92,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className={`bnav ${oscuro ? 'bnav--dark' : ''}`} aria-label="Navegación">
+    <nav className={`bnav ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''}`} aria-label="Navegación">
       <button className={`bnav-item ${activa === 'menu' ? 'is-active' : ''}`} onClick={irAMenu}>
         <IconMenu /><span>Menú</span>
       </button>
