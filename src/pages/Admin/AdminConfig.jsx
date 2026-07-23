@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { LOGO_ANIMS, resolverLogoAnim } from '../../utils/logoAnim'
 
 // Genera los intervalos de 0.5 km hasta el máximo: ['0.5','1.0',...,'maxKm']
@@ -9,10 +9,36 @@ function intervalosHasta(maxKm) {
   return out
 }
 
+// Días de la semana (empezando en lunes). La clave se guarda en Firestore.
+const DIAS_SEMANA = [
+  { k: 'lun', l: 'L', full: 'Lunes' },
+  { k: 'mar', l: 'M', full: 'Martes' },
+  { k: 'mie', l: 'M', full: 'Miércoles' },
+  { k: 'jue', l: 'J', full: 'Jueves' },
+  { k: 'vie', l: 'V', full: 'Viernes' },
+  { k: 'sab', l: 'S', full: 'Sábado' },
+  { k: 'dom', l: 'D', full: 'Domingo' },
+]
+
+// Normaliza los días guardados (objeto, arreglo o nada) a { lun:true, ... }.
+// Sin datos previos => abre todos los días (comportamiento anterior).
+function diasIniciales(guardados) {
+  const base = {}
+  for (const { k } of DIAS_SEMANA) {
+    if (!guardados) base[k] = true
+    else if (Array.isArray(guardados)) base[k] = guardados.includes(k)
+    else base[k] = !!guardados[k]
+  }
+  return base
+}
+
+const fmtPesos = (n) => `$${Number(n || 0).toLocaleString('es-CO')}`
+
 export default function AdminConfig({ local, onUpdate }) {
   const [whatsapp, setWhatsapp] = useState(local.whatsapp || '')
   const [abre, setAbre] = useState(local.horario?.abre || '11:00')
   const [cierra, setCierra] = useState(local.horario?.cierra || '22:00')
+  const [dias, setDias] = useState(() => diasIniciales(local.horario?.dias))
   const [domicilio, setDomicilio] = useState(local.domicilio?.activo !== false)
   const [recoger, setRecoger] = useState(local.recoger !== false)
   const [maxKm, setMaxKm] = useState(String(local.domicilio?.maxKm || 5))
@@ -26,12 +52,37 @@ export default function AdminConfig({ local, onUpdate }) {
   const [logoMenuAbierto, setLogoMenuAbierto] = useState(false)
   const [ubicacion, setUbicacion] = useState(local.ubicacion || null)
   const [ubicEstado, setUbicEstado] = useState('idle') // idle | cargando | ok | error
+  const [preciosAbierto, setPreciosAbierto] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
 
   const keys = useMemo(() => intervalosHasta(maxKm), [maxKm])
   // ¿Algún tramo mostrará el botón ↓? (tiene precio y hay vacíos debajo)
   const hayFill = keys.some((k, i) => !!tarifas[k] && keys.slice(i + 1).some(kk => !tarifas[kk]))
+
+  const ningunDia = !DIAS_SEMANA.some(({ k }) => dias[k])
+
+  // Resumen de tarifas para la tarjeta que abre el modal.
+  const resumenPrecios = useMemo(() => {
+    if (keys.length === 0) return 'Toca para definir la distancia y los precios'
+    const precios = keys.map(k => Number(tarifas[k])).filter(n => n > 0)
+    if (precios.length === 0) return `Hasta ${maxKm} km · aún sin precios`
+    const min = Math.min(...precios), max = Math.max(...precios)
+    const rango = min === max ? fmtPesos(min) : `${fmtPesos(min)} – ${fmtPesos(max)}`
+    return `Hasta ${maxKm} km · ${rango}`
+  }, [keys, tarifas, maxKm])
+
+  function toggleDia(k) {
+    setDias(d => ({ ...d, [k]: !d[k] }))
+  }
+
+  // Bloquea el scroll del fondo mientras el modal de precios está abierto.
+  useEffect(() => {
+    if (!preciosAbierto) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [preciosAbierto])
 
   function setTarifa(key, valor) {
     setTarifas(t => ({ ...t, [key]: valor.replace(/\D/g, '') }))
@@ -68,7 +119,7 @@ export default function AdminConfig({ local, onUpdate }) {
     for (const k of keys) tarifasLimpias[k] = Number(tarifas[k]) || 0
     const cambios = {
       whatsapp: whatsapp.replace(/\D/g, ''),
-      horario: { ...(local.horario || {}), abre, cierra },
+      horario: { ...(local.horario || {}), abre, cierra, dias },
       domicilio: {
         ...(local.domicilio || {}),
         activo: domicilio,
@@ -107,7 +158,27 @@ export default function AdminConfig({ local, onUpdate }) {
 
       <section className="ac-sec">
         <h3>Horario de atención</h3>
-        <p className="ac-hint">Fuera de este horario, los clientes ven el menú pero no pueden pedir.</p>
+        <p className="ac-hint">Fuera del horario, los clientes ven el menú pero no pueden pedir.</p>
+
+        <span className="ac-sub">Días que abres</span>
+        <div className="ac-dias">
+          {DIAS_SEMANA.map(d => (
+            <button
+              key={d.k}
+              type="button"
+              className={`ac-dia ${dias[d.k] ? 'on' : ''}`}
+              onClick={() => toggleDia(d.k)}
+              aria-pressed={dias[d.k]}
+              aria-label={d.full}
+              title={d.full}
+            >
+              {d.l}
+            </button>
+          ))}
+        </div>
+        {ningunDia && <span className="ac-ubic-warn">⚠️ Marca al menos un día de atención.</span>}
+
+        <span className="ac-sub">Horas</span>
         <div className="ac-horas">
           <label>Abre<input type="time" value={abre} onChange={e => setAbre(e.target.value)} /></label>
           <label>Cierra<input type="time" value={cierra} onChange={e => setCierra(e.target.value)} /></label>
@@ -182,51 +253,78 @@ export default function AdminConfig({ local, onUpdate }) {
             {!ubicacion && ubicEstado !== 'error' && <span className="ac-ubic-warn">⚠️ Sin ubicación no se puede calcular el domicilio.</span>}
           </div>
 
-          {/* Distancia máxima */}
-          <label className="ac-maxkm">
-            Distancia máxima de entrega (km)
-            <input
-              type="number" inputMode="decimal" step="0.5" min="0.5"
-              value={maxKm}
-              onChange={e => setMaxKm(e.target.value)}
-            />
-          </label>
-
-          {/* Tarifas por tramo */}
-          <div className="ac-tarifas">
-            <div className="ac-tarifas-head">
-              <span>Hasta…</span><span>Precio del domicilio</span>
+          {/* Tarjeta resumen: abre el modal para editar distancia y precios */}
+          <button type="button" className="ac-tarifas-card" onClick={() => setPreciosAbierto(true)}>
+            <span className="ac-tarifas-card-icon">🛵</span>
+            <div className="ac-tarifas-card-info">
+              <strong>Precios del domicilio</strong>
+              <span>{resumenPrecios}</span>
             </div>
-            {keys.map((k, i) => {
-              // El ↓ solo sirve si esta fila tiene precio y hay tramos vacíos debajo.
-              const mostrarFill = !!tarifas[k] && keys.slice(i + 1).some(kk => !tarifas[kk])
-              return (
-                <div key={k} className="ac-tarifa-row">
-                  <span className="ac-tarifa-km">{k} km</span>
-                  <div className="ac-tarifa-input">
-                    <span className="ac-tarifa-cur">$</span>
-                    <input
-                      inputMode="numeric"
-                      placeholder="0"
-                      value={tarifas[k] || ''}
-                      onChange={e => setTarifa(k, e.target.value)}
-                    />
-                    {mostrarFill && (
-                      <button className="ac-tarifa-fill" onClick={() => rellenarDesde(k)} title="Copiar este precio a los tramos de abajo que estén vacíos">↓</button>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-            {keys.length === 0 && <p className="ac-hint">Sube la distancia máxima para definir tramos.</p>}
-          </div>
-          {hayFill && <p className="ac-hint">El botón ↓ copia ese precio a los tramos de abajo que estén vacíos.</p>}
+            <span className="ac-tarifas-card-edit">Editar ›</span>
+          </button>
         </section>
       )}
 
       <button className="btn btn-primary ac-guardar" onClick={guardar} disabled={guardando}>
         {guardando ? 'Guardando…' : guardado ? 'Guardado ✓' : 'Guardar cambios'}
       </button>
+
+      {/* Modal de precios del domicilio (se guarda con "Guardar cambios") */}
+      {preciosAbierto && (
+        <div className="ac-modal-overlay" onClick={() => setPreciosAbierto(false)}>
+          <div className="ac-modal-sheet" onClick={e => e.stopPropagation()}>
+            <div className="ac-modal-head">
+              <h3>Precios del domicilio</h3>
+              <button className="ac-modal-close" onClick={() => setPreciosAbierto(false)} aria-label="Cerrar">✕</button>
+            </div>
+
+            <div className="ac-modal-body">
+              <label className="ac-maxkm">
+                Distancia máxima de entrega (km)
+                <input
+                  type="number" inputMode="decimal" step="0.5" min="0.5"
+                  value={maxKm}
+                  onChange={e => setMaxKm(e.target.value)}
+                />
+              </label>
+              <p className="ac-hint">Se cobra por tramos de 0,5 km según qué tan lejos esté el cliente.</p>
+
+              <div className="ac-tarifas">
+                <div className="ac-tarifas-head">
+                  <span>Hasta…</span><span>Precio del domicilio</span>
+                </div>
+                {keys.map((k, i) => {
+                  // El ↓ solo sirve si esta fila tiene precio y hay tramos vacíos debajo.
+                  const mostrarFill = !!tarifas[k] && keys.slice(i + 1).some(kk => !tarifas[kk])
+                  return (
+                    <div key={k} className="ac-tarifa-row">
+                      <span className="ac-tarifa-km">{k} km</span>
+                      <div className="ac-tarifa-input">
+                        <span className="ac-tarifa-cur">$</span>
+                        <input
+                          inputMode="numeric"
+                          placeholder="0"
+                          value={tarifas[k] || ''}
+                          onChange={e => setTarifa(k, e.target.value)}
+                        />
+                        {mostrarFill && (
+                          <button className="ac-tarifa-fill" onClick={() => rellenarDesde(k)} title="Copiar este precio a los tramos de abajo que estén vacíos">↓</button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+                {keys.length === 0 && <p className="ac-hint">Sube la distancia máxima para definir tramos.</p>}
+              </div>
+              {hayFill && <p className="ac-hint">El botón ↓ copia ese precio a los tramos de abajo que estén vacíos.</p>}
+            </div>
+
+            <div className="ac-modal-foot">
+              <button className="btn btn-primary" onClick={() => setPreciosAbierto(false)}>Listo</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

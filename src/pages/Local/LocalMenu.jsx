@@ -3,7 +3,7 @@ import { localThemeVars } from '../../utils/theme'
 import { useCart } from '../../contexts/CartContext'
 import { useNavUI } from '../../contexts/NavUIContext'
 import { useAdmin } from '../../contexts/AdminContext'
-import { estaAbierto } from '../../utils/horario'
+import { estaAbierto, motivoCierre } from '../../utils/horario'
 import CategoryNav from '../../components/Menu/CategoryNav'
 import ProductCard from '../../components/Menu/ProductCard'
 import ProductModal from '../../components/Menu/ProductModal'
@@ -108,6 +108,7 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
 
   // Horario (D25): fuera de horario se ve el menú pero no se puede pedir.
   const abierto = useMemo(() => estaAbierto(local.horario), [local.horario])
+  const razonCierre = useMemo(() => motivoCierre(local.horario), [local.horario])
 
   // Productos agrupados por categoría (solo las que tienen productos)
   const porCategoria = useMemo(() => {
@@ -162,7 +163,7 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
 
   function pedirProducto(producto) {
     if (!abierto) {
-      mostrarToast(`Cerrado ahora · abre a las ${local.horario?.abre}`)
+      mostrarToast(`Cerrado · ${razonCierre || `abre a las ${local.horario?.abre}`}`)
       return
     }
     // Tocar la tarjeta SIEMPRE abre el panel de detalle (ver el producto más grande +
@@ -233,7 +234,7 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
 
       {!abierto && (
         <div className="local-cerrado" role="status">
-          😴 <strong>Cerrado ahora.</strong> Puedes ver el menú; abre a las {local.horario?.abre}.
+          😴 <strong>Cerrado ahora.</strong> Puedes ver el menú. {razonCierre}
         </div>
       )}
 

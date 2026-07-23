@@ -23,7 +23,9 @@
 .admin-google { width: 100%; }
 
 /* ===== Shell del panel ===== */
-.admin { min-height: 100dvh; padding-bottom: 28px; }
+/* Reserva el alto de la barra de pestañas fija (.bnav) + el safe-area del
+   dispositivo, para que ningún botón (ej: "Guardar cambios") choque con ella. */
+.admin { min-height: 100dvh; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 .admin-top {
   display: flex;
   align-items: center;
@@ -373,6 +375,36 @@
 .ac-sec { margin-bottom: 24px; }
 .ac-sec h3 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
 .ac-hint { font-size: 12.5px; color: var(--text-faint); margin: 6px 0 0; }
+
+/* Subtítulo dentro de una sección (ej: "Días que abres" / "Horas") */
+.ac-sub {
+  display: block;
+  font-size: 12px; font-weight: 800;
+  color: var(--text-faint);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin: 16px 0 8px;
+}
+
+/* Días de atención: 7 chips que se marcan/desmarcan */
+.ac-dias { display: flex; gap: 7px; }
+.ac-dia {
+  flex: 1; min-width: 0; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 13px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-size: 15px; font-weight: 800;
+  transition: transform 0.12s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.2s ease;
+}
+.ac-dia:active { transform: scale(0.9); }
+.ac-dia.on {
+  background: linear-gradient(135deg, var(--brand-orange), var(--brand-orange-strong));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(240, 122, 46, 0.3);
+}
+
 .ac-horas { display: flex; gap: 14px; margin-top: 10px; }
 .ac-horas label { flex: 1; display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; color: var(--text-soft); }
 .ac-horas input { padding: 11px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; background: var(--surface); }
@@ -486,6 +518,80 @@
   font-weight: 800; font-size: 15px;
 }
 .ac-tarifa-fill:active { transform: scale(0.9); }
+.ac-modal-body .ac-maxkm { margin-top: 4px; }
+
+/* Tarjeta resumen que abre el modal de precios */
+.ac-tarifas-card {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 14px;
+  padding: 14px 15px;
+  border-radius: var(--radius-md, 14px);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  text-align: left;
+  transition: transform 0.12s ease, border-color 0.18s ease, box-shadow 0.2s ease;
+}
+.ac-tarifas-card:hover { border-color: var(--brand-orange-soft); box-shadow: var(--shadow-sm); }
+.ac-tarifas-card:active { transform: scale(0.99); }
+.ac-tarifas-card-icon {
+  flex: none;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 11px;
+  background: var(--brand-orange-tint);
+  font-size: 20px;
+}
+.ac-tarifas-card-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ac-tarifas-card-info strong { font-size: 15px; font-weight: 800; color: var(--text); }
+.ac-tarifas-card-info span {
+  font-size: 12.5px; color: var(--text-soft);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ac-tarifas-card-edit { flex: none; font-size: 13.5px; font-weight: 800; color: var(--brand-orange-strong); }
+
+/* Modal / bottom-sheet de precios del domicilio */
+.ac-modal-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(20, 14, 10, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: flex-end; justify-content: center;
+  animation: acFade 0.2s ease both;
+}
+.ac-modal-sheet {
+  position: relative;
+  width: 100%; max-width: var(--app-max);
+  max-height: 88dvh;
+  display: flex; flex-direction: column;
+  background: var(--bg);
+  border-radius: var(--radius-lg, 20px) var(--radius-lg, 20px) 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.28);
+  animation: acSheetUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.ac-modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.ac-modal-head h3 { font-size: 17px; font-weight: 800; }
+.ac-modal-close {
+  flex: none;
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-2); color: var(--text-soft);
+  font-size: 14px; font-weight: 800;
+}
+.ac-modal-close:active { transform: scale(0.9); }
+.ac-modal-body { flex: 1; overflow-y: auto; padding: 12px 20px 6px; -webkit-overflow-scrolling: touch; }
+.ac-modal-foot {
+  padding: 12px 20px calc(14px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.ac-modal-foot .btn { width: 100%; }
+
+@keyframes acFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes acSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
 /* ===== Métricas ===== */
 .am-intro { font-size: 14px; color: var(--text-soft); margin-bottom: 16px; }
