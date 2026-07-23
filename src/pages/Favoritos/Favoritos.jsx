@@ -9,7 +9,7 @@ import './Favoritos.css'
 // "perderás el carrito" si venías con un pedido de otro local.
 export default function Favoritos() {
   const navigate = useNavigate()
-  const { user, cargando, entrar } = useAuth()
+  const { user, cargando, entrar, errorLogin } = useAuth()
   const { favoritos, toggleFavorito } = useFavoritos()
   const { irAOtroLocal } = useNavUI()
 
@@ -34,6 +34,13 @@ export default function Favoritos() {
           <h2>Guarda tus locales favoritos</h2>
           <p>Inicia sesión para marcar tus locales de siempre y tenerlos aquí a la mano.</p>
           <button className="btn btn-primary" onClick={entrar}>Iniciar sesión</button>
+          {errorLogin && (
+            <p role="alert" style={{
+              marginTop: 14, padding: '10px 12px', borderRadius: 12,
+              background: 'rgba(220, 38, 38, 0.10)', border: '1px solid rgba(220, 38, 38, 0.28)',
+              color: '#b91c1c', fontSize: 13.5, lineHeight: 1.45, textAlign: 'left',
+            }}>⚠️ {errorLogin}</p>
+          )}
         </div>
       ) : favoritos.length === 0 ? (
         <div className="favs-vacio">

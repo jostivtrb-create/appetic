@@ -9,7 +9,7 @@ import logo from '../../assets/appetic-logo.png'
 import './Cuenta.css'
 
 export default function Cuenta() {
-  const { user, cargando, entrar, salir } = useAuth()
+  const { user, cargando, entrar, salir, errorLogin } = useAuth()
   const { locales, cargando: adminCargando, esDueno, slug: adminSlug, localSel, setSlug } = useAdmin()
   const navigate = useNavigate()
   const [params] = useSearchParams()
@@ -48,6 +48,7 @@ export default function Cuenta() {
           <button className="btn btn-primary cuenta-google" onClick={entrar}>
             <GoogleIcon /> Continuar con Google
           </button>
+          {errorLogin && <p className="cuenta-login-error" role="alert">⚠️ {errorLogin}</p>}
           <ul className="cuenta-beneficios">
             <li>🧾 Tus datos se llenan solos en el checkout</li>
             <li>🏪 Administra tu local si eres dueño</li>

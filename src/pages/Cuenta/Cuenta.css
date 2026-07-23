@@ -58,6 +58,18 @@
 }
 .cuenta-google:active { transform: scale(0.98); }
 
+.cuenta-login-error {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(220, 38, 38, 0.10);
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  color: #b91c1c;
+  font-size: 13.5px;
+  line-height: 1.45;
+  text-align: left;
+}
+
 .cuenta-beneficios {
   margin-top: 22px;
   text-align: left;
