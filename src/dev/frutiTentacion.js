@@ -42,7 +42,7 @@ export const FRUTI_LOCAL = {
     primarySoft: '#79CDEA',    // turquesa claro para el degradado del hero
     onPrimary: '#FFFFFF',      // texto sobre el azul
     accent: '#8A2A57',         // vino de las ramas y el eslogan (nav activo, detalles)
-    bg: '#FFFBEA',             // "mundo" crema amarillo cálido (el amarillo de la marca, suave)
+    bg: '#FFE24A',             // "mundo" AMARILLO de marca (fuerte, alegre — el amarillo del logo)
     hero: 'logo',              // hero protagonizado por el logo, no banner de foto
   },
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.
