@@ -32,8 +32,11 @@ export const [[CONST]]_LOCAL = {
   whatsapp: '573208435143',
 
   // 🎨 IDENTIDAD VISUAL — esto hace ÚNICO al local (se aplica como variables CSS).
+  // 📷 IMÁGENES: la skill NO las genera. Escribe los prompts en public/locales/<slug>/PROMPTS.md y
+  //    el DUEÑO las genera con IA (Gemini) y las sube desde su panel. El LOGO real del cliente sí se
+  //    usa tal cual (transparente si viene sobre fondo sólido). Deja banner:'' hasta que el dueño lo suba.
   logo: '/locales/[[SLUG]]/logo.webp',      // '' = muestra la inicial del nombre
-  banner: '/locales/[[SLUG]]/banner.webp',  // '' = hero con degradado del tema
+  banner: '',                               // '' = hero con degradado del tema (el dueño sube el banner luego)
   tema: {
     primary:       '[[PRIMARY]]',       // color de marca principal (botones, precios, chips activos)
     primaryStrong: '[[PRIMARY_STRONG]]',// variante oscura del primary
@@ -82,10 +85,14 @@ export const [[CONST]]_LOCAL = {
   menuVersion: 1,  // súbelo (2, 3…) cada vez que cambies la CARTA FIJA para invalidar la caché del cliente
 }
 
+// 📷 foto: SIEMPRE '' — la skill NO genera imágenes. El prompt de cada producto va en
+//    public/locales/<slug>/PROMPTS.md y el dueño sube la foto desde su panel (📱 Del dispositivo).
+//    Mientras no haya foto, la tarjeta muestra el placeholder de marca ("Cargando imagen…").
+//    El emoji del producto se usa en el armador por pasos; el de CATEGORÍA sale en los chips.
 export const [[CONST]]_PRODUCTOS = [
   // ── Ejemplo A: producto SIMPLE (precio fijo, sin opciones) → se agrega directo al carrito.
   { id: 'prod-simple', categoria: '[[CAT1_ID]]', nombre: 'Producto simple',
-    descripcion: 'Descripción corta y antojable.', foto: '/locales/[[SLUG]]/prod-simple.webp',
+    descripcion: 'Descripción corta y antojable.', foto: '',
     emoji: '🍽️', disponible: true, orden: 1, precio: 12000 },
 
   // ── Ejemplo B: producto con VARIANTES (elige tamaño; cada tamaño fija el precio) → abre modal.

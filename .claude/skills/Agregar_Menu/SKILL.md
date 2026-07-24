@@ -1,6 +1,6 @@
 ---
 name: Agregar_Menu
-description: Crea un LOCAL nuevo (menú) dentro de la app Appetic, integrado igual que los que ya existen (Perros Criiollos, Sabor del Día, Burger). Cada local queda ÚNICO en su identidad — colores/tema, logo, banner, categorías, emojis y fotos generadas con IA — pero comparte EXACTAMENTE el mismo flujo que ya trae la app: menú, carrito, checkout que arma el pedido y lo manda al WhatsApp del local, historial, y su propio panel de administrador (para entregárselo al dueño de ese local). Adapta el menú DIGITAL al menú REAL del cliente (no al revés), eligiendo el modelo que haga que las opciones FUNCIONEN, y lo MEJORA en estética — debe verse mejor que la carta original, nunca peor. SIEMPRE pide primero el MENÚ y el LOGO del local (no arranca sin ellos, salvo demo explícita). Automatiza TODO el flujo: crea el archivo de datos en src/dev/, lo registra en la vista previa (?preview=1), crea su script de seed, genera e integra las imágenes (banner+logo+platos), verifica en el navegador, despliega a Vercel y explica al final las llaves de Firebase para dejarlo funcionando de verdad (seed + panel + WhatsApp). Úsala cuando el usuario diga "/Agregar_Menu", "agrega un menú nuevo", "crea un local nuevo en appetic", "quiero otro menú como los que ya tengo", "monta este negocio en la app", "nuevo restaurante/local para Appetic", o cualquier variación de crear un local/menú adicional dentro de Appetic.
+description: Crea un LOCAL nuevo (menú) dentro de la app Appetic, integrado igual que los que ya existen (Perros Criiollos, Sabor del Día, Burger). Cada local queda ÚNICO en su identidad — colores/tema, logo, banner, categorías, emojis y fotos generadas con IA — pero comparte EXACTAMENTE el mismo flujo que ya trae la app: menú, carrito, checkout que arma el pedido y lo manda al WhatsApp del local, historial, y su propio panel de administrador (para entregárselo al dueño de ese local). Adapta el menú DIGITAL al menú REAL del cliente (no al revés), eligiendo el modelo que haga que las opciones FUNCIONEN, y lo MEJORA en estética — debe verse mejor que la carta original, nunca peor. SIEMPRE pide primero el MENÚ y el LOGO del local (no arranca sin ellos, salvo demo explícita). Automatiza TODO el flujo: crea el archivo de datos en src/dev/, lo registra en la vista previa (?preview=1), crea su script de seed, ESCRIBE los PROMPTS de las imágenes (banner+platos) en un PROMPTS.md para que el DUEÑO las genere con IA (Gemini) y las suba desde su panel — la skill NO genera las imágenes —, verifica en el navegador, despliega a Vercel y explica al final las llaves de Firebase para dejarlo funcionando de verdad (seed + panel + WhatsApp). Úsala cuando el usuario diga "/Agregar_Menu", "agrega un menú nuevo", "crea un local nuevo en appetic", "quiero otro menú como los que ya tengo", "monta este negocio en la app", "nuevo restaurante/local para Appetic", o cualquier variación de crear un local/menú adicional dentro de Appetic.
 ---
 
 # /Agregar_Menu — Nuevo local dentro de Appetic
@@ -9,7 +9,7 @@ Tu trabajo es **agregar un local (menú) nuevo** a la app **Appetic** (proyecto 
 Vite/React + Firebase), integrado **exactamente como los que ya existen**. La app corre en la
 carpeta `APPETIC` y ya tiene el motor completo (menú, carrito, checkout→WhatsApp, historial,
 panel de admin, buscador). **Ese motor NO se reprograma**: un local nuevo es solo **datos +
-identidad visual + imágenes**.
+identidad visual + prompts de imágenes** (las imágenes las genera y sube el dueño con IA).
 
 ## Principio rector
 - **Todo el flujo es idéntico** entre locales (pedir con carrito, checkout que manda el pedido al
@@ -111,20 +111,21 @@ if (slug === '<slug>') {
 Copia `assets/plantilla_seed.mjs` a `scripts/seed-<slug>.mjs` y reemplaza `[[SLUG]]`, `[[NOMBRE]]`,
 `[[FILE]]`, `[[CONST]]`.
 
-### Paso 5 — Generar e integrar las imágenes (con `/Generar_Imagen`)
-Genera **banner + fotos de productos** con la skill **`/Generar_Imagen`** (Pollinations,
-gratis) — **NUNCA con Higgsfield ni otro servicio de pago**. Las deja en `public/locales/<slug>/`
-como WebP livianos y luego cableas los `foto`. **Basa cada prompt en las FOTOS reales del menú si el
-cliente las mandó** (léelas y descríbelas fiel, para que se parezcan a su producto); si no hay fotos,
-básate en la **estética que quiere el local** (rubro + vibra + paleta), coherente en todas. Sigue
-**`references/imagenes.md`**. Cada foto liviana, apetitosa y coherente con el tema.
-- **El LOGO del cliente**: si viene sobre **fondo sólido** (típico en logos dramáticos sobre negro),
-  NO lo uses en cuadro — pásalo por **`/Quitar_Fondo_Mejorar_Calidad`** para dejarlo **transparente
-  y liviano** (WebP ~50–100 KB) y que **flote** en el hero (con `tema.hero:'logo'`). Si no, se ve
-  como un "recuadro pegado". Ver `references/identidad_y_skin.md` §3.
-- **Menú largo (>12 productos)**: el motor muestra un **buscador** solo (automático). No hay que
-  hacer nada; genera fotos para el mayor número de productos posible (los que compartan tipo pueden
-  reutilizar una foto).
+### Paso 5 — Escribir los PROMPTS de las imágenes (la skill NO genera las imágenes)
+**La skill ya NO genera imágenes.** Escribe **prompts excelentes** en un archivo
+**`public/locales/<slug>/PROMPTS.md`** y deja **todos los `foto: ''` vacíos**: el **DUEÑO** genera
+cada imagen con IA (**Gemini**) y la sube desde su panel (**📱 Del dispositivo** para productos,
+opción de banner para el hero). Guía completa y plantillas: **`references/imagenes.md`**.
+- **Un prompt por foto** (banner + cada producto que valga foto), **en inglés**, **fiel al plato**
+  (ingredientes visibles de la carta) y con **el mood de color sacado del `tema`** — misma fórmula
+  que el botón **✨ Crear con IA** del panel (`src/utils/promptIA.js`), para que coincidan.
+- **Coherencia:** una sola superficie/luz repetida en todos (como Jasbury). Si el cliente mandó
+  fotos reales, **léelas con Read** y descríbelas fiel para que la IA se parezca a su producto.
+- **El LOGO del cliente**: úsalo tal cual. Si viene sobre **fondo sólido**, pásalo por
+  **`/Quitar_Fondo_Mejorar_Calidad`** para dejarlo **transparente y liviano** y que **flote** en el
+  hero (con `tema.hero:'logo'`). Ver `references/identidad_y_skin.md` §3.
+- **Menú largo (>12 productos)**: el motor muestra un **buscador** solo (automático). Escribe el
+  prompt del mayor número de productos posible (los que compartan tipo pueden reutilizar una foto/id).
 
 ### Paso 6 — Verificar en el navegador (?preview=1): que funcione Y se vea bien
 Con el dev server (Claude Preview), abre **`/<slug>?preview=1`** y comprueba **las dos cosas**:
@@ -133,14 +134,17 @@ Con el dev server (Claude Preview), abre **`/<slug>?preview=1`** y comprueba **l
   (los `unica min:1` exigen elegir). Ninguna opción rota o confusa. Si algo no funciona, corrige el
   **modelo** del producto (Paso 2), no el menú. Sin errores de consola.
 - **Que se vea bien:** el tema (colores del local) se aplica, categorías ordenadas, tarjetas
-  legibles, **imágenes cargan** (el `<img>` es `loading="lazy"`: fuérzalo a `eager` o haz scroll) y
-  **combinan** con la paleta. Debe verse **mejor** que la carta original — si algo se ve pobre o
-  desentona, mejóralo (foto, descripción, orden, color) antes de seguir.
+  legibles y **combinan** con la paleta. **Las fotos aún NO están** (las pone el dueño): cada tarjeta
+  muestra el **placeholder de marca ("Cargando imagen…")** — es lo esperado, y por eso conviene que el
+  dueño suba pronto sus fotos. El **emoji** sí se ve en los **chips de categoría**: verifica que sean
+  acertados. Comprueba que el layout se vea bien sin foto. Debe verse **mejor** que la carta original —
+  si algo desentona (color, orden, descripción, emoji de categoría), mejóralo antes de seguir.
 
 ### Paso 7 — Desplegar a Vercel
-Usa la skill **`/despliegue_en_vercel`** (build + `git add` de SOLO los archivos del local +
-commit + push a la rama de producción `main`). Así suben el código y las imágenes. **Deploy ANTES
-del seed** (si no, las fotos dan 404 hasta publicar).
+Usa la skill **`/despliegue_en_vercel`** (build + `git add` de SOLO los archivos del local —
+incluido `PROMPTS.md` — + commit + push a la rama de producción `main`). **Deploy ANTES del seed**.
+Nota: aún no hay fotos en `public/locales/<slug>/` (las sube el dueño luego desde su panel); no es
+un problema, las tarjetas muestran el placeholder de marca ("Cargando imagen…") mientras tanto.
 
 ### Paso 8 — Firebase: dejarlo funcionando DE VERDAD (el cierre)
 **Desplegar NO basta.** Hasta aquí el local solo existe en el código: no sale en `/superadmin`, ni
@@ -151,7 +155,8 @@ Sigue **`references/firebase.md`**. Los cuatro puntos que NO puedes saltarte:
 - **¿Puedes sembrar tú?** La llave `scripts/serviceAccount.json` está en `.gitignore` → **existe en
   el PC del usuario, NO en la nube**. Desde la nube deja todo listo y dile que corra
   `node scripts/seed-<slug>.mjs` en su PC. **Nunca pidas la llave por chat** (es un secreto).
-- **Deploy ANTES del seed**, y comprueba con `curl` que las fotos ya dan **200** en producción.
+- **Deploy ANTES del seed.** (Las fotos las sube el dueño luego desde el panel; no hay que
+  verificarlas con `curl` — las tarjetas muestran el placeholder de marca hasta que él las cargue.)
 - **`suscripcion.activa: false` mientras no haya WhatsApp** — con `true` el local sale en el
   buscador público y un cliente podría pedir sin que el pedido llegue a ningún lado. El usuario lo
   enciende con el toggle del panel.
@@ -178,8 +183,12 @@ afiche hereda su identidad (tema+logo+whatsapp): **`references/difundir.md`**.
 - **WhatsApp y admin NO bloquean.** Si no te los dan, van los defaults (`573208435143` y
   `sinfiniity@gmail.com`) y se configuran luego desde la app. Avísalo al entregar (Paso 1).
 - **Motor intacto.** Nunca reprogramas carrito/checkout/admin: salen del código existente. Solo
-  agregas **datos + identidad + imágenes**.
-- **Único de verdad.** Paleta, logo, banner, emojis y fotos propios del negocio. Si se parece a otro
+  agregas **datos + identidad + prompts de imágenes**.
+- **La skill NO genera imágenes.** Escribe los **prompts** (banner + cada producto) en
+  `public/locales/<slug>/PROMPTS.md`, deja todos los `foto: ''` vacíos, y el **dueño** las genera con
+  IA (Gemini) y las sube desde su panel. Prompts fieles al plato y a tono con la paleta. Ver
+  `references/imagenes.md`.
+- **Único de verdad.** Paleta, logo, banner, emojis y prompts propios del negocio. Si se parece a otro
   local, cámbialo.
 - **Identidad a la medida — adaptar, no copiar.** Saca la estética del ADN de ESA marca; que se vea
   de SU negocio y distinta a los demás. Si pide profundidad, hazle un **skin propio** (el `'jet'` de
@@ -187,25 +196,28 @@ afiche hereda su identidad (tema+logo+whatsapp): **`references/difundir.md`**.
   `/Quitar_Fondo_Mejorar_Calidad`), no un recuadro pegado. Ver `references/identidad_y_skin.md`.
 - **Fiel y más bonito.** Adapta el digital al menú REAL del cliente y que **las opciones funcionen**
   (elige el modelo correcto); y que se vea **mejor** que su carta, nunca peor. Nunca dejes opciones
-  rotas ni imágenes/estética pobres.
+  rotas ni prompts/estética pobres.
 - **Mismo patrón que los que ya hay.** Copia la estructura de `perrosCriollos.js`/`saborDelDia.js`;
   respeta los nombres de export (`SLUG`, `ADMIN_EMAIL`, `<CONST>_LOCAL`, `<CONST>_PRODUCTOS`).
-- **Agrega solo lo del local** al git (dev file, preview, seed, `public/locales/<slug>/`, doc). NO
-  incluyas otros archivos sueltos ni `.claude/`.
+- **Agrega solo lo del local** al git (dev file, preview, seed, `public/locales/<slug>/PROMPTS.md`,
+  doc). NO incluyas otros archivos sueltos ni `.claude/`.
 - **Orden final:** preview OK → deploy → seed en Firebase → WhatsApp. Verifica en cada paso.
 - **Sin seed no existe.** Desplegar solo publica el código; el local aparece en el panel y recibe
   pedidos **cuando se siembra**. Y el seed necesita la llave, que **solo está en el PC del usuario**
   (no en la nube). Ver `references/firebase.md` §0.
 - **Entrega:** deja una notita/guía (como `SABOR-DEL-DIA.md`) con el link, el admin y cómo cambia el
-  menú, para dársela al dueño. Incluye que en su panel → **📣 Difundir** tiene el QR, el afiche de
-  domicilios (PDF), el link y el mensaje de bienvenida (ver `references/difundir.md`).
+  menú, para dársela al dueño. Explica que **las fotos las pone él con IA**: en su panel → editar
+  producto → **✨ Crear con IA** (abre Gemini con el prompt listo) o pegando los prompts de
+  `public/locales/<slug>/PROMPTS.md`, y las sube con **📱 Del dispositivo**. Incluye que en su panel →
+  **📣 Difundir** tiene el QR, el afiche de domicilios (PDF), el link y el mensaje de bienvenida (ver
+  `references/difundir.md`).
 
 ## Archivos de la skill
 - `assets/plantilla_local.js` — esqueleto del archivo de datos del local (esquema anotado). **Base de todo.**
 - `assets/plantilla_seed.mjs` — esqueleto del script de alta en Firestore.
 - `references/menu_fiel_y_hermoso.md` — adaptar el menú al cliente (modelo correcto por ítem) y mejorarlo en estética.
 - `references/identidad_y_skin.md` — **identidad con profundidad**: leer la vibra, el skin oscuro (`skin:'jet'`), logo transparente que flota, tipografías/títulos de marca, el buscador. (Aprendizajes de Pilotos.)
-- `references/imagenes.md` — generar e integrar banner/logo/fotos SIEMPRE con `/Generar_Imagen` (nunca Higgsfield); logo transparente con `/Quitar_Fondo_Mejorar_Calidad`.
+- `references/imagenes.md` — **ESCRIBIR los prompts** (banner + platos) en `PROMPTS.md` para que el dueño genere las imágenes con IA (Gemini) y las suba; la skill NO genera imágenes. Logo transparente con `/Quitar_Fondo_Mejorar_Calidad`.
 - `references/firebase.md` — las llaves de Firebase y el cierre del flujo (seed, reglas, panel, WhatsApp).
 - `references/difundir.md` — la pestaña **📣 Difundir** (QR, afiche de domicilios, link, mensaje): automática por local, hereda la identidad (tema+logo+whatsapp), y qué contarle al dueño en la entrega.
 - `references/prompt_ia_panel.md` — el botón **✨ Crear con IA** del panel (foto de producto y de opciones): la receta del prompt (foto realista + colores del local) y dónde vive (`src/utils/promptIA.js`).
