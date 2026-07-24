@@ -1,0 +1,47 @@
+/* 🍦 SKIN "FRUTI" — tipografía a la medida de FRUTI TENTACIÓN (Frutería & Heladería).
+   Se activa SOLO cuando el local trae tema.skin === 'fruti' (LocalMenu añade .local-skin-fruti).
+   Es 100% presentación y está TODO scopeado a .local-skin-fruti: no afecta a ningún otro local.
+
+   ADN de ESTA marca: el logo es un cono de helado sonriente con el nombre en script alegre.
+   La fuente del sistema (Plus Jakarta) se veía neutra/anticuada al lado de esa vibra. Aquí NO se
+   tocan colores (esos vienen del `tema`): solo se cambia la FUENTE por unas REDONDEADAS y divertidas
+   que le pegan a una heladería:
+     • Fredoka → títulos, nombres de plato, precios, chips, botones (redonda, cachetona, alegre).
+     • Nunito  → descripciones y texto general (redonda pero muy legible). */
+
+/* Base: todo el mundo del local hereda Nunito (texto legible y amable). */
+.local-page.local-skin-fruti {
+  font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* Fredoka en lo que "grita" marca: títulos, nombres, precios, chips y botones. */
+.local-skin-fruti .menu-section-title,
+.local-skin-fruti .pcard-nombre,
+.local-skin-fruti .pcard-precio,
+.local-skin-fruti .pcard-desde,
+.local-skin-fruti .pcard-add,
+.local-skin-fruti .pcard-fuerte,
+.local-skin-fruti .pcard-badge-agotado,
+.local-skin-fruti .local-desc--ink,
+.local-skin-fruti .local-cat,
+.local-skin-fruti .local-cat-chip,
+.local-skin-fruti .local-search-input,
+.local-skin-fruti .pm-nombre,
+.local-skin-fruti .pm-precio,
+.local-skin-fruti .pm-group-title,
+.local-skin-fruti .pm-req,
+.local-skin-fruti .pm-opcion-nombre,
+.local-skin-fruti .pm-cta,
+.local-skin-fruti .pm-add,
+.local-skin-fruti .drawer-title,
+.local-skin-fruti .drawer-total,
+.local-skin-fruti .drawer-cta {
+  font-family: 'Fredoka', 'Nunito', system-ui, sans-serif;
+}
+
+/* Fredoka tira un poco más "gordita": afinamos el tracking de los títulos para que respiren. */
+.local-skin-fruti .menu-section-title,
+.local-skin-fruti .pcard-nombre,
+.local-skin-fruti .pm-nombre {
+  letter-spacing: -0.01em;
+}

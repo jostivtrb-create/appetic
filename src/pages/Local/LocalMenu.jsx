@@ -17,6 +17,7 @@ import { useBloquearScroll } from '../../utils/useBloquearScroll'
 import Checkout from '../Checkout/Checkout'
 import './LocalSkinJet.css'
 import './LocalSkinJuance.css'
+import './LocalSkinFruti.css'
 
 export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   const { addItem, totalItems } = useCart()

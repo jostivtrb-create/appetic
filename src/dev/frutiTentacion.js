@@ -44,6 +44,7 @@ export const FRUTI_LOCAL = {
     accent: '#8A2A57',         // vino de las ramas y el eslogan (nav activo, detalles)
     bg: '#FFE24A',             // "mundo" AMARILLO de marca (fuerte, alegre — el amarillo del logo)
     hero: 'logo',              // hero protagonizado por el logo, no banner de foto
+    skin: 'fruti',             // tipografía a la medida (Fredoka + Nunito) — src/pages/Local/LocalSkinFruti.css
   },
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.
   horario: { abre: '00:00', cierra: '00:00' },
