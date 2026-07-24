@@ -45,3 +45,23 @@
 .local-skin-fruti .pm-nombre {
   letter-spacing: -0.01em;
 }
+
+/* 🖼️ Logo del hero: le damos un poco más de aire y presencia SOLO en Fruti.
+   El logo es horizontal (cono + nombre) y se veía chico con mucho margen a los
+   lados; lo agrandamos y ajustamos el respiro vertical para que quede mejor
+   distribuido. Scopeado a .local-skin-fruti: no afecta a otros locales. */
+.local-skin-fruti .local-hero--logo {
+  padding-left: 14px;
+  padding-right: 14px;
+  padding-bottom: 18px;
+}
+/* El logo de Fruti se pinta con LogoManchon (efecto brocha); ese contenedor
+   define el ancho. Lo agrandamos aquí. Cubrimos también las otras variantes
+   (full / épico) por si el dueño cambia la animación desde su panel. */
+.local-skin-fruti .logo-manchon {
+  width: min(86vw, 460px);
+}
+.local-skin-fruti .local-logo-full,
+.local-skin-fruti .logo-epico {
+  max-width: 460px;
+}
