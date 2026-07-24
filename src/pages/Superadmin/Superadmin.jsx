@@ -18,6 +18,28 @@ export default function Superadmin() {
 
   const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
 
+  // Fuerza la DESCARGA del PDF (no solo abrirlo). Baja la copia same-origin
+  // como blob y dispara el guardado con nombre. Si algo falla, abre la copia
+  // de Firebase Hosting como respaldo.
+  async function descargarPropuesta(e) {
+    e.preventDefault()
+    try {
+      const res = await fetch('/propuesta-appetic.pdf', { cache: 'no-store' })
+      const blob = await res.blob()
+      if (!blob.type.includes('pdf')) throw new Error('no-pdf')
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'Propuesta-Appetic.pdf'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 5000)
+    } catch {
+      window.open('https://appetic-17477.web.app/propuesta-appetic.pdf', '_blank', 'noopener')
+    }
+  }
+
   async function guardarAdmin(local) {
     const actual = local.admins?.[0] || ''
     const correo = (adminEdits[local.id] ?? actual).trim().toLowerCase()
@@ -117,14 +139,14 @@ export default function Superadmin() {
 
       <a
         className="sa-descarga"
-        href="https://appetic-17477.web.app/propuesta-appetic.pdf"
-        target="_blank"
-        rel="noopener noreferrer"
+        href="/propuesta-appetic.pdf"
+        download="Propuesta-Appetic.pdf"
+        onClick={descargarPropuesta}
       >
         <span className="sa-descarga-ico">⬇️</span>
         <span className="sa-descarga-txt">
           <strong>Descargar propuesta comercial</strong>
-          <small>PDF · Menú digital Appetic · $59.900</small>
+          <small>PDF · Suscripción $18.900/mes · 1er mes gratis</small>
         </span>
       </a>
 
