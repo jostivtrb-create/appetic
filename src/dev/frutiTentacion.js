@@ -6,10 +6,10 @@
 //
 // Es JS plano (sin React ni imports de imágenes): funciona igual en navegador y en Node.
 //
-// ⚠️ IDENTIDAD PROVISIONAL: el dueño está REDISEÑANDO el logo. La paleta de abajo se sacó de la
-//    carta actual (fondo lima, nombres fucsia, cintas de precio turquesa) para arrancar; cuando
-//    llegue el logo nuevo se afina el `tema` y se pone `logo`/`hero:'logo'`. Vibrante, fresca y
-//    frutal — de heladería —, distinta a los demás locales.
+// Estética sacada del ADN de ESTA marca (su logo nuevo): cono de helado sonriente + "Fruti
+//    Tentación" en script AZUL-TURQUESA, ramas y eslogan en VINO, sobre AMARILLO. De ahí salen:
+//    turquesa/azul de marca (botones, precios), acento VINO (nav activo, detalles) y un "mundo"
+//    crema amarillo cálido — alegre, frutal y de heladería, distinto a los demás locales.
 //
 // 📷 IMÁGENES: NO se generan aquí. Todos los `foto: ''` van vacíos; los prompts están en
 //    public/locales/fruti-tentacion/PROMPTS.md y el dueño sube cada foto desde su panel
@@ -31,17 +31,19 @@ export const FRUTI_LOCAL = {
   //    minuto uno. Los pedidos llegan a nosotros, no a ellos → el local sigue inactivo en el
   //    buscador (ver `suscripcion`). El dueño pone el real en ⚙️ Configuración → Datos del negocio.
   whatsapp: '573208435143',
-  // Logo pendiente de rediseño → '' muestra la inicial estilizada con el tema. Banner '' = hero con
-  // degradado del tema. Cuando llegue el logo: logo:'/locales/fruti-tentacion/logo.webp' + hero:'logo'.
-  logo: '',
-  banner: '',
+  // 🎨 Hero protagonizado por el LOGO (transparente, fondo amarillo quitado con IA) sobre crema.
+  logo: '/locales/fruti-tentacion/logo.webp',   // logo horizontal transparente (cono + nombre)
+  icono: '/locales/fruti-tentacion/icono.webp', // cuadrado (buscador de locales)
+  banner: '',                                   // hero con logo, no foto de banner
+  logoAnim: 'ninguna',                          // logo horizontal completo (entra con un rise suave)
   tema: {
-    primary: '#E5288E',        // fucsia frutal (botones, precios, chips activos) — de los nombres de la carta
-    primaryStrong: '#BE1670',  // fucsia profundo (degradado / variante oscura)
-    primarySoft: '#FF7CC0',    // rosa dulce para el degradado del hero
-    onPrimary: '#FFFFFF',      // texto sobre el fucsia
-    accent: '#22B3A0',         // turquesa fresco (de las cintas de precio) — acento secundario
-    bg: '#FFF6FB',             // "mundo" crema muy claro con tinte rosado, limpio y apetitoso
+    primary: '#1585BD',        // azul-turquesa del nombre (botones, precios, chips activos)
+    primaryStrong: '#0F5E8C',  // azul profundo (degradado / variante oscura)
+    primarySoft: '#79CDEA',    // turquesa claro para el degradado del hero
+    onPrimary: '#FFFFFF',      // texto sobre el azul
+    accent: '#8A2A57',         // vino de las ramas y el eslogan (nav activo, detalles)
+    bg: '#FFFBEA',             // "mundo" crema amarillo cálido (el amarillo de la marca, suave)
+    hero: 'logo',              // hero protagonizado por el logo, no banner de foto
   },
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.
   horario: { abre: '00:00', cierra: '00:00' },
