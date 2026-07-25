@@ -33,5 +33,9 @@ export async function getPreviewLocal(slug) {
     const { FRUTI_LOCAL, FRUTI_PRODUCTOS } = await import('./dev/frutiTentacion')
     return { local: FRUTI_LOCAL, productos: FRUTI_PRODUCTOS }
   }
+  if (slug === 'la-comarca') {
+    const { COMARCA_LOCAL, COMARCA_PRODUCTOS } = await import('./dev/laComarca')
+    return { local: COMARCA_LOCAL, productos: COMARCA_PRODUCTOS }
+  }
   return null
 }
