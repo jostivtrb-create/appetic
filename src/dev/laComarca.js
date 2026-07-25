@@ -45,7 +45,7 @@ export const COMARCA_LOCAL = {
     primarySoft: '#C77B3B',    // terracota/ámbar cálido para el degradado del hero
     onPrimary: '#FFFFFF',      // texto sobre el café
     accent: '#D98E2B',         // dorado ámbar del fondo del logo (acento, detalles)
-    bg: '#F7EEDD',             // "mundo" crema tostada (tinte cálido de la marca)
+    bg: '#E5D1B4',             // "mundo" café caramelo suave (cálido, del logo)
     hero: 'logo',              // hero protagonizado por el logo (manchón), no banner de foto
   },
 
