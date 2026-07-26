@@ -10,8 +10,9 @@ rules_version = '2';
 // 🔒 Reglas de Appetic
 // - Menú (locales/productos): lectura pública (los clientes ven sin login).
 // - Escritura: el admin del local (su correo en local.admins) o el superadmin.
-// - Pedidos: cualquiera puede CREAR (registro anónimo para métricas, sin login),
-//   pero solo el admin (o el superadmin) los lee. Nadie los edita/borra.
+// - Pedidos: cualquiera puede CREAR (el cliente, con o sin login) — el pedido con su
+//   código es la fuente de verdad del precio. Los leen el admin, el superadmin y los
+//   DOMICILIARIOS del local (local.domiciliarios). Nadie los edita/borra.
 // - Crear/borrar locales: solo desde la consola/seed (nosotros), no desde el cliente.
 
 service cloud.firestore {
@@ -33,6 +34,13 @@ service cloud.firestore {
       return esAdminDe(localId) || esSuperadmin();
     }
 
+    // 🛵 ¿Es DOMICILIARIO de ESTE local? Su correo está en local.domiciliarios[].
+    // Espejo de esDomiciliario() en src/config/roles.js.
+    function esDomiciliarioDe(localId) {
+      return request.auth != null
+        && request.auth.token.email in get(/databases/$(database)/documents/locales/$(localId)).data.get('domiciliarios', []);
+    }
+
     // Perfil de cada cliente: solo el dueño lo lee/escribe.
     match /usuarios/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
@@ -49,10 +57,12 @@ service cloud.firestore {
       }
 
       match /pedidos/{pedidoId} {
-        // Registro anónimo: solo crear, con campos mínimos válidos.
+        // El cliente (con o sin login) CREA su pedido; se exige un total válido.
+        // El pedido queda como fuente de verdad del precio (anti-manipulación del WhatsApp).
         allow create: if request.resource.data.total is number
                       && request.resource.data.total >= 0;
-        allow read: if puedeAdministrar(localId);
+        // Lo LEEN el admin del local, el superadmin y los DOMICILIARIOS del local.
+        allow read: if puedeAdministrar(localId) || esDomiciliarioDe(localId);
         allow update, delete: if false;
       }
 

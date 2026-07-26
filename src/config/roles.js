@@ -20,3 +20,18 @@ export function puedeAdministrarLocal(email, local) {
   if (esSuperadmin(email)) return true
   return !!local?.admins?.includes(email)
 }
+
+// 🛵 ¿Este correo es DOMICILIARIO de ESTE local? Su correo está en local.domiciliarios[].
+// El superadmin lo configura desde /superadmin. Comparación case-insensitive.
+export function esDomiciliario(email, local) {
+  if (!email) return false
+  const yo = String(email).toLowerCase()
+  return !!local?.domiciliarios?.some(e => String(e).toLowerCase() === yo)
+}
+
+// ¿Puede ver el panel de repartos (/<slug>/domiciliario)? El domiciliario del local,
+// y también el dueño/superadmin (que ven todo). Espejo en firestore.rules (lectura de pedidos).
+export function puedeVerRepartos(email, local) {
+  if (!email) return false
+  return esDomiciliario(email, local) || puedeAdministrarLocal(email, local)
+}

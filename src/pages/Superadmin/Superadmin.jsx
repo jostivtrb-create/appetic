@@ -2,8 +2,70 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
-import { listarTodosLocales, setSuscripcion, setAdminEmail } from '../../services/superadmin'
+import { listarTodosLocales, setSuscripcion, setAdminEmail, setDomiciliarios } from '../../services/superadmin'
 import './Superadmin.css'
+
+// 🛵 Editor de DOMICILIARIOS de un local (varios correos). Cada correo entra a
+// /<slug>/domiciliario y ve los pedidos a domicilio. Guarda al añadir/quitar.
+function DomiciliariosEditor({ local, onChange }) {
+  const [lista, setLista] = useState(local.domiciliarios || [])
+  const [nuevo, setNuevo] = useState('')
+  const [msg, setMsg] = useState(null) // guardando | ok | err
+  const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
+
+  async function guardar(next) {
+    setMsg('guardando')
+    try {
+      await setDomiciliarios(local.id, next)
+      setLista(next)
+      onChange?.(next)
+      setMsg('ok'); setTimeout(() => setMsg(null), 1800)
+    } catch {
+      setMsg('err')
+    }
+  }
+  function agregar() {
+    const c = nuevo.trim().toLowerCase()
+    if (!emailValido(c)) { setMsg('err'); return }
+    if (lista.some(x => x.toLowerCase() === c)) { setNuevo(''); return }
+    setNuevo('')
+    guardar([...lista, c])
+  }
+
+  return (
+    <div className="sa-domi">
+      <div className="sa-domi-head">
+        <span className="sa-admin-ico">🛵</span>
+        <span className="sa-domi-title">Domiciliarios</span>
+        {msg === 'ok' && <span className="sa-domi-msg ok">✓ guardado</span>}
+        {msg === 'guardando' && <span className="sa-domi-msg">…</span>}
+      </div>
+      {lista.length > 0 && (
+        <ul className="sa-domi-lista">
+          {lista.map(c => (
+            <li key={c}>
+              <span>{c}</span>
+              <button onClick={() => guardar(lista.filter(x => x !== c))} aria-label="Quitar">✕</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="sa-domi-add">
+        <input
+          className={`sa-admin-input ${msg === 'err' ? 'err' : ''}`}
+          type="email" inputMode="email" autoComplete="off" autoCapitalize="none" spellCheck="false"
+          placeholder="correo del domiciliario (Gmail)"
+          value={nuevo}
+          onChange={e => { setNuevo(e.target.value); if (msg === 'err') setMsg(null) }}
+          onKeyDown={e => { if (e.key === 'Enter') agregar() }}
+        />
+        <button className="sa-admin-save" onClick={agregar} disabled={!nuevo.trim() || msg === 'guardando'}>+ Añadir</button>
+      </div>
+      {msg === 'err' && <p className="sa-admin-hint">Escribe un correo válido (ej. repartidor@gmail.com).</p>}
+      <Link to={`/${local.slug}/domiciliario`} className="sa-domi-link">🛵 Abrir panel del domiciliario →</Link>
+    </div>
+  )
+}
 
 export default function Superadmin() {
   const { user, cargando, entrar } = useAuth()
@@ -210,6 +272,12 @@ export default function Superadmin() {
                 {msg === 'err' && <p className="sa-admin-hint">Escribe un correo válido (ej. dueño@gmail.com).</p>}
                 {msg === 'ok' && <p className="sa-admin-hint ok">Guardado. El dueño ya puede entrar a /{l.slug}/admin.</p>}
                 {!adminActual && msg !== 'ok' && <p className="sa-admin-hint warn">Sin admin asignado.</p>}
+
+                {/* 🛵 Domiciliarios del local (varios correos) */}
+                <DomiciliariosEditor
+                  local={l}
+                  onChange={next => setLocales(ls => ls.map(x => x.id === l.id ? { ...x, domiciliarios: next } : x))}
+                />
 
                 {/* Atajos: el superadmin administra cualquier local como si fuera el dueño
                     (roles.js → puedeAdministrarLocal + firestore.rules → puedeAdministrar). */}

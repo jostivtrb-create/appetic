@@ -11,6 +11,7 @@ import Pedidos from './pages/Pedidos/Pedidos.jsx'
 import Favoritos from './pages/Favoritos/Favoritos.jsx'
 import Datos from './pages/Datos/Datos.jsx'
 import Superadmin from './pages/Superadmin/Superadmin.jsx'
+import Domiciliario from './pages/Domiciliario/Domiciliario.jsx'
 import InstallPrompt from './components/InstallPrompt/InstallPrompt.jsx'
 import BottomNav from './components/BottomNav/BottomNav.jsx'
 import ConfirmCambioLocal from './components/ConfirmCambioLocal/ConfirmCambioLocal.jsx'
@@ -22,7 +23,7 @@ export default function App() {
   // 🌎 Toda la app se transforma con el mundo del local activo (fondo incluido).
   // En los paneles internos (admin del local, superadmin) no se aplica: son de
   // gestión, no de cliente. Sin local activo → tokens Appetic de :root.
-  const enPanel = /\/admin(\/|$)/.test(pathname) || pathname.startsWith('/superadmin')
+  const enPanel = /\/admin(\/|$)/.test(pathname) || /\/domiciliario(\/|$)/.test(pathname) || pathname.startsWith('/superadmin')
   useEffect(() => {
     const el = document.documentElement
     const vars = (activeLocal && !enPanel) ? appThemeVars(activeLocal.tema) : {}
@@ -56,6 +57,9 @@ export default function App() {
         {/* Panel del local (modo administrador) — por secciones: catalogo/difundir/config */}
         <Route path="/:slug/admin" element={<AdminPage />} />
         <Route path="/:slug/admin/:panel" element={<AdminPage />} />
+
+        {/* Panel del domiciliario — ve y busca los pedidos a domicilio del local */}
+        <Route path="/:slug/domiciliario" element={<Domiciliario />} />
 
         {/* Cada local vive en su propio slug: appetic.app/su-negocio */}
         <Route path="/:slug" element={<LocalPage />} />
