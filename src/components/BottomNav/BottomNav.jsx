@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNavUI } from '../../contexts/NavUIContext'
 import { useAdmin } from '../../contexts/AdminContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { esColorOscuro, localThemeVars } from '../../utils/theme'
+import ConfirmSalirMenu from '../ConfirmSalirMenu/ConfirmSalirMenu'
 import './BottomNav.css'
 
 // 🧭 Barra inferior FIJA. Tiene DOS modos:
@@ -16,6 +18,8 @@ export default function BottomNav() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  // 🧲 Aviso amable al salir del menú hacia el buscador (solo tráfico de link directo).
+  const [avisoSalir, setAvisoSalir] = useState(false)
 
   const enAdminRoute = /\/admin(\/|$)/.test(pathname)
 
@@ -90,29 +94,55 @@ export default function BottomNav() {
     if (activeLocal) return navigate(`/${activeLocal.slug}?pedido=1`)
     navigate('/')
   }
+  // 🧲 "Buscar" desde DENTRO del menú: si el cliente llegó por LINK DIRECTO (nunca ha
+  // pisado el buscador en esta sesión — el buscador se marca al montarse), un aviso
+  // amable UNA sola vez antes de sacarlo del menú. Con salida libre; si vino del
+  // buscador o ya se le mostró, navega directo.
+  function irABuscar() {
+    let conoce = null, avisado = null
+    try {
+      conoce = sessionStorage.getItem('appetic_conoce_buscador')
+      avisado = sessionStorage.getItem('appetic_aviso_salir_menu')
+    } catch { /* sin sessionStorage: sin aviso */ }
+    if (live && !conoce && !avisado) {
+      try { sessionStorage.setItem('appetic_aviso_salir_menu', '1') } catch { /* nada */ }
+      setAvisoSalir(true)
+      return
+    }
+    navigate('/')
+  }
 
   return (
-    <nav className={`bnav ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''}`} aria-label="Navegación">
-      <button className={`bnav-item ${activa === 'menu' ? 'is-active' : ''}`} onClick={irAMenu}>
-        <IconMenu /><span>Menú</span>
-      </button>
-      <button className={`bnav-item ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
-        <IconUser /><span>Cuenta</span>
-      </button>
-      <button className="bnav-cart" onClick={irACarrito} aria-label="Ver pedido">
-        <span className="bnav-cart-circle">
-          <IconBag />
-          {cartCount > 0 && <span className="bnav-cart-badge">{cartCount}</span>}
-        </span>
-        <span className="bnav-cart-label">Pedido</span>
-      </button>
-      <button className={`bnav-item ${activa === 'favoritos' ? 'is-active' : ''}`} onClick={() => navigate('/favoritos')}>
-        <IconHeart /><span>Favoritos</span>
-      </button>
-      <button className={`bnav-item ${activa === 'buscar' ? 'is-active' : ''}`} onClick={() => navigate('/')}>
-        <IconSearch /><span>Buscar</span>
-      </button>
-    </nav>
+    <>
+      <nav className={`bnav ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''}`} aria-label="Navegación">
+        <button className={`bnav-item ${activa === 'menu' ? 'is-active' : ''}`} onClick={irAMenu}>
+          <IconMenu /><span>Menú</span>
+        </button>
+        <button className={`bnav-item ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
+          <IconUser /><span>Cuenta</span>
+        </button>
+        <button className="bnav-cart" onClick={irACarrito} aria-label="Ver pedido">
+          <span className="bnav-cart-circle">
+            <IconBag />
+            {cartCount > 0 && <span className="bnav-cart-badge">{cartCount}</span>}
+          </span>
+          <span className="bnav-cart-label">Pedido</span>
+        </button>
+        <button className={`bnav-item ${activa === 'favoritos' ? 'is-active' : ''}`} onClick={() => navigate('/favoritos')}>
+          <IconHeart /><span>Favoritos</span>
+        </button>
+        <button className={`bnav-item ${activa === 'buscar' ? 'is-active' : ''}`} onClick={irABuscar}>
+          <IconSearch /><span>Buscar</span>
+        </button>
+      </nav>
+
+      <ConfirmSalirMenu
+        abierto={avisoSalir}
+        nombreLocal={activeLocal?.nombre}
+        onQuedarse={() => setAvisoSalir(false)}
+        onSalir={() => { setAvisoSalir(false); navigate('/') }}
+      />
+    </>
   )
 }
 

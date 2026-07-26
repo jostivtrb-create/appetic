@@ -82,6 +82,13 @@ export default function Home() {
   // el diseño antes de sembrar, igual que el ?preview=1 de los menús.
   const enPreview = useMemo(() => new URLSearchParams(window.location.search).has('preview'), [])
 
+  // 🧲 Marca que este visitante YA conoce el buscador (por sesión): quien llega a un
+  // menú por link directo sin haber pasado por aquí recibe un aviso amable si intenta
+  // salirse hacia el buscador (ver BottomNav → irABuscar).
+  useEffect(() => {
+    try { sessionStorage.setItem('appetic_conoce_buscador', '1') } catch { /* nada */ }
+  }, [])
+
   useEffect(() => {
     let activo = true
     const cargar = enPreview
