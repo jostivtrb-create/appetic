@@ -86,34 +86,33 @@
   animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.home-title {
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text);
-}
-
-/* ===== Buscador ===== */
+/* ===== Buscador (delgado e integrado a la estética) ===== */
 .home-search {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 14px;
-  padding: 13px 16px;
+  gap: 8px;
+  margin: 18px 0 2px;
+  padding: 9px 15px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.home-search-icon { font-size: 16px; opacity: 0.7; }
+.home-search:focus-within {
+  border-color: var(--brand-orange-strong);
+  box-shadow: 0 0 0 3px var(--brand-orange-tint);
+}
+.home-search-icon { font-size: 14px; opacity: 0.5; }
 .home-search input {
   flex: 1;
   border: none;
   outline: none;
   background: none;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--text);
 }
+.home-search input::placeholder { color: var(--text-faint); }
 .home-search-x {
   border: none;
   background: none;
@@ -123,12 +122,12 @@
   padding: 0 2px;
 }
 
-/* Acción de ubicación: ligera y secundaria bajo el buscador. */
+/* Acción de ubicación: ligera y secundaria, va debajo de las categorías. */
 .home-ubic {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 8px;
+  margin-top: 12px;
   margin-left: -8px;
   padding: 7px 12px 7px 8px;
   border: none;

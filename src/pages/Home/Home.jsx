@@ -262,33 +262,6 @@ export default function Home() {
       </header>
 
       <main className="home-content">
-        <h1 className="home-title">El menú de tu barrio</h1>
-
-        <div className="home-search">
-          <span className="home-search-icon">🔎</span>
-          <input
-            placeholder="Busca un antojo o un local…"
-            value={busqueda}
-            onChange={e => setBusqueda(e.target.value)}
-          />
-          {buscando && <button className="home-search-x" onClick={() => setBusqueda('')} aria-label="Limpiar">✕</button>}
-        </div>
-
-        <button
-          className={`home-ubic ${ubic === 'ok' ? 'on' : ''} ${ubic === 'error' ? 'err' : ''}`}
-          onClick={usarMiUbicacion}
-          disabled={ubic === 'cargando'}
-        >
-          <IconPin />
-          <span>{ubic === 'cargando' ? 'Buscando…'
-            : ubic === 'ok' ? 'Ordenado por cercanía'
-            : ubic === 'error' ? 'No pudimos ubicarte · reintentar'
-            : 'Toca aquí y mira cuánto vale el domicilio'}</span>
-        </button>
-        {ubic === 'ok' && ubicImprecisa && (
-          <p className="home-ubic-nota">📍 Ubicación aproximada. Para el domicilio exacto, ábrelo desde el celular.</p>
-        )}
-
         {estado === 'cargando' && (
           <div className="home-skeletons">{[0, 1, 2].map(i => <div key={i} className="home-skel" />)}</div>
         )}
@@ -349,6 +322,17 @@ export default function Home() {
               </section>
             )}
 
+            {/* 🔎 Buscador — entre "Para antojarte" y las categorías */}
+            <div className="home-search">
+              <span className="home-search-icon">🔎</span>
+              <input
+                placeholder="Busca un antojo o un local…"
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+              />
+              {buscando && <button className="home-search-x" onClick={() => setBusqueda('')} aria-label="Limpiar">✕</button>}
+            </div>
+
             {/* ③ Categorías (solo las que tienen locales activos) — justo encima del listado que filtran */}
             {categoriasVisibles.length > 0 && (
               <div className="home-cats" role="tablist" aria-label="Categorías">
@@ -365,6 +349,22 @@ export default function Home() {
                   </button>
                 ))}
               </div>
+            )}
+
+            {/* 📍 Ubicación / domicilio — debajo de las categorías */}
+            <button
+              className={`home-ubic ${ubic === 'ok' ? 'on' : ''} ${ubic === 'error' ? 'err' : ''}`}
+              onClick={usarMiUbicacion}
+              disabled={ubic === 'cargando'}
+            >
+              <IconPin />
+              <span>{ubic === 'cargando' ? 'Buscando…'
+                : ubic === 'ok' ? 'Ordenado por cercanía'
+                : ubic === 'error' ? 'No pudimos ubicarte · reintentar'
+                : 'Toca aquí y mira cuánto vale el domicilio'}</span>
+            </button>
+            {ubic === 'ok' && ubicImprecisa && (
+              <p className="home-ubic-nota">📍 Ubicación aproximada. Para el domicilio exacto, ábrelo desde el celular.</p>
             )}
 
             {/* ④ Listado inteligente */}
