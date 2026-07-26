@@ -44,7 +44,7 @@ function EtiquetasEditor({ local, onChange }) {
           {nombres.length
             ? nombres.map(c => `${c.emoji} ${c.nombre}`).join(' · ')
             : 'Sin etiquetas (no sale en los chips del inicio)'}
-          {prioridad > 0 && ' · ⭐ Recomendado'}
+          {prioridad > 0 && ` · ⭐ prioridad ${prioridad}`}
         </span>
         <span className="sa-tags-chevron">{abierto ? '▲' : '▼'}</span>
       </button>
@@ -61,7 +61,7 @@ function EtiquetasEditor({ local, onChange }) {
             ))}
           </div>
           <label className="sa-prio">
-            <span>⭐ Prioridad en el inicio (0 = normal · 10 = recomendado)</span>
+            <span>⭐ Prioridad: sale de primeras en el inicio, SIN marca visible (0 = normal)</span>
             <div className="sa-prio-ctrl">
               <button onClick={() => cambiarPrioridad(prioridad - 5)} disabled={guardando || prioridad <= 0}>−</button>
               <strong>{prioridad}</strong>

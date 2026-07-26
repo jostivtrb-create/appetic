@@ -355,7 +355,6 @@
   padding: 3px 9px;
   border-radius: var(--radius-pill);
 }
-.loc-badge-reco { color: #8a5a00; background: #FFF0C9; border: 1px solid #F5DFA1; }
 .loc-badge-nuevo { color: #135BA1; background: #E1F0FF; border: 1px solid #BBDDFA; }
 
 /* Card COMIDA-primero: foto grande + logo en la esquina + info debajo */

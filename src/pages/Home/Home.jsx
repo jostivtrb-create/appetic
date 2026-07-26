@@ -134,7 +134,7 @@ export default function Home() {
         if (Date.now() - s.ultima < 7 * 86400000) score += 20     // pidió hace poco
       }
       if (distancia != null) score += Math.max(0, 15 - distancia * 3) // cercanía (0–15)
-      score += (Number(l.prioridad) || 0) * 2                     // boost comercial (sutil)
+      // (la prioridad comercial NO va en el score: es una llave de orden absoluta aparte)
       return { ...l, distancia, domi, abierto, nuevo, score }
     })
   }, [locales, coord, señales])
@@ -163,9 +163,14 @@ export default function Home() {
         return enNombre || enDesc || enCats || enEtiquetas
       })
     }
-    // Orden: abiertos primero SIEMPRE (cerrados atenuados al final), luego por puntaje.
+    // Orden: abiertos primero SIEMPRE (cerrados atenuados al final); dentro de cada
+    // grupo, la prioridad comercial manda en ABSOLUTO (el local bandera sale de
+    // primeras siempre, sin marca visible) y luego el puntaje personal.
     return [...base].sort((a, b) => {
       if (a.abierto !== b.abierto) return a.abierto ? -1 : 1
+      const pa = Number(a.prioridad) || 0
+      const pb = Number(b.prioridad) || 0
+      if (pa !== pb) return pb - pa
       return b.score - a.score
     })
   }, [enriquecidos, busqueda, catActiva])
@@ -418,10 +423,10 @@ function CardLocal({ local: l, ubicImprecisa, onAbrir }) {
     </div>
   )
 
-  const badges = (Number(l.prioridad) > 0 || l.nuevo) && (
+  // Sin marca de "Recomendado": la prioridad comercial solo ordena (sutil, no se nota).
+  const badges = l.nuevo && (
     <div className="loc-badges">
-      {Number(l.prioridad) > 0 && <span className="loc-badge loc-badge-reco">⭐ Recomendado</span>}
-      {l.nuevo && <span className="loc-badge loc-badge-nuevo">🆕 Nuevo</span>}
+      <span className="loc-badge loc-badge-nuevo">🆕 Nuevo</span>
     </div>
   )
 
