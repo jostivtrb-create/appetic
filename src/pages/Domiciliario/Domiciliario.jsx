@@ -1,19 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getDomiciliariosGlobal } from '../../services/domiciliarios'
-import { escucharNuevosDomicilios, buscarPedidoGlobalPorCodigo } from '../../services/pedidos'
+import { buscarPedidoGlobalPorCodigo } from '../../services/pedidos'
 import { puedeVerRepartos } from '../../config/roles'
 import { cop } from '../../utils/money'
 import { mapsUrl } from '../../utils/geo'
 import { linkRespuestaCliente } from '../../utils/whatsapp'
 import './Domiciliario.css'
 
-// 🛵 Panel del domiciliario: SOLO un buscador por código. El domiciliario escribe el
-// código que viene en el mensaje de WhatsApp (ej. FT-7K2Q), la app busca el pedido
-// internamente y le muestra el detalle REAL (precio de la base, no del mensaje).
-// Además avisa (sonido + toast + notificación) cuando entra un domicilio nuevo; el
-// toast trae el código listo para buscarlo con un toque.
+// 🛵 Panel del domiciliario: SOLO un buscador por código.
+//
+// El flujo real: el cliente hace el pedido → el LOCAL lo confirma y se lo reenvía por
+// WhatsApp al domiciliario a cargo → el domiciliario copia el código (ej. FT-7K2Q),
+// entra aquí, lo escribe y la app le muestra el pedido completo con el precio REAL
+// de la base (anti-manipulación del mensaje).
+//
+// A propósito NO hay lista ni avisos de pedidos: con varios domiciliarios, cada uno
+// solo ve lo que le reenviaron. Cero lecturas hasta que busca (1 consulta por código).
 
 function horaCorta(ts) {
   try {
@@ -23,7 +27,7 @@ function horaCorta(ts) {
   } catch { return '—' }
 }
 
-// Detalle COMPLETO de un pedido (siempre abierto: es el resultado de la búsqueda).
+// Detalle COMPLETO del pedido (el resultado de la búsqueda, siempre abierto).
 function PedidoDetalle({ pedido }) {
   const c = pedido.cliente || {}
   const localMin = { nombre: pedido.localNombre || '' }
@@ -99,54 +103,9 @@ export default function Domiciliario() {
   const [buscando, setBuscando] = useState(false)
   const [resultado, setResultado] = useState(null) // null = sin búsqueda · [] = no encontrado · [p...]
   const [errBusqueda, setErrBusqueda] = useState(false)
-  const [sonido, setSonido] = useState(true)
-  const [toast, setToast] = useState(null)     // { codigo, local, n }
   const inputRef = useRef(null)
 
   const permitido = user && lista && puedeVerRepartos(user.email, lista)
-
-  // 🔔 Aviso de pedido nuevo: audio (se desbloquea con el primer toque) + Notification.
-  const audioRef = useRef(null)
-  const vistosRef = useRef(new Set())
-  const iniciadoRef = useRef(false)
-  const sonidoRef = useRef(sonido)
-  useEffect(() => { sonidoRef.current = sonido }, [sonido])
-
-  useEffect(() => {
-    function primeAudio() {
-      try {
-        const Ctx = window.AudioContext || window.webkitAudioContext
-        if (!audioRef.current && Ctx) audioRef.current = new Ctx()
-        audioRef.current?.resume?.()
-      } catch { /* nada */ }
-    }
-    window.addEventListener('pointerdown', primeAudio, { once: true })
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().catch(() => {})
-    }
-    return () => window.removeEventListener('pointerdown', primeAudio)
-  }, [])
-
-  function beep() {
-    try {
-      const ctx = audioRef.current
-      if (!ctx) return
-      const o = ctx.createOscillator(); const g = ctx.createGain()
-      o.connect(g); g.connect(ctx.destination)
-      o.type = 'sine'; o.frequency.value = 880
-      g.gain.setValueAtTime(0.0001, ctx.currentTime)
-      g.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.02)
-      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4)
-      o.start(); o.stop(ctx.currentTime + 0.42)
-      const o2 = ctx.createOscillator(); const g2 = ctx.createGain()
-      o2.connect(g2); g2.connect(ctx.destination)
-      o2.type = 'sine'; o2.frequency.value = 1174
-      g2.gain.setValueAtTime(0.0001, ctx.currentTime + 0.18)
-      g2.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.2)
-      g2.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.55)
-      o2.start(); o2.stop(ctx.currentTime + 0.57)
-    } catch { /* nada */ }
-  }
 
   // Cargar la lista global de domiciliarios (para el gate).
   useEffect(() => {
@@ -155,51 +114,18 @@ export default function Domiciliario() {
     return () => { activo = false }
   }, [])
 
-  // Listener MINI solo para avisar de domicilios nuevos (no pinta listas).
-  useEffect(() => {
-    if (!permitido) return
-    const unsub = escucharNuevosDomicilios(arr => {
-      const nuevos = arr.filter(p => !vistosRef.current.has(p.id))
-      arr.forEach(p => vistosRef.current.add(p.id))
-      if (iniciadoRef.current && nuevos.length > 0) {
-        const cod = nuevos[0]?.codigo || ''
-        const loc = nuevos[0]?.localNombre || ''
-        if (sonidoRef.current) beep()
-        setToast({ codigo: cod, local: loc, n: nuevos.length })
-        setTimeout(() => setToast(null), 8000)
-        try {
-          if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
-            const titulo = nuevos.length > 1 ? `${nuevos.length} nuevos domicilios` : `Nuevo domicilio ${cod}`
-            new Notification(titulo, { body: loc ? `Local: ${loc}` : 'Appetic', tag: 'appetic-domi' })
-          }
-        } catch { /* nada */ }
-      }
-      iniciadoRef.current = true
-    })
-    return () => { if (unsub) unsub() }
-  }, [permitido])
-
-  async function buscar(codigoDirecto) {
-    const c = String(codigoDirecto ?? codigo).trim()
+  async function buscar() {
+    const c = codigo.trim()
     if (!c || buscando) return
     setBuscando(true)
     setErrBusqueda(false)
     try {
-      const res = await buscarPedidoGlobalPorCodigo(c)
-      setResultado(res)
+      setResultado(await buscarPedidoGlobalPorCodigo(c))
     } catch {
       setResultado(null)
       setErrBusqueda(true)
     }
     setBuscando(false)
-  }
-
-  // El toast trae el código listo: tocarlo lo busca de una.
-  function buscarDesdeToast() {
-    if (!toast?.codigo) { setToast(null); return }
-    setCodigo(toast.codigo)
-    setToast(null)
-    buscar(toast.codigo)
   }
 
   function limpiar() {
@@ -231,7 +157,7 @@ export default function Domiciliario() {
         <div className="local-msg-emoji">🚫</div>
         <h2>Sin acceso</h2>
         <p><strong>{user.email}</strong> no está en la lista de domiciliarios de Appetic.</p>
-        <p className="do-hint">Pídele al administrador que te agregue desde el panel de superadmin.</p>
+        <p className="do-hint">Pídele al administrador que te agregue.</p>
         <button className="btn btn-ghost" onClick={cerrarSesion}>Cerrar sesión</button>
       </div>
     )
@@ -240,32 +166,20 @@ export default function Domiciliario() {
   // ---------- Panel: SOLO buscador por código ----------
   return (
     <div className="do">
-      {toast && (
-        <button className="do-toast" onClick={buscarDesdeToast}>
-          🔔 {toast.n > 1 ? `${toast.n} nuevos domicilios` : `Nuevo domicilio ${toast.codigo}`}
-          {toast.local ? ` · ${toast.local}` : ''} — toca para verlo
-        </button>
-      )}
-
       <header className="do-top">
         <div>
           <span className="do-eyebrow">🛵 Domiciliarios</span>
           <h1>Buscar pedido</h1>
         </div>
         <div className="do-top-actions">
-          <button
-            className={`do-sonido ${sonido ? 'on' : ''}`}
-            onClick={() => setSonido(s => !s)}
-            aria-label="Sonido de aviso"
-            title="Aviso sonoro de nuevos pedidos"
-          >{sonido ? '🔔' : '🔕'}</button>
           <button className="do-salir" onClick={cerrarSesion}>Salir</button>
         </div>
       </header>
 
       <p className="do-instruccion">
-        Escribe el <strong>código del pedido</strong> (viene en el mensaje de WhatsApp, ej. <strong>FT-7K2Q</strong>)
-        y la app te muestra el domicilio con su <strong>precio real</strong>.
+        Copia el <strong>código del pedido</strong> que te reenviaron por WhatsApp
+        (ej. <strong>FT-7K2Q</strong>), escríbelo aquí y te mostramos el domicilio con su
+        <strong> precio real</strong>.
       </p>
 
       <div className="do-buscador">
@@ -281,7 +195,7 @@ export default function Domiciliario() {
           spellCheck="false"
           autoFocus
         />
-        <button className="do-buscador-btn" onClick={() => buscar()} disabled={!codigo.trim() || buscando}>
+        <button className="do-buscador-btn" onClick={buscar} disabled={!codigo.trim() || buscando}>
           {buscando ? '…' : 'Buscar'}
         </button>
       </div>
@@ -305,13 +219,6 @@ export default function Domiciliario() {
           {resultado.map(p => <PedidoDetalle key={p.id} pedido={p} />)}
           <button className="btn btn-ghost do-otra" onClick={limpiar}>Buscar otro pedido</button>
         </>
-      )}
-
-      {!resultado && !errBusqueda && (
-        <div className="do-espera">
-          <span className="do-espera-emoji">🛵</span>
-          <p>Cuando entre un domicilio nuevo te avisamos aquí con su código.</p>
-        </div>
       )}
     </div>
   )

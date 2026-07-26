@@ -1,6 +1,6 @@
 import {
   collection, collectionGroup, addDoc, serverTimestamp, Timestamp,
-  query, orderBy, limit, where, getDocs, onSnapshot,
+  query, limit, where, getDocs,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { registrarPedidoStats } from './stats'
@@ -65,28 +65,6 @@ export async function crearPedido(local, pedido, codigo) {
     console.warn('No se pudo guardar el pedido:', err?.code || err)
     return false
   }
-}
-
-// 🔔 GLOBAL (solo para AVISAR): escucha los últimos pedidos para detectar cuando entra
-// un DOMICILIO nuevo y sonar/notificar en el panel del domiciliario. NO alimenta ninguna
-// lista (el panel es solo buscador por código): por eso el límite es pequeño y barato.
-export function escucharNuevosDomicilios(cb, onError) {
-  const q = query(collectionGroup(db, 'pedidos'), orderBy('createdAt', 'desc'), limit(20))
-  const desde = Date.now() - DIAS_VIDA * 86400000
-  return onSnapshot(
-    q,
-    snap => {
-      const arr = snap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(p => p.entrega === 'domicilio')
-        .filter(p => {
-          const ms = p.createdAt?.toMillis ? p.createdAt.toMillis() : Date.now()
-          return ms >= desde
-        })
-      cb(arr)
-    },
-    err => { console.warn('pedidos snapshot:', err?.code || err); onError?.(err) },
-  )
 }
 
 // 🔎 GLOBAL: busca un pedido por CÓDIGO en todos los locales. Igualdad sobre campo
