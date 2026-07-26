@@ -298,22 +298,23 @@ export default function Home() {
 
         {estado === 'ok' && (
           <>
-            {/* ① Categorías (solo las que tienen locales activos) */}
-            {categoriasVisibles.length > 0 && (
-              <div className="home-cats" role="tablist" aria-label="Categorías">
-                {categoriasVisibles.map(c => (
-                  <button
-                    key={c.id}
-                    role="tab"
-                    aria-selected={catActiva === c.id}
-                    className={`home-cat ${catActiva === c.id ? 'on' : ''}`}
-                    onClick={() => setCatActiva(catActiva === c.id ? null : c.id)}
-                  >
-                    <span className="home-cat-emoji">{c.emoji}</span>
-                    <span className="home-cat-nombre">{c.nombre}</span>
-                  </button>
-                ))}
-              </div>
+            {/* ① Fila de locales — squircles con scroll infinito */}
+            {sinFiltros && enriquecidos.length > 1 && (
+              <section className="home-sec">
+                <h2 className="home-sec-title">Locales</h2>
+                <div className="home-fila" ref={filaRef} onScroll={onScrollFila}>
+                  {filaLocales.items.map((l, i) => (
+                    <button key={`${l.id}-${i}`} className="fila-local" onClick={() => abrirLocal(l)}>
+                      <span className={`fila-avatar ${!l.abierto ? 'off' : ''}`}>
+                        {(l.icono || l.logo)
+                          ? <img src={l.icono || l.logo} alt={l.nombre} loading="lazy" />
+                          : <span className="fila-emoji">🍽️</span>}
+                      </span>
+                      <span className="fila-nombre">{l.nombre}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
             )}
 
             {/* ② Para antojarte — platos fuertes con foto, rotación diaria */}
@@ -348,23 +349,22 @@ export default function Home() {
               </section>
             )}
 
-            {/* ③ Fila de locales — squircles con scroll infinito */}
-            {sinFiltros && enriquecidos.length > 1 && (
-              <section className="home-sec">
-                <h2 className="home-sec-title">Locales</h2>
-                <div className="home-fila" ref={filaRef} onScroll={onScrollFila}>
-                  {filaLocales.items.map((l, i) => (
-                    <button key={`${l.id}-${i}`} className="fila-local" onClick={() => abrirLocal(l)}>
-                      <span className={`fila-avatar ${!l.abierto ? 'off' : ''}`}>
-                        {(l.icono || l.logo)
-                          ? <img src={l.icono || l.logo} alt={l.nombre} loading="lazy" />
-                          : <span className="fila-emoji">🍽️</span>}
-                      </span>
-                      <span className="fila-nombre">{l.nombre}</span>
-                    </button>
-                  ))}
-                </div>
-              </section>
+            {/* ③ Categorías (solo las que tienen locales activos) — justo encima del listado que filtran */}
+            {categoriasVisibles.length > 0 && (
+              <div className="home-cats" role="tablist" aria-label="Categorías">
+                {categoriasVisibles.map(c => (
+                  <button
+                    key={c.id}
+                    role="tab"
+                    aria-selected={catActiva === c.id}
+                    className={`home-cat ${catActiva === c.id ? 'on' : ''}`}
+                    onClick={() => setCatActiva(catActiva === c.id ? null : c.id)}
+                  >
+                    <span className="home-cat-emoji">{c.emoji}</span>
+                    <span className="home-cat-nombre">{c.nombre}</span>
+                  </button>
+                ))}
+              </div>
             )}
 
             {/* ④ Listado inteligente */}
