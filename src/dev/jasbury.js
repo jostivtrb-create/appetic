@@ -85,6 +85,8 @@ export const JASBURY_LOCAL = {
     { id: 'adiciones', nombre: 'Adiciones', emoji: '➕' },
     { id: 'bebidas', nombre: 'Bebidas', emoji: '🥤' },
   ],
+  // 🗂️ Etiquetas del INICIO (chips de categorías, catálogo en src/config/categoriasLocales.js).
+  etiquetas: ['hamburguesas', 'perros', 'comida-rapida'],
   admins: [ADMIN_EMAIL],
   // activa:false → NO sale todavía en el buscador del inicio. Se enciende desde el panel de
   // superadmin cuando el local ya tenga su WhatsApp real y el dueño dé el visto bueno (si saliera

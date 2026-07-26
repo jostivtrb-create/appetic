@@ -62,6 +62,22 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
     }
   }, [])
 
+  // 😋 Deep-link desde el INICIO: /<slug>?producto=<id> abre ese producto con su
+  // modal listo para "Agregar" (viene de la franja "Para antojarte"). Si el producto
+  // ya no existe o está agotado, se ignora con gracia. La URL se limpia después
+  // para que un refresco no lo reabra.
+  useEffect(() => {
+    const u = new URL(window.location.href)
+    const pid = u.searchParams.get('producto')
+    if (!pid) return
+    const p = productos.find(x => x.id === pid)
+    if (p && p.disponible !== false) setModalProducto(p)
+    u.searchParams.delete('producto')
+    window.history.replaceState(window.history.state, '', u.pathname + u.search)
+    // Solo al montar: el deep-link es de la navegación inicial.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // 🔒 Con cualquier popup abierto (detalle de producto, carrito o checkout),
   // se congela el fondo para que no se siga deslizando por detrás.
   useBloquearScroll(Boolean(modalProducto) || drawerAbierto || checkoutAbierto)

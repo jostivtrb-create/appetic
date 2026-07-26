@@ -39,3 +39,20 @@ export async function getPreviewLocal(slug) {
   }
   return null
 }
+
+// 👀 Vista previa del INICIO (/?preview=1): arma el buscador desde el código, sin
+// base de datos — para revisar el diseño del inicio antes de re-sembrar. Calcula
+// destacadosHome al vuelo con el mismo helper de los seeds/panel (fuente única).
+const PREVIEW_SLUGS = [
+  'perros-criollos', 'sabor-del-dia', 'pilotos', 'juance', 'jasbury',
+  'fruti-tentacion', 'la-comarca',
+]
+export async function getPreviewLocales() {
+  const { computeDestacadosHome } = await import('./utils/destacadosHome')
+  const out = []
+  for (const slug of PREVIEW_SLUGS) {
+    const r = await getPreviewLocal(slug)
+    if (r) out.push({ ...r.local, destacadosHome: computeDestacadosHome(r.productos) })
+  }
+  return out
+}

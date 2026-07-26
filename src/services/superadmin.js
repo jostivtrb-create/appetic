@@ -20,3 +20,15 @@ export async function setAdminEmail(localId, email) {
   const correo = String(email || '').trim().toLowerCase()
   await updateDoc(doc(db, 'locales', localId), { admins: [correo] })
 }
+
+// 🗂️ Etiquetas del local para los chips del INICIO (ids del catálogo curado
+// en src/config/categoriasLocales.js). Solo el superadmin las cambia.
+export async function setEtiquetas(localId, etiquetas) {
+  await updateDoc(doc(db, 'locales', localId), { etiquetas: etiquetas || [] })
+}
+
+// ⭐ Prioridad comercial: el local con prioridad > 0 aparece arriba del listado
+// del inicio con el badge "Recomendado" (el boost sutil del local bandera).
+export async function setPrioridad(localId, prioridad) {
+  await updateDoc(doc(db, 'locales', localId), { prioridad: Number(prioridad) || 0 })
+}

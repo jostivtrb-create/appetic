@@ -80,6 +80,14 @@ export const [[CONST]]_LOCAL = {
     // ...
   ],
 
+  // 🗂️ Etiquetas del INICIO: clasifican el local en los chips de categorías del buscador.
+  //    Elige 1–3 del catálogo CURADO en src/config/categoriasLocales.js (ids exactos, ej.
+  //    'hamburguesas', 'perros', 'pizza', 'almuerzos', 'pollo', 'asados', 'mexicana',
+  //    'postres', 'pasabocas', 'bebidas', 'cafe', 'comida-rapida'). NO inventes ids nuevos:
+  //    si falta una categoría, se agrega al catálogo (1 línea) y luego se usa aquí.
+  etiquetas: [[[ETIQUETAS]]],
+  // ⭐ prioridad: (opcional) NO la pongas — es el boost comercial del inicio y lo maneja
+  //    el superadmin (solo el local bandera la tiene).
   admins: [ADMIN_EMAIL],
   suscripcion: { activa: true, plan: 'piloto' },  // activa:true → aparece en el buscador del inicio
   menuVersion: 1,  // súbelo (2, 3…) cada vez que cambies la CARTA FIJA para invalidar la caché del cliente

@@ -8,9 +8,10 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { initializeApp, cert } from 'firebase-admin/app'
-import { getFirestore } from 'firebase-admin/firestore'
+import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { guardSeed } from './_seed-guard.mjs'
 import { SLUG, ADMIN_EMAIL, SABOR_LOCAL, SABOR_PRODUCTOS } from '../src/dev/saborDelDia.js'
+import { computeDestacadosHome } from '../src/utils/destacadosHome.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const serviceAccount = JSON.parse(readFileSync(join(__dirname, 'serviceAccount.json'), 'utf8'))
@@ -37,6 +38,11 @@ async function run() {
       if (data[campo]) delete localData[campo]
     }
   }
+
+  // 😋 Resumen de 'Nuestro fuerte' para el INICIO (destacados con foto, se recalcula en cada seed).
+  localData.destacadosHome = computeDestacadosHome(SABOR_PRODUCTOS)
+  // 🆕 Fecha de alta: solo la primera vez (el badge 'Nuevo' del inicio dura 14 dias).
+  if (!prev.exists) localData.creadoEn = FieldValue.serverTimestamp()
 
   await localRef.set(localData, { merge: true })
   console.log(`✓ Local ${prev.exists ? 'actualizado' : 'creado'}: locales/${SLUG} (${SABOR_LOCAL.nombre})`)

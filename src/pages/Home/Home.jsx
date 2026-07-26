@@ -1,27 +1,66 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import logo from '../../assets/appetic-logo.png'
 import { getLocalesExplorador, getLocalesDeAdmin } from '../../services/locales'
+import { getHistorial } from '../../services/historial'
+import { CATEGORIAS_LOCALES } from '../../config/categoriasLocales'
 import { estaAbierto } from '../../utils/horario'
 import { distanciaKm } from '../../utils/geo'
 import { costoDomicilio } from '../../utils/delivery'
 import { cop } from '../../utils/money'
 import { useAuth } from '../../contexts/AuthContext'
+import { useFavoritos } from '../../contexts/FavoritosContext'
 import { useNavUI } from '../../contexts/NavUIContext'
 import './Home.css'
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 🎲 Rotación DIARIA sin backend: barajamos con la fecha como semilla. El mismo
+// día todos ven el mismo orden (estable), y al día siguiente cambia solo.
+function semillaDelDia(extra = '') {
+  const hoy = new Date()
+  const s = `${hoy.getFullYear()}-${hoy.getMonth()}-${hoy.getDate()}-${extra}`
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0
+  return h
+}
+function barajarConSemilla(arr, semilla) {
+  const a = [...arr]
+  let s = semilla || 1
+  for (let i = a.length - 1; i > 0; i--) {
+    // mulberry32 compacto
+    s = (s + 0x6D2B79F5) >>> 0
+    let t = s
+    t = Math.imul(t ^ (t >>> 15), t | 1)
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+    const r = ((t ^ (t >>> 14)) >>> 0) / 4294967296
+    const j = Math.floor(r * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+// 🆕 ¿El local llegó hace menos de 14 días? (creadoEn lo pone el seed al crear)
+function esNuevo(creadoEn) {
+  try {
+    const ms = creadoEn?.toMillis ? creadoEn.toMillis() : (creadoEn?.seconds ? creadoEn.seconds * 1000 : null)
+    if (!ms) return false
+    return Date.now() - ms < 14 * 86400000
+  } catch { return false }
+}
+
 export default function Home() {
   const { user, cargando: authCargando } = useAuth()
+  const { favoritos } = useFavoritos()
   const { irAOtroLocal } = useNavUI()
   const navigate = useNavigate()
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [locales, setLocales] = useState([])
   const [busqueda, setBusqueda] = useState('')
+  const [catActiva, setCatActiva] = useState(null) // id de etiqueta o null
   const [coord, setCoord] = useState(null)
   const [ubic, setUbic] = useState('idle') // idle | cargando | ok | error
   const [avatarFallo, setAvatarFallo] = useState(false)
-  // 🔑 El dueño de un local NO ve el inicio: apenas entra va directo a su panel
-  // (si administra uno) o a su perfil para elegir (si administra varios).
+  // 🔑 El dueño de un local NO ve el inicio: apenas entra va directo a su panel.
   const [verificandoAdmin, setVerificandoAdmin] = useState(true)
 
   useEffect(() => {
@@ -33,19 +72,26 @@ export default function Home() {
         if (!activo) return
         if (admin.length === 1) { navigate(`/${admin[0].slug}/admin/catalogo`, { replace: true }); return }
         if (admin.length > 1) { navigate('/cuenta', { replace: true }); return }
-        setVerificandoAdmin(false) // no administra locales: cliente normal
+        setVerificandoAdmin(false)
       })
       .catch(() => { if (activo) setVerificandoAdmin(false) })
     return () => { activo = false }
   }, [user, authCargando, navigate])
 
+  // 👀 /?preview=1 arma el inicio desde el código (sin base de datos): para revisar
+  // el diseño antes de sembrar, igual que el ?preview=1 de los menús.
+  const enPreview = useMemo(() => new URLSearchParams(window.location.search).has('preview'), [])
+
   useEffect(() => {
     let activo = true
-    getLocalesExplorador()
+    const cargar = enPreview
+      ? import('../../preview').then(m => m.getPreviewLocales())
+      : getLocalesExplorador()
+    cargar
       .then(ls => { if (activo) { setLocales(ls); setEstado('ok') } })
       .catch(() => { if (activo) setEstado('error') })
     return () => { activo = false }
-  }, [])
+  }, [enPreview])
 
   function usarMiUbicacion() {
     if (!navigator.geolocation) { setUbic('error'); return }
@@ -57,35 +103,128 @@ export default function Home() {
     )
   }
 
-  const filtrados = useMemo(() => {
-    const q = busqueda.trim().toLowerCase()
-    const base = !q ? locales : locales.filter(l => {
-      const enNombre = l.nombre?.toLowerCase().includes(q)
-      const enDesc = l.descripcion?.toLowerCase().includes(q)
-      const enCats = (l.categorias || []).some(c => c.nombre?.toLowerCase().includes(q))
-      return enNombre || enDesc || enCats
-    })
-    // Distancia + costo de domicilio + orden por cercanía si compartió ubicación.
-    const conDist = base.map(l => {
+  // 🧾 Señales personales (0 lecturas: historial del dispositivo + favoritos ya en memoria).
+  const señales = useMemo(() => {
+    const hist = getHistorial()
+    const porSlug = {}
+    for (const h of hist) {
+      if (!h.localSlug) continue
+      const s = porSlug[h.localSlug] || { veces: 0, ultima: 0 }
+      s.veces += 1
+      s.ultima = Math.max(s.ultima, h.fecha || 0)
+      porSlug[h.localSlug] = s
+    }
+    const favIds = new Set((favoritos || []).map(f => f.id))
+    return { porSlug, favIds }
+  }, [favoritos])
+
+  // Distancia + domicilio + abierto + puntaje de TODOS los locales (una sola pasada).
+  const enriquecidos = useMemo(() => {
+    return locales.map(l => {
       const distancia = coord ? distanciaKm(l.ubicacion, coord) : null
       const domi = coord ? costoDomicilio(distancia, l.domicilio) : null
-      return { ...l, distancia, domi }
+      const abierto = estaAbierto(l.horario)
+      const nuevo = esNuevo(l.creadoEn)
+      // 🧠 Puntaje personal: favorito > pedidos previos > cercanía > prioridad comercial.
+      const s = señales.porSlug[l.slug]
+      let score = 0
+      if (señales.favIds.has(l.id)) score += 50
+      if (s) {
+        score += Math.min(s.veces, 3) * 20                       // frecuencia (tope 60)
+        if (Date.now() - s.ultima < 7 * 86400000) score += 20     // pidió hace poco
+      }
+      if (distancia != null) score += Math.max(0, 15 - distancia * 3) // cercanía (0–15)
+      score += (Number(l.prioridad) || 0) * 2                     // boost comercial (sutil)
+      return { ...l, distancia, domi, abierto, nuevo, score }
     })
-    if (!coord) return conDist
-    return conDist.sort((a, b) => {
-      if (a.distancia == null) return 1
-      if (b.distancia == null) return -1
-      return a.distancia - b.distancia
-    })
-  }, [locales, busqueda, coord])
+  }, [locales, coord, señales])
 
-  // Precisión de la ubicación: en el celular el GPS da metros; en el PC (red/IP)
-  // suele dar miles de metros. Si es imprecisa, marcamos todo como aproximado y
-  // no afirmamos cobertura (podría estar mal). Umbral: 700 m.
+  // 🗂️ Chips: solo categorías del catálogo con al menos un local activo.
+  const categoriasVisibles = useMemo(() => {
+    const usadas = new Set()
+    for (const l of locales) for (const e of l.etiquetas || []) usadas.add(e)
+    return CATEGORIAS_LOCALES.filter(c => usadas.has(c.id))
+  }, [locales])
+
+  // Filtro por categoría + búsqueda de texto (nombre, descripción, categorías del menú y etiquetas).
+  const filtrados = useMemo(() => {
+    const q = busqueda.trim().toLowerCase()
+    let base = enriquecidos
+    if (catActiva) base = base.filter(l => (l.etiquetas || []).includes(catActiva))
+    if (q) {
+      base = base.filter(l => {
+        const enNombre = l.nombre?.toLowerCase().includes(q)
+        const enDesc = l.descripcion?.toLowerCase().includes(q)
+        const enCats = (l.categorias || []).some(c => c.nombre?.toLowerCase().includes(q))
+        const enEtiquetas = (l.etiquetas || []).some(id => {
+          const cat = CATEGORIAS_LOCALES.find(c => c.id === id)
+          return cat?.nombre.toLowerCase().includes(q)
+        })
+        return enNombre || enDesc || enCats || enEtiquetas
+      })
+    }
+    // Orden: abiertos primero SIEMPRE (cerrados atenuados al final), luego por puntaje.
+    return [...base].sort((a, b) => {
+      if (a.abierto !== b.abierto) return a.abierto ? -1 : 1
+      return b.score - a.score
+    })
+  }, [enriquecidos, busqueda, catActiva])
+
+  // 😋 "Para antojarte": máx 2 fuertes CON foto por local, rotados a diario,
+  // los de locales con prioridad primero. Respeta el filtro de categoría.
+  const antojos = useMemo(() => {
+    const fuente = catActiva
+      ? enriquecidos.filter(l => (l.etiquetas || []).includes(catActiva))
+      : enriquecidos
+    const platos = []
+    for (const l of fuente) {
+      const lista = (l.destacadosHome || []).filter(p => p.foto)
+      if (!lista.length) continue
+      const dos = barajarConSemilla(lista, semillaDelDia(l.id)).slice(0, 2)
+      for (const p of dos) {
+        platos.push({ ...p, local: l })
+      }
+    }
+    const orden = barajarConSemilla(platos, semillaDelDia('antojos'))
+    // Prioridad comercial adelante (estable dentro de cada grupo por el shuffle diario).
+    orden.sort((a, b) => (Number(b.local.prioridad) || 0) - (Number(a.local.prioridad) || 0))
+    return orden.slice(0, 12)
+  }, [enriquecidos, catActiva])
+
+  // ♾️ Fila de locales (squircles) con scroll infinito: repetimos la lista y al
+  // acercarse a un borde saltamos un "segmento" (invisible para el usuario).
+  const filaRef = useRef(null)
+  const filaLocales = useMemo(() => {
+    if (enriquecidos.length < 2) return { items: enriquecidos, copias: 1 }
+    let copias = 3
+    while (enriquecidos.length * copias < 15) copias += 1
+    return { items: Array.from({ length: copias }, () => enriquecidos).flat(), copias }
+  }, [enriquecidos])
+  function onScrollFila() {
+    const el = filaRef.current
+    if (!el || filaLocales.copias < 2) return
+    const seg = el.scrollWidth / filaLocales.copias
+    if (el.scrollLeft < seg * 0.5) el.scrollLeft += seg
+    else if (el.scrollLeft > seg * (filaLocales.copias - 1)) el.scrollLeft -= seg
+  }
+  // Arranca en el segmento del medio para poder desplazarse hacia ambos lados.
+  useEffect(() => {
+    const el = filaRef.current
+    if (el && filaLocales.copias >= 2) el.scrollLeft = el.scrollWidth / filaLocales.copias
+  }, [filaLocales])
+
+  function abrirLocal(l, extra = '') {
+    // En preview, el menú destino también se abre en preview (flujo completo sin datos).
+    const params = new URLSearchParams(extra.startsWith('?') ? extra.slice(1) : extra)
+    if (enPreview) params.set('preview', '1')
+    const qs = params.toString()
+    irAOtroLocal(l.slug, () => navigate(`/${l.slug}${qs ? `?${qs}` : ''}`))
+  }
+
   const ubicImprecisa = coord?.accuracy != null && coord.accuracy > 700
+  const buscando = busqueda.trim().length > 0
+  const sinFiltros = !buscando && !catActiva
 
-  // Mientras se resuelve la sesión / se verifica si es dueño, no mostramos el
-  // inicio (evita el parpadeo del explorador antes de redirigir al panel).
   if (authCargando || verificandoAdmin) {
     return <div className="local-loading"><div className="local-spinner" /><p>Cargando…</p></div>
   }
@@ -111,15 +250,15 @@ export default function Home() {
 
       <main className="home-content">
         <h1 className="home-title">El menú de tu barrio</h1>
-        <p className="home-tagline">Descubre dónde comer cerca y pide en segundos.</p>
 
         <div className="home-search">
           <span className="home-search-icon">🔎</span>
           <input
-            placeholder="Busca un local o un antojo (ej: hamburguesa)"
+            placeholder="Busca un antojo o un local…"
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
           />
+          {buscando && <button className="home-search-x" onClick={() => setBusqueda('')} aria-label="Limpiar">✕</button>}
         </div>
 
         <button
@@ -133,78 +272,109 @@ export default function Home() {
             : ubic === 'error' ? 'No pudimos ubicarte · reintentar'
             : 'Toca aquí y mira cuánto vale el domicilio'}</span>
         </button>
-
         {ubic === 'ok' && ubicImprecisa && (
-          <p className="home-ubic-nota">
-            📍 Ubicación aproximada. Para la distancia y el domicilio exactos, ábrelo desde el celular.
-          </p>
+          <p className="home-ubic-nota">📍 Ubicación aproximada. Para el domicilio exacto, ábrelo desde el celular.</p>
         )}
 
         {estado === 'cargando' && (
-          <div className="home-skeletons">
-            {[0, 1, 2].map(i => <div key={i} className="home-skel" />)}
-          </div>
+          <div className="home-skeletons">{[0, 1, 2].map(i => <div key={i} className="home-skel" />)}</div>
         )}
-
         {estado === 'error' && (
-          <div className="home-empty">
-            <span className="home-empty-emoji">📡</span>
-            <p>No pudimos cargar los locales. Revisa tu conexión.</p>
-          </div>
+          <div className="home-empty"><span className="home-empty-emoji">📡</span><p>No pudimos cargar los locales. Revisa tu conexión.</p></div>
         )}
 
-        {estado === 'ok' && filtrados.length === 0 && (
-          <div className="home-empty">
-            <span className="home-empty-emoji">🍔</span>
-            <p>{busqueda
-              ? 'Ningún local coincide con tu búsqueda.'
-              : 'Pronto vas a descubrir aquí todos los locales del barrio.'}</p>
-            <span className="home-empty-hint">¿Tienes el link de un negocio? Ábrelo para ver su menú.</span>
-          </div>
-        )}
-
-        {estado === 'ok' && filtrados.length > 0 && (
-          <ul className="home-locales">
-            {filtrados.map(l => {
-              const abierto = estaAbierto(l.horario)
-              return (
-                <li key={l.id}>
-                  <Link
-                    to={`/${l.slug}`}
-                    className="loc-card"
-                    onClick={e => { e.preventDefault(); irAOtroLocal(l.slug, () => navigate(`/${l.slug}`)) }}
+        {estado === 'ok' && (
+          <>
+            {/* ① Categorías (solo las que tienen locales activos) */}
+            {categoriasVisibles.length > 0 && (
+              <div className="home-cats" role="tablist" aria-label="Categorías">
+                {categoriasVisibles.map(c => (
+                  <button
+                    key={c.id}
+                    role="tab"
+                    aria-selected={catActiva === c.id}
+                    className={`home-cat ${catActiva === c.id ? 'on' : ''}`}
+                    onClick={() => setCatActiva(catActiva === c.id ? null : c.id)}
                   >
-                    <div className="loc-card-img">
-                      {(l.icono || l.logo)
-                        ? <img src={l.icono || l.logo} alt={l.nombre} loading="lazy" />
-                        : <span>🍽️</span>}
-                    </div>
-                    <div className="loc-card-info">
-                      <h3>{l.nombre}</h3>
-                      {l.descripcion && <p>{l.descripcion}</p>}
-                      <div className="loc-chips">
-                        <span className={`loc-chip ${abierto ? 'on' : 'off'}`}>
-                          {abierto ? 'Abierto ahora' : 'Cerrado'}
-                        </span>
-                        {l.distancia != null && (
-                          <span className="loc-chip dist">{ubicImprecisa ? '~' : 'a '}{l.distancia.toFixed(1)} km</span>
+                    <span className="home-cat-emoji">{c.emoji}</span>
+                    <span className="home-cat-nombre">{c.nombre}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* ② Para antojarte — platos fuertes con foto, rotación diaria */}
+            {!buscando && antojos.length > 0 && (
+              <section className="home-sec">
+                <h2 className="home-sec-title">Para antojarte 😋</h2>
+                <div className="home-antojos">
+                  {antojos.map(p => (
+                    <button
+                      key={`${p.local.id}-${p.id}`}
+                      className="antojo-card"
+                      onClick={() => abrirLocal(p.local, `?producto=${encodeURIComponent(p.id)}`)}
+                    >
+                      <div className="antojo-media">
+                        <img src={p.foto} alt={p.nombre} loading="lazy" />
+                        {(p.local.icono || p.local.logo) && (
+                          <img className="antojo-logo" src={p.local.icono || p.local.logo} alt={p.local.nombre} loading="lazy" />
                         )}
-                        {l.domi?.ok && (
-                          <span className="loc-chip envio">🛵 Domicilio {ubicImprecisa ? '~' : ''}{cop(l.domi.costo)}</span>
-                        )}
-                        {!ubicImprecisa && l.domi && !l.domi.ok && l.domi.motivo === 'fuera-cobertura' && (
-                          <span className="loc-chip envio-off">🛵 Fuera de cobertura</span>
-                        )}
-                        {!ubicImprecisa && l.domi && !l.domi.ok && l.domi.motivo === 'sin-tarifa' && (
-                          <span className="loc-chip envio">🛵 Domicilio a convenir</span>
-                        )}
+                        {!p.local.abierto && <span className="antojo-cerrado">Cerrado</span>}
                       </div>
-                    </div>
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
+                      <div className="antojo-info">
+                        <strong className="antojo-nombre">{p.nombre}</strong>
+                        <span className="antojo-precio">{p.desde ? 'desde ' : ''}{cop(p.precio)}</span>
+                        <span className="antojo-local">{p.local.nombre}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ③ Fila de locales — squircles con scroll infinito */}
+            {sinFiltros && enriquecidos.length > 1 && (
+              <section className="home-sec">
+                <h2 className="home-sec-title">Locales</h2>
+                <div className="home-fila" ref={filaRef} onScroll={onScrollFila}>
+                  {filaLocales.items.map((l, i) => (
+                    <button key={`${l.id}-${i}`} className="fila-local" onClick={() => abrirLocal(l)}>
+                      <span className={`fila-avatar ${!l.abierto ? 'off' : ''}`}>
+                        {(l.icono || l.logo)
+                          ? <img src={l.icono || l.logo} alt={l.nombre} loading="lazy" />
+                          : <span className="fila-emoji">🍽️</span>}
+                      </span>
+                      <span className="fila-nombre">{l.nombre}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ④ Listado inteligente */}
+            {filtrados.length === 0 ? (
+              <div className="home-empty">
+                <span className="home-empty-emoji">🍔</span>
+                <p>{buscando || catActiva
+                  ? 'Ningún local coincide con tu búsqueda.'
+                  : 'Pronto vas a descubrir aquí todos los locales del barrio.'}</p>
+                {(buscando || catActiva) && (
+                  <button className="btn btn-ghost" onClick={() => { setBusqueda(''); setCatActiva(null) }}>Quitar filtros</button>
+                )}
+              </div>
+            ) : (
+              <section className="home-sec">
+                <h2 className="home-sec-title">
+                  {catActiva
+                    ? `${CATEGORIAS_LOCALES.find(c => c.id === catActiva)?.emoji} ${CATEGORIAS_LOCALES.find(c => c.id === catActiva)?.nombre}`
+                    : buscando ? 'Resultados' : 'Todos los locales'}
+                </h2>
+                <ul className="home-locales">
+                  {filtrados.map(l => <CardLocal key={l.id} local={l} ubicImprecisa={ubicImprecisa} onAbrir={() => abrirLocal(l)} />)}
+                </ul>
+              </section>
+            )}
+          </>
         )}
       </main>
 
@@ -215,7 +385,80 @@ export default function Home() {
   )
 }
 
-// 📍 Pin de ubicación (trazo, hereda el color del botón — mismo lenguaje que la barra inferior).
+// ─────────────────────────────────────────────────────────────────────────────
+// 🍽️ Card del listado: la COMIDA primero (banner o su mejor plato con foto) y el
+// logo pequeño en la esquina. Si el local no tiene ninguna foto rica, cae con
+// gracia a la card compacta (logo + info). Cerrados: atenuados.
+function CardLocal({ local: l, ubicImprecisa, onAbrir }) {
+  // Foto grande: banner del local, o el plato fuerte del día (rota con la semilla).
+  const fotoComida = useMemo(() => {
+    if (l.banner) return l.banner
+    const conFoto = (l.destacadosHome || []).filter(p => p.foto)
+    if (!conFoto.length) return null
+    return barajarConSemilla(conFoto, semillaDelDia(`card-${l.id}`))[0].foto
+  }, [l])
+
+  const chips = (
+    <div className="loc-chips">
+      <span className={`loc-chip ${l.abierto ? 'on' : 'off'}`}>{l.abierto ? 'Abierto ahora' : 'Cerrado'}</span>
+      {l.distancia != null && (
+        <span className="loc-chip dist">{ubicImprecisa ? '~' : 'a '}{l.distancia.toFixed(1)} km</span>
+      )}
+      {l.domi?.ok && <span className="loc-chip envio">🛵 Domicilio {ubicImprecisa ? '~' : ''}{cop(l.domi.costo)}</span>}
+      {!ubicImprecisa && l.domi && !l.domi.ok && l.domi.motivo === 'fuera-cobertura' && (
+        <span className="loc-chip envio-off">🛵 Fuera de cobertura</span>
+      )}
+      {!ubicImprecisa && l.domi && !l.domi.ok && l.domi.motivo === 'sin-tarifa' && (
+        <span className="loc-chip envio">🛵 Domicilio a convenir</span>
+      )}
+    </div>
+  )
+
+  const badges = (Number(l.prioridad) > 0 || l.nuevo) && (
+    <div className="loc-badges">
+      {Number(l.prioridad) > 0 && <span className="loc-badge loc-badge-reco">⭐ Recomendado</span>}
+      {l.nuevo && <span className="loc-badge loc-badge-nuevo">🆕 Nuevo</span>}
+    </div>
+  )
+
+  if (!fotoComida) {
+    // Fallback compacto (sin foto de comida todavía)
+    return (
+      <li>
+        <button className={`loc-card ${!l.abierto ? 'loc-card--cerrado' : ''}`} onClick={onAbrir}>
+          <div className="loc-card-img">
+            {(l.icono || l.logo) ? <img src={l.icono || l.logo} alt={l.nombre} loading="lazy" /> : <span>🍽️</span>}
+          </div>
+          <div className="loc-card-info">
+            {badges}
+            <h3>{l.nombre}</h3>
+            {l.descripcion && <p>{l.descripcion}</p>}
+            {chips}
+          </div>
+        </button>
+      </li>
+    )
+  }
+
+  return (
+    <li>
+      <button className={`loc-cardf ${!l.abierto ? 'loc-card--cerrado' : ''}`} onClick={onAbrir}>
+        <div className="loc-cardf-media">
+          <img className="loc-cardf-foto" src={fotoComida} alt="" loading="lazy" />
+          {(l.icono || l.logo) && <img className="loc-cardf-logo" src={l.icono || l.logo} alt={l.nombre} loading="lazy" />}
+          {badges}
+        </div>
+        <div className="loc-cardf-info">
+          <h3>{l.nombre}</h3>
+          {l.descripcion && <p>{l.descripcion}</p>}
+          {chips}
+        </div>
+      </button>
+    </li>
+  )
+}
+
+// 📍 Pin de ubicación (trazo, hereda el color del botón).
 function IconPin() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" aria-hidden="true">

@@ -57,6 +57,8 @@ export const SABOR_LOCAL = {
     { id: 'postres', nombre: 'Postres', emoji: '🍮' },
     { id: 'adicionales', nombre: 'Adicionales', emoji: '➕' },
   ],
+  // 🗂️ Etiquetas del INICIO (chips de categorías, catálogo en src/config/categoriasLocales.js).
+  etiquetas: ['almuerzos'],
   admins: [ADMIN_EMAIL],
   // Suscripción (Capa 2): visible en el buscador del inicio. Se controla en /superadmin.
   suscripcion: { activa: true, plan: 'piloto' },

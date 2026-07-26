@@ -67,6 +67,8 @@ export const FRUTI_LOCAL = {
     { id: 'saladines', nombre: 'Saladines', emoji: '🥪' },
     { id: 'adicionales', nombre: 'Adicionales', emoji: '➕' },
   ],
+  // 🗂️ Etiquetas del INICIO (chips de categorías, catálogo en src/config/categoriasLocales.js).
+  etiquetas: ['postres', 'bebidas'],
   admins: [ADMIN_EMAIL],
   // activa:false → NO sale todavía en el buscador del inicio. Se enciende desde /superadmin cuando el
   // local tenga su WhatsApp real (si saliera ahora, un cliente pediría y el pedido llegaría al número

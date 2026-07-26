@@ -2,9 +2,77 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
-import { listarTodosLocales, setSuscripcion, setAdminEmail } from '../../services/superadmin'
+import { listarTodosLocales, setSuscripcion, setAdminEmail, setEtiquetas, setPrioridad } from '../../services/superadmin'
 import { getDomiciliariosGlobal, setDomiciliariosGlobal } from '../../services/domiciliarios'
+import { CATEGORIAS_LOCALES } from '../../config/categoriasLocales'
 import './Superadmin.css'
+
+// 🗂️ Editor de ETIQUETAS (chips del inicio) + ⭐ prioridad de un local.
+// Etiquetas: toggle sobre el catálogo curado, guarda al tocar (optimista).
+// Prioridad: el boost sutil del inicio (badge "Recomendado"); normalmente solo
+// el local bandera la tiene (10). Se edita aquí para no tocar código.
+function EtiquetasEditor({ local, onChange }) {
+  const [abierto, setAbierto] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const etiquetas = local.etiquetas || []
+  const prioridad = Number(local.prioridad) || 0
+
+  async function toggle(id) {
+    const next = etiquetas.includes(id) ? etiquetas.filter(x => x !== id) : [...etiquetas, id]
+    setGuardando(true)
+    onChange({ etiquetas: next }) // optimista
+    try { await setEtiquetas(local.id, next) } catch { onChange({ etiquetas }) }
+    setGuardando(false)
+  }
+  async function cambiarPrioridad(next) {
+    const n = Math.max(0, next)
+    setGuardando(true)
+    onChange({ prioridad: n }) // optimista
+    try { await setPrioridad(local.id, n) } catch { onChange({ prioridad } ) }
+    setGuardando(false)
+  }
+
+  const nombres = etiquetas
+    .map(id => CATEGORIAS_LOCALES.find(c => c.id === id))
+    .filter(Boolean)
+
+  return (
+    <div className="sa-tags">
+      <button className="sa-tags-head" onClick={() => setAbierto(a => !a)}>
+        <span className="sa-admin-ico">🗂️</span>
+        <span className="sa-tags-resumen">
+          {nombres.length
+            ? nombres.map(c => `${c.emoji} ${c.nombre}`).join(' · ')
+            : 'Sin etiquetas (no sale en los chips del inicio)'}
+          {prioridad > 0 && ' · ⭐ Recomendado'}
+        </span>
+        <span className="sa-tags-chevron">{abierto ? '▲' : '▼'}</span>
+      </button>
+      {abierto && (
+        <div className="sa-tags-body">
+          <div className="sa-tags-chips">
+            {CATEGORIAS_LOCALES.map(c => (
+              <button
+                key={c.id}
+                className={`sa-tag ${etiquetas.includes(c.id) ? 'on' : ''}`}
+                onClick={() => toggle(c.id)}
+                disabled={guardando}
+              >{c.emoji} {c.nombre}</button>
+            ))}
+          </div>
+          <label className="sa-prio">
+            <span>⭐ Prioridad en el inicio (0 = normal · 10 = recomendado)</span>
+            <div className="sa-prio-ctrl">
+              <button onClick={() => cambiarPrioridad(prioridad - 5)} disabled={guardando || prioridad <= 0}>−</button>
+              <strong>{prioridad}</strong>
+              <button onClick={() => cambiarPrioridad(prioridad + 5)} disabled={guardando}>+</button>
+            </div>
+          </label>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // 🛵 Gestor GLOBAL de domiciliarios (una sola lista para toda Appetic, no por local).
 // Cualquiera de la lista entra a /domiciliario y ve todos los pedidos a domicilio.
@@ -285,6 +353,12 @@ export default function Superadmin() {
                 {msg === 'err' && <p className="sa-admin-hint">Escribe un correo válido (ej. dueño@gmail.com).</p>}
                 {msg === 'ok' && <p className="sa-admin-hint ok">Guardado. El dueño ya puede entrar a /{l.slug}/admin.</p>}
                 {!adminActual && msg !== 'ok' && <p className="sa-admin-hint warn">Sin admin asignado.</p>}
+
+                {/* 🗂️ Etiquetas del inicio + ⭐ prioridad */}
+                <EtiquetasEditor
+                  local={l}
+                  onChange={cambios => setLocales(ls => ls.map(x => x.id === l.id ? { ...x, ...cambios } : x))}
+                />
 
                 {/* Atajos: el superadmin administra cualquier local como si fuera el dueño
                     (roles.js → puedeAdministrarLocal + firestore.rules → puedeAdministrar). */}

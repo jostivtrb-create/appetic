@@ -82,20 +82,15 @@
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
-  padding: 22px 18px 0;
+  padding: 18px 18px 0;
   animation: rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .home-title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text);
-}
-.home-tagline {
-  margin-top: 4px;
-  font-size: 15px;
-  color: var(--text-soft);
 }
 
 /* ===== Buscador ===== */
@@ -103,7 +98,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 14px;
   padding: 13px 16px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -119,15 +114,22 @@
   font-size: 15px;
   color: var(--text);
 }
+.home-search-x {
+  border: none;
+  background: none;
+  color: var(--text-faint);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 0 2px;
+}
 
-/* Acción de ubicación: ligera y secundaria bajo el buscador (no compite con él).
-   En reposo es un botón de texto; al activarse se vuelve una píldora suave de marca. */
+/* Acción de ubicación: ligera y secundaria bajo el buscador. */
 .home-ubic {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   margin-top: 8px;
-  margin-left: -8px; /* alinea el texto (no el padding) con el buscador */
+  margin-left: -8px;
   padding: 7px 12px 7px 8px;
   border: none;
   border-radius: var(--radius-pill);
@@ -153,15 +155,244 @@
   max-width: 360px;
 }
 
-/* ===== Lista de locales ===== */
-.home-locales {
-  margin-top: 18px;
+/* ===== Secciones ===== */
+.home-sec { margin-top: 20px; }
+.home-sec-title {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+/* Carruseles horizontales sin barra de scroll visible */
+.home-cats, .home-antojos, .home-fila {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  /* deja respirar las sombras y que el scroll llegue al borde de la pantalla */
+  margin: 0 -18px;
+  padding: 4px 18px 8px;
+}
+.home-cats::-webkit-scrollbar,
+.home-antojos::-webkit-scrollbar,
+.home-fila::-webkit-scrollbar { display: none; }
+
+/* ===== ① Chips de categorías ===== */
+.home-cats { margin-top: 16px; }
+.home-cat {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.home-cat:active { transform: scale(0.96); }
+.home-cat-emoji { font-size: 16px; line-height: 1; }
+.home-cat.on {
+  background: var(--brand-orange);
+  border-color: var(--brand-orange);
+  color: #fff;
+}
+
+/* ===== ② Para antojarte (platos con foto, logo en la esquina) ===== */
+.antojo-card {
+  flex: none;
+  width: 168px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: transform 0.12s ease, box-shadow 0.2s ease;
+}
+.antojo-card:active { transform: scale(0.97); box-shadow: var(--shadow); }
+.antojo-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 0.86;
+  background: var(--surface-2);
+}
+.antojo-media > img:first-child {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.antojo-logo {
+  position: absolute;
+  top: 8px; left: 8px;
+  width: 30px; height: 30px;
+  border-radius: 9px;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  background: #fff;
+}
+.antojo-cerrado {
+  position: absolute;
+  right: 8px; top: 8px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #fff;
+  background: rgba(20, 16, 12, 0.62);
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+.antojo-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1px;
+  padding: 9px 11px 11px;
 }
+.antojo-nombre {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.antojo-precio { font-size: 14px; font-weight: 800; color: var(--brand-orange-strong); margin-top: 3px; }
+.antojo-local {
+  font-size: 11.5px;
+  color: var(--text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== ③ Fila de locales (squircles, scroll infinito) ===== */
+.fila-local {
+  flex: none;
+  width: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.fila-local:active .fila-avatar { transform: scale(0.94); }
+.fila-avatar {
+  width: 64px; height: 64px;
+  border-radius: 22px; /* cuadrado de esquinas bien redondeadas (squircle) */
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.12s ease;
+}
+.fila-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.fila-avatar.off { filter: grayscale(0.65); opacity: 0.72; }
+.fila-emoji { font-size: 26px; }
+.fila-nombre {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-soft);
+  max-width: 76px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== ④ Listado ===== */
+.home-locales {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Badges (⭐ Recomendado · 🆕 Nuevo) */
+.loc-badges { display: flex; gap: 6px; margin-bottom: 4px; }
+.loc-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+.loc-badge-reco { color: #8a5a00; background: #FFF0C9; border: 1px solid #F5DFA1; }
+.loc-badge-nuevo { color: #135BA1; background: #E1F0FF; border: 1px solid #BBDDFA; }
+
+/* Card COMIDA-primero: foto grande + logo en la esquina + info debajo */
+.loc-cardf {
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: transform 0.12s ease, box-shadow 0.2s ease;
+}
+.loc-cardf:active { transform: scale(0.985); box-shadow: var(--shadow); }
+.loc-cardf-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  background: var(--surface-2);
+}
+.loc-cardf-foto { width: 100%; height: 100%; object-fit: cover; display: block; }
+.loc-cardf-logo {
+  position: absolute;
+  left: 12px; bottom: -15px;
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 2.5px solid var(--surface);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  background: #fff;
+}
+.loc-cardf-media .loc-badges {
+  position: absolute;
+  top: 10px; left: 10px;
+  margin: 0;
+}
+.loc-cardf-info { padding: 20px 14px 13px; }
+.loc-cardf-info h3 { font-size: 16.5px; font-weight: 800; color: var(--text); }
+.loc-cardf-info p {
+  font-size: 13px;
+  color: var(--text-soft);
+  margin: 2px 0 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Card compacta (fallback sin foto de comida) */
 .loc-card {
   position: relative;
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -170,6 +401,10 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
   transition: transform 0.12s ease, box-shadow 0.2s ease;
 }
 .loc-card:active { transform: scale(0.985); box-shadow: var(--shadow); }
@@ -193,6 +428,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Cerrados: atenuados (van al final del listado) */
+.loc-card--cerrado .loc-cardf-foto,
+.loc-card--cerrado .loc-card-img { filter: grayscale(0.7); opacity: 0.78; }
+.loc-card--cerrado .loc-cardf-info h3,
+.loc-card--cerrado .loc-card-info h3 { color: var(--text-soft); }
+
 .loc-chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .loc-chip {
   display: inline-block;
@@ -226,6 +468,7 @@
 .home-empty-emoji { font-size: 44px; display: block; margin-bottom: 10px; }
 .home-empty p { font-size: 15px; color: var(--text); font-weight: 600; }
 .home-empty-hint { display: inline-block; margin-top: 8px; font-size: 13px; color: var(--text-faint); }
+.home-empty .btn { margin-top: 14px; }
 
 /* ===== Footer ===== */
 .home-footer {

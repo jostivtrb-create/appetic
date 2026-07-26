@@ -12,6 +12,7 @@ import AdminConfig from './AdminConfig'
 import AdminMetricas from './AdminMetricas'
 import AdminDifundir from './AdminDifundir'
 import { isDevSlug, getDevLocal } from '../../dev'
+import { computeDestacadosHome } from '../../utils/destacadosHome'
 import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
 import { useAdmin } from '../../contexts/AdminContext'
 import './Admin.css'
@@ -79,6 +80,17 @@ export default function AdminPage() {
     return lista.map(x => ids.has(x.id) ? { ...x, destacado: false } : x)
   }
 
+  // 😋 Mantiene al día el resumen "Para antojarte" del INICIO (local.destacadosHome):
+  // los fuertes CON foto del menú, denormalizados en el doc del local para que el
+  // buscador cueste 1 sola lectura. Solo escribe si el cálculo cambió (best-effort).
+  async function sincronizarDestacadosHome(prods) {
+    try {
+      const resumen = computeDestacadosHome(prods)
+      if (JSON.stringify(resumen) === JSON.stringify(local?.destacadosHome || [])) return
+      await updateLocal({ destacadosHome: resumen })
+    } catch (err) { console.warn('destacadosHome no sincronizado:', err?.code || err) }
+  }
+
   async function addProducto(data) {
     // Asignamos `orden` (al final del menú) al crear. Sin este campo, la lectura
     // del menú omitía el producto y "desaparecía" al recargar.
@@ -88,6 +100,7 @@ export default function AdminPage() {
     let nuevos = [...productos, { ...conOrden, id }]
     if (conOrden.destacado === true) nuevos = await desmarcarFuertesDeCategoria(nuevos, conOrden.categoria, id)
     setProductos(nuevos)
+    await sincronizarDestacadosHome(nuevos)
     return id
   }
   async function updateProducto(id, cambios) {
@@ -98,6 +111,7 @@ export default function AdminPage() {
     }
     setProductos(nuevos)
     if (!demo) await actualizarProducto(local.id, id, cambios)
+    await sincronizarDestacadosHome(nuevos)
     // Si cambió de categoría, alguna pudo quedar vacía → que desaparezca.
     if ('categoria' in cambios) await podarCategoriasVacias(nuevos)
   }
@@ -105,6 +119,7 @@ export default function AdminPage() {
     const nuevos = productos.filter(x => x.id !== id)
     setProductos(nuevos)
     if (!demo) await borrarProducto(local.id, id)
+    await sincronizarDestacadosHome(nuevos)
     await podarCategoriasVacias(nuevos)
   }
   async function updateLocal(cambios) {

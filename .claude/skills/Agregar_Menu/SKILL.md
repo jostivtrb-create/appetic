@@ -93,7 +93,9 @@ Con el material en mano, define la identidad:
 ### Paso 2 — Crear el archivo de datos `src/dev/<file>.js`
 Copia `assets/plantilla_local.js` a `src/dev/<nombreCamelCase>.js` y rellénalo. Reemplaza los
 `[[TOKENS]]`: `SLUG`, `ADMIN_EMAIL`, `[[CONST]]` (nombre en MAYÚSCULAS, ej. `SABOR`), tema,
-categorías y productos reales. Detalle del esquema (LOCAL + PRODUCTO, variantes / gruposOpciones
+categorías y productos reales. **Incluye `etiquetas`** (1–3 ids del catálogo curado
+`src/config/categoriasLocales.js`) — clasifican el local en los chips del INICIO; sin ellas no
+sale en ninguna categoría. NO pongas `prioridad` (eso lo maneja el superadmin). Detalle del esquema (LOCAL + PRODUCTO, variantes / gruposOpciones
 `unica`|`multiple` / `modo:'pasos'`) está comentado en la plantilla. **Para locales de ALMUERZOS**
 (menú del día): modela el plato como producto con grupos `Proteína/Principio/Jugo` tipo `unica`
 `min:1,max:1`; el dueño cambia esas opciones a diario desde el panel (la sopa va en la descripción).

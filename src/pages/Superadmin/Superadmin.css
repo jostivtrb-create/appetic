@@ -266,3 +266,71 @@
   white-space: nowrap;
 }
 .sa-domiglobal-sub { font-size: 12.5px; color: var(--text-soft); margin: 4px 0 10px; line-height: 1.35; }
+
+/* 🗂️ Editor de etiquetas + prioridad (dentro de cada local) */
+.sa-tags {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+}
+.sa-tags-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.sa-tags-resumen {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sa-tags-chevron { font-size: 9px; color: var(--text-faint); }
+.sa-tags-body { margin-top: 10px; }
+.sa-tags-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sa-tag {
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-soft);
+  border-radius: 999px;
+  padding: 6px 11px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.sa-tag.on {
+  background: var(--brand-orange, #ED7D2B);
+  border-color: var(--brand-orange, #ED7D2B);
+  color: #fff;
+}
+.sa-prio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--text-soft);
+}
+.sa-prio-ctrl { display: flex; align-items: center; gap: 10px; }
+.sa-prio-ctrl button {
+  width: 28px; height: 28px;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  color: var(--text);
+}
+.sa-prio-ctrl button:disabled { opacity: 0.4; cursor: default; }
+.sa-prio-ctrl strong { min-width: 20px; text-align: center; font-size: 14px; color: var(--text); }

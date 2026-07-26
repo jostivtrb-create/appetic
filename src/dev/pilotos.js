@@ -101,6 +101,8 @@ export const PILOTOS_LOCAL = {
     { id: 'bebidas', nombre: 'Bebidas', emoji: '' },
     { id: 'cervezas', nombre: 'Cervezas', emoji: '' },
   ],
+  // 🗂️ Etiquetas del INICIO (chips de categorías, catálogo en src/config/categoriasLocales.js).
+  etiquetas: ['pollo', 'asados', 'comida-rapida'],
   admins: [ADMIN_EMAIL],
   suscripcion: { activa: true, plan: 'piloto' },
   menuVersion: 5,

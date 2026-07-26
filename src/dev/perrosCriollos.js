@@ -84,6 +84,10 @@ export const PERROS_LOCAL = {
     { id: 'empanadas', nombre: 'Empanadas', emoji: '🥟' },
     { id: 'bebidas', nombre: 'Bebidas', emoji: '🥤' },
   ],
+  // 🗂️ Etiquetas del INICIO (chips de categorías, catálogo en src/config/categoriasLocales.js).
+  etiquetas: ['perros', 'pasabocas', 'comida-rapida'],
+  // ⭐ Prioridad comercial: aparece arriba en el inicio con badge 'Recomendado' (nuestro local bandera).
+  prioridad: 10,
   admins: [ADMIN_EMAIL],
   // Suscripción (Capa 2): visible en el buscador del inicio. Se controla en /superadmin.
   suscripcion: { activa: true, plan: 'piloto' },
