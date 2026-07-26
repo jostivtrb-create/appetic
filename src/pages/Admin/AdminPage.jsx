@@ -6,7 +6,7 @@ import { getProductos } from '../../services/productos'
 import {
   agregarProducto, actualizarProducto, borrarProducto, actualizarLocal,
 } from '../../services/adminLocal'
-import { subirFotoProducto, subirFotoOpcion } from '../../services/storage'
+import { subirFotoProducto, subirFotoOpcion, subirBanner } from '../../services/storage'
 import AdminProductos from './AdminProductos'
 import AdminConfig from './AdminConfig'
 import AdminMetricas from './AdminMetricas'
@@ -168,6 +168,13 @@ export default function AdminPage() {
     if (demo) return URL.createObjectURL(file)
     return await subirFotoOpcion(local.id, grupoId, opcId, file)
   }
+  // 🖼️ Sube el banner del local y lo guarda en local.banner (se ve en el inicio + hero).
+  async function subirBannerYGuardar(file) {
+    if (demo) { const url = URL.createObjectURL(file); await updateLocal({ banner: url }); return url }
+    const url = await subirBanner(local.id, file)
+    await updateLocal({ banner: url })
+    return url
+  }
 
   // ---------- Estados de carga / acceso ----------
   if (estado === 'cargando' || (!demo && authCargando)) {
@@ -250,7 +257,7 @@ export default function AdminPage() {
 
       <main className="admin-body">
         {seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} />
-          : seccion === 'config' ? <AdminConfig local={local} onUpdate={updateLocal} />
+          : seccion === 'config' ? <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} />
             : seccion === 'metricas' ? <AdminMetricas local={local} demo={demo} />
               : (
                 <AdminProductos

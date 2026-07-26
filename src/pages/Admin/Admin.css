@@ -300,6 +300,27 @@
 }
 .ap-foto-preview img { width: 100%; height: 100%; object-fit: cover; }
 .ap-foto-acciones { display: flex; gap: 10px; }
+
+/* Preview del BANNER del local (horizontal 21:9) */
+.ac-banner-preview {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  margin-bottom: 10px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  overflow: hidden;
+  font-size: 30px;
+}
+.ac-banner-preview img { width: 100%; height: 100%; object-fit: cover; }
+.ac-banner-subiendo {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff; font-size: 14px; font-weight: 700;
+}
 .ap-foto-btn {
   flex: 1;
   display: flex; align-items: center; justify-content: center; gap: 6px;

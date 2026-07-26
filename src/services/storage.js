@@ -11,6 +11,15 @@ export async function subirFotoProducto(localId, productoId, file) {
   return await getDownloadURL(r)
 }
 
+// 🖼️ Sube el BANNER del local (horizontal, se comprime más ancho) y devuelve su URL.
+export async function subirBanner(localId, file) {
+  const { blob, tipo, ext } = await comprimirImagen(file, { maxLado: 1400 })
+  const ruta = `locales/${localId}/banner.${ext}`
+  const r = ref(storage, ruta)
+  await uploadBytes(r, blob, { contentType: tipo })
+  return await getDownloadURL(r)
+}
+
 // 🧀 Sube la foto de una OPCIÓN (topping/salsa) de un grupo y devuelve su URL.
 // Misma carpeta del local (locales/{localId}/...), subcarpeta opciones/.
 export async function subirFotoOpcion(localId, grupoId, opcId, file) {

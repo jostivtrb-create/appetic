@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { LOGO_ANIMS, resolverLogoAnim } from '../../utils/logoAnim'
+import { construirPromptImagenIA } from '../../utils/promptIA'
 
 // Genera los intervalos de 0.5 km hasta el máximo: ['0.5','1.0',...,'maxKm']
 function intervalosHasta(maxKm) {
@@ -34,7 +35,7 @@ function diasIniciales(guardados) {
 
 const fmtPesos = (n) => `$${Number(n || 0).toLocaleString('es-CO')}`
 
-export default function AdminConfig({ local, onUpdate }) {
+export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
   const [whatsapp, setWhatsapp] = useState(local.whatsapp || '')
   const [abre, setAbre] = useState(local.horario?.abre || '11:00')
   const [cierra, setCierra] = useState(local.horario?.cierra || '22:00')
@@ -55,6 +56,10 @@ export default function AdminConfig({ local, onUpdate }) {
   const [preciosAbierto, setPreciosAbierto] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
+  // 🖼️ Banner del local
+  const [bannerPreview, setBannerPreview] = useState(local.banner || '')
+  const [subiendoBanner, setSubiendoBanner] = useState(false)
+  const [avisoBannerIA, setAvisoBannerIA] = useState(null) // null | { prompt }
 
   const keys = useMemo(() => intervalosHasta(maxKm), [maxKm])
   // ¿Algún tramo mostrará el botón ↓? (tiene precio y hay vacíos debajo)
@@ -136,6 +141,30 @@ export default function AdminConfig({ local, onUpdate }) {
     setTimeout(() => setGuardado(false), 1800)
   }
 
+  // 🖼️ Banner: subir del dispositivo (se guarda al instante en local.banner).
+  async function elegirBanner(e) {
+    const f = e.target.files?.[0]
+    if (!f || !onSubirBanner) return
+    setBannerPreview(URL.createObjectURL(f))
+    setSubiendoBanner(true)
+    try {
+      const url = await onSubirBanner(f)
+      if (url) setBannerPreview(url)
+    } catch (err) {
+      console.error('No se pudo subir el banner:', err)
+      alert('No se pudo subir el banner. Intenta de nuevo.')
+      setBannerPreview(local.banner || '')
+    }
+    setSubiendoBanner(false)
+  }
+  // ✨ Crear el banner con IA: arma el prompt (fiel al local + su estética), lo copia y abre Gemini.
+  function crearBannerConIA() {
+    const prompt = construirPromptImagenIA({ nombre: local.nombre, descripcion: local.descripcion, tipo: 'banner', local })
+    try { navigator.clipboard?.writeText(prompt) } catch { /* botón "copiar" del aviso */ }
+    window.open('https://gemini.google.com/app', '_blank', 'noopener')
+    setAvisoBannerIA({ prompt })
+  }
+
   return (
     <div className="ac">
       <section className="ac-sec">
@@ -153,6 +182,42 @@ export default function AdminConfig({ local, onUpdate }) {
         </label>
         {!whatsapp.replace(/\D/g, '') && (
           <span className="ac-ubic-warn">⚠️ Sin WhatsApp, los pedidos no pueden enviarse.</span>
+        )}
+      </section>
+
+      <section className="ac-sec">
+        <h3>Portada del local (banner)</h3>
+        <p className="ac-hint">La foto grande que representa tu local en el inicio. Sube una tuya o créala con IA (queda a tono con tu marca).</p>
+        <div className="ac-banner-preview">
+          {bannerPreview ? <img src={bannerPreview} alt="" /> : <span className="ac-banner-ph">🖼️</span>}
+          {subiendoBanner && <span className="ac-banner-subiendo">Subiendo…</span>}
+        </div>
+        <div className="ap-foto-acciones">
+          <label className="ap-foto-btn">
+            📱 Del dispositivo
+            <input type="file" accept="image/*" onChange={elegirBanner} hidden />
+          </label>
+          <button type="button" className="ap-foto-btn ap-foto-btn-ia" onClick={crearBannerConIA}>
+            ✨ Crear con IA
+          </button>
+        </div>
+        {avisoBannerIA && (
+          <div className="ap-ia-aviso">
+            <button className="ap-ia-aviso-x" onClick={() => setAvisoBannerIA(null)} aria-label="Cerrar">✕</button>
+            <p className="ap-ia-aviso-tit">✨ Abrimos <strong>Gemini</strong> en otra pestaña</p>
+            <ol className="ap-ia-aviso-pasos">
+              <li>Pega el prompt (ya copiado) con <strong>Ctrl/Cmd + V</strong> y envía.</li>
+              <li>Cuando Gemini genere la imagen (horizontal), <strong>descárgala</strong>.</li>
+              <li>Vuelve aquí y súbela con <strong>📱 Del dispositivo</strong>.</li>
+            </ol>
+            <button
+              type="button"
+              className="ap-ia-aviso-copiar"
+              onClick={() => { try { navigator.clipboard?.writeText(avisoBannerIA.prompt) } catch {} }}
+            >
+              📋 Copiar el prompt de nuevo
+            </button>
+          </div>
         )}
       </section>
 

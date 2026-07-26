@@ -54,7 +54,7 @@ function moodDelLocal(local) {
 
 /**
  * Construye el prompt en inglés para generar la foto con IA.
- * @param {{nombre:string, descripcion?:string, tipo?:'producto'|'opcion', local:object}} args
+ * @param {{nombre:string, descripcion?:string, tipo?:'producto'|'opcion'|'banner', local:object}} args
  * @returns {string} prompt listo para pegar en Gemini
  */
 export function construirPromptImagenIA({ nombre, descripcion = '', tipo = 'producto', local }) {
@@ -62,6 +62,11 @@ export function construirPromptImagenIA({ nombre, descripcion = '', tipo = 'prod
   const desc = descripcion.trim() ? ` — ${descripcion.trim()}` : ''
   const fondo = moodDelLocal(local)
 
+  if (tipo === 'banner') {
+    // Portada horizontal del local: un despliegue apetitoso de sus platos estrella,
+    // en el MISMO estilo/colores que las fotos de producto (coherencia de marca).
+    return `Photorealistic wide horizontal banner food photography for "${n}"${desc}, an appetizing spread of its signature dishes, vibrant and inviting, natural lighting, ${fondo}, horizontal cinematic composition, high detail, sharp focus, no text, no watermark, no logo, no hands.`
+  }
   if (tipo === 'opcion') {
     // Topping / salsa / adición: primer plano de un solo ingrediente.
     return `Photorealistic professional close-up food photography of "${n}"${desc}, a single fresh ingredient or topping, appetizing, vibrant colors, soft natural lighting, shallow depth of field, high detail, sharp focus, ${fondo}, centered, square composition, no text, no watermark, no logo, no hands.`
