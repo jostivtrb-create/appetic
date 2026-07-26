@@ -225,12 +225,13 @@
 .antojo-media {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 0.86;
+  aspect-ratio: 1 / 0.72;   /* más bajo: recorta la franja clara de arriba/abajo de las fotos */
   background: var(--surface-2);
 }
 .antojo-media > img:first-child {
   width: 100%; height: 100%;
   object-fit: cover;
+  object-position: 50% 68%;  /* encuadra el centro-bajo (la comida) y esconde el fondo claro de arriba */
   display: block;
 }
 .antojo-logo {
