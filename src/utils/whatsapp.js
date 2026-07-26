@@ -23,12 +23,30 @@ export function normalizarTel(numero) {
   return limpio.startsWith('57') ? limpio : `57${limpio}`
 }
 
+// Mensaje de confirmación que el LOCAL le envía al CLIENTE (con un toque desde el
+// link que va en el pedido). Confirma la recepción y valida de paso que el WhatsApp
+// del cliente sea correcto (si el link no abre chat, el número estaba mal).
+export function mensajeRespuestaCliente(local, pedido) {
+  const primerNombre = (pedido?.cliente?.nombre || '').trim().split(/\s+/)[0] || 'Hola'
+  const cod = pedido?.codigo ? `*${pedido.codigo}* ` : ''
+  return `¡Hola ${primerNombre}! \u{1F9E1} Recibimos tu pedido ${cod}hecho con Appetic y ya lo estamos preparando. Haremos lo posible por tenerlo listo lo más pronto — te pedimos un poquito de paciencia. ¡Gracias por pedir en ${local.nombre}! \u{1F6F5}`
+}
+
+// Link wa.me al WhatsApp del CLIENTE con el mensaje de confirmación listo.
+// El local lo toca desde el pedido y responde de un toque.
+export function linkRespuestaCliente(local, pedido) {
+  const tel = normalizarTel(pedido?.cliente?.telefono)
+  if (!tel) return ''
+  return `https://wa.me/${tel}?text=${encodeURIComponent(mensajeRespuestaCliente(local, pedido))}`
+}
+
 // Construye el texto del pedido para el WhatsApp del local.
 export function textoPedido(local, pedido) {
   const { items, entrega, cliente, pago, domicilio, domicilioAConvenir, notas, subtotal, total } = pedido
   const L = []
 
   L.push(`*Nuevo pedido — ${local.nombre}* \u{1F354}`)
+  if (pedido.codigo) L.push(`\u{1F516} *Código:* ${pedido.codigo}`)
   L.push('')
   L.push(`\u{1F464} *Cliente:* ${cliente.nombre}`)
   if (cliente.telefono) L.push(`\u{1F4DE} *Tel:* ${cliente.telefono}`)
@@ -72,6 +90,14 @@ export function textoPedido(local, pedido) {
   if (notas) {
     L.push('')
     L.push(`\u{1F4DD} *Notas:* ${notas}`)
+  }
+
+  // Link para que el LOCAL responda al cliente de un toque (y confirme su WhatsApp).
+  const linkResp = linkRespuestaCliente(local, pedido)
+  if (linkResp) {
+    L.push('')
+    L.push('\u{1F4AC} *Responder al cliente (toca aquí):*')
+    L.push(linkResp)
   }
 
   L.push('')

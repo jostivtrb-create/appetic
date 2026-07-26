@@ -4,7 +4,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { cop } from '../../utils/money'
 import { calcularDomicilio } from '../../utils/delivery'
 import { abrirPedidoWhatsApp } from '../../utils/whatsapp'
-import { registrarPedido } from '../../services/pedidos'
+import { crearPedido } from '../../services/pedidos'
+import { generarCodigoPedido } from '../../utils/codigoPedido'
 import { guardarEnHistorial } from '../../services/historial'
 import { getPerfil, guardarPerfil } from '../../services/usuarios'
 import './Checkout.css'
@@ -39,8 +40,9 @@ export default function Checkout({ local, onClose, abierto = true }) {
   const [pagoId, setPagoId] = useState(local.pagos?.[0]?.id || null)
   const [cash, setCash] = useState('')
   const [notas, setNotas] = useState('')
+  const [confirmoWhatsapp, setConfirmoWhatsapp] = useState(false)
   const [enviando, setEnviando] = useState(false)
-  const [exito, setExito] = useState(null) // { url }
+  const [exito, setExito] = useState(null) // { url, codigo }
 
   // Prellenar desde el dispositivo (funciona para invitados y al instante).
   useEffect(() => {
@@ -90,9 +92,16 @@ export default function Checkout({ local, onClose, abierto = true }) {
   }
 
   // Validación
+  // 📱 El teléfono debe ser un WhatsApp válido (celular colombiano de 10 dígitos que
+  // empieza en 3, con o sin indicativo 57). Así evitamos que se pase un número mal
+  // (ej. un fijo o incompleto) y garantizamos que el local pueda responderle.
+  const telDigits = telefono.replace(/\D/g, '')
+  const telWhatsappValido = /^3\d{9}$/.test(telDigits) || /^573\d{9}$/.test(telDigits)
+
   const faltas = []
   if (!nombre.trim()) faltas.push('nombre')
-  if (telefono.replace(/\D/g, '').length < 7) faltas.push('telefono')
+  if (!telWhatsappValido) faltas.push('telefono')
+  if (!confirmoWhatsapp) faltas.push('confirmar-whatsapp')
   if (!pagoId) faltas.push('pago')
   if (entrega === 'domicilio') {
     if (!direccion.trim()) faltas.push('direccion')
@@ -105,7 +114,11 @@ export default function Checkout({ local, onClose, abierto = true }) {
   async function enviar() {
     if (!valido || enviando) return
     setEnviando(true)
+    // Código corto que va en el WhatsApp y sirve para que el domiciliario busque el
+    // pedido en la app (fuente de verdad del precio, anti-manipulación).
+    const codigo = generarCodigoPedido(local)
     const pedido = {
+      codigo,
       items,
       entrega,
       cliente: { nombre: nombre.trim(), telefono: telefono.trim(), direccion: direccion.trim(), coord },
@@ -116,8 +129,16 @@ export default function Checkout({ local, onClose, abierto = true }) {
       subtotal,
       total,
     }
-    // Registro de métricas (best-effort, no en el local de prueba)
-    if (local.id !== 'demo') registrarPedido(local.id, pedido)
+    // Guarda el pedido COMPLETO en Firestore con su código (antes de abrir WhatsApp).
+    // Le damos hasta 6s: así el pedido alcanza a guardarse antes de navegar a WhatsApp
+    // (importante en móvil, donde la navegación corta las peticiones en curso), pero si la
+    // red está lenta NO dejamos al cliente trabado en "Enviando…". Best-effort.
+    if (local.id !== 'demo') {
+      await Promise.race([
+        crearPedido(local.id, pedido, codigo).catch(() => false),
+        new Promise(res => setTimeout(res, 6000)),
+      ])
+    }
 
     // Guarda el pedido en el historial de ESTE dispositivo (para "Mis pedidos").
     guardarEnHistorial(local, pedido)
@@ -135,7 +156,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
     // Abre WhatsApp con el endpoint correcto según dispositivo (móvil/PC).
     const url = abrirPedidoWhatsApp(local, pedido)
     clear()
-    setExito({ url })
+    setExito({ url, codigo })
     setEnviando(false)
   }
 
@@ -145,6 +166,9 @@ export default function Checkout({ local, onClose, abierto = true }) {
       <div className="co-screen co-exito">
         <div className="co-exito-check">✓</div>
         <h2>¡Pedido enviado!</h2>
+        {exito.codigo && (
+          <p className="co-exito-codigo">Tu código de pedido: <strong>{exito.codigo}</strong></p>
+        )}
         <p>Abrimos WhatsApp con tu pedido listo. Solo dale enviar al chat de <strong>{local.nombre}</strong> para confirmar.</p>
         <a className="btn btn-primary" href={exito.url} target="_blank" rel="noreferrer">Abrir WhatsApp otra vez</a>
         <button className="btn btn-ghost" onClick={onClose}>Volver al menú</button>
@@ -221,7 +245,20 @@ export default function Checkout({ local, onClose, abierto = true }) {
         <section className="co-sec">
           <h3 className="co-sec-title">Tus datos</h3>
           <input className="co-input" placeholder="Tu nombre" value={nombre} onChange={e => setNombre(e.target.value)} />
-          <input className="co-input" placeholder="Tu WhatsApp / teléfono" inputMode="tel" value={telefono} onChange={e => setTelefono(e.target.value)} />
+          <input
+            className={`co-input ${telefono && !telWhatsappValido ? 'co-input-err' : ''}`}
+            placeholder="Tu WhatsApp (te escribiremos por aquí)"
+            inputMode="tel"
+            value={telefono}
+            onChange={e => setTelefono(e.target.value)}
+          />
+          {telefono && !telWhatsappValido && (
+            <p className="co-hint co-hint-err">📱 Escribe tu celular de WhatsApp: 10 dígitos que empiezan en 3.</p>
+          )}
+          <label className={`co-check ${confirmoWhatsapp ? 'on' : ''}`}>
+            <input type="checkbox" checked={confirmoWhatsapp} onChange={e => setConfirmoWhatsapp(e.target.checked)} />
+            <span>Confirmo que <strong>{telefono.trim() || 'este número'}</strong> es mi WhatsApp y ahí puedo recibir la respuesta del local.</span>
+          </label>
         </section>
 
         {/* Método de pago */}
@@ -285,7 +322,8 @@ export default function Checkout({ local, onClose, abierto = true }) {
             {faltas.includes('ubicacion') ? 'Falta tu ubicación · ' : ''}
             {faltas.includes('direccion') ? 'Falta la dirección · ' : ''}
             {faltas.includes('nombre') ? 'Falta tu nombre · ' : ''}
-            {faltas.includes('telefono') ? 'Falta tu teléfono · ' : ''}
+            {faltas.includes('telefono') ? 'Falta tu WhatsApp válido · ' : ''}
+            {faltas.includes('confirmar-whatsapp') ? 'Confirma tu WhatsApp · ' : ''}
             {faltas.includes('pago') ? 'Elige cómo pagas' : ''}
           </p>
         )}

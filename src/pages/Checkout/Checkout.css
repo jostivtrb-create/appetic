@@ -215,3 +215,46 @@
 .co-exito h2 { font-size: 24px; font-weight: 800; }
 .co-exito p { font-size: 15px; color: var(--text-soft); max-width: 320px; margin: 8px 0 20px; }
 .co-exito .btn { width: 100%; max-width: 300px; margin-bottom: 10px; }
+
+/* 📱 Validación de WhatsApp: error en el input + hint rojo + check de confirmación */
+.co-input-err { border-color: var(--danger, #E5484D) !important; }
+.co-hint-err { color: var(--danger, #E5484D); font-weight: 600; }
+
+.co-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-2);
+  cursor: pointer;
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--text-soft);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.co-check.on {
+  border-color: var(--local-primary);
+  background: color-mix(in srgb, var(--local-primary) 8%, var(--surface));
+  color: var(--text);
+}
+.co-check input[type="checkbox"] {
+  width: 20px; height: 20px;
+  margin-top: 1px;
+  flex: none;
+  accent-color: var(--local-primary);
+}
+.co-check strong { color: var(--text); }
+
+.co-exito-codigo {
+  font-size: 15px !important;
+  color: var(--text) !important;
+  margin: 0 0 4px !important;
+}
+.co-exito-codigo strong {
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  color: var(--local-primary);
+}
