@@ -205,3 +205,60 @@
   animation: doToastIn 0.3s cubic-bezier(0.16,1,0.3,1) both;
 }
 @keyframes doToastIn { from { opacity: 0; transform: translate(-50%, -14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+/* ===== Panel solo-buscador ===== */
+.do-instruccion {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+.do-instruccion strong { color: var(--text); }
+
+.do-buscador { display: flex; gap: 8px; margin-bottom: 16px; }
+.do-buscador-input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  text-transform: uppercase;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+}
+.do-buscador-input:focus { border-color: var(--local-primary, #ED7D2B); }
+.do-buscador-input::placeholder {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+.do-buscador-btn {
+  flex: none;
+  padding: 0 20px;
+  border: none;
+  border-radius: 14px;
+  background: var(--local-primary, #ED7D2B);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.do-buscador-btn:disabled { opacity: 0.5; cursor: default; }
+
+.do-card-head--static { cursor: default; }
+.do-resultado { margin-bottom: 12px; }
+.do-otra { width: 100%; margin-top: 4px; }
+
+.do-espera {
+  text-align: center;
+  color: var(--text-faint);
+  padding: 44px 24px;
+}
+.do-espera-emoji { font-size: 42px; display: block; margin-bottom: 10px; opacity: 0.7; }
+.do-espera p { font-size: 13.5px; max-width: 260px; margin: 0 auto; line-height: 1.45; }

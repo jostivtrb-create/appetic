@@ -1,14 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getDomiciliariosGlobal } from '../../services/domiciliarios'
-import { escucharTodosDomicilios, buscarPedidoGlobalPorCodigo } from '../../services/pedidos'
+import { escucharNuevosDomicilios, buscarPedidoGlobalPorCodigo } from '../../services/pedidos'
 import { puedeVerRepartos } from '../../config/roles'
 import { cop } from '../../utils/money'
 import { mapsUrl } from '../../utils/geo'
 import { linkRespuestaCliente } from '../../utils/whatsapp'
-import { normalizarCodigo } from '../../utils/codigoPedido'
 import './Domiciliario.css'
+
+// 🛵 Panel del domiciliario: SOLO un buscador por código. El domiciliario escribe el
+// código que viene en el mensaje de WhatsApp (ej. FT-7K2Q), la app busca el pedido
+// internamente y le muestra el detalle REAL (precio de la base, no del mensaje).
+// Además avisa (sonido + toast + notificación) cuando entra un domicilio nuevo; el
+// toast trae el código listo para buscarlo con un toque.
 
 function horaCorta(ts) {
   try {
@@ -18,16 +23,16 @@ function horaCorta(ts) {
   } catch { return '—' }
 }
 
-// Tarjeta de un pedido a domicilio (cabecera + detalle expandible).
-function PedidoCard({ pedido, abierto, onToggle }) {
+// Detalle COMPLETO de un pedido (siempre abierto: es el resultado de la búsqueda).
+function PedidoDetalle({ pedido }) {
   const c = pedido.cliente || {}
   const localMin = { nombre: pedido.localNombre || '' }
   const telLink = c.telefono ? `tel:${String(c.telefono).replace(/[^\d+]/g, '')}` : ''
   const waLink = linkRespuestaCliente(localMin, pedido)
   const mapa = c.coord?.lat != null ? mapsUrl(c.coord) : ''
   return (
-    <li className={`do-card ${abierto ? 'open' : ''}`}>
-      <button className="do-card-head" onClick={onToggle}>
+    <div className="do-card open do-resultado">
+      <div className="do-card-head do-card-head--static">
         <span className="do-codigo">{pedido.codigo || '—'}</span>
         <span className="do-card-mid">
           <strong>{c.nombre || 'Cliente'}</strong>
@@ -37,54 +42,51 @@ function PedidoCard({ pedido, abierto, onToggle }) {
           </small>
         </span>
         <span className="do-card-total">{cop(pedido.total || 0)}</span>
-        <span className="do-card-chevron">{abierto ? '▲' : '▼'}</span>
-      </button>
+      </div>
 
-      {abierto && (
-        <div className="do-detalle">
-          <div className="do-row">
-            <span className="do-ico">📍</span>
-            <div>
-              <div>{c.direccion || 'Sin dirección'}</div>
-              {mapa && <a href={mapa} target="_blank" rel="noreferrer" className="do-link">Ver en el mapa →</a>}
-              {pedido.domicilioAConvenir && <div className="do-warn">⚠️ Domicilio a convenir (no incluido en el total)</div>}
-            </div>
-          </div>
-
-          <div className="do-acciones">
-            {waLink && <a className="do-btn do-btn-wa" href={waLink} target="_blank" rel="noreferrer">💬 WhatsApp</a>}
-            {telLink && <a className="do-btn do-btn-call" href={telLink}>📞 Llamar</a>}
-          </div>
-
-          <ul className="do-items">
-            {(pedido.items || []).map((it, i) => (
-              <li key={i}>
-                <span className="do-item-cant">{it.cantidad}×</span>
-                <span className="do-item-nombre">
-                  {it.nombre}
-                  {it.opciones ? <small> · {it.opciones}</small> : null}
-                  {it.notas ? <em> “{it.notas}”</em> : null}
-                </span>
-                <span className="do-item-precio">{cop(it.precio || 0)}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="do-totales">
-            <div><span>Subtotal</span><span>{cop(pedido.subtotal || 0)}</span></div>
-            <div><span>Domicilio</span><span>{pedido.domicilioAConvenir ? 'A convenir' : cop(pedido.domicilio || 0)}</span></div>
-            <div className="do-total-final"><span>Total</span><span>{cop(pedido.total || 0)}</span></div>
-          </div>
-
-          <div className="do-pago">
-            💳 {pedido.metodoPagoNombre || pedido.metodoPago || '—'}
-            {pedido.efectivoCon > 0 && (
-              <span> · paga con {cop(pedido.efectivoCon)} (cambio {cop(Math.max(0, pedido.efectivoCon - (pedido.total || 0)))})</span>
-            )}
+      <div className="do-detalle">
+        <div className="do-row">
+          <span className="do-ico">📍</span>
+          <div>
+            <div>{c.direccion || 'Sin dirección'}</div>
+            {mapa && <a href={mapa} target="_blank" rel="noreferrer" className="do-link">Ver en el mapa →</a>}
+            {pedido.domicilioAConvenir && <div className="do-warn">⚠️ Domicilio a convenir (no incluido en el total)</div>}
           </div>
         </div>
-      )}
-    </li>
+
+        <div className="do-acciones">
+          {waLink && <a className="do-btn do-btn-wa" href={waLink} target="_blank" rel="noreferrer">💬 WhatsApp</a>}
+          {telLink && <a className="do-btn do-btn-call" href={telLink}>📞 Llamar</a>}
+        </div>
+
+        <ul className="do-items">
+          {(pedido.items || []).map((it, i) => (
+            <li key={i}>
+              <span className="do-item-cant">{it.cantidad}×</span>
+              <span className="do-item-nombre">
+                {it.nombre}
+                {it.opciones ? <small> · {it.opciones}</small> : null}
+                {it.notas ? <em> “{it.notas}”</em> : null}
+              </span>
+              <span className="do-item-precio">{cop(it.precio || 0)}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="do-totales">
+          <div><span>Subtotal</span><span>{cop(pedido.subtotal || 0)}</span></div>
+          <div><span>Domicilio</span><span>{pedido.domicilioAConvenir ? 'A convenir' : cop(pedido.domicilio || 0)}</span></div>
+          <div className="do-total-final"><span>Total</span><span>{cop(pedido.total || 0)}</span></div>
+        </div>
+
+        <div className="do-pago">
+          💳 {pedido.metodoPagoNombre || pedido.metodoPago || '—'}
+          {pedido.efectivoCon > 0 && (
+            <span> · paga con {cop(pedido.efectivoCon)} (cambio {cop(Math.max(0, pedido.efectivoCon - (pedido.total || 0)))})</span>
+          )}
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -92,19 +94,18 @@ export default function Domiciliario() {
   const navigate = useNavigate()
   const { user, cargando: authCargando, entrar, salir } = useAuth()
 
-  const [lista, setLista] = useState(null)      // lista global de correos (null = cargando)
-  const [pedidos, setPedidos] = useState([])
-  const [cargandoPedidos, setCargandoPedidos] = useState(true)
-  const [errPedidos, setErrPedidos] = useState(false)
-  const [query, setQuery] = useState('')
-  const [abiertoId, setAbiertoId] = useState(null)
-  const [extra, setExtra] = useState(null)      // resultado de búsqueda global exacta
+  const [lista, setLista] = useState(null)     // lista global de correos (null = cargando)
+  const [codigo, setCodigo] = useState('')
+  const [buscando, setBuscando] = useState(false)
+  const [resultado, setResultado] = useState(null) // null = sin búsqueda · [] = no encontrado · [p...]
+  const [errBusqueda, setErrBusqueda] = useState(false)
   const [sonido, setSonido] = useState(true)
-  const [toast, setToast] = useState(null)      // { codigo, local }
+  const [toast, setToast] = useState(null)     // { codigo, local, n }
+  const inputRef = useRef(null)
 
   const permitido = user && lista && puedeVerRepartos(user.email, lista)
 
-  // Notificación: contexto de audio (se activa con el primer toque del usuario) + refs de control.
+  // 🔔 Aviso de pedido nuevo: audio (se desbloquea con el primer toque) + Notification.
   const audioRef = useRef(null)
   const vistosRef = useRef(new Set())
   const iniciadoRef = useRef(false)
@@ -112,7 +113,6 @@ export default function Domiciliario() {
   useEffect(() => { sonidoRef.current = sonido }, [sonido])
 
   useEffect(() => {
-    // Desbloquea el audio en el primer gesto del usuario (política de autoplay).
     function primeAudio() {
       try {
         const Ctx = window.AudioContext || window.webkitAudioContext
@@ -121,7 +121,6 @@ export default function Domiciliario() {
       } catch { /* nada */ }
     }
     window.addEventListener('pointerdown', primeAudio, { once: true })
-    // Permiso de notificaciones del sistema (para cuando la pestaña está en 2º plano).
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission().catch(() => {})
     }
@@ -139,7 +138,6 @@ export default function Domiciliario() {
       g.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.02)
       g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.4)
       o.start(); o.stop(ctx.currentTime + 0.42)
-      // segundo tono (ding-dong)
       const o2 = ctx.createOscillator(); const g2 = ctx.createGain()
       o2.connect(g2); g2.connect(ctx.destination)
       o2.type = 'sine'; o2.frequency.value = 1174
@@ -150,20 +148,6 @@ export default function Domiciliario() {
     } catch { /* nada */ }
   }
 
-  function avisarNuevo(nuevos) {
-    const cod = nuevos[0]?.codigo || ''
-    const loc = nuevos[0]?.localNombre || ''
-    if (sonidoRef.current) beep()
-    setToast({ codigo: cod, local: loc, n: nuevos.length })
-    setTimeout(() => setToast(null), 6000)
-    try {
-      if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
-        const titulo = nuevos.length > 1 ? `${nuevos.length} nuevos domicilios` : `Nuevo domicilio ${cod}`
-        new Notification(titulo, { body: loc ? `Local: ${loc}` : 'Appetic', tag: 'appetic-domi' })
-      }
-    } catch { /* nada */ }
-  }
-
   // Cargar la lista global de domiciliarios (para el gate).
   useEffect(() => {
     let activo = true
@@ -171,40 +155,58 @@ export default function Domiciliario() {
     return () => { activo = false }
   }, [])
 
-  // Escuchar TODOS los domicilios en vivo (solo si tiene permiso).
+  // Listener MINI solo para avisar de domicilios nuevos (no pinta listas).
   useEffect(() => {
     if (!permitido) return
-    setCargandoPedidos(true)
-    const unsub = escucharTodosDomicilios(
-      arr => {
-        // Detectar pedidos nuevos (después de la primera carga) para avisar.
-        const nuevos = arr.filter(p => !vistosRef.current.has(p.id))
-        arr.forEach(p => vistosRef.current.add(p.id))
-        if (iniciadoRef.current && nuevos.length > 0) avisarNuevo(nuevos)
-        iniciadoRef.current = true
-        setPedidos(arr); setCargandoPedidos(false); setErrPedidos(false)
-      },
-      () => { setErrPedidos(true); setCargandoPedidos(false) },
-    )
+    const unsub = escucharNuevosDomicilios(arr => {
+      const nuevos = arr.filter(p => !vistosRef.current.has(p.id))
+      arr.forEach(p => vistosRef.current.add(p.id))
+      if (iniciadoRef.current && nuevos.length > 0) {
+        const cod = nuevos[0]?.codigo || ''
+        const loc = nuevos[0]?.localNombre || ''
+        if (sonidoRef.current) beep()
+        setToast({ codigo: cod, local: loc, n: nuevos.length })
+        setTimeout(() => setToast(null), 8000)
+        try {
+          if ('Notification' in window && Notification.permission === 'granted' && document.hidden) {
+            const titulo = nuevos.length > 1 ? `${nuevos.length} nuevos domicilios` : `Nuevo domicilio ${cod}`
+            new Notification(titulo, { body: loc ? `Local: ${loc}` : 'Appetic', tag: 'appetic-domi' })
+          }
+        } catch { /* nada */ }
+      }
+      iniciadoRef.current = true
+    })
     return () => { if (unsub) unsub() }
   }, [permitido])
 
-  const filtrados = useMemo(() => {
-    const q = normalizarCodigo(query).replace(/[^A-Z0-9]/g, '')
-    if (!q && !query.trim()) return pedidos
-    const qLower = query.trim().toLowerCase()
-    return pedidos.filter(p =>
-      (p.codigo || '').toUpperCase().replace(/[^A-Z0-9]/g, '').includes(q) ||
-      (p.cliente?.nombre || '').toLowerCase().includes(qLower) ||
-      (p.localNombre || '').toLowerCase().includes(qLower) ||
-      (p.cliente?.direccion || '').toLowerCase().includes(qLower),
-    )
-  }, [pedidos, query])
+  async function buscar(codigoDirecto) {
+    const c = String(codigoDirecto ?? codigo).trim()
+    if (!c || buscando) return
+    setBuscando(true)
+    setErrBusqueda(false)
+    try {
+      const res = await buscarPedidoGlobalPorCodigo(c)
+      setResultado(res)
+    } catch {
+      setResultado(null)
+      setErrBusqueda(true)
+    }
+    setBuscando(false)
+  }
 
-  async function buscarEnTodos() {
-    const cod = normalizarCodigo(query)
-    if (!cod) return
-    try { setExtra(await buscarPedidoGlobalPorCodigo(cod)) } catch { setExtra([]) }
+  // El toast trae el código listo: tocarlo lo busca de una.
+  function buscarDesdeToast() {
+    if (!toast?.codigo) { setToast(null); return }
+    setCodigo(toast.codigo)
+    setToast(null)
+    buscar(toast.codigo)
+  }
+
+  function limpiar() {
+    setCodigo('')
+    setResultado(null)
+    setErrBusqueda(false)
+    inputRef.current?.focus()
   }
 
   async function cerrarSesion() { await salir(); navigate('/') }
@@ -218,7 +220,7 @@ export default function Domiciliario() {
       <div className="local-msg">
         <div className="local-msg-emoji">🛵</div>
         <h2>Panel del domiciliario</h2>
-        <p>Inicia sesión con tu Google para ver los pedidos a domicilio.</p>
+        <p>Inicia sesión con tu Google para buscar los pedidos a domicilio.</p>
         <button className="btn btn-primary" onClick={entrar}>Entrar con Google</button>
       </div>
     )
@@ -235,23 +237,20 @@ export default function Domiciliario() {
     )
   }
 
-  // ---------- Panel ----------
-  const hayBusqueda = query.trim().length > 0
-  const mostrarExtra = hayBusqueda && filtrados.length === 0 && extra && extra.length > 0
-
+  // ---------- Panel: SOLO buscador por código ----------
   return (
     <div className="do">
       {toast && (
-        <div className="do-toast" onClick={() => setToast(null)}>
+        <button className="do-toast" onClick={buscarDesdeToast}>
           🔔 {toast.n > 1 ? `${toast.n} nuevos domicilios` : `Nuevo domicilio ${toast.codigo}`}
-          {toast.local ? ` · ${toast.local}` : ''}
-        </div>
+          {toast.local ? ` · ${toast.local}` : ''} — toca para verlo
+        </button>
       )}
 
       <header className="do-top">
         <div>
           <span className="do-eyebrow">🛵 Domiciliarios</span>
-          <h1>Pedidos a domicilio</h1>
+          <h1>Buscar pedido</h1>
         </div>
         <div className="do-top-actions">
           <button
@@ -264,53 +263,55 @@ export default function Domiciliario() {
         </div>
       </header>
 
-      <div className="do-search">
-        <span>🔎</span>
+      <p className="do-instruccion">
+        Escribe el <strong>código del pedido</strong> (viene en el mensaje de WhatsApp, ej. <strong>FT-7K2Q</strong>)
+        y la app te muestra el domicilio con su <strong>precio real</strong>.
+      </p>
+
+      <div className="do-buscador">
         <input
-          placeholder="Buscar por código (ej. FT-7K2Q), cliente o local…"
-          value={query}
-          onChange={e => { setQuery(e.target.value); setExtra(null) }}
+          ref={inputRef}
+          className="do-buscador-input"
+          placeholder="Código · ej. FT-7K2Q"
+          value={codigo}
+          onChange={e => { setCodigo(e.target.value.toUpperCase()); setErrBusqueda(false) }}
+          onKeyDown={e => { if (e.key === 'Enter') buscar() }}
           autoCapitalize="characters"
+          autoCorrect="off"
+          spellCheck="false"
+          autoFocus
         />
-        {query && <button className="do-search-x" onClick={() => { setQuery(''); setExtra(null) }} aria-label="Limpiar">✕</button>}
+        <button className="do-buscador-btn" onClick={() => buscar()} disabled={!codigo.trim() || buscando}>
+          {buscando ? '…' : 'Buscar'}
+        </button>
       </div>
 
-      <p className="do-tip">🔒 El precio de esta pantalla es el REAL del pedido. Si el WhatsApp muestra otro, vale este.</p>
-
-      {errPedidos && (
-        <div className="do-error">⚠️ No se pudieron cargar los pedidos. Es probable que falten desplegar las reglas de Firestore.</div>
+      {errBusqueda && (
+        <div className="do-error">⚠️ No se pudo buscar. Revisa la conexión (o que las reglas de Firestore estén desplegadas).</div>
       )}
 
-      {cargandoPedidos && !errPedidos && (
-        <div className="do-skel-wrap">{[0, 1, 2].map(i => <div key={i} className="do-skel" />)}</div>
+      {resultado && resultado.length === 0 && !errBusqueda && (
+        <div className="do-empty">
+          <span>🔍</span>
+          <p>Ningún domicilio con ese código.</p>
+          <p className="do-hint">Revisa el código en el mensaje de WhatsApp (los pedidos se borran a los 2 días).</p>
+          <button className="btn btn-ghost do-buscar-todos" onClick={limpiar}>Buscar otro</button>
+        </div>
       )}
 
-      {!cargandoPedidos && !errPedidos && (
+      {resultado && resultado.length > 0 && (
         <>
-          <div className="do-count">
-            {hayBusqueda ? `${filtrados.length} resultado(s)` : `${pedidos.length} domicilio(s) · últimos 2 días`}
-          </div>
-
-          {filtrados.length === 0 && !mostrarExtra && (
-            <div className="do-empty">
-              <span>🛵</span>
-              <p>{hayBusqueda ? 'Ningún domicilio reciente con ese código.' : 'Aún no hay pedidos a domicilio.'}</p>
-              {hayBusqueda && <button className="btn btn-ghost do-buscar-todos" onClick={buscarEnTodos}>Buscar también en pedidos antiguos</button>}
-              {hayBusqueda && extra && extra.length === 0 && <p className="do-hint">Tampoco apareció en los antiguos.</p>}
-            </div>
-          )}
-
-          <ul className="do-lista">
-            {(mostrarExtra ? extra : filtrados).map(p => (
-              <PedidoCard
-                key={p.id}
-                pedido={p}
-                abierto={abiertoId === p.id}
-                onToggle={() => setAbiertoId(abiertoId === p.id ? null : p.id)}
-              />
-            ))}
-          </ul>
+          <p className="do-tip">🔒 Este es el precio REAL del pedido. Si el WhatsApp muestra otro, vale este.</p>
+          {resultado.map(p => <PedidoDetalle key={p.id} pedido={p} />)}
+          <button className="btn btn-ghost do-otra" onClick={limpiar}>Buscar otro pedido</button>
         </>
+      )}
+
+      {!resultado && !errBusqueda && (
+        <div className="do-espera">
+          <span className="do-espera-emoji">🛵</span>
+          <p>Cuando entre un domicilio nuevo te avisamos aquí con su código.</p>
+        </div>
       )}
     </div>
   )

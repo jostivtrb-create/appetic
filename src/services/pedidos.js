@@ -67,11 +67,11 @@ export async function crearPedido(local, pedido, codigo) {
   }
 }
 
-// 🛵 GLOBAL: escucha en vivo los últimos pedidos a DOMICILIO de TODOS los locales
-// (collectionGroup). Orden por fecha desc; filtra a domicilio y a los últimos 2 días en
-// el cliente. Devuelve la función de "unsubscribe".
-export function escucharTodosDomicilios(cb, onError) {
-  const q = query(collectionGroup(db, 'pedidos'), orderBy('createdAt', 'desc'), limit(200))
+// 🔔 GLOBAL (solo para AVISAR): escucha los últimos pedidos para detectar cuando entra
+// un DOMICILIO nuevo y sonar/notificar en el panel del domiciliario. NO alimenta ninguna
+// lista (el panel es solo buscador por código): por eso el límite es pequeño y barato.
+export function escucharNuevosDomicilios(cb, onError) {
+  const q = query(collectionGroup(db, 'pedidos'), orderBy('createdAt', 'desc'), limit(20))
   const desde = Date.now() - DIAS_VIDA * 86400000
   return onSnapshot(
     q,
@@ -89,12 +89,23 @@ export function escucharTodosDomicilios(cb, onError) {
   )
 }
 
-// 🔎 GLOBAL: busca un pedido por CÓDIGO en todos los locales (por si es de un local
-// distinto o algo viejo). Igualdad sobre campo único → sin índice compuesto.
+// 🔎 GLOBAL: busca un pedido por CÓDIGO en todos los locales. Igualdad sobre campo
+// único → sin índice compuesto. Tolerante a cómo lo escriba el domiciliario: acepta
+// con o sin guion ("ft7k2q" también encuentra "FT-7K2Q").
 export async function buscarPedidoGlobalPorCodigo(codigo) {
-  const c = String(codigo || '').toUpperCase().trim()
-  if (!c) return []
-  const q = query(collectionGroup(db, 'pedidos'), where('codigo', '==', c), limit(10))
+  const limpio = String(codigo || '').toUpperCase().replace(/\s+/g, '').trim()
+  if (!limpio) return []
+  const candidatos = new Set([limpio])
+  const soloAlfa = limpio.replace(/[^A-Z0-9]/g, '')
+  if (soloAlfa.length > 4) {
+    // Reconstruye el formato guardado PREFIJO-XXXX (los últimos 4 son el sufijo).
+    candidatos.add(`${soloAlfa.slice(0, -4)}-${soloAlfa.slice(-4)}`)
+    candidatos.add(soloAlfa)
+  }
+  const q = query(collectionGroup(db, 'pedidos'), where('codigo', 'in', [...candidatos].slice(0, 10)), limit(10))
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.entrega === 'domicilio')
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(p => p.entrega === 'domicilio')
+    .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0))
 }
