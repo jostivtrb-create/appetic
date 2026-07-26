@@ -170,8 +170,9 @@ export default function Home() {
     })
   }, [enriquecidos, busqueda, catActiva])
 
-  // 😋 "Para antojarte": máx 2 fuertes CON foto por local, rotados a diario,
-  // los de locales con prioridad primero. Respeta el filtro de categoría.
+  // 😋 "Para antojarte": los fuertes CON foto de cada local (hasta 6 por local, estilo
+  // DiDi: pueden salir varios del mismo), rotados a diario y mezclados entre locales;
+  // los de locales con prioridad van primero. Respeta el filtro de categoría.
   const antojos = useMemo(() => {
     const fuente = catActiva
       ? enriquecidos.filter(l => (l.etiquetas || []).includes(catActiva))
@@ -180,15 +181,15 @@ export default function Home() {
     for (const l of fuente) {
       const lista = (l.destacadosHome || []).filter(p => p.foto)
       if (!lista.length) continue
-      const dos = barajarConSemilla(lista, semillaDelDia(l.id)).slice(0, 2)
-      for (const p of dos) {
+      const delDia = barajarConSemilla(lista, semillaDelDia(l.id)).slice(0, 6)
+      for (const p of delDia) {
         platos.push({ ...p, local: l })
       }
     }
     const orden = barajarConSemilla(platos, semillaDelDia('antojos'))
     // Prioridad comercial adelante (estable dentro de cada grupo por el shuffle diario).
     orden.sort((a, b) => (Number(b.local.prioridad) || 0) - (Number(a.local.prioridad) || 0))
-    return orden.slice(0, 12)
+    return orden.slice(0, 18)
   }, [enriquecidos, catActiva])
 
   // ♾️ Fila de locales (squircles) con scroll infinito: repetimos la lista y al
@@ -320,6 +321,9 @@ export default function Home() {
                           <img className="antojo-logo" src={p.local.icono || p.local.logo} alt={p.local.nombre} loading="lazy" />
                         )}
                         {!p.local.abierto && <span className="antojo-cerrado">Cerrado</span>}
+                        {/* ➕ estilo DiDi: toda la card navega al producto con el modal listo
+                            para Agregar (con opciones obligatorias no se puede agregar a ciegas). */}
+                        <span className="antojo-add" aria-hidden="true">+</span>
                       </div>
                       <div className="antojo-info">
                         <strong className="antojo-nombre">{p.nombre}</strong>
