@@ -58,8 +58,8 @@ export default function App() {
         <Route path="/:slug/admin" element={<AdminPage />} />
         <Route path="/:slug/admin/:panel" element={<AdminPage />} />
 
-        {/* Panel del domiciliario — ve y busca los pedidos a domicilio del local */}
-        <Route path="/:slug/domiciliario" element={<Domiciliario />} />
+        {/* Panel GLOBAL del domiciliario — ve y busca los domicilios de todos los locales */}
+        <Route path="/domiciliario" element={<Domiciliario />} />
 
         {/* Cada local vive en su propio slug: appetic.app/su-negocio */}
         <Route path="/:slug" element={<LocalPage />} />

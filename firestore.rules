@@ -1,18 +1,18 @@
 rules_version = '2';
 
-// Última actualización: 2026-07-16
-// Último cambio: el SUPERADMIN administra cualquier local como si fuera el dueño
-//   (soporte sin pedirle la cuenta): antes solo podía hacer `update` del local —de ahí
-//   el toggle de suscripciones—, pero no escribir productos ni leer pedidos/stats.
-//   Ahora los tres pasan por puedeAdministrar() = admin del local O superadmin.
-//   Espeja src/config/roles.js → puedeAdministrarLocal(). (Antes: stats/{dia}.)
+// Última actualización: 2026-07-26
+// Cambios: rol DOMICILIARIO GLOBAL (config/domiciliarios) que lee TODOS los pedidos a
+//   domicilio (consultas collectionGroup). Los pedidos se guardan completos (con código)
+//   como fuente de verdad del precio y se auto-borran a los 2 días (política TTL sobre `ttl`).
 //
 // 🔒 Reglas de Appetic
 // - Menú (locales/productos): lectura pública (los clientes ven sin login).
-// - Escritura: el admin del local (su correo en local.admins) o el superadmin.
-// - Pedidos: cualquiera puede CREAR (el cliente, con o sin login) — el pedido con su
-//   código es la fuente de verdad del precio. Los leen el admin, el superadmin y los
-//   DOMICILIARIOS del local (local.domiciliarios). Nadie los edita/borra.
+// - Escritura del menú: el admin del local (su correo en local.admins) o el superadmin.
+// - Pedidos: cualquiera puede CREAR (el cliente, con o sin login) — el pedido con su código
+//   es la fuente de verdad del precio. Los leen el SUPERADMIN y los DOMICILIARIOS GLOBALES
+//   (config/domiciliarios), incluidas consultas collectionGroup. Nadie los edita (TTL los borra).
+// - config/domiciliarios: lista global de repartidores. La lee cualquier autenticado (para el
+//   gate del panel); solo el superadmin la escribe.
 // - Crear/borrar locales: solo desde la consola/seed (nosotros), no desde el cliente.
 
 service cloud.firestore {
@@ -34,16 +34,24 @@ service cloud.firestore {
       return esAdminDe(localId) || esSuperadmin();
     }
 
-    // 🛵 ¿Es DOMICILIARIO de ESTE local? Su correo está en local.domiciliarios[].
-    // Espejo de esDomiciliario() en src/config/roles.js.
-    function esDomiciliarioDe(localId) {
+    // 🛵 ¿Es DOMICILIARIO GLOBAL? Su correo está en config/domiciliarios.emails.
+    // Espejo de esDomiciliarioGlobal() en src/config/roles.js.
+    function esDomiciliarioGlobal() {
       return request.auth != null
-        && request.auth.token.email in get(/databases/$(database)/documents/locales/$(localId)).data.get('domiciliarios', []);
+        && exists(/databases/$(database)/documents/config/domiciliarios)
+        && request.auth.token.email in get(/databases/$(database)/documents/config/domiciliarios).data.get('emails', []);
     }
 
     // Perfil de cada cliente: solo el dueño lo lee/escribe.
     match /usuarios/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Config global (lista de domiciliarios): la lee cualquier autenticado (gate del panel),
+    // solo el superadmin la escribe.
+    match /config/{docId} {
+      allow read: if request.auth != null;
+      allow write: if esSuperadmin();
     }
 
     match /locales/{localId} {
@@ -58,11 +66,9 @@ service cloud.firestore {
 
       match /pedidos/{pedidoId} {
         // El cliente (con o sin login) CREA su pedido; se exige un total válido.
-        // El pedido queda como fuente de verdad del precio (anti-manipulación del WhatsApp).
+        // La LECTURA se define abajo con una regla de grupo (para el feed global del domiciliario).
         allow create: if request.resource.data.total is number
                       && request.resource.data.total >= 0;
-        // Lo LEEN el admin del local, el superadmin y los DOMICILIARIOS del local.
-        allow read: if puedeAdministrar(localId) || esDomiciliarioDe(localId);
         allow update, delete: if false;
       }
 
@@ -72,6 +78,13 @@ service cloud.firestore {
         allow read: if puedeAdministrar(localId);
         allow write: if request.resource.data.keys().hasOnly(['fecha', 'visitas', 'pedidos', 'monto']);
       }
+    }
+
+    // 🛵 Lectura de pedidos por GRUPO de colecciones (collectionGroup): el panel global del
+    // domiciliario consulta TODOS los pedidos de todos los locales. Lo permiten el superadmin
+    // y los domiciliarios globales. (Esta regla también cubre la lectura directa por ruta.)
+    match /{path=**}/pedidos/{pedidoId} {
+      allow read: if esSuperadmin() || esDomiciliarioGlobal();
     }
   }
 }

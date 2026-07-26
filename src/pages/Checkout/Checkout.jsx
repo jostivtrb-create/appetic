@@ -135,7 +135,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
     // red está lenta NO dejamos al cliente trabado en "Enviando…". Best-effort.
     if (local.id !== 'demo') {
       await Promise.race([
-        crearPedido(local.id, pedido, codigo).catch(() => false),
+        crearPedido(local, pedido, codigo).catch(() => false),
         new Promise(res => setTimeout(res, 6000)),
       ])
     }

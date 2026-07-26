@@ -2,23 +2,30 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
-import { listarTodosLocales, setSuscripcion, setAdminEmail, setDomiciliarios } from '../../services/superadmin'
+import { listarTodosLocales, setSuscripcion, setAdminEmail } from '../../services/superadmin'
+import { getDomiciliariosGlobal, setDomiciliariosGlobal } from '../../services/domiciliarios'
 import './Superadmin.css'
 
-// 🛵 Editor de DOMICILIARIOS de un local (varios correos). Cada correo entra a
-// /<slug>/domiciliario y ve los pedidos a domicilio. Guarda al añadir/quitar.
-function DomiciliariosEditor({ local, onChange }) {
-  const [lista, setLista] = useState(local.domiciliarios || [])
+// 🛵 Gestor GLOBAL de domiciliarios (una sola lista para toda Appetic, no por local).
+// Cualquiera de la lista entra a /domiciliario y ve todos los pedidos a domicilio.
+function DomiciliariosGlobal() {
+  const [lista, setLista] = useState([])
   const [nuevo, setNuevo] = useState('')
+  const [estado, setEstado] = useState('cargando')
   const [msg, setMsg] = useState(null) // guardando | ok | err
   const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
+
+  useEffect(() => {
+    let activo = true
+    getDomiciliariosGlobal().then(l => { if (activo) { setLista(l); setEstado('ok') } })
+    return () => { activo = false }
+  }, [])
 
   async function guardar(next) {
     setMsg('guardando')
     try {
-      await setDomiciliarios(local.id, next)
-      setLista(next)
-      onChange?.(next)
+      const saved = await setDomiciliariosGlobal(next)
+      setLista(saved)
       setMsg('ok'); setTimeout(() => setMsg(null), 1800)
     } catch {
       setMsg('err')
@@ -33,36 +40,39 @@ function DomiciliariosEditor({ local, onChange }) {
   }
 
   return (
-    <div className="sa-domi">
-      <div className="sa-domi-head">
-        <span className="sa-admin-ico">🛵</span>
-        <span className="sa-domi-title">Domiciliarios</span>
-        {msg === 'ok' && <span className="sa-domi-msg ok">✓ guardado</span>}
-        {msg === 'guardando' && <span className="sa-domi-msg">…</span>}
+    <div className="sa-domiglobal">
+      <div className="sa-domiglobal-head">
+        <span className="sa-domiglobal-title">🛵 Domiciliarios</span>
+        <Link to="/domiciliario" className="sa-domiglobal-link">Abrir panel →</Link>
       </div>
-      {lista.length > 0 && (
-        <ul className="sa-domi-lista">
-          {lista.map(c => (
-            <li key={c}>
-              <span>{c}</span>
-              <button onClick={() => guardar(lista.filter(x => x !== c))} aria-label="Quitar">✕</button>
-            </li>
-          ))}
-        </ul>
+      <p className="sa-domiglobal-sub">Una sola lista para todos los locales. Ven todos los domicilios y buscan el suyo por código.</p>
+      {estado === 'cargando' ? <div className="sa-skel" /> : (
+        <>
+          {lista.length > 0 && (
+            <ul className="sa-domi-lista">
+              {lista.map(c => (
+                <li key={c}>
+                  <span>{c}</span>
+                  <button onClick={() => guardar(lista.filter(x => x !== c))} aria-label="Quitar">✕</button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="sa-domi-add">
+            <input
+              className={`sa-admin-input ${msg === 'err' ? 'err' : ''}`}
+              type="email" inputMode="email" autoComplete="off" autoCapitalize="none" spellCheck="false"
+              placeholder="correo del domiciliario (Gmail)"
+              value={nuevo}
+              onChange={e => { setNuevo(e.target.value); if (msg === 'err') setMsg(null) }}
+              onKeyDown={e => { if (e.key === 'Enter') agregar() }}
+            />
+            <button className="sa-admin-save" onClick={agregar} disabled={!nuevo.trim() || msg === 'guardando'}>+ Añadir</button>
+          </div>
+          {msg === 'ok' && <p className="sa-admin-hint ok">Guardado ✓</p>}
+          {msg === 'err' && <p className="sa-admin-hint">Escribe un correo válido (ej. repartidor@gmail.com).</p>}
+        </>
       )}
-      <div className="sa-domi-add">
-        <input
-          className={`sa-admin-input ${msg === 'err' ? 'err' : ''}`}
-          type="email" inputMode="email" autoComplete="off" autoCapitalize="none" spellCheck="false"
-          placeholder="correo del domiciliario (Gmail)"
-          value={nuevo}
-          onChange={e => { setNuevo(e.target.value); if (msg === 'err') setMsg(null) }}
-          onKeyDown={e => { if (e.key === 'Enter') agregar() }}
-        />
-        <button className="sa-admin-save" onClick={agregar} disabled={!nuevo.trim() || msg === 'guardando'}>+ Añadir</button>
-      </div>
-      {msg === 'err' && <p className="sa-admin-hint">Escribe un correo válido (ej. repartidor@gmail.com).</p>}
-      <Link to={`/${local.slug}/domiciliario`} className="sa-domi-link">🛵 Abrir panel del domiciliario →</Link>
     </div>
   )
 }
@@ -199,6 +209,9 @@ export default function Superadmin() {
         <strong>{activos}</strong> de <strong>{locales.length}</strong> locales activos en el buscador
       </div>
 
+      {/* 🛵 Domiciliarios globales (una lista para toda Appetic) */}
+      <DomiciliariosGlobal />
+
       <a
         className="sa-descarga"
         href="/propuesta-appetic.pdf"
@@ -272,12 +285,6 @@ export default function Superadmin() {
                 {msg === 'err' && <p className="sa-admin-hint">Escribe un correo válido (ej. dueño@gmail.com).</p>}
                 {msg === 'ok' && <p className="sa-admin-hint ok">Guardado. El dueño ya puede entrar a /{l.slug}/admin.</p>}
                 {!adminActual && msg !== 'ok' && <p className="sa-admin-hint warn">Sin admin asignado.</p>}
-
-                {/* 🛵 Domiciliarios del local (varios correos) */}
-                <DomiciliariosEditor
-                  local={l}
-                  onChange={next => setLocales(ls => ls.map(x => x.id === l.id ? { ...x, domiciliarios: next } : x))}
-                />
 
                 {/* Atajos: el superadmin administra cualquier local como si fuera el dueño
                     (roles.js → puedeAdministrarLocal + firestore.rules → puedeAdministrar). */}

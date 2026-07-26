@@ -1,18 +1,23 @@
 import {
-  collection, addDoc, serverTimestamp, query, orderBy, limit, where, getDocs, onSnapshot,
+  collection, collectionGroup, addDoc, serverTimestamp, Timestamp,
+  query, orderBy, limit, where, getDocs, onSnapshot,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { registrarPedidoStats } from './stats'
 import { precioItem } from '../utils/price'
 import { resumenSeleccion } from '../utils/selectionSummary'
 
+// Los pedidos se auto-borran a los 2 días (política TTL de Firestore sobre el campo `ttl`),
+// para que el panel del domiciliario no se vuelva una lista infinita.
+const DIAS_VIDA = 2
+
 // 🧾 Guarda el pedido COMPLETO en Firestore (locales/{id}/pedidos) con su CÓDIGO.
-// Este documento es la FUENTE DE VERDAD del precio: el domiciliario busca por código
-// y ve estos importes, no los del texto de WhatsApp (que el cliente podría editar).
-// Best-effort: si falla, NO rompe el flujo del cliente (igual se abre WhatsApp).
-// Devuelve true si quedó guardado.
-export async function crearPedido(localId, pedido, codigo) {
-  // Contadores baratos para el panel del dueño (métricas).
+// Es la FUENTE DE VERDAD del precio: el domiciliario busca por código y ve estos importes,
+// no los del texto de WhatsApp (que el cliente podría editar). Best-effort: si falla, NO
+// rompe el flujo del cliente. Guarda también datos del local para el feed global.
+export async function crearPedido(local, pedido, codigo) {
+  const localId = local?.id
+  if (!localId) return false
   registrarPedidoStats(localId, pedido.total)
 
   const items = (pedido.items || []).map(it => ({
@@ -25,8 +30,13 @@ export async function crearPedido(localId, pedido, codigo) {
 
   const data = {
     codigo: codigo || '',
-    estado: 'nuevo',                   // reservado para el futuro (en camino/entregado)
+    estado: 'nuevo',
     entrega: pedido.entrega || 'recoger',
+    // Datos del local (para el feed global del domiciliario, sin lecturas extra).
+    localId,
+    localNombre: local.nombre || '',
+    localSlug: local.slug || '',
+    localIcono: local.icono || local.logo || '',
     cliente: {
       nombre: pedido.cliente?.nombre || '',
       telefono: pedido.cliente?.telefono || '',
@@ -43,6 +53,9 @@ export async function crearPedido(localId, pedido, codigo) {
     total: pedido.total || 0,
     cantidadItems: items.reduce((s, it) => s + it.cantidad, 0),
     createdAt: serverTimestamp(),
+    // TTL: Firestore borra el doc pasada esta fecha (requiere activar la política TTL
+    // sobre el grupo de colecciones 'pedidos', campo 'ttl', una vez en la consola).
+    ttl: Timestamp.fromMillis(Date.now() + DIAS_VIDA * 86400000),
   }
 
   try {
@@ -54,37 +67,34 @@ export async function crearPedido(localId, pedido, codigo) {
   }
 }
 
-// 🛵 Escucha en vivo los últimos pedidos a DOMICILIO del local (para el panel del
-// domiciliario). Orden por fecha desc (índice de campo único, sin índice compuesto);
-// el filtro 'domicilio' se hace en el cliente para no exigir índice compuesto.
-// Devuelve la función de "unsubscribe".
-export function escucharPedidosDomicilio(localId, cb, onError) {
-  const q = query(
-    collection(db, 'locales', localId, 'pedidos'),
-    orderBy('createdAt', 'desc'),
-    limit(120),
-  )
+// 🛵 GLOBAL: escucha en vivo los últimos pedidos a DOMICILIO de TODOS los locales
+// (collectionGroup). Orden por fecha desc; filtra a domicilio y a los últimos 2 días en
+// el cliente. Devuelve la función de "unsubscribe".
+export function escucharTodosDomicilios(cb, onError) {
+  const q = query(collectionGroup(db, 'pedidos'), orderBy('createdAt', 'desc'), limit(200))
+  const desde = Date.now() - DIAS_VIDA * 86400000
   return onSnapshot(
     q,
     snap => {
       const arr = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
         .filter(p => p.entrega === 'domicilio')
+        .filter(p => {
+          const ms = p.createdAt?.toMillis ? p.createdAt.toMillis() : Date.now()
+          return ms >= desde
+        })
       cb(arr)
     },
     err => { console.warn('pedidos snapshot:', err?.code || err); onError?.(err) },
   )
 }
 
-// 🔎 Busca un pedido por su CÓDIGO (igualdad, campo único → sin índice compuesto).
-export async function buscarPedidoPorCodigo(localId, codigo) {
+// 🔎 GLOBAL: busca un pedido por CÓDIGO en todos los locales (por si es de un local
+// distinto o algo viejo). Igualdad sobre campo único → sin índice compuesto.
+export async function buscarPedidoGlobalPorCodigo(codigo) {
   const c = String(codigo || '').toUpperCase().trim()
   if (!c) return []
-  const q = query(
-    collection(db, 'locales', localId, 'pedidos'),
-    where('codigo', '==', c),
-    limit(5),
-  )
+  const q = query(collectionGroup(db, 'pedidos'), where('codigo', '==', c), limit(10))
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(p => p.entrega === 'domicilio')
 }
