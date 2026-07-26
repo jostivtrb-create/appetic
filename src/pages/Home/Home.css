@@ -234,6 +234,20 @@
   object-position: 50% 68%;  /* encuadra el centro-bajo (la comida) y esconde el fondo claro de arriba */
   display: block;
 }
+/* 🌤️ Scrim: velo cálido degradado arriba de TODAS las fotos. Unifica las tarjetas
+   (las fotos con fondo de estudio claro dejan de verse como "franja blanca" y las
+   oscuras ni lo notan) y da contraste al logo y al pill "Cerrado" que viven ahí. */
+.antojo-media::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 44%;
+  background: linear-gradient(to bottom, rgba(62, 36, 18, 0.34), rgba(62, 36, 18, 0));
+  pointer-events: none;
+}
+.antojo-logo,
+.antojo-cerrado,
+.antojo-add { z-index: 1; }
 .antojo-logo {
   position: absolute;
   top: 8px; left: 8px;
