@@ -56,8 +56,5 @@
   43%, 100% { background-position: -50% 0; }   /* oculto después */
 }
 
-/* Accesibilidad: sin movimiento → logo completo y quieto, sin destello. */
-@media (prefers-reduced-motion: reduce) {
-  .logo-manchon-zig { animation: none; stroke-dashoffset: 0; }
-  .logo-manchon-shine { display: none; }
-}
+/* (Se quitó el corte por prefers-reduced-motion: en iOS lo enciende el Modo de bajo
+   consumo y dejaba el logo sin pintarse solo en iPhone. El manchón es suave y breve.) */

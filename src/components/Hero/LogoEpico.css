@@ -89,7 +89,5 @@
   100% { transform: translateX(130px); opacity: 0; }
 }
 
-/* Accesibilidad: sin animación, el logo queda completo y quieto (sin misterio). */
-@media (prefers-reduced-motion: reduce) {
-  .logo-epico-band { animation: none !important; opacity: 1; transform: none; filter: none; }
-}
+/* (Se quitó el corte por prefers-reduced-motion: en iOS lo enciende el Modo de bajo
+   consumo y dejaba el logo quieto solo en iPhone.) */

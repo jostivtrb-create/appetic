@@ -17,7 +17,8 @@ export default function CategoryNav({ categorias, activa, onSelect }) {
   useEffect(() => {
     const track = trackRef.current
     if (!track || !varias) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    // (Antes se cortaba aquí con prefers-reduced-motion, pero en iOS ese flag lo
+    //  enciende el Modo de bajo consumo y dejaba el carrusel quieto solo en iPhone.)
 
     const SPEED = 0.4 // px por frame (~despacio)
     pos.current = track.scrollLeft

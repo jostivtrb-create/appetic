@@ -122,9 +122,11 @@ ul, ol { list-style: none; }
   to { opacity: 1; transform: scale(1); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * { animation: none !important; transition: none !important; }
-}
+/* ⚠️ NO desactivamos animaciones globalmente con prefers-reduced-motion.
+   En iOS ese flag se enciende también con el "Modo de bajo consumo" (muy común),
+   lo que dejaba TODA la app sin movimiento SOLO en iPhone —logos, carruseles,
+   transiciones— mientras Android se veía bien. La app prioriza su experiencia viva;
+   las animaciones son suaves, breves y no intrusivas. */
 
 /* ===================== Estados de carga / mensajes (compartidos) ===================== */
 .local-loading,

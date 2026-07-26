@@ -207,24 +207,54 @@ export default function Home() {
   // ♾️ Fila de locales (squircles) con scroll infinito: repetimos la lista y al
   // acercarse a un borde saltamos un "segmento" (invisible para el usuario).
   const filaRef = useRef(null)
+  const filaInteract = useRef(false) // el dedo la está tocando/arrastrando
+  const filaPos = useRef(0)          // posición fluida del auto-scroll
+  const filaRaf = useRef(0)
+  const filaTimer = useRef(null)
   const filaLocales = useMemo(() => {
     if (enriquecidos.length < 2) return { items: enriquecidos, copias: 1 }
     let copias = 3
     while (enriquecidos.length * copias < 15) copias += 1
     return { items: Array.from({ length: copias }, () => enriquecidos).flat(), copias }
   }, [enriquecidos])
-  function onScrollFila() {
-    const el = filaRef.current
-    if (!el || filaLocales.copias < 2) return
-    const seg = el.scrollWidth / filaLocales.copias
-    if (el.scrollLeft < seg * 0.5) el.scrollLeft += seg
-    else if (el.scrollLeft > seg * (filaLocales.copias - 1)) el.scrollLeft -= seg
-  }
-  // Arranca en el segmento del medio para poder desplazarse hacia ambos lados.
+
+  // 🎠 La fila de locales se desliza SOLA (lento, en bucle) como las categorías del
+  //    menú; el dedo puede arrastrarla y a los ~7 s sin tocarla retoma el giro.
   useEffect(() => {
     const el = filaRef.current
-    if (el && filaLocales.copias >= 2) el.scrollLeft = el.scrollWidth / filaLocales.copias
+    if (!el || filaLocales.copias < 2) return
+    const seg = () => el.scrollWidth / filaLocales.copias
+    el.scrollLeft = seg() // arranca en el 2.º segmento (se puede arrastrar a ambos lados)
+    filaPos.current = el.scrollLeft
+    const SPEED = 0.4 // px por frame (~despacio)
+    function frame() {
+      filaRaf.current = requestAnimationFrame(frame)
+      if (filaInteract.current) { filaPos.current = el.scrollLeft; return }
+      const s = seg()
+      filaPos.current += SPEED
+      if (s > 0 && filaPos.current >= s * (filaLocales.copias - 1)) filaPos.current -= s // bucle sin costura
+      el.scrollLeft = filaPos.current
+    }
+    filaRaf.current = requestAnimationFrame(frame)
+    return () => cancelAnimationFrame(filaRaf.current)
   }, [filaLocales])
+  useEffect(() => () => { if (filaTimer.current) clearTimeout(filaTimer.current) }, [])
+
+  function filaPausar() {
+    filaInteract.current = true
+    if (filaTimer.current) clearTimeout(filaTimer.current)
+  }
+  function filaReanudar() {
+    const el = filaRef.current
+    if (el && filaLocales.copias >= 2) {
+      const s = el.scrollWidth / filaLocales.copias
+      if (el.scrollLeft < s * 0.5) el.scrollLeft += s
+      else if (el.scrollLeft > s * (filaLocales.copias - 1)) el.scrollLeft -= s
+      filaPos.current = el.scrollLeft
+    }
+    if (filaTimer.current) clearTimeout(filaTimer.current)
+    filaTimer.current = setTimeout(() => { filaInteract.current = false }, 7000)
+  }
 
   function abrirLocal(l, extra = '') {
     // En preview, el menú destino también se abre en preview (flujo completo sin datos).
@@ -273,9 +303,17 @@ export default function Home() {
           <>
             {/* ① Fila de locales — squircles con scroll infinito */}
             {sinFiltros && enriquecidos.length > 1 && (
-              <section className="home-sec">
-                <h2 className="home-sec-title">Locales</h2>
-                <div className="home-fila" ref={filaRef} onScroll={onScrollFila}>
+              <section className="home-sec home-sec--fila">
+                <div
+                  className="home-fila"
+                  ref={filaRef}
+                  onPointerDown={filaPausar}
+                  onPointerUp={filaReanudar}
+                  onPointerCancel={filaReanudar}
+                  onTouchStart={filaPausar}
+                  onTouchEnd={filaReanudar}
+                  onWheel={() => { filaPausar(); filaReanudar() }}
+                >
                   {filaLocales.items.map((l, i) => (
                     <button key={`${l.id}-${i}`} className="fila-local" onClick={() => abrirLocal(l)}>
                       <span className={`fila-avatar ${!l.abierto ? 'off' : ''}`}>
