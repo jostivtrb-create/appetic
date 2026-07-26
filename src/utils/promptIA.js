@@ -63,9 +63,16 @@ export function construirPromptImagenIA({ nombre, descripcion = '', tipo = 'prod
   const fondo = moodDelLocal(local)
 
   if (tipo === 'banner') {
-    // Portada horizontal del local: un despliegue apetitoso de sus platos estrella,
-    // en el MISMO estilo/colores que las fotos de producto (coherencia de marca).
-    return `Photorealistic wide horizontal banner food photography for "${n}"${desc}, an appetizing spread of its signature dishes, vibrant and inviting, natural lighting, ${fondo}, horizontal cinematic composition, high detail, sharp focus, no text, no watermark, no logo, no hands.`
+    // Portada horizontal del local. CLAVE: describe SU comida REAL (sus platos estrella o,
+    // si no hay, sus categorías) para que la IA no invente un despliegue genérico que no pega
+    // con la marca. Mismo MOOD/colores que las fotos de producto (coherencia).
+    const platos = (local?.destacadosHome || []).map(p => (p?.nombre || '').trim()).filter(Boolean)
+    const cats = (local?.categorias || [])
+      .map(c => (c?.nombre || '').trim())
+      .filter(c => c && !/bebida|adici[oó]n|salsa|extra/i.test(c))
+    const lista = (platos.length ? platos : cats).slice(0, 5).join(', ')
+    const detalle = lista ? ` — an abundant, appetizing spread featuring ${lista}` : ' — an abundant, appetizing spread of its real dishes'
+    return `Photorealistic wide horizontal banner food photography of the real menu of a food place called "${n}"${detalle}, freshly made, vibrant and mouth-watering, natural lighting, ${fondo}, horizontal cinematic composition, high detail, sharp focus, no text, no watermark, no logo, no hands.`
   }
   if (tipo === 'opcion') {
     // Topping / salsa / adición: primer plano de un solo ingrediente.
