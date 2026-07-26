@@ -208,6 +208,12 @@
 /* ===== ② Para antojarte (platos con foto, logo en la esquina) ===== */
 .antojo-card {
   flex: none;
+  /* Columna flex: la FOTO queda anclada ARRIBA siempre. Sin esto, el <button> centra
+     su contenido cuando la fila lo estira a la altura de la tarjeta más alta (título
+     de 2 líneas) y en las de 1 línea aparecía una franja blanca encima de la foto. */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   width: 168px;
   padding: 0;
   border: 1px solid var(--border);
@@ -224,6 +230,7 @@
 .antojo-card:active { transform: scale(0.97); box-shadow: var(--shadow); }
 .antojo-media {
   position: relative;
+  flex: none;               /* la foto no se estira: el alto sobrante lo absorbe .antojo-info */
   width: 100%;
   aspect-ratio: 1 / 0.72;   /* más bajo: recorta la franja clara de arriba/abajo de las fotos */
   background: var(--surface-2);
@@ -291,6 +298,7 @@
 .antojo-info {
   display: flex;
   flex-direction: column;
+  flex: 1;                  /* absorbe el alto sobrante de las tarjetas de título corto */
   gap: 1px;
   padding: 9px 11px 11px;
 }
