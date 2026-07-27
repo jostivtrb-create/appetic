@@ -1,6 +1,9 @@
 // 👑 Roles de Appetic
 // - superadmin: nosotros (control de suscripciones). Correo fijo.
 // - admin de local: su correo está en local.admins[] (se detecta consultando Firestore).
+//   El superadmin puede poner HASTA DOS correos por local (el dueño y su socio o
+//   encargado); los dos mandan igual, no hay jerarquía entre ellos.
+//   Ver setAdminEmails() en services/superadmin.js.
 // - cliente: cualquier otro usuario con sesión.
 
 export const SUPERADMIN_EMAILS = ['jostivtrb@gmail.com']

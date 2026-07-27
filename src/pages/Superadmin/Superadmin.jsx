@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
-import { listarTodosLocales, setSuscripcion, setAdminEmail, setEtiquetas, setPrioridad } from '../../services/superadmin'
+import { listarTodosLocales, setSuscripcion, setAdminEmails, setEtiquetas, setPrioridad } from '../../services/superadmin'
 import { getDomiciliariosGlobal, setDomiciliariosGlobal } from '../../services/domiciliarios'
 import { CATEGORIAS_LOCALES } from '../../config/categoriasLocales'
 import './Superadmin.css'
@@ -153,10 +153,22 @@ export default function Superadmin() {
   const [locales, setLocales] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [guardandoId, setGuardandoId] = useState(null)
-  const [adminEdits, setAdminEdits] = useState({}) // localId -> correo en edición
-  const [adminMsg, setAdminMsg] = useState({})     // localId -> 'guardando' | 'ok' | 'err'
+  const [adminEdits, setAdminEdits] = useState({}) // localId -> [correo1, correo2] en edición
+  const [adminMsg, setAdminMsg] = useState({})     // localId -> 'guardando' | 'ok' | 'err' | 'dup'
 
   const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
+
+  // Un local admite HASTA DOS correos de admin (el dueño y su socio/encargado).
+  // Siempre se pintan 2 casillas aunque el local tenga guardado 1 correo (o ninguno):
+  // la 2ª va vacía y es opcional. Si un seed dejó MÁS de dos, se muestran todos en vez
+  // de recortarlos en silencio (borrar un admin debe ser algo que se ve y se decide).
+  const CUPOS_ADMIN = 2
+  const casillas = (admins) =>
+    Array.from({ length: Math.max(CUPOS_ADMIN, admins?.length || 0) }, (_, i) => admins?.[i] || '')
+  // Normaliza lo escrito a la lista que se guardaría: minúsculas, sin vacíos ni repetidos.
+  const normalizar = (valores) => [...new Set(
+    valores.map(v => String(v || '').trim().toLowerCase()).filter(Boolean)
+  )]
 
   // Fuerza la DESCARGA del PDF (no solo abrirlo). Baja la copia same-origin
   // como blob y dispara el guardado con nombre. Si algo falla, abre la copia
@@ -180,17 +192,25 @@ export default function Superadmin() {
     }
   }
 
+  // Guarda de una sola vez los correos de admin del local (1 ó 2). El 2º campo es
+  // opcional: vacío = el local queda con un solo dueño. Se exige al menos uno válido
+  // para no dejar el local sin nadie que pueda entrar a su panel.
   async function guardarAdmin(local) {
-    const actual = local.admins?.[0] || ''
-    const correo = (adminEdits[local.id] ?? actual).trim().toLowerCase()
-    if (!emailValido(correo)) {
+    const valores = adminEdits[local.id] ?? casillas(local.admins)
+    const escritos = valores.map(v => String(v || '').trim().toLowerCase()).filter(Boolean)
+    const correos = normalizar(valores)
+    if (!correos.length || correos.some(c => !emailValido(c))) {
       setAdminMsg(m => ({ ...m, [local.id]: 'err' }))
+      return
+    }
+    if (escritos.length !== correos.length) {
+      setAdminMsg(m => ({ ...m, [local.id]: 'dup' }))
       return
     }
     setAdminMsg(m => ({ ...m, [local.id]: 'guardando' }))
     try {
-      await setAdminEmail(local.id, correo)
-      setLocales(ls => ls.map(l => l.id === local.id ? { ...l, admins: [correo] } : l))
+      await setAdminEmails(local.id, correos)
+      setLocales(ls => ls.map(l => l.id === local.id ? { ...l, admins: correos } : l))
       setAdminEdits(m => { const n = { ...m }; delete n[local.id]; return n })
       setAdminMsg(m => ({ ...m, [local.id]: 'ok' }))
       setTimeout(() => setAdminMsg(m => { const n = { ...m }; delete n[local.id]; return n }), 2200)
@@ -305,9 +325,9 @@ export default function Superadmin() {
         <ul className="sa-lista">
           {filtrados.map(l => {
             const activa = !!l.suscripcion?.activa
-            const adminActual = l.admins?.[0] || ''
-            const valorAdmin = adminEdits[l.id] ?? adminActual
-            const cambiado = valorAdmin.trim().toLowerCase() !== adminActual
+            const adminsActuales = normalizar(l.admins || [])
+            const valoresAdmin = adminEdits[l.id] ?? casillas(l.admins)
+            const cambiado = normalizar(valoresAdmin).join('|') !== adminsActuales.join('|')
             const msg = adminMsg[l.id]
             return (
               <li key={l.id} className="sa-item">
@@ -329,30 +349,50 @@ export default function Superadmin() {
                   </button>
                 </div>
 
-                <div className="sa-admin">
-                  <span className="sa-admin-ico">👤</span>
-                  <input
-                    className={`sa-admin-input ${msg === 'err' ? 'err' : ''}`}
-                    type="email"
-                    inputMode="email"
-                    autoComplete="off"
-                    autoCapitalize="none"
-                    spellCheck="false"
-                    placeholder="correo del dueño (Gmail)"
-                    value={valorAdmin}
-                    onChange={e => { setAdminEdits(m => ({ ...m, [l.id]: e.target.value })); setAdminMsg(m => ({ ...m, [l.id]: undefined })) }}
-                  />
-                  <button
-                    className="sa-admin-save"
-                    onClick={() => guardarAdmin(l)}
-                    disabled={!cambiado || msg === 'guardando'}
-                  >
-                    {msg === 'guardando' ? '…' : msg === 'ok' ? '✓' : 'Guardar'}
-                  </button>
+                {/* 👤 Hasta DOS correos de admin: el dueño y (opcional) su socio o
+                    encargado. Los dos mandan igual. Se guardan juntos con un botón. */}
+                <div className="sa-admins">
+                  {valoresAdmin.map((valor, i) => (
+                    <div className="sa-admin" key={i}>
+                      <span className="sa-admin-ico">{i === 0 ? '👤' : '👥'}</span>
+                      <input
+                        className={`sa-admin-input ${msg === 'err' || msg === 'dup' ? 'err' : ''}`}
+                        type="email"
+                        inputMode="email"
+                        autoComplete="off"
+                        autoCapitalize="none"
+                        spellCheck="false"
+                        placeholder={i === 0 ? 'correo del dueño (Gmail)' : 'segundo correo (opcional)'}
+                        value={valor}
+                        onChange={e => {
+                          const txt = e.target.value
+                          setAdminEdits(m => {
+                            const base = m[l.id] ?? casillas(l.admins)
+                            return { ...m, [l.id]: base.map((v, j) => j === i ? txt : v) }
+                          })
+                          setAdminMsg(m => ({ ...m, [l.id]: undefined }))
+                        }}
+                      />
+                      {i === 0 && (
+                        <button
+                          className="sa-admin-save"
+                          onClick={() => guardarAdmin(l)}
+                          disabled={!cambiado || msg === 'guardando'}
+                        >
+                          {msg === 'guardando' ? '…' : msg === 'ok' ? '✓' : 'Guardar'}
+                        </button>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                {msg === 'err' && <p className="sa-admin-hint">Escribe un correo válido (ej. dueño@gmail.com).</p>}
-                {msg === 'ok' && <p className="sa-admin-hint ok">Guardado. El dueño ya puede entrar a /{l.slug}/admin.</p>}
-                {!adminActual && msg !== 'ok' && <p className="sa-admin-hint warn">Sin admin asignado.</p>}
+                {msg === 'err' && <p className="sa-admin-hint">Escribe al menos un correo válido (ej. dueño@gmail.com). El segundo puede quedar vacío.</p>}
+                {msg === 'dup' && <p className="sa-admin-hint">Los dos correos son el mismo. Cambia uno o deja el segundo vacío.</p>}
+                {msg === 'ok' && (
+                  <p className="sa-admin-hint ok">
+                    Guardado. {adminsActuales.length > 1 ? 'Los dos ya pueden' : 'El dueño ya puede'} entrar a /{l.slug}/admin.
+                  </p>
+                )}
+                {!adminsActuales.length && msg !== 'ok' && <p className="sa-admin-hint warn">Sin admin asignado.</p>}
 
                 {/* 🗂️ Etiquetas del inicio + ⭐ prioridad */}
                 <EtiquetasEditor

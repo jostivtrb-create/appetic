@@ -13,12 +13,18 @@ export async function setSuscripcion(localId, activa) {
   await updateDoc(doc(db, 'locales', localId), { 'suscripcion.activa': !!activa })
 }
 
-// Define el correo del ADMIN (dueño) del local. Con ese Google el dueño entra a
-// /<slug>/admin. Guarda el correo normalizado (minúsculas, sin espacios) como único
-// admin del local. Solo el superadmin puede hacerlo (ver firestore.rules).
-export async function setAdminEmail(localId, email) {
-  const correo = String(email || '').trim().toLowerCase()
-  await updateDoc(doc(db, 'locales', localId), { admins: [correo] })
+// Define los correos de los ADMINS (dueños) del local. Con esos Google entran a
+// /<slug>/admin. Se admite MÁS DE UNO (ej. el dueño y su socio o el encargado):
+// todos tienen exactamente los mismos permisos, no hay jerarquía entre ellos.
+// Guarda los correos normalizados (minúsculas, sin espacios) y sin repetidos:
+// firestore.rules compara el correo del token TAL CUAL contra `admins`, así que un
+// correo con mayúsculas abriría el panel pero fallaría al guardar.
+// Solo el superadmin puede hacerlo (ver firestore.rules).
+export async function setAdminEmails(localId, emails) {
+  const lista = (Array.isArray(emails) ? emails : [emails])
+    .map(e => String(e || '').trim().toLowerCase())
+    .filter(Boolean)
+  await updateDoc(doc(db, 'locales', localId), { admins: [...new Set(lista)] })
 }
 
 // 🗂️ Etiquetas del local para los chips del INICIO (ids del catálogo curado

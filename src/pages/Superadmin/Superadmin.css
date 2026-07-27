@@ -114,7 +114,10 @@
 }
 .sa-toggle.on .sa-toggle-knob { transform: translateX(22px); }
 
-/* Editor del correo del admin (dueño) por local */
+/* Editor de los correos de admin por local: hasta DOS casillas apiladas (el dueño
+   y su socio/encargado opcional). El botón "Guardar" va en la primera fila y
+   guarda las dos de una vez. */
+.sa-admins { display: flex; flex-direction: column; gap: 6px; }
 .sa-admin {
   display: flex;
   align-items: center;
