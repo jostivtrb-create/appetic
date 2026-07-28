@@ -25,6 +25,8 @@ export default function BottomNav() {
 
   // Superadmin vive en su propio panel, sin barra.
   if (pathname.startsWith('/superadmin')) return null
+  // /r/… es solo un puente de medio segundo hacia WhatsApp: no es una pantalla de la app.
+  if (pathname.startsWith('/r/')) return null
   // Mientras se sabe si es dueño (usuario con sesión), no parpadeamos la barra.
   if (user && adminCargando) return null
 

@@ -27,17 +27,37 @@ export function normalizarTel(numero) {
 // link que va en el pedido). Confirma la recepción y valida de paso que el WhatsApp
 // del cliente sea correcto (si el link no abre chat, el número estaba mal).
 export function mensajeRespuestaCliente(local, pedido) {
-  const primerNombre = (pedido?.cliente?.nombre || '').trim().split(/\s+/)[0] || 'Hola'
+  // Sin nombre saludamos a secas: el fallback anterior era 'Hola' y salía "¡Hola Hola!".
+  const primerNombre = (pedido?.cliente?.nombre || '').trim().split(/\s+/)[0]
+  const saludo = primerNombre ? `¡Hola ${primerNombre}!` : '¡Hola!'
   const cod = pedido?.codigo ? `*${pedido.codigo}* ` : ''
-  return `¡Hola ${primerNombre}! \u{1F9E1} Recibimos tu pedido ${cod}hecho con Appetic y ya lo estamos preparando. Haremos lo posible por tenerlo listo lo más pronto — te pedimos un poquito de paciencia. ¡Gracias por pedir en ${local.nombre}! \u{1F6F5}`
+  return `${saludo} \u{1F9E1} Recibimos tu pedido ${cod}hecho con Appetic y ya lo estamos preparando. Haremos lo posible por tenerlo listo lo más pronto — te pedimos un poquito de paciencia. ¡Gracias por pedir en ${local.nombre}! \u{1F6F5}`
 }
 
-// Link wa.me al WhatsApp del CLIENTE con el mensaje de confirmación listo.
-// El local lo toca desde el pedido y responde de un toque.
+// Endpoint correcto de WhatsApp según el dispositivo (Regla 3), con el texto ya
+// codificado. Lo usan tanto el pedido al local como la respuesta al cliente.
+export function urlWhatsApp(tel, texto) {
+  const t = encodeURIComponent(texto)
+  return isMobileBrowser()
+    ? `whatsapp://send?phone=${tel}&text=${t}`
+    : `https://api.whatsapp.com/send?phone=${tel}&text=${t}`
+}
+
+// Link CORTO para que el local le responda al cliente de un toque.
+// Antes metíamos el mensaje entero dentro de la URL (?text=...) y quedaba un muro
+// de ~450 caracteres dentro del WhatsApp del pedido. Ahora apunta a /r/… y es esa
+// ruta la que arma el texto y abre WhatsApp (ver pages/Responder).
+// Va todo en el path (no en Firestore) porque el dueño no puede leer los pedidos
+// según firestore.rules, y abrirlos al público expondría datos del cliente.
+// De paso arregla los emojis en PC: /r/ usa api.whatsapp.com y no wa.me (Regla 3).
 export function linkRespuestaCliente(local, pedido) {
   const tel = normalizarTel(pedido?.cliente?.telefono)
-  if (!tel) return ''
-  return `https://wa.me/${tel}?text=${encodeURIComponent(mensajeRespuestaCliente(local, pedido))}`
+  if (!tel || !local?.slug) return ''
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  // '-' = "este dato no vino"; la ruta lo entiende y saluda sin nombre / sin código.
+  const cod = pedido?.codigo || '-'
+  const nombre = (pedido?.cliente?.nombre || '').trim().split(/\s+/)[0] || '-'
+  return `${origin}/r/${local.slug}/${tel}/${encodeURIComponent(cod)}/${encodeURIComponent(nombre)}`
 }
 
 // Construye el texto del pedido para el WhatsApp del local.
@@ -109,11 +129,7 @@ export function textoPedido(local, pedido) {
 // URL final con el mensaje codificado. Endpoint según dispositivo (Regla 3):
 //   móvil -> whatsapp://send  ·  PC -> api.whatsapp.com/send (NO wa.me).
 export function urlPedidoWhatsApp(local, pedido) {
-  const tel = normalizarTel(local.whatsapp)
-  const texto = encodeURIComponent(textoPedido(local, pedido))
-  return isMobileBrowser()
-    ? `whatsapp://send?phone=${tel}&text=${texto}`
-    : `https://api.whatsapp.com/send?phone=${tel}&text=${texto}`
+  return urlWhatsApp(normalizarTel(local.whatsapp), textoPedido(local, pedido))
 }
 
 // Abre WhatsApp con el pedido. En móvil navega al deep link; en PC abre pestaña.

@@ -12,6 +12,7 @@ import Favoritos from './pages/Favoritos/Favoritos.jsx'
 import Datos from './pages/Datos/Datos.jsx'
 import Superadmin from './pages/Superadmin/Superadmin.jsx'
 import Domiciliario from './pages/Domiciliario/Domiciliario.jsx'
+import Responder from './pages/Responder/Responder.jsx'
 import InstallPrompt from './components/InstallPrompt/InstallPrompt.jsx'
 import BottomNav from './components/BottomNav/BottomNav.jsx'
 import ConfirmCambioLocal from './components/ConfirmCambioLocal/ConfirmCambioLocal.jsx'
@@ -60,6 +61,10 @@ export default function App() {
 
         {/* Panel GLOBAL del domiciliario — ve y busca los domicilios de todos los locales */}
         <Route path="/domiciliario" element={<Domiciliario />} />
+
+        {/* 💬 Puente para que el local responda al cliente de un toque. Existe para
+            que el link dentro del WhatsApp del pedido sea corto (ver Responder.jsx). */}
+        <Route path="/r/:slug/:tel/:codigo/:nombre" element={<Responder />} />
 
         {/* Cada local vive en su propio slug: appetic.app/su-negocio */}
         <Route path="/:slug" element={<LocalPage />} />
