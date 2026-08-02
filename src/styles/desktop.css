@@ -360,7 +360,10 @@
      dentro de .local-page, que abre contexto de apilamiento propio por su
      animación: desde ahí no puede pasar por encima de un hermano de su padre
      por mucho z-index que se le ponga. */
-  .bnav--bajo-capa {
+  .bnav--bajo-capa,
+  .app-shell:has(.ac-modal-overlay) .bnav,
+  .app-shell:has(.pm-overlay) .bnav,
+  .app-shell:has(.pw-overlay) .bnav {
     pointer-events: none;   /* bajo el velo tampoco debe poder usarse */
     animation: none;
   }
@@ -375,7 +378,14 @@
          cuelgan de .local-page, que es quien lleva las variables del tema en
          un style inline, y fuera de ahí perderían los colores del negocio.
      Pintándolo DENTRO del propio rail no hay capas que negociar. */
-  .bnav--bajo-capa::after {
+  .bnav--bajo-capa::after,
+  /* Los modales del panel del dueño (precios del domicilio, editar producto)
+     no pasan por `live.oculta` —eso es cosa del menú del cliente—, así que se
+     detectan desde el CSS: si hay un velo colgando del shell, el rail se
+     apaga igual. */
+  .app-shell:has(.ac-modal-overlay) .bnav::after,
+  .app-shell:has(.pm-overlay) .bnav::after,
+  .app-shell:has(.pw-overlay) .bnav::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -1044,6 +1054,35 @@
   /* Difundir: el enlace y el QR conviven mejor lado a lado. */
   .dif-qr-img,
   .dif-qr-ph { margin-inline: auto; }
+
+  /* Modal de "Precios del domicilio": era una hoja de celular pegada al borde
+     de abajo y a todo el ancho, así que en un monitor el título quedaba en un
+     extremo y los precios en el otro, separados por un metro de vacío. */
+  .ac-modal-overlay { align-items: center; padding: 40px; }
+  .ac-modal-sheet {
+    width: 100%;
+    max-width: 560px;
+    max-height: min(86dvh, 800px);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+  }
+  @keyframes acSheetUp {
+    from { opacity: 0; transform: translateY(14px) scale(0.985); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .ac-modal-head { padding: 20px 24px 14px; }
+  .ac-modal-head h3 { font-size: 19px; }
+  .ac-modal-body { padding: 16px 24px 8px; }
+  .ac-modal-foot { padding: 14px 24px 18px; }
+  .ac-modal-foot .btn { width: auto; min-width: 200px; display: flex; margin-left: auto; }
+  .ac-modal-close { cursor: pointer; transition: background 0.16s ease; }
+  .ac-modal-close:hover { background: var(--border); }
+  .ac-modal-close:active { transform: none; }
+  /* Las filas de tramo no deben estirarse: el precio pegado a su kilometraje. */
+  .ac-tarifa-row { max-width: 420px; }
+  .ac-tarifas-head { max-width: 420px; }
+  .ac-tarifa-fill { cursor: pointer; }
 
   .ap-edit,
   .ap-toggle,

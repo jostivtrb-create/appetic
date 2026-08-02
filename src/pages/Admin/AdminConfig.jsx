@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { LOGO_ANIMS, resolverLogoAnim } from '../../utils/logoAnim'
 import { construirPromptImagenIA } from '../../utils/promptIA'
 
+// 🛵 Cuánto sube el domicilio por cada medio kilómetro cuando el dueño usa el
+// botón ↓ para rellenar los tramos de abajo. Es solo un punto de partida
+// razonable: después puede editar cualquier tramo a mano.
+const ESCALON_DOMICILIO = 500
+
 // Genera los intervalos de 0.5 km hasta el máximo: ['0.5','1.0',...,'maxKm']
 function intervalosHasta(maxKm) {
   const out = []
@@ -93,16 +98,26 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
     setTarifas(t => ({ ...t, [key]: valor.replace(/\D/g, '') }))
   }
 
-  // Copia la tarifa de un intervalo hacia abajo (rellena los siguientes vacíos).
+  // 🛵 Rellena los tramos vacíos de abajo en ESCALERA: cada medio kilómetro de
+  // más cuesta ESCALON_DOMICILIO pesos por encima del anterior. Antes copiaba
+  // el mismo precio a todos, y el dueño tenía que corregir a mano tramo por
+  // tramo, porque llevar el pedido más lejos siempre cuesta más.
+  //
+  // Si por el camino se topa con un tramo que el dueño ya escribió, lo respeta
+  // y sigue subiendo la escalera DESDE ese precio: manda lo que él puso, no lo
+  // que veníamos calculando.
   function rellenarDesde(key) {
-    const valor = tarifas[key]
-    if (!valor) return
+    if (!tarifas[key]) return
     setTarifas(t => {
       const next = { ...t }
-      let copiar = false
+      let ultimo = Number(t[key]) || 0
+      let empezar = false
       for (const k of keys) {
-        if (k === key) { copiar = true; continue }
-        if (copiar && !next[k]) next[k] = valor
+        if (k === key) { empezar = true; continue }
+        if (!empezar) continue
+        if (next[k]) { ultimo = Number(next[k]) || ultimo; continue }
+        ultimo += ESCALON_DOMICILIO
+        next[k] = String(ultimo)
       }
       return next
     })
@@ -373,7 +388,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
                           onChange={e => setTarifa(k, e.target.value)}
                         />
                         {mostrarFill && (
-                          <button className="ac-tarifa-fill" onClick={() => rellenarDesde(k)} title="Copiar este precio a los tramos de abajo que estén vacíos">↓</button>
+                          <button className="ac-tarifa-fill" onClick={() => rellenarDesde(k)} title={`Rellenar los tramos de abajo sumando ${fmtPesos(ESCALON_DOMICILIO)} en cada uno`}>↓</button>
                         )}
                       </div>
                     </div>
@@ -381,7 +396,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
                 })}
                 {keys.length === 0 && <p className="ac-hint">Sube la distancia máxima para definir tramos.</p>}
               </div>
-              {hayFill && <p className="ac-hint">El botón ↓ copia ese precio a los tramos de abajo que estén vacíos.</p>}
+              {hayFill && <p className="ac-hint">El botón ↓ rellena los tramos de abajo sumando {fmtPesos(ESCALON_DOMICILIO)} en cada medio kilómetro.</p>}
             </div>
 
             <div className="ac-modal-foot">
