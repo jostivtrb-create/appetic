@@ -114,6 +114,11 @@
     padding-left: var(--pc-nav-w);
     min-height: 100dvh;
   }
+  /* …pero solo si esa barra existe. Hay pantallas que la quitan a propósito
+     —el superadmin editando el local de otro, el panel de superadmin, el
+     puente /r/…— y ahí el hueco reservado se veía como una franja muerta a la
+     izquierda que además descuadraba el contenido respecto del título. */
+  .app-shell:not(:has(.bnav)) { padding-left: 0; }
 
   /* 🖱️ Barras de scroll finas y con la paleta de la marca. En el celular no se
      ven; en PC son un elemento de diseño más y las del sistema desentonan. */
@@ -995,8 +1000,24 @@
 
   .admin { padding-bottom: 60px; }
 
+  /* Login del panel (y el de superadmin, que reusa estas clases): la tarjeta
+     de 360px se veía diminuta perdida en mitad de un monitor. */
+  .admin-login-card { max-width: 420px; padding: 38px 32px; }
+
+  /* Cabecera, pestañas y contenido comparten UNA sola columna de 1000px.
+     Antes el titulo iba pegado al borde y el contenido centrado en el medio,
+     asi que "Fruti Tentacion" y su catalogo empezaban en sitios distintos: se
+     leia como dos pantallas pegadas. El padding calculado deja el fondo de la
+     cabecera a todo el ancho (que es lo que la hace parecer barra de app) pero
+     alinea su contenido con el de abajo. */
+  .admin-top,
+  .admin-tabs,
+  .admin-body {
+    padding-inline: max(var(--pc-gutter), calc((100% - 1000px) / 2));
+  }
+
   .admin-top {
-    padding: 18px var(--pc-gutter) 16px;
+    padding-block: 20px 16px;
     position: sticky;
     top: 0;
     z-index: 11;
@@ -1004,10 +1025,10 @@
   .admin-top-nombre { font-size: 24px; }
 
   .admin-tabs {
-    padding: 12px var(--pc-gutter);
+    padding-block: 12px;
     overflow-x: visible;
     flex-wrap: wrap;
-    top: 71px;   /* justo debajo de .admin-top, que también es sticky */
+    top: 75px;   /* justo debajo de .admin-top, que también es sticky */
   }
   .admin-tabs button {
     cursor: pointer;
@@ -1015,45 +1036,89 @@
   }
   .admin-tabs button:not(.on):hover { background: var(--brand-orange-tint); color: var(--brand-orange-strong); }
 
-  .admin-body {
-    max-width: 940px;
-    margin: 0 auto;
-    padding: 26px var(--pc-gutter) 0;
+  .admin-super-aviso {
+    max-width: 1000px;
+    margin-inline: auto;
+    padding: 12px 16px;
   }
 
-  /* Catálogo: las fichas de producto en rejilla. */
+  .admin-body {
+    max-width: none;
+    margin: 0;
+    padding-block: 26px 0;
+  }
+
+  /* --- Catálogo --- */
+
+  /* "Agregar producto" y el buscador comparten fila: son las dos acciones de
+     la pantalla y una encima de otra desperdiciaban dos renglones enteros.
+     Se hace con grid sobre el contenedor para no tener que envolverlos en un
+     div nuevo (que el celular no necesita). */
+  .ap {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px 16px;
+  }
+  .ap-add { width: auto; min-width: 220px; margin-bottom: 0; }
+  .ap-buscar { max-width: 460px; margin-bottom: 0; }
+  /* Todo lo demás (categorías, avisos, vacíos) ocupa la fila completa. */
+  .ap > *:not(.ap-add):not(.ap-buscar) { grid-column: 1 / -1; }
+
+  /* Cada categoría, una fila con cuerpo. Sueltas sobre el fondo, el nombre
+     quedaba a un extremo y el botón de orden al otro con un metro de vacío
+     entre medias que no se leía como nada. */
+  .ap-grupo-cat { margin-bottom: 10px; }
+  .ap-grupo-cat-head {
+    padding: 11px 14px;
+    margin-bottom: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    transition: border-color 0.16s ease, background 0.16s ease;
+  }
+  .ap-grupo-cat-head:hover { border-color: var(--brand-orange-soft); }
+  .ap-grupo-cat-title { font-size: 13.5px; }
+
+  /* Las fichas de producto, en rejilla. */
   .ap-lista {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 12px;
     align-items: start;
   }
   .ap-item { height: 100%; transition: border-color 0.16s ease, box-shadow 0.18s ease; }
   .ap-item:hover { border-color: var(--brand-orange-soft); box-shadow: var(--shadow-sm); }
 
-  /* Los botones de acción no deben ocupar todo el ancho del panel. */
-  .ap-add,
-  .ap-borrar,
-  .dif-full { width: auto; min-width: 260px; }
+  .ap-borrar { width: auto; min-width: 220px; }
   .ap-ver-menu { max-width: 420px; }
-
-  .ap-buscar { max-width: 460px; }
-
-  /* Formularios de configuración: dos columnas para los campos cortos. */
-  .ac-horas { max-width: 420px; }
   .ap-variante-precio { width: 130px; }
 
-  /* Métricas: tarjetas de tamaño razonable en vez de estirarse a lo ancho. */
+  /* --- Configuración --- */
+  .ac-horas { max-width: 420px; }
+  .ac-sec { max-width: 640px; }   /* los campos de ajustes no se estiran */
+
+  /* --- Métricas: tarjetas de tamaño humano, no tres bloques de 300px --- */
   .am-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 200px));
     gap: 14px;
   }
   .am-card { padding: 20px 16px; }
+  .am-tabla,
+  .am-intro { max-width: 640px; }
 
-  /* Difundir: el enlace y el QR conviven mejor lado a lado. */
+  /* --- Difundir: el enlace, el QR y el mensaje son bloques de lectura --- */
+  .dif-link,
+  .dif-qr,
+  .dif-afiche,
+  .dif-msg,
+  .dif-msg-acciones { max-width: 560px; }
+  .dif-full { width: auto; min-width: 240px; }
   .dif-qr-img,
   .dif-qr-ph { margin-inline: auto; }
+  .dif-afiche { transition: border-color 0.16s ease, box-shadow 0.18s ease; }
+  .dif-afiche:hover { border-color: var(--brand-orange-soft); box-shadow: var(--shadow-sm); }
 
   /* Modal de "Precios del domicilio": era una hoja de celular pegada al borde
      de abajo y a todo el ancho, así que en un monitor el título quedaba en un
