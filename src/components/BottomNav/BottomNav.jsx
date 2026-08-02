@@ -4,20 +4,29 @@ import { useNavUI } from '../../contexts/NavUIContext'
 import { useAdmin } from '../../contexts/AdminContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { esColorOscuro, localThemeVars } from '../../utils/theme'
+import { useEsEscritorio } from '../../utils/useEsEscritorio'
+import logoAppetic from '../../assets/appetic-logo.png'
 import ConfirmSalirMenu from '../ConfirmSalirMenu/ConfirmSalirMenu'
 import './BottomNav.css'
 
-// 🧭 Barra inferior FIJA. Tiene DOS modos:
+// 🧭 Barra de navegación FIJA. Tiene DOS modos:
 //   • Cliente:  Menú · Cuenta · [🛒 Pedido] · Favoritos · Buscar
 //   • Dueño:    Menú · Catálogo · Difundir · Configuración · Cuenta
 // El dueño de un local ve SIEMPRE la barra de administración (no usa la app
 // como cliente). Se pinta con los colores del local que está administrando.
+//
+// 🖥️ En escritorio es EL MISMO componente y el mismo marcado, pero desktop.css
+// lo convierte en una barra lateral fija a la izquierda. Se hace así a
+// propósito: una sola navegación que no se puede desincronizar. Lo único que
+// cambia por JS son dos cosas que el CSS no alcanza —la cabecera de marca del
+// rail y que en PC la barra no se esconda al abrir una capa encima—.
 export default function BottomNav() {
   const { activeLocal, cartCount, live } = useNavUI()
   const { esDueno, slug: adminSlug, localSel, cargando: adminCargando } = useAdmin()
   const { user } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const esPC = useEsEscritorio()
   // 🧲 Aviso amable al salir del menú hacia el buscador (solo tráfico de link directo).
   const [avisoSalir, setAvisoSalir] = useState(false)
 
@@ -51,20 +60,26 @@ export default function BottomNav() {
     }
 
     return (
-      <nav className={`bnav ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''}`} style={style} aria-label="Administración">
-        <button className={`bnav-item ${activa === 'menu' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}`)}>
+      <nav className={`bnav bnav--admin ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''}`} style={style} aria-label="Administración">
+        <MarcaRail
+          logo={localSel?.logo || localSel?.icono || logoAppetic}
+          nombre={localSel?.nombre || 'Appetic'}
+          rol="Panel del local"
+          onClick={() => irAdmin(s => `/${s}/admin/catalogo`)}
+        />
+        <button className={`bnav-item bnav-item--menu ${activa === 'menu' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}`)}>
           <IconMenu /><span>Menú</span>
         </button>
-        <button className={`bnav-item ${activa === 'catalogo' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}/admin/catalogo`)}>
+        <button className={`bnav-item bnav-item--catalogo ${activa === 'catalogo' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}/admin/catalogo`)}>
           <IconCatalogo /><span>Catálogo</span>
         </button>
-        <button className={`bnav-item ${activa === 'difundir' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}/admin/difundir`)}>
+        <button className={`bnav-item bnav-item--difundir ${activa === 'difundir' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}/admin/difundir`)}>
           <IconDifundir /><span>Difundir</span>
         </button>
-        <button className={`bnav-item ${activa === 'config' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}/admin/config`)}>
+        <button className={`bnav-item bnav-item--config ${activa === 'config' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}/admin/config`)}>
           <IconConfig /><span>Config</span>
         </button>
-        <button className={`bnav-item ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
+        <button className={`bnav-item bnav-item--cuenta ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
           <IconUser /><span>Cuenta</span>
         </button>
       </nav>
@@ -76,7 +91,15 @@ export default function BottomNav() {
 
   // ---------- MODO CLIENTE ----------
   const enLocal = Boolean(live)
-  if (enLocal && live.oculta) return null
+  // En el celular la barra se quita cuando hay una capa encima (detalle del
+  // producto, carrito, checkout): esas hojas ocupan la pantalla y la barra
+  // estorbaría. En PC las capas son ventanas centradas y el rail lateral es el
+  // marco de la app, así que se queda siempre.
+  if (enLocal && live.oculta && !esPC) return null
+  // En PC se queda, pero cede la capa: sin esto el rail se veía blanco y
+  // brillante POR ENCIMA del velo oscuro de la ventana abierta, que es
+  // justo lo contrario de lo que hace un diálogo.
+  const railBajoCapa = enLocal && live.oculta && esPC
 
   const oscuro = activeLocal && esColorOscuro(activeLocal.tema?.bg)
   const solido = Boolean(activeLocal?.tema?.navSolid)
@@ -116,11 +139,17 @@ export default function BottomNav() {
 
   return (
     <>
-      <nav className={`bnav ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''}`} aria-label="Navegación">
-        <button className={`bnav-item ${activa === 'menu' ? 'is-active' : ''}`} onClick={irAMenu}>
+      <nav className={`bnav ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''} ${railBajoCapa ? 'bnav--bajo-capa' : ''}`} aria-label="Navegación">
+        <MarcaRail
+          logo={activeLocal?.logo || activeLocal?.icono || logoAppetic}
+          nombre={activeLocal?.nombre || 'Appetic'}
+          rol={activeLocal ? 'Estás en su menú' : 'El menú de tu barrio'}
+          onClick={() => (activeLocal ? irAMenu() : navigate('/'))}
+        />
+        <button className={`bnav-item bnav-item--menu ${activa === 'menu' ? 'is-active' : ''}`} onClick={irAMenu}>
           <IconMenu /><span>Menú</span>
         </button>
-        <button className={`bnav-item ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
+        <button className={`bnav-item bnav-item--cuenta ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
           <IconUser /><span>Cuenta</span>
         </button>
         <button className="bnav-cart" onClick={irACarrito} aria-label="Ver pedido">
@@ -130,10 +159,10 @@ export default function BottomNav() {
           </span>
           <span className="bnav-cart-label">Pedido</span>
         </button>
-        <button className={`bnav-item ${activa === 'favoritos' ? 'is-active' : ''}`} onClick={() => navigate('/favoritos')}>
+        <button className={`bnav-item bnav-item--favoritos ${activa === 'favoritos' ? 'is-active' : ''}`} onClick={() => navigate('/favoritos')}>
           <IconHeart /><span>Favoritos</span>
         </button>
-        <button className={`bnav-item ${activa === 'buscar' ? 'is-active' : ''}`} onClick={irABuscar}>
+        <button className={`bnav-item bnav-item--buscar ${activa === 'buscar' ? 'is-active' : ''}`} onClick={irABuscar}>
           <IconSearch /><span>Buscar</span>
         </button>
       </nav>
@@ -145,6 +174,22 @@ export default function BottomNav() {
         onSalir={() => { setAvisoSalir(false); navigate('/') }}
       />
     </>
+  )
+}
+
+// 🖥️ Cabecera de la barra lateral: logo + nombre. Existe SOLO en escritorio
+// (BottomNav.css la deja en display:none por debajo de 1024px): una barra
+// inferior de celular no tiene dónde poner un encabezado, pero un rail lateral
+// sin marca arriba se ve como un menú suelto y no como una aplicación.
+function MarcaRail({ logo, nombre, rol, onClick }) {
+  return (
+    <button className="bnav-brand" onClick={onClick} tabIndex={-1} aria-hidden="true">
+      <img className="bnav-brand-logo" src={logo} alt="" />
+      <span className="bnav-brand-texto">
+        <span className="bnav-brand-nombre">{nombre}</span>
+        <span className="bnav-brand-rol">{rol}</span>
+      </span>
+    </button>
   )
 }
 

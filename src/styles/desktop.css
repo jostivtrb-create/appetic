@@ -1,0 +1,1158 @@
+/* ============================================================================
+   APPETIC — VERSIÓN DE ESCRITORIO
+   ============================================================================
+
+   ⚠️ REGLA DE ORO: este archivo NO puede alterar el diseño del celular.
+   Absolutamente todo vive dentro de un @media con min-width. Por debajo de
+   768px este archivo no existe. Si alguna vez necesitas escribir una regla
+   fuera de un @media, va en el CSS de su componente, no aquí.
+
+   Se importa de ÚLTIMO en main.jsx para ganarle en orden a los CSS de los
+   componentes (que se inyectan al importarse desde sus .jsx) sin tener que
+   inflar la especificidad ni usar !important.
+
+   Dos escalones:
+     • 768–1023px  (tablet / ventana a media pantalla) → se ensancha y las
+       listas pasan a 2 columnas, pero la navegación sigue siendo la barra
+       inferior del celular: a ese ancho todavía se toca con el dedo.
+     • ≥1024px     (PC) → layout de aplicación de escritorio: barra lateral
+       fija a la izquierda, contenido en rejilla y carrito lateral.
+
+   El corte de 1024px está duplicado en src/utils/useEsEscritorio.js, que es
+   quien cambia el COMPORTAMIENTO (no el aspecto) de las piezas que el CSS
+   solo no puede resolver. Si cambias uno, cambia el otro.
+   ============================================================================ */
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ESCALÓN 1 — TABLET (768–1023px)
+   Sin barra lateral todavía: solo dejamos de ver una tira angosta en el medio.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  :root {
+    --pc-gutter: 28px;
+  }
+
+  /* El contenido deja de estar encajonado a 520px */
+  .home-content,
+  .cuenta,
+  .datos {
+    max-width: 720px;
+  }
+
+  .pedidos,
+  .favs,
+  .sa,
+  .do {
+    max-width: 760px;
+    margin-inline: auto;
+  }
+
+  /* Las listas verticales aprovechan el ancho en dos columnas */
+  .home-locales,
+  .favs-lista,
+  .pedidos-lista {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-items: start;
+  }
+
+  /* Las hojas que suben desde abajo se acotan: a 1000px de ancho se veían absurdas */
+  .cd-sheet,
+  .pm-sheet,
+  .pw-sheet,
+  .co-screen {
+    max-width: 600px;
+  }
+  .co-screen {
+    inset: auto 50% 0;
+    transform: translateX(50%);
+    width: 100%;
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ESCALÓN 2 — PC (≥1024px)
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+
+  /* ────────────────────────────────────────────────────────────────────────
+     TOKENS DE ESCRITORIO
+     ──────────────────────────────────────────────────────────────────────── */
+  :root {
+    --pc-nav-w: 252px;        /* ancho de la barra lateral */
+    --pc-max: 1180px;         /* ancho máximo de una columna de contenido */
+    --pc-gutter: 40px;        /* aire a los lados del contenido */
+    --pc-cart-w: 348px;       /* panel de pedido, a la derecha del menú */
+
+    /* En PC el puntero es preciso: los radios y las sombras pueden ser más
+       finos sin que se sienta "de juguete". */
+    --pc-radius: 14px;
+    --pc-ring: 0 0 0 3px color-mix(in srgb, var(--local-primary) 30%, transparent);
+  }
+
+  /* ────────────────────────────────────────────────────────────────────────
+     BASE
+     ──────────────────────────────────────────────────────────────────────── */
+
+  /* En el celular el rebote de scroll es parte de la experiencia; en PC estorba. */
+  body {
+    overscroll-behavior-y: auto;
+  }
+
+  /* El shell cede la franja izquierda a la barra lateral. */
+  .app-shell {
+    padding-left: var(--pc-nav-w);
+    min-height: 100dvh;
+  }
+
+  /* 🖱️ Barras de scroll finas y con la paleta de la marca. En el celular no se
+     ven; en PC son un elemento de diseño más y las del sistema desentonan. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--text-faint) 55%, transparent) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--text-faint) 50%, transparent);
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--text-soft) 70%, transparent);
+    background-clip: content-box;
+  }
+
+  /* ⌨️ Foco visible para quien navega con teclado. En el celular no aplica y
+     por eso la app nunca lo tuvo; en escritorio es obligatorio. Solo
+     :focus-visible → el ratón no lo dispara. */
+  :focus-visible {
+    outline: 2px solid var(--local-primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* En PC el "toque" (scale al presionar) no existe: se reemplaza por hover. */
+  .btn {
+    transition: transform 0.14s ease, box-shadow 0.2s ease, filter 0.18s ease;
+  }
+  .btn-primary:hover {
+    box-shadow: var(--shadow-lg);
+    filter: brightness(1.04);
+  }
+  .btn-ghost:hover {
+    background: var(--surface-2);
+    border-color: var(--local-primary-soft);
+  }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     BARRA LATERAL (la .bnav del celular, reconstruida como rail vertical)
+     ────────────────────────────────────────────────────────────────────────
+     Es el mismo componente y el mismo marcado: no hay una nav de PC aparte
+     que se pueda desincronizar de la del celular. Solo cambia el layout. */
+  .bnav {
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transform: none;
+    width: var(--pc-nav-w);
+    max-width: none;
+    height: 100dvh;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 20px 14px calc(18px + env(safe-area-inset-bottom));
+    border-top: none;
+    border-right: 1px solid var(--border);
+    box-shadow: none;
+    overflow-y: auto;
+    animation: pcNavIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes pcNavIn {
+    from { opacity: 0; transform: translateX(-14px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .bnav--dark {
+    border-right: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow: none;
+  }
+  .bnav--solid {
+    border-right: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: none;
+  }
+
+  /* --- Marca / cabecera del rail (solo existe en PC) --- */
+  .bnav-brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 6px 10px 18px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+    color: var(--bnav-active);
+  }
+  .bnav-brand-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    object-fit: cover;
+    flex: none;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+  .bnav-brand-texto {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+  }
+  .bnav-brand-nombre {
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .bnav-brand-rol {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--bnav-dim);
+  }
+
+  /* --- Ítems: de columna (icono sobre texto) a fila (icono + texto) --- */
+  .bnav-item {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 13px;
+    padding: 11px 12px;
+    border-radius: 12px;
+    font-size: 14.5px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-align: left;
+    transition: color 0.16s ease, background 0.16s ease;
+  }
+  .bnav-item svg {
+    flex: none;
+    width: 21px;
+    height: 21px;
+  }
+  .bnav-item span {
+    flex: 1;
+    text-align: left;
+  }
+  /* En PC no hay "toque": el scale se cambia por un realce al pasar el ratón. */
+  .bnav-item:active {
+    transform: none;
+  }
+  .bnav-item:hover {
+    color: var(--bnav-active);
+    background: color-mix(in srgb, currentColor 9%, transparent);
+  }
+  .bnav-item.is-active {
+    background: color-mix(in srgb, var(--bnav-active) 13%, transparent);
+  }
+
+  /* --- Botón de Pedido: de círculo flotante a fila destacada --- */
+  .bnav-cart {
+    position: relative;
+    flex: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 13px;
+    width: 100%;
+    margin: 14px 0 0;
+    padding: 12px 14px;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(135deg, var(--local-primary-soft), var(--local-primary) 55%, var(--local-primary-strong));
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s ease, filter 0.18s ease;
+  }
+  .bnav-cart:hover {
+    box-shadow: var(--shadow-lg);
+    filter: brightness(1.05);
+  }
+  /* El círculo deja de ser círculo: pasa a ser solo el hueco del icono. */
+  .bnav-cart-circle {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--local-on-primary);
+  }
+  .bnav-cart:active .bnav-cart-circle {
+    transform: none;
+  }
+  .bnav-cart-label {
+    flex: 1;
+    text-align: left;
+    font-size: 14.5px;
+    font-weight: 800;
+    color: var(--local-on-primary);
+  }
+  /* El contador se va al extremo derecho de la fila (ya no encima del icono). */
+  .bnav-cart-badge {
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    border: none;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  }
+  @keyframes bnavPop {
+    from { transform: translateY(-50%) scale(0); }
+    to   { transform: translateY(-50%) scale(1); }
+  }
+
+  /* --- Orden vertical ---
+     En la barra INFERIOR el orden lo manda la ergonomía del pulgar: el carrito
+     va al centro, que es donde llega el dedo. En un rail vertical eso no
+     significa nada, así que se reordena con `order` (sin tocar el marcado, que
+     es el que usa el celular) a un orden de lectura: primero descubrir, después
+     lo mío, y abajo del todo la acción y la sesión —como cualquier aplicación
+     de escritorio—. */
+  .bnav-brand           { order: 0; }
+  .bnav-item--buscar    { order: 1; }
+  .bnav-item--menu      { order: 2; }
+  .bnav-item--favoritos { order: 3; }
+  .bnav-cart            { order: 5; margin-top: auto; }  /* auto = al pie */
+  .bnav-item--cuenta    { order: 6; }
+
+  /* En el panel del dueño no hay carrito: manda el flujo de trabajo y es
+     "Cuenta" quien se va al pie. */
+  .bnav--admin .bnav-item--menu     { order: 1; }
+  .bnav--admin .bnav-item--catalogo { order: 2; }
+  .bnav--admin .bnav-item--difundir { order: 3; }
+  .bnav--admin .bnav-item--config   { order: 4; }
+  .bnav--admin .bnav-item--cuenta   { margin-top: auto; }
+
+  /* Con una ventana abierta (detalle del plato, pasos, checkout) el rail se
+     queda —es el marco de la app— pero DEBE quedar por debajo del velo, como
+     en cualquier diálogo de escritorio.
+     Se hace bajando su capa y no subiendo la del velo porque el velo vive
+     dentro de .local-page, que abre contexto de apilamiento propio por su
+     animación: desde ahí no puede pasar por encima de un hermano de su padre
+     por mucho z-index que se le ponga. */
+  .bnav--bajo-capa {
+    pointer-events: none;   /* bajo el velo tampoco debe poder usarse */
+    animation: none;
+  }
+  /* El rail lleva SU PROPIO trozo de velo, del mismo color que el de la
+     ventana, en lugar de intentar quedar por debajo del de verdad.
+     Suena rodeo, pero es lo único fiable aquí:
+       · el z-index no sirve —el rail es `position: fixed`, sube a su propia
+         capa de composición y se pinta sobre el velo aunque el apilamiento
+         diga lo contrario (comprobado poniendo el velo en rojo: el rail
+         seguía limpio);
+       · sacar los overlays a un portal, que sería lo "correcto", tampoco:
+         cuelgan de .local-page, que es quien lleva las variables del tema en
+         un style inline, y fuera de ahí perderían los colores del negocio.
+     Pintándolo DENTRO del propio rail no hay capas que negociar. */
+  .bnav--bajo-capa::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 99;
+    background: rgba(20, 14, 10, 0.5);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
+    pointer-events: none;
+    animation: fade 0.2s ease both;   /* entra a la vez que el velo real */
+  }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     INICIO (buscador del barrio)
+     ──────────────────────────────────────────────────────────────────────── */
+
+  /* Ya no hay barra abajo que esquivar: ese hueco de 92px sobra.
+     El overflow:hidden del celular se mantiene — es lo que recorta los glows
+     de fondo, que son más grandes que la pantalla a propósito. */
+  .home {
+    padding-bottom: 0;
+    background:
+      radial-gradient(85% 42% at 50% -8%, var(--brand-orange-tint), transparent 62%),
+      var(--bg);
+  }
+
+  /* Los glows estaban dimensionados para 390px de ancho; en una pantalla
+     grande hay que agrandarlos o se ven como dos manchas perdidas. */
+  .home-glow-1 { width: 520px; height: 520px; top: -200px; right: -140px; }
+  .home-glow-2 { width: 460px; height: 460px; bottom: 80px; left: -180px; }
+
+  /* --- Barra superior: marca fuera (está en el rail), buscador dentro --- */
+  .home-bar {
+    gap: 20px;
+    padding: 14px var(--pc-gutter);
+    justify-content: flex-end;   /* el buscador crece y empuja "Mi cuenta" al borde */
+  }
+  .home-bar .home-search {
+    flex: 1;
+    max-width: 460px;
+    margin: 0;
+    margin-right: auto;          /* buscador a la izquierda, cuenta a la derecha */
+    padding: 10px 18px;
+  }
+  .home-bar .home-search input { font-size: 14.5px; }
+
+  .home-cuenta {
+    padding: 8px 16px 8px 9px;
+    transition: border-color 0.16s ease, box-shadow 0.18s ease, transform 0.14s ease;
+  }
+  .home-cuenta:hover {
+    border-color: var(--brand-orange-soft);
+    box-shadow: var(--shadow);
+  }
+  .home-cuenta:active { transform: none; }
+
+  /* --- Contenido --- */
+  .home-content {
+    max-width: var(--pc-max);
+    padding: 26px var(--pc-gutter) 60px;
+  }
+
+  .home-sec { margin-top: 34px; }
+  .home-sec-title { font-size: 22px; margin-bottom: 16px; }
+
+  /* Los carruseles horizontales eran un gesto de dedo. Con ratón, arrastrar de
+     lado es incómodo y esconder contenido fuera de pantalla no tiene sentido
+     cuando sobra ancho: pasan a rejilla y se ve todo de una. */
+  .home-antojos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+    gap: 18px;
+    overflow: visible;
+    margin: 0;
+    padding: 4px 0 8px;
+  }
+  .antojo-card {
+    width: auto;      /* la rejilla manda el ancho, ya no los 168px fijos */
+    border-radius: var(--radius);
+  }
+  .antojo-card:active { transform: none; }
+  .antojo-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--brand-orange-soft);
+  }
+  .antojo-media img { transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
+  .antojo-card:hover .antojo-media > img:first-child { transform: scale(1.06); }
+  .antojo-card:hover .antojo-add { transform: scale(1.1); }
+  .antojo-nombre { font-size: 15px; }
+  .antojo-precio { font-size: 15.5px; }
+  .antojo-local { font-size: 12.5px; }
+
+  /* Las categorías caben todas: en vez de esconderlas en un scroll, se envuelven. */
+  .home-cats {
+    flex-wrap: wrap;
+    overflow: visible;
+    margin: 22px 0 0;
+    padding: 0;
+    gap: 9px;
+  }
+  .home-cat {
+    transition: transform 0.14s ease, background 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.18s ease;
+  }
+  .home-cat:active { transform: none; }
+  .home-cat:not(.on):hover {
+    border-color: var(--brand-orange-soft);
+    background: var(--brand-orange-tint);
+    box-shadow: var(--shadow-sm);
+  }
+  .home-cat.on:hover { filter: brightness(1.06); }
+
+  /* La fila de locales sí se queda como carrusel: gira sola, es un guiño de la
+     marca y funciona igual con la rueda del ratón. Solo respira más. */
+  .home-fila { margin: 0; padding: 6px 0 10px; gap: 18px; }
+  .fila-local { width: 92px; }
+  .fila-avatar { width: 78px; height: 78px; border-radius: 26px; }
+  .fila-local:active .fila-avatar { transform: none; }
+  .fila-local:hover .fila-avatar {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    border-color: var(--brand-orange-soft);
+  }
+  .fila-local:hover .fila-nombre { color: var(--text); }
+  .fila-nombre { max-width: 92px; font-size: 12px; }
+
+  /* El listado de locales: de una columna a rejilla. */
+  .home-locales {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    align-items: start;
+  }
+  .loc-cardf,
+  .loc-card {
+    height: 100%;
+    transition: transform 0.16s ease, box-shadow 0.22s ease, border-color 0.18s ease;
+  }
+  .loc-cardf:active,
+  .loc-card:active { transform: none; }
+  .loc-cardf:hover,
+  .loc-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--brand-orange-soft);
+  }
+  .loc-cardf-media { overflow: hidden; }
+  .loc-cardf-foto { transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+  .loc-cardf:hover .loc-cardf-foto { transform: scale(1.05); }
+
+  .home-ubic { margin-top: 16px; font-size: 14px; }
+  .home-ubic-nota { max-width: none; }
+
+  .home-skeletons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+  }
+  .home-skel { height: 210px; }
+
+  .home-empty { margin: 60px auto; max-width: 420px; }
+
+  .home-footer { padding: 44px 0 34px; }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     MENÚ DEL LOCAL
+     ────────────────────────────────────────────────────────────────────────
+     Tres columnas: rail de navegación · menú · pedido. El menú es lo único
+     que hace scroll; las otras dos son marco fijo, como en una aplicación. */
+
+  .local-page {
+    padding-right: var(--pc-cart-w);   /* el hueco del panel de pedido */
+  }
+
+  /* --- Portada del local --- */
+  .local-hero {
+    min-height: 300px;
+    padding: 40px var(--pc-gutter) 34px;
+  }
+  .local-hero-content {
+    width: 100%;
+    max-width: var(--pc-max);
+    margin: 0 auto;
+    gap: 12px;
+  }
+  .local-logo { width: 88px; height: 88px; border-radius: 22px; }
+  .local-name { font-size: 40px; }
+  .local-desc { font-size: 16px; max-width: 620px; }
+
+  .local-hero--logo { padding: 40px var(--pc-gutter) 32px; }
+  .local-logo-full { max-width: 420px; }
+  .local-desc--ink { font-size: 16px; }
+  .local-hero-fav { top: 20px; right: 24px; }
+
+  .local-cerrado { font-size: 14.5px; padding: 12px 20px; }
+
+  /* --- Buscador del menú --- */
+  .local-search {
+    max-width: var(--pc-max);
+    margin: 0 auto;
+    padding: 20px var(--pc-gutter) 4px;
+  }
+  .local-search-box { max-width: 480px; }
+
+  /* --- Barra de categorías --- */
+  .catnav-track {
+    max-width: var(--pc-max);
+    margin: 0 auto;
+    padding: 14px var(--pc-gutter);
+    flex-wrap: wrap;         /* caben todas: nada de esconderlas tras un arrastre */
+    overflow-x: visible;
+    gap: 9px;
+  }
+  /* El carrusel que se desliza solo es un gesto de celular: en PC las pestañas
+     se quedan quietas y se ven todas de una. */
+  .catnav-marquee .catnav-track {
+    gap: 9px;
+    padding: 14px var(--pc-gutter);
+    overflow-x: visible;
+  }
+  .catnav-marquee .catnav-tab { margin-right: 0; }
+  .catnav-tab { cursor: pointer; }
+  .catnav-tab:not(.catnav-tab-active):hover {
+    border-color: var(--local-primary-soft);
+    background: color-mix(in srgb, var(--local-primary) 8%, var(--surface));
+    color: var(--text);
+  }
+
+  /* --- Rejilla de platos --- */
+  .local-menu {
+    max-width: var(--pc-max);
+    margin: 0 auto;
+    padding: 10px var(--pc-gutter) 0;
+  }
+  .menu-section { padding-top: 26px; scroll-margin-top: 84px; }
+  .menu-section-title { font-size: 24px; margin-bottom: 18px; }
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    align-items: stretch;
+  }
+  .menu-bottom-space { height: 40px; }
+
+  .pcard { cursor: pointer; }
+  .pcard:not(:disabled):active { transform: none; }
+  .pcard:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  .pcard-img { width: 108px; height: 108px; }
+  .pcard-agotado { cursor: not-allowed; }
+  /* El "Agregar" era un adorno táctil; con ratón se comporta como botón. */
+  .pcard:not(:disabled):hover .pcard-add {
+    background: var(--local-primary);
+    color: var(--local-on-primary);
+  }
+  .pcard-add { transition: background 0.16s ease, color 0.16s ease; }
+
+  /* El carrito flotante de prueba del dueño sobra: el panel ya está a la vista. */
+  .menu-test-cart { display: none; }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     PANEL DE PEDIDO (columna fija a la derecha)
+     ──────────────────────────────────────────────────────────────────────── */
+  .cd-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    width: var(--pc-cart-w);
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    box-shadow: -1px 0 20px rgba(42, 33, 28, 0.05);
+    animation: pcPanelIn 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  @keyframes pcPanelIn {
+    from { opacity: 0; transform: translateX(18px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .cd-panel .cd-head {
+    flex: none;
+    padding: 22px 22px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .cd-panel .cd-head h2 { font-size: 19px; }
+  .cd-panel-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--local-primary);
+    color: var(--local-on-primary);
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .cd-panel .cd-items { padding: 4px 22px; }
+  .cd-panel .cd-footer { padding: 18px 22px 22px; }
+  .cd-panel .cd-empty { padding: 56px 24px; }
+  .cd-empty-hint {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--text-faint);
+  }
+
+  .cd-qty button {
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .cd-qty button:hover {
+    background: var(--local-primary);
+    color: var(--local-on-primary);
+  }
+  .cd-remove { cursor: pointer; transition: opacity 0.15s ease; }
+  .cd-remove:hover { text-decoration: underline; }
+
+  /* Con el pedido siempre a la vista, el botón "Pedido" del rail no tiene nada
+     que abrir: sobra. Fuera del menú de un local (inicio, favoritos…) no hay
+     panel y el botón sigue ahí para volver al pedido en curso. */
+  .app-shell:has(.cd-panel) .bnav-cart { display: none; }
+
+  /* --- Aviso flotante ("X agregado") ---
+     En el celular sale centrado sobre la barra inferior. En PC se va a la
+     esquina, junto al pedido, que es donde acaba de pasar algo. */
+  .local-toast {
+    left: auto;
+    right: calc(var(--pc-cart-w) + 24px);
+    bottom: 24px;
+    transform: none;
+    max-width: 340px;
+    font-size: 14px;
+    padding: 12px 20px;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     VENTANAS (detalle del producto, armado por pasos, checkout)
+     ────────────────────────────────────────────────────────────────────────
+     En el celular son "hojas": suben desde el borde inferior, pegadas abajo,
+     porque ahí está el pulgar y porque ocupan la pantalla entera. En PC eso se
+     ve roto —una tira pegada al borde de abajo de un monitor— y además no hace
+     falta: sobra espacio para una ventana centrada de verdad. */
+
+  .pm-overlay,
+  .pw-overlay {
+    align-items: center;
+    padding: 40px;
+  }
+
+  .pm-sheet,
+  .pw-sheet {
+    max-width: 580px;
+    max-height: min(88dvh, 820px);
+    border-radius: var(--radius-lg);   /* redondeada por los CUATRO lados */
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border);
+  }
+  .pw-sheet { height: auto; }          /* en el celular era 92dvh fijo */
+
+  /* La hoja ya no "sube": la ventana aparece en su sitio, que es como se
+     comportan los diálogos de escritorio. */
+  @keyframes sheetUp {
+    from { opacity: 0; transform: translateY(14px) scale(0.985); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .pm-hero { height: 260px; }
+  .pm-nombre { font-size: 25px; }
+  .pm-body { padding: 22px 26px 10px; }
+  .pm-footer,
+  .pw-footer { padding: 16px 26px 18px; }
+  .pm-close {
+    top: 14px;
+    right: 14px;
+    transition: background 0.16s ease, transform 0.14s ease;
+  }
+  .pm-close:hover { background: #fff; transform: scale(1.08); }
+
+  .pm-opt:hover { border-color: var(--local-primary-soft); background: var(--surface-2); }
+  .pm-opt-sel:hover { background: var(--brand-orange-tint); }
+  .pm-qty button,
+  .pw-card { cursor: pointer; }
+  .pm-qty button:hover { background: var(--local-primary); color: var(--local-on-primary); }
+
+  .pw-grid { grid-template-columns: repeat(4, 1fr); }
+  .pw-card:active { transform: none; }
+  .pw-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     CHECKOUT — ventana centrada y a DOS columnas
+     ────────────────────────────────────────────────────────────────────────
+     En el celular es una pantalla completa que entra deslizando y el resumen
+     del pedido queda al final, después de hacer scroll por todo el formulario.
+     En PC el resumen se va a una columna propia y se queda fijo: se ve el
+     total mientras se rellenan los datos, que es lo que se espera al pagar. */
+  .co-screen {
+    /* Centrado con inset:0 + margin:auto en vez de left/top 50% + translate:
+       aquel dependía de vw/vh, que incluyen la barra de scroll, y dejaba la
+       ventana unos píxeles descentrada. Así es exacto. */
+    inset: 0;
+    margin: auto;
+    transform: none;
+    width: min(980px, calc(100% - 96px));
+    height: min(780px, calc(100% - 96px));
+    max-width: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    /* El primer box-shadow gigante hace de fondo oscuro: .co-screen es la
+       pantalla entera en el celular y no tiene un overlay propio que atenuar. */
+    box-shadow: 0 0 0 100vmax rgba(20, 14, 10, 0.5), var(--shadow-lg);
+  }
+  @keyframes coIn {
+    from { opacity: 0; transform: scale(0.985); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+
+  .co-head { padding: 16px 24px; }
+  .co-head h2 { font-size: 20px; }
+  .co-back { cursor: pointer; transition: background 0.16s ease; }
+  .co-back:hover { background: var(--border); }
+
+  .co-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 0 30px;
+    align-content: start;
+    padding: 24px 26px 10px;
+  }
+  .co-sec { grid-column: 1; }
+  /* El resumen ocupa la columna derecha entera y se queda a la vista mientras
+     la izquierda hace scroll. El `span 99` es para cubrir todas las secciones:
+     algunas son condicionales (la de ubicación solo sale si hay domicilio),
+     así que el número de filas cambia según el pedido. */
+  .co-resumen {
+    grid-column: 2;
+    grid-row: 1 / span 99;
+    align-self: start;
+    position: sticky;
+    top: 0;
+    margin-bottom: 0;
+    padding: 20px;
+  }
+  .co-footer { padding: 16px 26px 18px; }
+  /* `display: flex` (en vez del inline-flex de .btn) para que el margin auto
+     tenga efecto: en un elemento inline, `margin-left: auto` se computa a 0 y
+     el botón se quedaba pegado a la izquierda del pie. */
+  .co-enviar {
+    display: flex;
+    max-width: 320px;
+    margin-left: auto;
+  }
+
+  .co-toggle button,
+  .co-pago,
+  .co-check,
+  .co-ubic-btn { cursor: pointer; }
+  .co-toggle button:not(.on):hover,
+  .co-pago:not(.on):hover { border-color: var(--local-primary-soft); background: var(--surface-2); }
+  .co-ubic-btn:not(:disabled):hover { filter: brightness(0.97); }
+  .co-input:focus { box-shadow: var(--pc-ring); }
+
+  /* La pantalla de "pedido enviado" es un mensaje corto: no necesita 780px. */
+  .co-screen.co-exito {
+    width: min(520px, calc(100% - 96px));
+    height: auto;
+    max-height: calc(100% - 96px);
+    padding: 44px 40px;
+  }
+  .co-exito .btn { max-width: 340px; }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     CUENTA · PEDIDOS · FAVORITOS · DATOS
+     ────────────────────────────────────────────────────────────────────────
+     Todas reservaban ~96px abajo para la barra del celular. En PC la barra
+     está a un lado, así que ese hueco es aire muerto al final de la página. */
+
+  .cuenta,
+  .datos,
+  .pedidos,
+  .favs {
+    padding-bottom: 56px;
+  }
+
+  /* Contenido de lectura (perfil, formulario): una columna cómoda, no 520px
+     de móvil estirados ni 1200px de línea imposible de seguir. */
+  .cuenta,
+  .datos {
+    max-width: 760px;
+    padding-top: 30px;
+    padding-inline: var(--pc-gutter);
+  }
+
+  /* Listados: aprovechan el ancho en rejilla. */
+  .pedidos,
+  .favs {
+    max-width: var(--pc-max);
+    margin-inline: auto;
+    padding-inline: var(--pc-gutter);
+  }
+  .pedidos-lista,
+  .favs-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+
+  /* Cabeceras pegajosas: en PC el fondo translúcido queda mejor que el bloque
+     de color, y necesitan algo de aire porque ya no hay muesca que esquivar. */
+  .pedidos-top,
+  .favs-top,
+  .datos-top {
+    padding: 26px 0 16px;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  .pedidos-top h1,
+  .favs-top h1,
+  .datos-top h1,
+  .cuenta-top h1 { font-size: 26px; }
+
+  .pedido-card,
+  .fav-card {
+    height: 100%;
+    transition: transform 0.16s ease, box-shadow 0.2s ease, border-color 0.18s ease;
+  }
+  .pedido-card:hover,
+  .fav-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--brand-orange-soft);
+  }
+  .fav-card-main,
+  .fav-quitar,
+  .pedido-repetir,
+  .cuenta-rol,
+  .cuenta-local,
+  .cuenta-fav,
+  .cuenta-salir,
+  .cuenta-google,
+  .pedidos-limpiar,
+  .datos-guardar { cursor: pointer; }
+
+  .fav-card-main:active,
+  .fav-quitar:active,
+  .pedido-repetir:active,
+  .cuenta-rol:active,
+  .cuenta-local:active,
+  .cuenta-fav:active,
+  .cuenta-google:active { transform: none; }
+
+  .fav-card-main:hover { background: var(--surface-2); }
+  .fav-quitar:hover { color: var(--danger); }
+  .pedido-repetir:hover { filter: brightness(0.97); }
+  .cuenta-rol:hover,
+  .cuenta-local:hover { border-color: var(--brand-orange-soft); box-shadow: var(--shadow-sm); }
+  .cuenta-google:hover { box-shadow: var(--shadow); }
+  .cuenta-fav:hover { transform: translateY(-2px); }
+
+  /* Vacíos: el `12vh` de arriba dejaba el mensaje perdido en mitad de la nada
+     cuando la pantalla es alta. */
+  .pedidos-vacio,
+  .favs-vacio { padding-top: 70px; }
+
+  /* Entrar con Google: tarjeta centrada, no una columna de móvil estirada. */
+  .cuenta-login { padding: 60px var(--pc-gutter); }
+  .cuenta-login-card { max-width: 440px; padding: 38px 34px; }
+  .cuenta-favs-lista { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+
+  /* El formulario de datos, en dos columnas: "Nombre" y "WhatsApp" son campos
+     cortos y uno debajo del otro dejaban media pantalla vacía. La dirección y
+     el botón siguen a lo ancho porque sí necesitan el espacio. */
+  .datos-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 18px;
+    padding: 24px 22px;
+  }
+  .datos-form > label:nth-of-type(3) { grid-column: 1 / -1; }  /* Dirección habitual */
+  .datos-form > *:not(label) { grid-column: 1 / -1; }          /* botón y avisos */
+  .datos-form input:focus { box-shadow: var(--pc-ring); }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     PANEL DEL DUEÑO
+     ────────────────────────────────────────────────────────────────────────
+     Era el peor caso: .admin no tenía max-width, así que en un monitor los
+     formularios se estiraban de lado a lado y un campo de "precio" medía
+     1.200px. Aquí el dueño trabaja, no navega: prima la legibilidad. */
+
+  .admin { padding-bottom: 60px; }
+
+  .admin-top {
+    padding: 18px var(--pc-gutter) 16px;
+    position: sticky;
+    top: 0;
+    z-index: 11;
+  }
+  .admin-top-nombre { font-size: 24px; }
+
+  .admin-tabs {
+    padding: 12px var(--pc-gutter);
+    overflow-x: visible;
+    flex-wrap: wrap;
+    top: 71px;   /* justo debajo de .admin-top, que también es sticky */
+  }
+  .admin-tabs button {
+    cursor: pointer;
+    transition: background 0.16s ease, color 0.16s ease;
+  }
+  .admin-tabs button:not(.on):hover { background: var(--brand-orange-tint); color: var(--brand-orange-strong); }
+
+  .admin-body {
+    max-width: 940px;
+    margin: 0 auto;
+    padding: 26px var(--pc-gutter) 0;
+  }
+
+  /* Catálogo: las fichas de producto en rejilla. */
+  .ap-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 12px;
+    align-items: start;
+  }
+  .ap-item { height: 100%; transition: border-color 0.16s ease, box-shadow 0.18s ease; }
+  .ap-item:hover { border-color: var(--brand-orange-soft); box-shadow: var(--shadow-sm); }
+
+  /* Los botones de acción no deben ocupar todo el ancho del panel. */
+  .ap-add,
+  .ap-borrar,
+  .dif-full { width: auto; min-width: 260px; }
+  .ap-ver-menu { max-width: 420px; }
+
+  .ap-buscar { max-width: 460px; }
+
+  /* Formularios de configuración: dos columnas para los campos cortos. */
+  .ac-horas { max-width: 420px; }
+  .ap-variante-precio { width: 130px; }
+
+  /* Métricas: tarjetas de tamaño razonable en vez de estirarse a lo ancho. */
+  .am-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+  }
+  .am-card { padding: 20px 16px; }
+
+  /* Difundir: el enlace y el QR conviven mejor lado a lado. */
+  .dif-qr-img,
+  .dif-qr-ph { margin-inline: auto; }
+
+  .ap-edit,
+  .ap-toggle,
+  .ap-foto-btn,
+  .dif-copybtn,
+  .dif-wa,
+  .admin-salir,
+  .admin-perfil,
+  .ap-grupo-cat-head { cursor: pointer; }
+  .admin-perfil:active { transform: none; }
+  .admin-salir:hover { background: var(--border); }
+  .ap-edit:hover { text-decoration: underline; }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     SUPERADMIN Y DOMICILIARIO
+     ──────────────────────────────────────────────────────────────────────── */
+
+  /* Superadmin: lista de TODOS los locales. 560px era una tira; en rejilla se
+     ve el estado de la red de un vistazo, que es justo para lo que sirve. */
+  .sa {
+    max-width: var(--pc-max);
+    padding: 30px var(--pc-gutter) 60px;
+  }
+  .sa-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 14px;
+    align-items: start;
+  }
+  .sa-item { height: 100%; }
+  .sa-search input:focus { box-shadow: var(--pc-ring); }
+
+  /* Domiciliario: no es un listado, es un buscador que muestra UN pedido. No
+     hay nada que repartir en columnas, así que se queda en una columna de
+     lectura centrada en vez de estirarse por todo el monitor. */
+  .do {
+    max-width: 720px;
+    padding: 36px var(--pc-gutter) 60px;
+  }
+  .do-buscador-input:focus { box-shadow: var(--pc-ring); }
+  .do-btn,
+  .do-buscador-btn,
+  .do-salir { cursor: pointer; }
+  .do-btn { transition: filter 0.16s ease; }
+  .do-btn:hover { filter: brightness(0.95); }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     AVISO DE INSTALACIÓN
+     ────────────────────────────────────────────────────────────────────────
+     Iba centrado y ancho, justo encima de la barra inferior. Sin esa barra y
+     con 1.400px de ancho quedaba como una franja enorme flotando en el medio:
+     en PC se comporta como una notificación de escritorio, en una esquina. */
+  .ip-wrap {
+    left: auto;
+    right: 24px;
+    bottom: 24px;
+    transform: none;
+    width: auto;
+    max-width: 380px;
+  }
+
+
+  /* ────────────────────────────────────────────────────────────────────────
+     REMATE: los detalles que separan "web estirada" de "app de escritorio"
+     ────────────────────────────────────────────────────────────────────────
+     Toda la app se diseñó para el dedo: no hay puntero que cambie de forma, ni
+     estados al pasar por encima, ni foco de teclado. Nada de eso se echa en
+     falta en un celular y todo se nota en un PC. */
+
+  /* El puntero dice qué se puede pulsar. La app usaba <button> para tarjetas
+     enteras, así que sin esto medio menú parecía texto muerto. */
+  button:not(:disabled),
+  a[href],
+  label,
+  summary,
+  [role="tab"] { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+
+  /* Campos de texto: foco claro y con el color del local. */
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: none;
+    border-color: var(--local-primary);
+    box-shadow: var(--pc-ring);
+  }
+
+  /* Al seleccionar texto, el resalte también es de la marca. */
+  ::selection {
+    background: color-mix(in srgb, var(--local-primary) 25%, transparent);
+  }
+
+  /* Arrastrar el ratón sobre la interfaz no debe dejar medio menú "pintado"
+     de azul: los adornos y las etiquetas de navegación no se seleccionan. */
+  .bnav-item,
+  .bnav-cart,
+  .bnav-brand,
+  .home-cat,
+  .fila-local,
+  .catnav-tab,
+  .antojo-add,
+  .loc-chip,
+  .loc-badge { user-select: none; }
+
+  /* Las imágenes no se arrastran fuera de la ventana por accidente. */
+  .antojo-media img,
+  .loc-cardf-foto,
+  .fila-avatar img,
+  .pcard-img { -webkit-user-drag: none; user-select: none; }
+}

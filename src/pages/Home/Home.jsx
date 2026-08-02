@@ -11,6 +11,7 @@ import { cop } from '../../utils/money'
 import { useAuth } from '../../contexts/AuthContext'
 import { useFavoritos } from '../../contexts/FavoritosContext'
 import { useNavUI } from '../../contexts/NavUIContext'
+import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import './Home.css'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -53,6 +54,7 @@ export default function Home() {
   const { favoritos } = useFavoritos()
   const { irAOtroLocal } = useNavUI()
   const navigate = useNavigate()
+  const esPC = useEsEscritorio()
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [locales, setLocales] = useState([])
   const [busqueda, setBusqueda] = useState('')
@@ -268,6 +270,24 @@ export default function Home() {
   const buscando = busqueda.trim().length > 0
   const sinFiltros = !buscando && !catActiva
 
+  // 🔎 El buscador es EL MISMO control en las dos versiones (mismo estado, mismo
+  // marcado); lo único que cambia es dónde vive. En el celular va en el flujo,
+  // debajo de "Para antojarte", porque la pantalla se recorre de arriba abajo.
+  // En PC sube a la barra superior, que es donde se busca en una aplicación de
+  // escritorio y donde el ojo lo espera. Se monta uno solo, nunca los dos.
+  const buscador = (
+    <div className="home-search">
+      <span className="home-search-icon">🔎</span>
+      <input
+        placeholder="Busca un antojo o un local…"
+        value={busqueda}
+        onChange={e => setBusqueda(e.target.value)}
+        aria-label="Buscar"
+      />
+      {buscando && <button className="home-search-x" onClick={() => setBusqueda('')} aria-label="Limpiar">✕</button>}
+    </div>
+  )
+
   if (authCargando || verificandoAdmin) {
     return <div className="local-loading"><div className="local-spinner" /><p>Cargando…</p></div>
   }
@@ -279,10 +299,15 @@ export default function Home() {
 
       {/* Barra superior */}
       <header className="home-bar">
-        <div className="home-bar-brand">
-          <img src={logo} alt="Appetic" />
-          <span>Appetic</span>
-        </div>
+        {/* La marca vive en la barra lateral cuando estamos en PC: repetirla aquí
+            sería decir "Appetic" dos veces en la misma pantalla. */}
+        {!esPC && (
+          <div className="home-bar-brand">
+            <img src={logo} alt="Appetic" />
+            <span>Appetic</span>
+          </div>
+        )}
+        {esPC && buscador}
         <Link to="/cuenta" className="home-cuenta">
           {user?.photoURL && !avatarFallo
             ? <img className="home-cuenta-avatar" src={user.photoURL} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFallo(true)} />
@@ -360,16 +385,8 @@ export default function Home() {
               </section>
             )}
 
-            {/* 🔎 Buscador — entre "Para antojarte" y las categorías */}
-            <div className="home-search">
-              <span className="home-search-icon">🔎</span>
-              <input
-                placeholder="Busca un antojo o un local…"
-                value={busqueda}
-                onChange={e => setBusqueda(e.target.value)}
-              />
-              {buscando && <button className="home-search-x" onClick={() => setBusqueda('')} aria-label="Limpiar">✕</button>}
-            </div>
+            {/* 🔎 Buscador — entre "Para antojarte" y las categorías (en PC vive arriba, en la barra) */}
+            {!esPC && buscador}
 
             {/* ③ Categorías (solo las que tienen locales activos) — justo encima del listado que filtran */}
             {categoriasVisibles.length > 0 && (

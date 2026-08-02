@@ -1,17 +1,25 @@
 import { useRef, useEffect } from 'react'
+import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import './CategoryNav.css'
 
 // Barra de categorías tipo carrusel: se desliza sola, lento y en bucle, PERO el
 // dedo puede arrastrarla (scroll nativo). Al tocarla/arrastrarla se queda quieta;
 // a los ~7 s sin tocarla, retoma el giro desde donde quedó. Respeta reduce-motion.
+//
+// 🖥️ En PC el carrusel se apaga: allí las pestañas caben todas en una o dos
+// filas (desktop.css las envuelve con flex-wrap) y se ven de un vistazo. El
+// bucle infinito necesita la lista DUPLICADA para no tener costura, y sin
+// scroll horizontal esa copia queda a la vista —las categorías salían dos
+// veces—. Así que en escritorio no se duplica ni se anima: se listan y ya.
 export default function CategoryNav({ categorias, activa, onSelect }) {
   const trackRef = useRef(null)
   const interact = useRef(false)   // el usuario la está tocando/arrastrando
   const pos = useRef(0)            // posición fluida del auto-scroll
   const raf = useRef(0)
   const timer = useRef(null)
+  const esPC = useEsEscritorio()
 
-  const varias = (categorias?.length || 0) > 1
+  const varias = (categorias?.length || 0) > 1 && !esPC
 
   // Auto-scroll continuo por JS (compatible con el arrastre nativo del usuario).
   useEffect(() => {
@@ -57,7 +65,7 @@ export default function CategoryNav({ categorias, activa, onSelect }) {
   }
 
   return (
-    <nav className="catnav catnav-marquee" aria-label="Categorías">
+    <nav className={`catnav ${varias ? 'catnav-marquee' : ''}`} aria-label="Categorías">
       <div
         ref={trackRef}
         className="catnav-track catnav-track--scroll"

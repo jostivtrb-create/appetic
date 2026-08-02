@@ -108,6 +108,10 @@
   font-weight: 700;
   color: var(--bnav-dim);
 }
+/* 🖥️ Cabecera de marca del rail lateral: NO existe en el celular (una barra
+   inferior no tiene dónde ponerla). desktop.css la enciende desde 1024px. */
+.bnav-brand { display: none; }
+
 .bnav-cart-badge {
   position: absolute;
   top: -3px;

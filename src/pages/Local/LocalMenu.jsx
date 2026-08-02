@@ -14,6 +14,7 @@ import LogoEpico from '../../components/Hero/LogoEpico'
 import LogoManchon from '../../components/Hero/LogoManchon'
 import { resolverLogoAnim } from '../../utils/logoAnim'
 import { useBloquearScroll } from '../../utils/useBloquearScroll'
+import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import Checkout from '../Checkout/Checkout'
 import './LocalSkinJet.css'
 import './LocalSkinJuance.css'
@@ -23,11 +24,17 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   const { addItem, totalItems } = useCart()
   const { setActiveLocal, setCartCount, setLive } = useNavUI()
   const { esDueno } = useAdmin()
+  const esPC = useEsEscritorio()
   const [modalProducto, setModalProducto] = useState(null)
   // Si llegas desde el botón Pedido de la barra (fuera del local), abre el carrito.
   const [drawerAbierto, setDrawerAbierto] = useState(() => new URLSearchParams(window.location.search).has('pedido'))
   const [checkoutAbierto, setCheckoutAbierto] = useState(false)
   const [toast, setToast] = useState('')
+
+  // 🖥️ En PC el pedido vive en un panel fijo a la derecha que nunca se cierra,
+  // así que la "hoja" del celular no debe abrirse jamás: si lo hiciera,
+  // congelaría el scroll del fondo sin que se vea nada encima.
+  const hojaCarrito = drawerAbierto && !esPC
 
   // 🧭 Fija este local como "activo" en la barra global: se conserva aunque
   // salgas a Buscar/Cuenta, para que "Menú" y el carrito sigan apuntando aquí
@@ -42,7 +49,7 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   // 🧭 Handlers en vivo del menú (abrir carrito, subir) + si hay una capa
   // abierta (para esconder la barra). Al salir del menú queda null → la barra
   // vuelve a los colores de Appetic.
-  const hayCapa = Boolean(modalProducto) || drawerAbierto || checkoutAbierto
+  const hayCapa = Boolean(modalProducto) || hojaCarrito || checkoutAbierto
   useEffect(() => {
     setLive({
       slug: local.slug,
@@ -80,7 +87,7 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
 
   // 🔒 Con cualquier popup abierto (detalle de producto, carrito o checkout),
   // se congela el fondo para que no se siga deslizando por detrás.
-  useBloquearScroll(Boolean(modalProducto) || drawerAbierto || checkoutAbierto)
+  useBloquearScroll(Boolean(modalProducto) || hojaCarrito || checkoutAbierto)
 
   // 🔙 Le decimos a LocalPage cómo cerrar la "capa superior" cuando el usuario
   // presiona atrás: primero el checkout, luego el detalle de producto y por
@@ -91,7 +98,7 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
     cerrarCapaRef.current = () => {
       if (checkoutAbierto) { setCheckoutAbierto(false); return true }
       if (modalProducto) { setModalProducto(null); return true }
-      if (drawerAbierto) { setDrawerAbierto(false); return true }
+      if (hojaCarrito) { setDrawerAbierto(false); return true }
       return false
     }
   })
@@ -343,7 +350,8 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
       )}
 
       <CartDrawer
-        abierto={drawerAbierto}
+        modo={esPC ? 'panel' : 'hoja'}
+        abierto={hojaCarrito}
         onCerrar={() => setDrawerAbierto(false)}
         onCheckout={irACheckout}
       />
