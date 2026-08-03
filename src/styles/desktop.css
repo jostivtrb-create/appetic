@@ -1004,7 +1004,7 @@
      de 360px se veía diminuta perdida en mitad de un monitor. */
   .admin-login-card { max-width: 420px; padding: 38px 32px; }
 
-  /* Cabecera, pestañas y contenido comparten UNA sola columna de 1000px.
+  /* Cabecera, pestañas y contenido comparten UNA sola columna de 1120px.
      Antes el titulo iba pegado al borde y el contenido centrado en el medio,
      asi que "Fruti Tentacion" y su catalogo empezaban en sitios distintos: se
      leia como dos pantallas pegadas. El padding calculado deja el fondo de la
@@ -1013,7 +1013,7 @@
   .admin-top,
   .admin-tabs,
   .admin-body {
-    padding-inline: max(var(--pc-gutter), calc((100% - 1000px) / 2));
+    padding-inline: max(var(--pc-gutter), calc((100% - 1120px) / 2));
   }
 
   .admin-top {
@@ -1037,7 +1037,7 @@
   .admin-tabs button:not(.on):hover { background: var(--brand-orange-tint); color: var(--brand-orange-strong); }
 
   .admin-super-aviso {
-    max-width: 1000px;
+    max-width: 1120px;
     margin-inline: auto;
     padding: 12px 16px;
   }
@@ -1094,9 +1094,52 @@
   .ap-ver-menu { max-width: 420px; }
   .ap-variante-precio { width: 130px; }
 
-  /* --- Configuración --- */
+  /* --- Configuración y Difundir: secciones en TARJETAS, a dos columnas ---
+     En el celular son bloques de texto sueltos separados por un margen, uno
+     debajo de otro: ahí funciona, porque la pantalla es una columna estrecha
+     y se recorre con el pulgar. En un monitor eso dejaba una tira de
+     formulario de 640px flotando con media pantalla vacía al lado, y
+     "Horario", "Entrega" y "Animación del logo" se leían como un churro sin
+     principio ni final.
+     Las dos pantallas usan la misma clase .ac-sec, así que las dos se
+     arreglan a la vez. */
+  .ac,
+  .dif {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 18px;
+    align-items: start;
+  }
+  .ac-sec {
+    margin-bottom: 0;
+    padding: 22px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+  }
+  .ac-sec h3 { font-size: 17px; margin-bottom: 4px; }
+  /* Lo que no es una sección (el botón de guardar, el modal) ocupa fila entera. */
+  .ac > *:not(.ac-sec),
+  .dif > *:not(.ac-sec) { grid-column: 1 / -1; }
+
+  /* "Guardar cambios" medía los 1120px del panel mientras el formulario medía
+     640: un botón de guardar del ancho de la pantalla no lo tiene ninguna
+     aplicación de escritorio. */
+  .ac-guardar {
+    width: auto;
+    min-width: 280px;
+    justify-self: end;
+    margin-top: 4px;
+  }
+
   .ac-horas { max-width: 420px; }
-  .ac-sec { max-width: 640px; }   /* los campos de ajustes no se estiran */
+  .ac-tarifas-card { cursor: pointer; transition: border-color 0.16s ease, box-shadow 0.18s ease; }
+  .ac-tarifas-card:hover { border-color: var(--brand-orange-soft); box-shadow: var(--shadow-sm); }
+  .ac-dia,
+  .ac-switch,
+  .ac-select-head,
+  .ac-ubic-btn { cursor: pointer; }
 
   /* --- Métricas: tarjetas de tamaño humano, no tres bloques de 300px --- */
   .am-cards {
@@ -1108,12 +1151,7 @@
   .am-tabla,
   .am-intro { max-width: 640px; }
 
-  /* --- Difundir: el enlace, el QR y el mensaje son bloques de lectura --- */
-  .dif-link,
-  .dif-qr,
-  .dif-afiche,
-  .dif-msg,
-  .dif-msg-acciones { max-width: 560px; }
+  /* --- Difundir --- */
   .dif-full { width: auto; min-width: 240px; }
   .dif-qr-img,
   .dif-qr-ph { margin-inline: auto; }
