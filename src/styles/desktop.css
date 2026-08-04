@@ -1103,15 +1103,24 @@
      principio ni final.
      Las dos pantallas usan la misma clase .ac-sec, así que las dos se
      arreglan a la vez. */
+  /* El reparto es en COLUMNAS (multicol), no en rejilla. Con `grid` las dos
+     columnas comparten fila, así que una tarjeta corta —"Datos del negocio"—
+     al lado de una alta —"Portada del local", que lleva el banner— dejaba un
+     hueco vertical enorme esperando a la siguiente fila. Con multicol cada
+     tarjeta ocupa solo su alto y la siguiente sube a ocupar el sitio: es el
+     flujo de un panel de ajustes de verdad. */
   .ac,
   .dif {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
-    gap: 18px;
-    align-items: start;
+    display: block;
+    columns: 2;
+    column-gap: 18px;
   }
   .ac-sec {
-    margin-bottom: 0;
+    /* Sin esto una tarjeta se partiría por la mitad entre las dos columnas. */
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    width: 100%;
+    margin-bottom: 18px;
     padding: 22px 24px;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -1119,18 +1128,17 @@
     box-shadow: var(--shadow-sm);
   }
   .ac-sec h3 { font-size: 17px; margin-bottom: 4px; }
-  /* Lo que no es una sección (el botón de guardar, el modal) ocupa fila entera. */
-  .ac > *:not(.ac-sec),
-  .dif > *:not(.ac-sec) { grid-column: 1 / -1; }
 
   /* "Guardar cambios" medía los 1120px del panel mientras el formulario medía
      640: un botón de guardar del ancho de la pantalla no lo tiene ninguna
-     aplicación de escritorio. */
+     aplicación de escritorio. `column-span: all` lo saca del reparto en
+     columnas para que quede abajo, cruzando las dos. */
   .ac-guardar {
+    column-span: all;
+    display: flex;
     width: auto;
     min-width: 280px;
-    justify-self: end;
-    margin-top: 4px;
+    margin: 4px 0 0 auto;
   }
 
   .ac-horas { max-width: 420px; }
