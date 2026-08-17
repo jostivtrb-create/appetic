@@ -118,5 +118,8 @@ En su panel tiene **📣 Difundir**, ya lista y con su identidad:
 
 - Su **código QR** para imprimir y pegar en el local.
 - Un **afiche de domicilios** listo para PDF, con su número (se actualiza solo cuando lo cambie).
+- **📢 Publicidad para tus redes** — un botón que arma el prompt (con su nombre, su número y
+  sus colores) y abre Gemini para generar una imagen épica anunciando que **ya hace domicilios**,
+  lista para Instagram, Facebook o el estado de WhatsApp.
 - El **link** de su menú para copiar y pegar.
 - Un **mensaje de bienvenida** para reenviar por WhatsApp a sus clientes.

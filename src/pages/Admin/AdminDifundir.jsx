@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { isMobileBrowser } from '../../utils/whatsapp'
 import { menuUrl, formatTel, mensajeBienvenida, qrDark, abrirAfiche } from '../../utils/compartir'
+import { construirPromptPublicidad } from '../../utils/promptIA'
 
 // 📣 Difundir: el dueño del local consigue aquí todo lo que necesita para que sus
 // clientes lleguen al menú: el QR (descargable), un afiche de DOMICILIOS listo
@@ -11,7 +12,8 @@ export default function AdminDifundir({ local, slug }) {
   // El mensaje se regenera cada vez que se abre la pestaña (refleja los datos
   // actuales del local); el dueño puede editarlo antes de enviarlo.
   const [mensaje, setMensaje] = useState(() => mensajeBienvenida(local, url))
-  const [copiado, setCopiado] = useState('') // 'link' | 'msg'
+  const [copiado, setCopiado] = useState('') // 'link' | 'msg' | 'pub'
+  const [avisoPubIA, setAvisoPubIA] = useState(null) // { prompt } tras abrir Gemini
 
   const sinWhatsapp = !String(local.whatsapp || '').replace(/\D/g, '')
 
@@ -49,6 +51,17 @@ export default function AdminDifundir({ local, slug }) {
     document.body.appendChild(a)
     a.click()
     a.remove()
+  }
+
+  // ✨ Publicidad para redes con IA: arma el prompt con el nombre, el teléfono y los
+  // colores del local, lo copia y abre Gemini — igual que "Crear con IA" del banner.
+  // El prompt le PROHÍBE a la IA dibujar el logo (los modelos lo deforman): el afiche
+  // se construye solo con tipografía, comida y color.
+  function crearPublicidadConIA() {
+    const prompt = construirPromptPublicidad({ local, telefono: formatTel(local.whatsapp) })
+    try { navigator.clipboard?.writeText(prompt) } catch { /* queda el botón "copiar de nuevo" */ }
+    window.open('https://gemini.google.com/app', '_blank', 'noopener')
+    setAvisoPubIA({ prompt })
   }
 
   function enviarWhatsApp() {
@@ -107,6 +120,44 @@ export default function AdminDifundir({ local, slug }) {
           </span>
           <span className="dif-afiche-arrow">→</span>
         </button>
+      </section>
+
+      {/* ---- Publicidad para redes sociales (imagen con IA) ---- */}
+      <section className="ac-sec">
+        <h3>📢 Publicidad para tus redes</h3>
+        <p className="ac-hint">
+          Una imagen épica para Instagram, Facebook o el estado de WhatsApp, anunciando que
+          <strong> ya haces domicilios</strong>. Sale con tu nombre, tu número
+          {sinWhatsapp ? '' : <> (<strong>{formatTel(local.whatsapp)}</strong>)</>} y los colores de tu local.
+        </p>
+        {sinWhatsapp && (
+          <span className="ac-ubic-warn">⚠️ Aún no tienes WhatsApp guardado: la publicidad saldría sin número. Ponlo en ⚙️ Configuración.</span>
+        )}
+        <button className="btn btn-primary dif-full" onClick={crearPublicidadConIA}>
+          ✨ Crear publicidad con IA
+        </button>
+        {avisoPubIA && (
+          <div className="ap-ia-aviso">
+            <button className="ap-ia-aviso-x" onClick={() => setAvisoPubIA(null)} aria-label="Cerrar">✕</button>
+            <p className="ap-ia-aviso-tit">✨ Abrimos <strong>Gemini</strong> en otra pestaña</p>
+            <ol className="ap-ia-aviso-pasos">
+              <li>Pega el prompt (ya copiado) con <strong>Ctrl/Cmd + V</strong> y envía.</li>
+              <li>Cuando genere la imagen, <strong>descárgala</strong>.</li>
+              <li>Súbela a tus redes o al <strong>estado de WhatsApp</strong>.</li>
+            </ol>
+            <p className="ac-hint">
+              ¿No te gustó? Escríbele <em>“hazla otra vez, más épica”</em> — cambia bastante entre intentos.
+              Revisa que el número y el nombre estén bien escritos antes de publicar.
+            </p>
+            <button
+              type="button"
+              className="ap-ia-aviso-copiar"
+              onClick={() => copiar(avisoPubIA.prompt, 'pub')}
+            >
+              {copiado === 'pub' ? '¡Copiado! ✓' : '📋 Copiar el prompt de nuevo'}
+            </button>
+          </div>
+        )}
       </section>
 
       {/* ---- Mensaje de bienvenida para WhatsApp ---- */}

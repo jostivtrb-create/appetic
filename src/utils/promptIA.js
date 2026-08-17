@@ -81,3 +81,77 @@ export function construirPromptImagenIA({ nombre, descripcion = '', tipo = 'prod
   // Plato / bebida principal.
   return `Photorealistic professional food photography of "${n}"${desc}, freshly made, appetizing and mouth-watering, natural soft lighting, shallow depth of field, high detail, sharp focus, ${fondo}, centered on a clean serving surface, square composition, no text, no watermark, no logo, no hands.`
 }
+
+// Los platos REALES del local, para que el afiche no muestre comida genérica.
+// Prefiere los destacados (los que el dueño marcó "Nuestro fuerte"); si no hay,
+// cae a sus categorías (quitando bebidas/adiciones, que no lucen en un afiche).
+function platosDelLocal(local, max = 4) {
+  const platos = (local?.destacadosHome || []).map(p => (p?.nombre || '').trim()).filter(Boolean)
+  const cats = (local?.categorias || [])
+    .map(c => (c?.nombre || '').trim())
+    .filter(c => c && !/bebida|adici[oó]n|salsa|extra|jugo/i.test(c))
+  return (platos.length ? platos : cats).slice(0, max)
+}
+
+/**
+ * 📢 Prompt para el AFICHE PUBLICITARIO de redes sociales: "ya hacemos domicilios",
+ * con el NOMBRE del local, su TELÉFONO y sus COLORES de marca.
+ *
+ * Dos decisiones que hacen que salga bien (y que se aprendieron a la mala):
+ *  1. **NO se le pide a la IA que dibuje el logo.** Los modelos de imagen deforman
+ *     emblemas y letras de marca; el resultado parece una copia mala del logo real.
+ *     El afiche se construye solo con TIPOGRAFÍA + COMIDA + COLOR, y se le prohíbe
+ *     explícitamente inventar logos, escudos o mascotas.
+ *  2. **Solo TRES textos**, escritos literal y entre comillas. Cuantas más frases
+ *     lleve una imagen generada, más falta de ortografía aparece. Nombre, titular
+ *     de domicilios y teléfono: nada más.
+ *
+ * @param {{local:object, telefono?:string}} args telefono ya formateado ("320 843 5143")
+ * @returns {string} prompt listo para pegar en Gemini
+ */
+export function construirPromptPublicidad({ local, telefono = '' }) {
+  const nombre = (local?.nombre || '').trim()
+  const tema = local?.tema || {}
+  const tel = String(telefono || '').trim()
+
+  // Colores de marca: cada uno con su ROL + nombre + hex. El rol evita que dos tonos
+  // parecidos (ej. dos verdes) lleguen con el mismo nombre y la IA los confunda; el hex
+  // afina el tono exacto (los modelos leen bien nombre y hex juntos).
+  const conRol = (hex, rol) => {
+    if (!hex) return ''
+    const nom = nombreColor(hex)
+    return `${rol}: ${nom ? nom + ' ' : ''}${hex}`
+  }
+  const paleta = [
+    conRol(tema.primary, 'main'),
+    conRol(tema.primarySoft, 'light tone'),
+    conRol(tema.accent, 'highlight'),
+  ].filter(Boolean).join(', ')
+
+  const platos = platosDelLocal(local)
+  const comida = platos.length
+    ? `the real food this place sells — ${platos.join(', ')} — bursting through the air`
+    : 'delicious street food bursting through the air'
+
+  // Los textos del afiche, numerados y entre comillas: es lo que mejor respeta la IA.
+  const textos = [
+    `1. The business name, the biggest and boldest element: "${nombre}"`,
+    '2. The headline: "AHORA CON DOMICILIOS"',
+    tel ? `3. The phone number, large and clearly readable: "${tel}"` : null,
+  ].filter(Boolean).join('\n')
+
+  return `Epic, high-energy advertising poster for social media (vertical 4:5), for a Colombian food business. Bold, loud and full of life — the kind of poster that stops the scroll.
+
+THE POSTER MUST CONTAIN EXACTLY THESE TEXTS, spelled letter by letter as written, in Spanish, and NOTHING else:
+${textos}
+
+SCENE: ${comida}, with splashes of sauce, flying ingredients, sparks and motion streaks, and a delivery scooter speeding with a delivery box, leaving light trails. Dramatic rim lighting, energetic diagonal composition, cinematic depth, sense of speed and celebration.
+
+BRAND COLORS (use them for the background gradient, the glows and the typography): ${paleta || 'vivid warm tones'}.
+
+TYPOGRAPHY: massive bold condensed sans-serif with thick outlines and strong drop shadows, street-food poster style, extremely legible, high contrast against the background. Perfect Spanish spelling, no typos, no invented or duplicated words, no extra sentences, no watermark.
+
+VERY IMPORTANT: do NOT draw any logo, emblem, badge, crest, shield, mascot or brand symbol, and do not try to recreate an existing brand mark. Build the entire design ONLY from typography, food and color.
+
+Ultra detailed, vibrant, saturated, professional advertising quality, vertical 4:5 composition.`
+}
