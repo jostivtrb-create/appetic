@@ -16,7 +16,11 @@ comidas rápidas. Todos van en **inglés** a propósito: la IA de imágenes rind
 
 ---
 
-# 🏆 LOGO — lo primero
+# 🏆 LOGO — ✅ YA ESTÁ HECHO Y MONTADO
+
+> El logo se generó con la **Opción A** de abajo y ya vive en la app (`logo.webp` + `icono.webp`),
+> con el fondo quitado de verdad. Los prompts quedan aquí por si algún día se quiere rehacer o
+> sacar variantes (para camisetas, avisos, redes).
 
 Tu letrero de la calle ya tiene la identidad hecha: **fondo verde que degrada a amarillo**, el
 rubro en **azul cielo con contorno blanco**, y **"El Monumento" en script naranja**. A eso le

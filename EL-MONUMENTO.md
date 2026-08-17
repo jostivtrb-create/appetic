@@ -69,14 +69,22 @@ Chuleta de Cerdo y Postre de Durazno. Si vuelven a venderlos, se agregan desde e
 
 ---
 
-## 🖼️ Las fotos y el LOGO (los hace el dueño con IA)
+## ✅ El LOGO — ya está montado
+
+Generado con IA a partir del prompt de `PROMPTS.md` y montado en la app:
+
+- `public/locales/el-monumento/logo.webp` — emblema circular **transparente**, 720×688 (98 KB).
+  Protagoniza el encabezado del menú (`hero: 'logo'`), flotando sobre el degradado verde-limón.
+- `public/locales/el-monumento/icono.webp` — cuadrado 256×256 (24 KB) para el buscador de locales.
+
+> El JPEG que devuelve Gemini trae el **damero de "transparencia" quemado en los píxeles** (JPEG no
+> guarda alfa). Se le quitó con flood-fill por conectividad desde los bordes, que respeta los
+> blancos encerrados del diseño (el helado, la crema y los contornos blancos del texto).
+
+## 🖼️ Las fotos (las hace el dueño con IA)
 
 Todo está en **`public/locales/el-monumento/PROMPTS.md`**:
 
-- **🏆 El LOGO** — dos opciones (emblema circular para la app, y horizontal para el encabezado),
-  construidas sobre su letrero real: verde→amarillo, "El Monumento" en script naranja, el rubro en
-  azul cielo, con la copa de frutas y la hamburguesa. **Pídelo con fondo transparente (PNG).**
-  Cuando lo tenga, se monta en `public/locales/el-monumento/logo.webp`.
 - **🏞️ El banner** (la foto grande de su tarjeta en el inicio) y **~30 fotos de platos**.
 
 **Cómo subirlas:** panel → editar producto → **✨ Crear con IA** (abre Gemini con el prompt listo)

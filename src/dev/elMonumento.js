@@ -41,11 +41,13 @@ export const MONUMENTO_LOCAL = {
   //    buscador (ver `suscripcion`). El dueño pone el real en ⚙️ Configuración → Datos del negocio.
   whatsapp: '573208435143',
 
-  // 🖼️ Logo: vacío por ahora (la tarjeta muestra la inicial). Cuando el dueño genere su logo con el
-  //    prompt de PROMPTS.md, se guarda en /locales/el-monumento/logo.webp y aquí se pone la ruta
-  //    (+ `hero: 'logo'` en el tema si el logo trae el nombre).
-  logo: '',
-  banner: '',   // hero con el degradado del tema hasta que el dueño suba su banner
+  // 🖼️ Logo generado con IA a partir del prompt de PROMPTS.md y recortado a transparente
+  //    (el JPEG de Gemini traía el damero de "transparencia" quemado en los píxeles).
+  //    Como el emblema YA trae el nombre, el hero lo protagoniza (`hero: 'logo'`).
+  logo: '/locales/el-monumento/logo.webp',    // emblema circular transparente (720px = 2× el hero)
+  icono: '/locales/el-monumento/icono.webp',  // cuadrado 256px (buscador de locales)
+  banner: '',                                 // hero con logo, no banner de foto
+  logoAnim: 'arriba',                         // el emblema entra cayendo desde arriba
 
   tema: {
     primary: '#3FA62E',        // verde brillante del letrero (botones, precios, chips activos)
@@ -54,6 +56,7 @@ export const MONUMENTO_LOCAL = {
     onPrimary: '#FFFFFF',      // texto sobre el verde
     accent: '#F2891C',         // naranja del script "El Monumento" (nav activo, detalles)
     bg: '#F4F6E3',             // "mundo" crema verde-limón, fresco y luminoso
+    hero: 'logo',              // hero protagonizado por el emblema (ya trae el nombre dentro)
   },
 
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.
