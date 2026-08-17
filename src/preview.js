@@ -37,6 +37,10 @@ export async function getPreviewLocal(slug) {
     const { COMARCA_LOCAL, COMARCA_PRODUCTOS } = await import('./dev/laComarca')
     return { local: COMARCA_LOCAL, productos: COMARCA_PRODUCTOS }
   }
+  if (slug === 'el-monumento') {
+    const { MONUMENTO_LOCAL, MONUMENTO_PRODUCTOS } = await import('./dev/elMonumento')
+    return { local: MONUMENTO_LOCAL, productos: MONUMENTO_PRODUCTOS }
+  }
   return null
 }
 
@@ -45,7 +49,7 @@ export async function getPreviewLocal(slug) {
 // destacadosHome al vuelo con el mismo helper de los seeds/panel (fuente única).
 const PREVIEW_SLUGS = [
   'perros-criollos', 'sabor-del-dia', 'pilotos', 'juance', 'jasbury',
-  'fruti-tentacion', 'la-comarca',
+  'fruti-tentacion', 'la-comarca', 'el-monumento',
 ]
 export async function getPreviewLocales() {
   const { computeDestacadosHome } = await import('./utils/destacadosHome')
