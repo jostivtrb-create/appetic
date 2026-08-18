@@ -6,30 +6,52 @@
 // funciona para CUALQUIER producto que el dueño cree desde el panel, leyendo su
 // nombre/descripción + los colores (tema) de su local.
 
-// hex → nombre aproximado del color (por tono), para describirlo en el prompt.
+// Nombre del color por TONO + qué tan OSCURO y qué tan VIVO es.
+// El tono solo no basta: un café (#6F4A2F) y un naranja (#D98E2B) comparten tono, y
+// llamar "warm orange ember" al café de La Comarca empujaba a la IA a pintar naranja
+// peleando contra el hex. Igual el vino de Pilotos (#8A1212), que salía como "warm red".
+// Por eso los tonos oscuros tienen su propio nombre (brown, maroon, wine, navy…).
+const TONOS = [
+  // [tope de hue, oscuro,               normal,               claro]
+  [15,  'deep maroon red',    'warm red',           'soft coral'],
+  [40,  'rich coffee brown',  'warm orange ember',  'warm peach'],
+  [70,  'dark olive gold',    'golden yellow',      'pale butter yellow'],
+  [160, 'deep forest green',  'fresh green',        'light lime green'],
+  [200, 'deep teal',          'teal',               'pale aqua'],
+  [255, 'deep navy blue',     'blue',               'light sky blue'],
+  [290, 'deep purple',        'violet',             'soft lavender'],
+  [345, 'wine burgundy',      'magenta pink',       'soft pink'],
+  [360, 'deep maroon red',    'warm red',           'soft coral'],
+]
+
 function nombreColor(hex) {
   const m = (hex || '').replace('#', '')
   if (m.length < 6) return null
   const r = parseInt(m.slice(0, 2), 16)
   const g = parseInt(m.slice(2, 4), 16)
   const b = parseInt(m.slice(4, 6), 16)
-  const max = Math.max(r, g, b), min = Math.min(r, g, b)
-  const l = (max + min) / 2 / 255
-  if (max - min < 25) return l > 0.7 ? 'clean white' : l < 0.25 ? 'deep charcoal' : 'soft grey'
-  const d = max - min
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min
+  // Luminancia PERCEPTUAL (no la claridad HSL): el ojo ve el verde mucho más claro que
+  // el azul o el rojo. Con claridad HSL, un lima (#B7E04A) y un ámbar (#E8A03D) daban
+  // casi el mismo número y el ámbar de Pilotos terminaba llamándose "peach".
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  if (d < 25) return lum > 0.7 ? 'clean white' : lum < 0.25 ? 'deep charcoal' : 'soft grey'
+  // Saturación HSL. Manda junto con la luminancia:
+  //  • Un color a tope de saturación NUNCA es "pálido" aunque sea claro (#FFC42E es
+  //    amarillo dorado intenso, no "pale butter").
+  //  • Lo que separa un CAFÉ de un naranja no es que sea oscuro, es que está apagado:
+  //    #6F4A2F (café) y #C8341F (rojo ladrillo) tienen luminancia casi igual, pero
+  //    saturación 0.41 vs 0.73.
+  const s = d / (255 - Math.abs(max + min - 255))
   let h
   if (max === r) h = (g - b) / d + (g < b ? 6 : 0)
   else if (max === g) h = (b - r) / d + 2
   else h = (r - g) / d + 4
-  h *= 60
-  if (h < 15 || h >= 345) return 'warm red'
-  if (h < 45) return 'warm orange ember'
-  if (h < 70) return 'golden yellow'
-  if (h < 160) return 'fresh green'
-  if (h < 200) return 'teal'
-  if (h < 255) return 'blue'
-  if (h < 290) return 'violet'
-  return 'magenta pink'
+  h = ((h * 60) + 360) % 360
+  const [, oscuro, normal, claro] = TONOS.find(t => h < t[0]) || TONOS[1]
+  if (lum < 0.30 || (lum < 0.42 && s < 0.55)) return oscuro
+  if (lum > 0.68 && s < 0.85) return claro
+  return normal
 }
 
 // ¿El fondo del local es oscuro? (luminancia percibida)
