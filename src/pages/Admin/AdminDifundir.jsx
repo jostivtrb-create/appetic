@@ -96,6 +96,9 @@ export default function AdminDifundir({ local, slug }) {
             ? <img className="dif-qr-img" src={qrPng} alt={`Código QR de ${local.nombre}`} />
             : <div className="dif-qr-ph">Generando…</div>}
         </div>
+        {/* La URL a la vista: antes de mandar a IMPRIMIR conviene poder leer a dónde
+            apunta el código. Un QR malo se ve idéntico a uno bueno. */}
+        <p className="dif-qr-url">Apunta a <strong>{url.replace(/^https?:\/\//, '')}</strong></p>
         <button className="btn btn-primary dif-full" onClick={descargarQR} disabled={!qrPng}>
           ⬇️ Descargar QR (PNG)
         </button>

@@ -5,12 +5,20 @@
 //     como escapes \u para que el archivo quede ASCII y el emoji nunca se corrompa).
 //   • HTML del afiche imprimible ("DOMICILIOS" + QR), con la estética del local.
 
-// URL del menú del local. Usamos el origen actual (en producción es el dominio
-// real del negocio; en local, localhost) para que el link SIEMPRE apunte a donde
-// está corriendo la app. Ej: https://appetic.app/perros-criollos
+// 🌐 Dominio PÚBLICO de Appetic. Se cambia sin tocar código con la variable
+// VITE_PUBLIC_URL (para el día que se pase a un dominio propio, ej. appetic.app).
+export const SITIO_PUBLICO =
+  String(import.meta.env?.VITE_PUBLIC_URL || 'https://appetic.vercel.app').replace(/\/+$/, '')
+
+// URL del menú del local. Ej: https://appetic.vercel.app/perros-criollos
+//
+// ⚠️ Apunta SIEMPRE al dominio público, NUNCA a `window.location.origin`. Todo lo que
+// sale de aquí se comparte hacia afuera —el QR, el AFICHE IMPRESO, el link y el mensaje
+// de WhatsApp— y con el origen del navegador bastaba abrir el panel en localhost o en
+// una URL de preview de Vercel para generar un QR que no le sirve a nadie. El fallo es
+// MUDO (el código se ve perfecto) y solo se descubre cuando ya está impreso y pegado.
 export function menuUrl(slug) {
-  const origin = typeof window !== 'undefined' ? window.location.origin : ''
-  return `${origin}/${slug}`
+  return `${SITIO_PUBLICO}/${slug}`
 }
 
 // Teléfono colombiano legible: 3208435143 -> "320 843 5143".
@@ -62,9 +70,22 @@ function luminancia(hex) {
 
 // Color oscuro para el QR: usa el color de marca del local si es lo bastante
 // oscuro (contraste alto = escanea bien); si no, cae a un casi-negro elegante.
+// Contraste WCAG del color contra el BLANCO del fondo del QR: (1.0+0.05)/(L+0.05).
+function contrasteSobreBlanco(hex) {
+  return 1.05 / (luminancia(hex) + 0.05)
+}
+
+// Mínimo para que el código escanee bien IMPRESO (tinta que destiñe, luz mala, cámaras
+// baratas). 4.5:1 es el umbral WCAG AA y deja pasar los colores de marca oscuros.
+const QR_CONTRASTE_MIN = 4.5
+
 export function qrDark(tema) {
   const c = tema?.primaryStrong || tema?.primary
-  return c && luminancia(c) < 0.4 ? c : '#171412'
+  // ⚠️ Se mide CONTRASTE, no luminancia. Con "luminancia < 0.4" pasaban colores como
+  // el verde #3FA62E (luminancia 0.29) que solo dan 3.1:1 contra blanco: se ven bien
+  // en pantalla pero un lector no los saca. Y un QR que no escanea se descubre cuando
+  // ya está impreso y pegado en la pared.
+  return c && contrasteSobreBlanco(c) >= QR_CONTRASTE_MIN ? c : '#171412'
 }
 
 // Escapa texto para incrustarlo con seguridad dentro del HTML del afiche.
