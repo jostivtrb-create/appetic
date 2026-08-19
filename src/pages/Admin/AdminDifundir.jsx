@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { isMobileBrowser } from '../../utils/whatsapp'
 import { menuUrl, formatTel, mensajeBienvenida, qrDark, abrirAfiche } from '../../utils/compartir'
-import { construirPromptPublicidad } from '../../utils/promptIA'
+import { construirPromptPublicidad, VARIANTES_PUBLICIDAD } from '../../utils/promptIA'
+
+// Dónde se recuerda, POR LOCAL, qué estilo de publicidad tocó la última vez.
+const claveVariante = slug => `appetic_pub_variante_${slug}`
 
 // 📣 Difundir: el dueño del local consigue aquí todo lo que necesita para que sus
 // clientes lleguen al menú: el QR (descargable), un afiche de DOMICILIOS listo
@@ -13,7 +16,13 @@ export default function AdminDifundir({ local, slug }) {
   // actuales del local); el dueño puede editarlo antes de enviarlo.
   const [mensaje, setMensaje] = useState(() => mensajeBienvenida(local, url))
   const [copiado, setCopiado] = useState('') // 'link' | 'msg' | 'pub'
-  const [avisoPubIA, setAvisoPubIA] = useState(null) // { prompt } tras abrir Gemini
+  const [avisoPubIA, setAvisoPubIA] = useState(null) // { prompt, estilo, n } tras abrir Gemini
+  // Estilo de publicidad que toca ahora. Se ROTA en orden (no al azar) y se recuerda
+  // en el navegador: así el dueño recorre los 10 sin que le repita uno antes de tiempo.
+  const [variante, setVariante] = useState(() => {
+    const guardado = Number(localStorage.getItem(claveVariante(slug)))
+    return Number.isFinite(guardado) ? guardado : 0
+  })
 
   const sinWhatsapp = !String(local.whatsapp || '').replace(/\D/g, '')
 
@@ -58,10 +67,16 @@ export default function AdminDifundir({ local, slug }) {
   // El prompt le PROHÍBE a la IA dibujar el logo (los modelos lo deforman): el afiche
   // se construye solo con tipografía, comida y color.
   function crearPublicidadConIA() {
-    const prompt = construirPromptPublicidad({ local, telefono: formatTel(local.whatsapp) })
+    const total = VARIANTES_PUBLICIDAD.length
+    const i = ((variante % total) + total) % total
+    const prompt = construirPromptPublicidad({ local, telefono: formatTel(local.whatsapp), variante: i })
     try { navigator.clipboard?.writeText(prompt) } catch { /* queda el botón "copiar de nuevo" */ }
     window.open('https://gemini.google.com/app', '_blank', 'noopener')
-    setAvisoPubIA({ prompt })
+    setAvisoPubIA({ prompt, estilo: VARIANTES_PUBLICIDAD[i].nombre, n: i + 1, total })
+    // Deja listo el SIGUIENTE estilo para el próximo click.
+    const siguiente = (i + 1) % total
+    setVariante(siguiente)
+    try { localStorage.setItem(claveVariante(slug), String(siguiente)) } catch { /* modo privado */ }
   }
 
   function enviarWhatsApp() {
@@ -139,18 +154,24 @@ export default function AdminDifundir({ local, slug }) {
         <button className="btn btn-primary dif-full" onClick={crearPublicidadConIA}>
           ✨ Crear publicidad con IA
         </button>
+        <p className="dif-qr-url">
+          Cada vez que le des sale un <strong>estilo distinto</strong> ({VARIANTES_PUBLICIDAD.length} en total)
+        </p>
         {avisoPubIA && (
           <div className="ap-ia-aviso">
             <button className="ap-ia-aviso-x" onClick={() => setAvisoPubIA(null)} aria-label="Cerrar">✕</button>
             <p className="ap-ia-aviso-tit">✨ Abrimos <strong>Gemini</strong> en otra pestaña</p>
+            <p className="dif-pub-estilo">
+              🎨 Estilo {avisoPubIA.n} de {avisoPubIA.total}: <strong>{avisoPubIA.estilo}</strong>
+            </p>
             <ol className="ap-ia-aviso-pasos">
               <li>Pega el prompt (ya copiado) con <strong>Ctrl/Cmd + V</strong> y envía.</li>
               <li>Cuando genere la imagen, <strong>descárgala</strong>.</li>
               <li>Súbela a tus redes o al <strong>estado de WhatsApp</strong>.</li>
             </ol>
             <p className="ac-hint">
-              ¿No te gustó? Escríbele <em>“hazla otra vez, más épica”</em> — cambia bastante entre intentos.
-              Revisa que el número y el nombre estén bien escritos antes de publicar.
+              ¿No te gustó? Vuelve a darle al botón y te arma <strong>otro estilo</strong>, o escríbele a Gemini
+              <em> “hazla otra vez, más épica”</em>. Revisa que el número y el nombre estén bien escritos antes de publicar.
             </p>
             <button
               type="button"

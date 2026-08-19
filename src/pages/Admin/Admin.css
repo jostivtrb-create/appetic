@@ -748,6 +748,17 @@
 }
 .dif-qr-url strong { color: var(--text); }
 
+/* Qué estilo de publicidad tocó esta vez (dentro del aviso de Gemini). */
+.dif-pub-estilo {
+  margin: 0 0 10px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 13px;
+  color: var(--text);
+  align-self: flex-start;
+}
+
 /* Afiche: botón-tarjeta */
 .dif-afiche {
   display: flex; align-items: center; gap: 12px;

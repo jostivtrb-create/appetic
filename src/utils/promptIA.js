@@ -115,11 +115,81 @@ function platosDelLocal(local, max = 4) {
   return (platos.length ? platos : cats).slice(0, max)
 }
 
+// 🎨 Las 10 CARAS del afiche. Lo que cambia es solo la puesta en escena: el concepto,
+// la luz y el aire de la pieza. El esqueleto (los tres textos, la prohibición del logo,
+// los colores de marca y las reglas de tipografía) NO se toca nunca — es justo lo que
+// hace que el afiche salga bien, así que variarlo sería romper lo que ya funciona.
+//
+// `escena` recibe la frase de comida del local ya armada, para que cada concepto la
+// coloque donde le corresponde (volando, sobre un mesón, en manos, tras un vidrio…).
+export const VARIANTES_PUBLICIDAD = [
+  {
+    id: 'explosion',
+    nombre: 'Explosión de sabor',
+    escena: c => `${c} bursting through the air, with splashes of sauce, flying ingredients, sparks and motion streaks, and a delivery scooter speeding with a delivery box, leaving light trails`,
+    estilo: 'Dramatic rim lighting, energetic diagonal composition, cinematic depth, sense of speed and celebration.',
+  },
+  {
+    id: 'neon-noche',
+    nombre: 'Noche de neón',
+    escena: c => `${c} glowing in the foreground while a delivery scooter races through a rainy city street at night, wet asphalt mirroring the neon signs, headlights streaking past, steam rising`,
+    estilo: 'Night scene, glossy neon reflections, deep shadows with vivid colored glow, long-exposure light trails, cyberpunk street-food energy, high contrast.',
+  },
+  {
+    id: 'feria',
+    nombre: 'Feria de luces',
+    escena: c => `${c} laid out on a wooden counter under a festive marquee of round light bulbs, with paper garlands, ticket stubs and a delivery scooter parked to one side`,
+    estilo: 'Warm carnival lighting, glowing filament bulbs, nostalgic fairground vibe, cheerful and inviting, rich warm shadows.',
+  },
+  {
+    id: 'comic',
+    nombre: 'Cómic pop',
+    escena: c => `${c} drawn as a bold comic book panel, with halftone dot shading, thick ink outlines, radiating action lines and a delivery scooter zooming in from the corner`,
+    estilo: 'Pop-art comic illustration, flat saturated inks, halftone texture, dynamic speed lines and impact bursts, thick black outlines, screen-print feel.',
+  },
+  {
+    id: 'cenital',
+    nombre: 'Vista desde arriba',
+    escena: c => `${c} shot straight from above, arranged in a striking symmetrical layout around the centre of the poster, with scattered napkins, cutlery, sauce drips and a delivery bag at one edge`,
+    estilo: 'Top-down flat-lay, crisp even lighting, bold graphic negative space, clean modern layout, appetising and orderly.',
+  },
+  {
+    id: 'graffiti',
+    nombre: 'Muro de graffiti',
+    escena: c => `${c} in front of a painted brick wall covered in street art, with spray-paint splatters, dripping paint and a delivery scooter leaning against the wall`,
+    estilo: 'Urban street-art aesthetic, spray-paint and stencil textures, gritty concrete, paint drips, raw and rebellious, strong daylight.',
+  },
+  {
+    id: 'fiesta',
+    nombre: 'Fiesta y confeti',
+    escena: c => `${c} held up high in celebration, surrounded by exploding confetti, streamers and floating balloons, with a delivery box being opened in a burst of joy`,
+    estilo: 'Party atmosphere, bright bouncy lighting, confetti in mid-air, playful and joyful, bursting with movement and colour.',
+  },
+  {
+    id: 'brasa',
+    nombre: 'Brasa y humo',
+    escena: c => `${c} emerging from swirling smoke and glowing embers, flames licking the edges of the frame, with a delivery box glowing warm in the haze`,
+    estilo: 'Moody dark backdrop, dramatic fire glow and rising smoke, deep contrast with the brand colours punching through, intense and mouth-watering.',
+  },
+  {
+    id: 'retro',
+    nombre: 'Retro setentero',
+    escena: c => `${c} arranged over a bold retro sunburst radiating from behind the lettering, with groovy wavy shapes, chunky stripes and a vintage delivery scooter`,
+    estilo: 'Seventies retro poster, sunburst rays, rounded groovy shapes, slightly grainy print texture, warm nostalgic palette, bold and graphic.',
+  },
+  {
+    id: 'velocidad',
+    nombre: 'Llega volando',
+    escena: c => `${c} rushing toward the viewer as if flying out of the screen, wrapped in speed streaks and wind lines, with a delivery scooter blurring past and a stopwatch motif`,
+    estilo: 'Extreme sense of motion, radial motion blur, dynamic low camera angle, everything racing forward, adrenaline and urgency.',
+  },
+]
+
 /**
  * 📢 Prompt para el AFICHE PUBLICITARIO de redes sociales: "ya hacemos domicilios",
  * con el NOMBRE del local, su TELÉFONO y sus COLORES de marca.
  *
- * Dos decisiones que hacen que salga bien (y que se aprendieron a la mala):
+ * Tres decisiones que hacen que salga bien (y que se aprendieron a la mala):
  *  1. **NO se le pide a la IA que dibuje el logo.** Los modelos de imagen deforman
  *     emblemas y letras de marca; el resultado parece una copia mala del logo real.
  *     El afiche se construye solo con TIPOGRAFÍA + COMIDA + COLOR, y se le prohíbe
@@ -127,11 +197,14 @@ function platosDelLocal(local, max = 4) {
  *  2. **Solo TRES textos**, escritos literal y entre comillas. Cuantas más frases
  *     lleve una imagen generada, más falta de ortografía aparece. Nombre, titular
  *     de domicilios y teléfono: nada más.
+ *  3. **10 variantes que rotan** (`variante`): cambia la ESCENA y la luz, nunca el
+ *     esqueleto. Así el dueño puede darle varias veces sin que le salga siempre lo
+ *     mismo, pero cada resultado sigue respetando lo que hace que funcione.
  *
- * @param {{local:object, telefono?:string}} args telefono ya formateado ("320 843 5143")
+ * @param {{local:object, telefono?:string, variante?:number}} args telefono ya formateado
  * @returns {string} prompt listo para pegar en Gemini
  */
-export function construirPromptPublicidad({ local, telefono = '' }) {
+export function construirPromptPublicidad({ local, telefono = '', variante = 0 }) {
   const nombre = (local?.nombre || '').trim()
   const tema = local?.tema || {}
   const tel = String(telefono || '').trim()
@@ -151,9 +224,15 @@ export function construirPromptPublicidad({ local, telefono = '' }) {
   ].filter(Boolean).join(', ')
 
   const platos = platosDelLocal(local)
+  // Solo la comida, SIN verbo: cada variante decide qué hace con ella (volar, reposar
+  // sobre un mesón, salir del humo…), así la escena no se contradice a sí misma.
   const comida = platos.length
-    ? `the real food this place sells — ${platos.join(', ')} — bursting through the air`
-    : 'delicious street food bursting through the air'
+    ? `the real food this place sells — ${platos.join(', ')} —`
+    : 'delicious street food'
+
+  // Índice a prueba de todo (negativos incluidos): siempre cae dentro de la lista.
+  const n = VARIANTES_PUBLICIDAD.length
+  const v = VARIANTES_PUBLICIDAD[((Math.trunc(variante) % n) + n) % n]
 
   // Los textos del afiche, numerados y entre comillas: es lo que mejor respeta la IA.
   const textos = [
@@ -167,7 +246,7 @@ export function construirPromptPublicidad({ local, telefono = '' }) {
 THE POSTER MUST CONTAIN EXACTLY THESE TEXTS, spelled letter by letter as written, in Spanish, and NOTHING else:
 ${textos}
 
-SCENE: ${comida}, with splashes of sauce, flying ingredients, sparks and motion streaks, and a delivery scooter speeding with a delivery box, leaving light trails. Dramatic rim lighting, energetic diagonal composition, cinematic depth, sense of speed and celebration.
+SCENE: ${v.escena(comida)}. ${v.estilo}
 
 BRAND COLORS (use them for the background gradient, the glows and the typography): ${paleta || 'vivid warm tones'}.
 
