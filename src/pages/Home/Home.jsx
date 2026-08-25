@@ -376,7 +376,13 @@ export default function Home() {
                       </div>
                       <div className="antojo-info">
                         <strong className="antojo-nombre">{p.nombre}</strong>
-                        <span className="antojo-precio">{p.desde ? 'desde ' : ''}{cop(p.precio)}</span>
+                        {/* Mismo rango que en el menú del local, pero SIN la palabra
+                            "entre": la tarjeta del inicio es angosta y no le cabe. */}
+                        <span className="antojo-precio">
+                          {p.precioMax > p.precio
+                            ? <>{cop(p.precio)} <span className="antojo-guion">-</span> {cop(p.precioMax)}</>
+                            : `${p.desde ? 'desde ' : ''}${cop(p.precio)}`}
+                        </span>
                         <span className="antojo-local">{p.local.nombre}</span>
                       </div>
                     </button>

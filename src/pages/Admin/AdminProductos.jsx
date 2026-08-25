@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { cop } from '../../utils/money'
+import { copRango, rangoPrecio } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
 import { construirPromptImagenIA } from '../../utils/promptIA'
 
@@ -136,7 +136,8 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
                 <div className="ap-item-info">
                   <h4>{p.nombre}</h4>
                   <span className="ap-item-precio">
-                    {p.variantes?.length ? `desde ${cop(Math.min(...p.variantes.map(v => v.precio)))}` : cop(p.precio)}
+                    {/* El dueño ve el mismo rango que ve su cliente en el menú. */}
+                    {(() => { const { min, max } = rangoPrecio(p); return copRango(min, max) })()}
                   </span>
                 </div>
                 <div className="ap-item-actions">

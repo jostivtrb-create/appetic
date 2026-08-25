@@ -47,8 +47,16 @@
   font-size: 16px;
   font-weight: 800;
   color: var(--text);
+  white-space: nowrap;   /* "entre $19.000 - $65.000" nunca se parte a mitad del rango */
 }
 .pcard-desde { font-size: 12px; font-weight: 600; color: var(--text-faint); }
+/* El guion del rango, apagado: los que mandan son los dos números. */
+.pcard-guion { font-weight: 600; color: var(--text-faint); margin: 0 1px; }
+/* Un rango es el doble de largo que un precio suelto. Un pelín más pequeño para que
+   quepa junto al chip "Ver" en la misma línea; si el celular es muy angosto, la fila
+   ya envuelve sola y el chip baja (nada se corta). */
+.pcard-precio:has(.pcard-guion) { font-size: 14px; letter-spacing: -0.01em; }
+.pcard-precio:has(.pcard-guion) .pcard-desde { font-size: 11px; }
 .pcard-add {
   font-size: 12.5px;
   font-weight: 700;

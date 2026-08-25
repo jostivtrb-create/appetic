@@ -1,15 +1,12 @@
-import { cop } from '../../utils/money'
+import { cop, rangoPrecio } from '../../utils/money'
 import ImagenApp from '../Imagen/ImagenApp'
 import './ProductCard.css'
 
-// Precio "desde" para mostrar en la tarjeta
-function precioDesde(p) {
-  if (p.variantes?.length) return Math.min(...p.variantes.map(v => Number(v.precio) || 0))
-  return Number(p.precio) || 0
-}
-
 export default function ProductCard({ producto, onPedir }) {
   const agotado = producto.disponible === false
+  // Con variantes mostramos el rango COMPLETO ("entre $19.000 - $65.000") en vez del
+  // viejo "desde $19.000": el cliente ve de una hasta dónde puede llegar el plato.
+  const { min, max, rango } = rangoPrecio(producto)
 
   return (
     <button
@@ -23,8 +20,12 @@ export default function ProductCard({ producto, onPedir }) {
         {producto.descripcion && <p className="pcard-desc">{producto.descripcion}</p>}
         <div className="pcard-precio-row">
           <span className="pcard-precio">
-            {producto.variantes?.length ? <span className="pcard-desde">desde </span> : null}
-            {cop(precioDesde(producto))}
+            {rango
+              ? <>
+                  <span className="pcard-desde">entre </span>
+                  {cop(min)} <span className="pcard-guion">-</span> {cop(max)}
+                </>
+              : cop(min)}
           </span>
           {/* Tocar la tarjeta abre el panel de detalle (ver más grande + Agregar).
               Un chip discreto "Ver" invita a tocar, sin prometer que agrega directo. */}

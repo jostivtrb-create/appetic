@@ -13,13 +13,23 @@
 
 const MAX_GUARDADOS = 6
 
-// Precio "desde" del producto: el fijo, o el menor de sus variantes.
+// Precio del producto para el resumen: el fijo, o el RANGO de sus variantes.
+// Guardamos el menor y el mayor para que el inicio pueda decir "$19.000 - $65.000"
+// en vez del viejo "desde $19.000", que escondía hasta dónde llegaba el plato.
+// `desde` se mantiene por los resúmenes VIEJOS ya guardados en Firestore, que no
+// traen precioMax: ahí el inicio sigue mostrando "desde" hasta que el dueño vuelva
+// a guardar el producto (o se re-corra el seed) y se recalcule este resumen.
 function precioDesde(p) {
   if (p?.variantes?.length) {
     const precios = p.variantes.map(v => Number(v.precio) || 0).filter(n => n > 0)
-    if (precios.length) return { precio: Math.min(...precios), desde: true }
+    if (precios.length) {
+      const min = Math.min(...precios)
+      const max = Math.max(...precios)
+      return { precio: min, precioMax: max, desde: max > min }
+    }
   }
-  return { precio: Number(p?.precio) || 0, desde: false }
+  const fijo = Number(p?.precio) || 0
+  return { precio: fijo, precioMax: fijo, desde: false }
 }
 
 export function computeDestacadosHome(productos = []) {
@@ -28,7 +38,7 @@ export function computeDestacadosHome(productos = []) {
     .sort((a, b) => (a.orden ?? 99) - (b.orden ?? 99))
     .slice(0, MAX_GUARDADOS)
     .map(p => {
-      const { precio, desde } = precioDesde(p)
-      return { id: p.id, nombre: p.nombre || '', foto: p.foto, precio, desde }
+      const { precio, precioMax, desde } = precioDesde(p)
+      return { id: p.id, nombre: p.nombre || '', foto: p.foto, precio, precioMax, desde }
     })
 }
