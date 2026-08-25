@@ -35,9 +35,11 @@
   box-shadow: var(--shadow-sm);
   font-size: 15px;
   font-weight: 700;
-  /* Color FIJO oscuro: el fondo del botón es siempre blanco, así la ✕ se ve
-     también en skins oscuros (donde --text es claro y quedaba invisible). */
-  color: var(--brand-ink);
+  /* Color FIJO oscuro, escrito a mano y NO con una variable: el fondo del botón es
+     siempre blanco, así que la ✕ tiene que ser oscura pase lo que pase. Ojo con
+     --brand-ink: en los skins oscuros (Pilotos, JUANCE…) el tema la vuelve CLARA
+     (#F5EEE4) y la ✕ desaparecía sobre el círculo blanco. */
+  color: #2A211C;
 }
 
 .pm-hero { height: 200px; flex-shrink: 0; }
