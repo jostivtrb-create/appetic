@@ -208,8 +208,13 @@
   bottom: calc(86px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
   z-index: 70;
-  background: var(--brand-ink);
+  /* Píldora SIEMPRE oscura con texto blanco (estilo aviso de sistema), con los dos
+     colores escritos a mano. Con --brand-ink no servía: en los skins oscuros el tema
+     la vuelve CLARA (#F5EEE4) y quedaba blanco sobre crema, casi ilegible.
+     El filo claro la despega del fondo en los menús oscuros. */
+  background: #221A16;
   color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   font-size: 13.5px;
   font-weight: 600;
   padding: 11px 18px;
