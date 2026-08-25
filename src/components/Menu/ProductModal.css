@@ -72,6 +72,31 @@
   letter-spacing: 0.03em;
 }
 .pm-opt-hint { font-size: 12px; color: var(--text-faint); font-weight: 500; }
+/* Contador vivo del grupo: "Elige hasta 3 · llevas 2". Se apoya en el encabezado,
+   así que va pegado a él y no parece un párrafo suelto. */
+.pm-group-sub {
+  margin: -6px 0 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+/* Aviso al cambiar a un tamaño que lleva menos opciones. Color de TEXTO normal
+   (gira con el tema) sobre un realce suave: con el acento del local se perdía en
+   los menús oscuros, que es justo donde hay que leerlo. */
+.pm-group-aviso {
+  margin-top: 8px;
+  padding: 8px 11px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border-left: 3px solid var(--local-primary);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text);
+}
+/* Opción fuera de cupo: apagada pero legible (el cliente debe poder leerla). */
+.pm-opt-bloq { opacity: 0.45; }
+.pm-opt-bloq input { cursor: not-allowed; }
 
 .pm-opt {
   display: flex;

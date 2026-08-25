@@ -104,6 +104,9 @@
   transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .pw-card:active { transform: scale(0.95); }
+/* Sin cupo (ya eligió el máximo que permite su tamaño): apagada pero legible. */
+.pw-card-bloq { opacity: 0.4; cursor: not-allowed; }
+.pw-card-bloq:active { transform: none; }
 .pw-card.sel {
   border-color: var(--local-primary);
   box-shadow: 0 0 0 3px var(--brand-orange-tint);

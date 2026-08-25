@@ -233,6 +233,20 @@ function EditorProducto({ producto, local, categorias, onAddCategoria, onCerrar,
     }))
   }
 
+  // --- Cuántas opciones del grupo puede elegir el cliente SEGÚN el tamaño ---
+  // Ej.: pizza familiar → 3 sabores; personal → 1. Se guarda por id de tamaño,
+  // así que renombrar un tamaño no rompe la regla.
+  function setMaxVariante(gi, varianteId, valor) {
+    const n = Math.max(0, Number(String(valor).replace(/\D/g, '')) || 0)
+    setGrupos(gs => gs.map((g, j) => {
+      if (j !== gi) return g
+      const mapa = { ...(g.maxPorVariante || {}) }
+      if (n > 0) mapa[varianteId] = n
+      else delete mapa[varianteId]   // vacío = sin regla propia, vale el tope general
+      return { ...g, maxPorVariante: mapa }
+    }))
+  }
+
   // --- Edición de "precios por tamaño" (variantes) ---
   // id único para un tamaño nuevo (v1, v2, … evitando choques).
   function nuevoVarianteId(vs) {
@@ -335,12 +349,23 @@ function EditorProducto({ producto, local, categorias, onAddCategoria, onCerrar,
       data.variantes = null // limpia tamaños viejos al pasar a precio único
     }
     if (tieneGrupos) {
-      data.gruposOpciones = grupos.map(g => ({
-        ...g,
-        opciones: g.opciones
-          .filter(o => o.nombre.trim()) // descarta opciones sin nombre
-          .map(o => ({ ...o, nombre: o.nombre.trim(), precioExtra: Number(o.precioExtra) || 0 })),
-      }))
+      // Los topes por tamaño se limpian contra los tamaños que quedaron guardados:
+      // si el dueño borró un tamaño (o volvió a precio único), su regla se va con él
+      // y no queda basura apuntando a un id que ya no existe.
+      const idsVigentes = new Set((data.variantes || []).map(v => v.id))
+      data.gruposOpciones = grupos.map(g => {
+        const mapa = {}
+        for (const [vid, n] of Object.entries(g.maxPorVariante || {})) {
+          if (idsVigentes.has(vid) && Number(n) > 0) mapa[vid] = Number(n)
+        }
+        return {
+          ...g,
+          maxPorVariante: mapa,
+          opciones: g.opciones
+            .filter(o => o.nombre.trim()) // descarta opciones sin nombre
+            .map(o => ({ ...o, nombre: o.nombre.trim(), precioExtra: Number(o.precioExtra) || 0 })),
+        }
+      })
     }
     try {
       await onGuardar(data, fotoFile)
@@ -489,6 +514,33 @@ function EditorProducto({ producto, local, categorias, onAddCategoria, onCerrar,
           {tieneGrupos && grupos.map((g, gi) => (
             <div key={g.id} className="ap-grupo">
               <label className="ap-label">{g.emoji} {g.nombre}</label>
+
+              {/* 🍕 Cuántas puede elegir el cliente SEGÚN el tamaño.
+                  Solo aparece con precios por tamaño: sin tamaños no hay nada que
+                  diferenciar. Dejarlo vacío = vale el tope de siempre del grupo. */}
+              {tieneVariantes && (
+                <div className="ap-topes">
+                  <p className="ap-topes-titulo">¿Cuántas puede elegir el cliente?</p>
+                  <p className="ap-topes-ayuda">
+                    Una por cada tamaño. Ej.: la familiar lleva 3 sabores y la personal 1.
+                    En blanco, el cliente elige {g.max ?? 1}.
+                  </p>
+                  {variantes.filter(v => v.nombre.trim()).map(v => (
+                    <div key={v.id} className="ap-tope">
+                      <span className="ap-tope-nombre">{v.nombre}</span>
+                      <input
+                        className="co-input ap-tope-num"
+                        inputMode="numeric"
+                        value={g.maxPorVariante?.[v.id] ?? ''}
+                        onChange={e => setMaxVariante(gi, v.id, e.target.value)}
+                        placeholder={String(g.max ?? 1)}
+                        aria-label={`Cuántas ${g.nombre.toLowerCase()} puede elegir en ${v.nombre}`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="ap-opciones">
                 {g.opciones.map((o, oi) => (
                   <OpcionEditor

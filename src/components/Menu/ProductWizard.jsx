@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { cop } from '../../utils/money'
-import { precioUnitario, validarSeleccion } from '../../utils/price'
+import { maxDelGrupo, precioUnitario, recortarPorVariante, validarSeleccion } from '../../utils/price'
 import ImagenApp from '../Imagen/ImagenApp'
 import './ProductWizard.css'
 
@@ -29,16 +29,19 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   const esUltimo = actual?.tipo === 'resumen'
 
   function toggleOpcion(grupo, opcId) {
+    // El tope manda sobre grupo.tipo: el mismo grupo es "elige 1" en un tamaño y
+    // "elige hasta 3" en otro, según lo que el dueño configuró.
+    const max = maxDelGrupo(grupo, varianteId)
     setGrupos(prev => {
       const actuales = prev[grupo.id] || []
       const yaEsta = actuales.includes(opcId)
       let nuevas
-      if (grupo.tipo === 'unica') {
+      if (max <= 1) {
         nuevas = [opcId]
       } else {
         if (yaEsta) nuevas = actuales.filter(id => id !== opcId)
         else {
-          if (actuales.length >= (grupo.max ?? 99)) return prev
+          if (actuales.length >= max) return prev
           nuevas = [...actuales, opcId]
         }
       }
@@ -46,12 +49,21 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
     })
   }
 
+  // Volver atrás y cambiar de tamaño puede encoger el tope: recortamos lo que ya no cabe.
+  function elegirVariante(id) {
+    setVarianteId(id)
+    const { grupos: recortados, cambio } = recortarPorVariante(producto, grupos, id)
+    if (cambio) setGrupos(recortados)
+  }
+
   // ¿Puede avanzar del paso actual? (respeta el mínimo del grupo)
   const errorPaso = (() => {
     if (actual?.tipo === 'grupo') {
       const g = actual.grupo
       const n = (grupos[g.id] || []).length
-      if (n < (g.min ?? 0)) return `Elige al menos ${g.min}`
+      // El mínimo no puede exigir más de lo que el tamaño elegido permite.
+      const min = Math.min(g.min ?? 0, maxDelGrupo(g, varianteId))
+      if (n < min) return `Elige al menos ${min}`
     }
     return null
   })()
@@ -104,7 +116,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
                   <button
                     key={v.id}
                     className={`pw-card ${varianteId === v.id ? 'sel' : ''}`}
-                    onClick={() => setVarianteId(v.id)}
+                    onClick={() => elegirVariante(v.id)}
                   >
                     <span className="pw-card-emoji">{producto.emoji || '🍽️'}</span>
                     <span className="pw-card-nombre">{v.nombre}</span>
@@ -120,6 +132,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
             <PasoGrupo
               grupo={actual.grupo}
               elegidas={grupos[actual.grupo.id] || []}
+              max={maxDelGrupo(actual.grupo, varianteId)}
               onToggle={toggleOpcion}
             />
           )}
@@ -184,23 +197,31 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
 }
 
 // --- Un paso de grupo: cuadrícula de tarjetas con foto + contador vivo ---
-function PasoGrupo({ grupo, elegidas, onToggle }) {
+function PasoGrupo({ grupo, elegidas, max, onToggle }) {
+  const conTope = max > 1 && max < 99
+  const lleno = elegidas.length >= max
   return (
     <>
       <h2 className="pw-titulo">{grupo.emoji} {grupo.nombre}</h2>
-      {grupo.subtitulo && <p className="pw-sub">{grupo.subtitulo}</p>}
+      {/* Con tope por tamaño, el subtítulo del grupo se queda corto ("Elige 1"):
+          manda lo que permite el tamaño que eligió. */}
+      {conTope
+        ? <p className="pw-sub">Elige hasta {max}</p>
+        : grupo.subtitulo && <p className="pw-sub">{grupo.subtitulo}</p>}
       <div className="pw-contador" aria-live="polite">
         {elegidas.length > 0
-          ? `${elegidas.length} elegido${elegidas.length > 1 ? 's' : ''} ✓`
+          ? `${elegidas.length}${conTope ? ` de ${max}` : ''} elegido${elegidas.length > 1 ? 's' : ''} ✓`
           : 'Toca para agregar'}
       </div>
       <div className="pw-grid">
         {grupo.opciones.map(opc => {
           const sel = elegidas.includes(opc.id)
+          const bloqueada = max > 1 && lleno && !sel
           return (
             <button
               key={opc.id}
-              className={`pw-card ${sel ? 'sel' : ''}`}
+              className={`pw-card ${sel ? 'sel' : ''} ${bloqueada ? 'pw-card-bloq' : ''}`}
+              disabled={bloqueada}
               onClick={() => onToggle(grupo, opc.id)}
             >
               <span className="pw-card-foto">
