@@ -231,6 +231,11 @@
 .antojo-media {
   position: relative;
   flex: none;               /* la foto no se estira: el alto sobrante lo absorbe .antojo-info */
+  /* 📏 Sin este min-height, el `min-height: auto` que traen los ítems flex deja que
+     CADA foto imponga SU alto natural: el aspect-ratio de abajo no se aplicaba y las
+     tarjetas quedaban con fotos de distinto alto (la de la foto más ancha se veía
+     "subida" respecto a las demás). Con 0, el recorte manda y TODAS miden igual. */
+  min-height: 0;
   width: 100%;
   aspect-ratio: 1 / 0.72;   /* más bajo: recorta la franja clara de arriba/abajo de las fotos */
   background: var(--surface-2);
@@ -312,7 +317,10 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.antojo-precio { font-size: 14px; font-weight: 800; color: var(--brand-orange-strong); margin-top: 3px; }
+/* 💰 Precio y local anclados ABAJO (margin-top:auto): así un nombre de dos líneas
+   —"Hamburguesa Artesanal Doble Queso"— no empuja el precio hacia abajo y en toda la
+   fila los precios y los nombres de local quedan a la misma altura. */
+.antojo-precio { font-size: 14px; font-weight: 800; color: var(--brand-orange-strong); margin-top: auto; padding-top: 3px; }
 .antojo-local {
   font-size: 11.5px;
   color: var(--text-soft);
