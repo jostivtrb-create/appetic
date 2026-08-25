@@ -64,7 +64,11 @@
 .pm-req {
   font-size: 11px;
   font-weight: 700;
-  color: var(--local-primary-strong);
+  /* Color de TEXTO normal, no el de la marca del local: el fondo del pill ya es el
+     tinte del local, y pintar encima su primaryStrong daba 1.3 de contraste en los
+     menús oscuros (invisible) y 3.8 en los claros — por debajo del mínimo legible.
+     El tinte sigue poniendo el color; la palabra solo tiene que leerse. */
+  color: var(--text);
   background: var(--brand-orange-tint);
   padding: 3px 9px;
   border-radius: var(--radius-pill);
