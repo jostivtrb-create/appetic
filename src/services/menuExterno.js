@@ -11,9 +11,14 @@
 // lista de productos de siempre.
 
 /**
- * El menú de un local externo. Devuelve [] si la fuente no se reconoce o si
- * falla la lectura — un menú vacío se explica solo en pantalla, mientras que
- * un error rompe la página entera.
+ * El menú de un local externo: `{ productos, avisoVacio }`.
+ *
+ * `avisoVacio` es lo que se le enseña al cliente cuando no hay productos, con
+ * las palabras de ese negocio. Va aparte porque una lista vacía no explica
+ * nada por sí sola, y una pantalla en blanco parece una app rota.
+ *
+ * Nunca lanza: si algo falla, el cliente ve un aviso en vez de una página
+ * caída, y el detalle queda en la consola.
  */
 export async function getMenuExterno(fuente) {
   try {
@@ -22,9 +27,16 @@ export async function getMenuExterno(fuente) {
       return await getMenuLaGranEsquina()
     }
     console.warn('[menuExterno] fuente desconocida:', fuente)
-    return []
+    return { productos: [], avisoVacio: null }
   } catch (err) {
     console.error('[menuExterno] no se pudo leer el menú de', fuente, err)
-    return []
+    return {
+      productos: [],
+      avisoVacio: {
+        emoji: '📡',
+        titulo: 'No pudimos cargar el menú',
+        detalle: 'Revisa tu conexión e inténtalo de nuevo.',
+      },
+    }
   }
 }

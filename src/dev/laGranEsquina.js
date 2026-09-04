@@ -43,10 +43,10 @@ export const LGE_LOCAL = {
   // las pone desde su panel con "usar mi ubicación actual", parado en el local.
   ubicacion: null,
 
-  // El almuerzo tiene su hora. Fuera de esta franja no hay qué vender, y es
-  // mejor decirlo que recibir un pedido a las nueve de la noche.
+  // Abre temprano por los desayunos y cierra cuando se acaba el almuerzo.
+  // ⚠️ Estas horas son una suposición: que Andrés las ajuste desde su panel.
   horario: {
-    abre: '10:30',
+    abre: '07:00',
     cierra: '15:30',
     dias: { lun: true, mar: true, mie: true, jue: true, vie: true, sab: true, dom: true },
   },
@@ -74,11 +74,13 @@ export const LGE_LOCAL = {
     { id: 'nequi', nombre: 'Nequi / Daviplata', tipo: 'transferencia', llave: '3223739540' },
   ],
 
+  // En el orden del día: primero el desayuno, después el almuerzo.
   categorias: [
+    { id: 'desayunos', nombre: 'Desayunos', emoji: '🍳' },
     { id: 'almuerzos', nombre: 'Almuerzo del día', emoji: '🍛' },
   ],
 
-  etiquetas: ['almuerzos', 'casero', 'panaderia'],
+  etiquetas: ['almuerzos', 'desayunos', 'casero', 'panaderia'],
 
   admins: [ADMIN_EMAIL, 'sinfiniity@gmail.com'],
 

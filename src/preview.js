@@ -43,7 +43,8 @@ export async function getPreviewLocal(slug) {
   if (slug === 'la-gran-esquina') {
     const { LGE_LOCAL } = await import('./dev/laGranEsquina')
     const { getMenuLaGranEsquina } = await import('./services/menuLaGranEsquina')
-    return { local: LGE_LOCAL, productos: await getMenuLaGranEsquina() }
+    const { productos, avisoVacio } = await getMenuLaGranEsquina()
+    return { local: LGE_LOCAL, productos, avisoVacio }
   }
   if (slug === 'el-monumento') {
     const { MONUMENTO_LOCAL, MONUMENTO_PRODUCTOS } = await import('./dev/elMonumento')

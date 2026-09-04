@@ -20,12 +20,18 @@
 // el precio de mesa le saldría más barato en pantalla que en la caja, y esa
 // discusión la tendría que dar la cajera.
 //
-// ── Lo que NO hace todavía ──
+// ── Las porciones que se acaban ──
 //
-// No sabe cuántas porciones quedan. La cocinera puede decir "solo 5 pechugas",
-// pero ese contador se calcula desde las comandas de cocina, que no son
-// públicas. Mientras eso no se resuelva, Appetic ofrece todo lo publicado
-// —igual que hace hoy la propia página de clientes de La Gran Esquina.
+// La cocinera puede decir "hoy solo hay 5 pechugas". Ese tope es de verdad: se
+// gasta durante el servicio, y a la una puede no quedar ninguna.
+//
+// La caja y la cocina publican cuántas van consumidas en el propio menú del
+// día (`consumedByItem`), y aquí se resta. Lo que se acabó **no se ofrece**:
+// no aparece en la lista. Mostrarlo tachado solo sirve para que el cliente
+// intente pedirlo igual.
+//
+// Si se acaba TODO lo de un grupo obligatorio —no queda ni una proteína— el
+// almuerzo entero deja de venderse. Es lo correcto: no hay almuerzo que dar.
 
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
 import { dbLaGranEsquina, fechaDeHoyBogota } from '../config/firebaseLaGranEsquina'
@@ -38,6 +44,19 @@ import { dbLaGranEsquina, fechaDeHoyBogota } from '../config/firebaseLaGranEsqui
 // Son fijas y no del panel porque este local no guarda productos en Appetic:
 // no hay dónde subirlas por local. Y no hace falta — el corrientazo se ve
 // igual todos los días aunque cambie la proteína.
+// Lo que se le dice al cliente cuando no hay nada. Van aquí y no en la
+// pantalla porque son cosas de ESTE negocio, no de Appetic.
+const SIN_PUBLICAR = {
+  emoji: '🍳',
+  titulo: 'Todavía no publicamos el menú de hoy',
+  detalle: 'La cocina lo sube cada mañana. Vuelve en un rato.',
+}
+const SE_ACABO = {
+  emoji: '🙌',
+  titulo: 'Por hoy se acabó el almuerzo',
+  detalle: 'Se vendió todo lo de hoy. Mañana hay más desde temprano.',
+}
+
 const FOTOS = {
   corriente: '',
   especial: '',
@@ -55,12 +74,25 @@ const CATEGORIAS = [
   { id: 'juice',     nombre: 'Jugo',        emoji: '🥤', pregunta: true,  obligatoria: true,  max: 1 },
 ]
 
-/** Lo que la cocinera publicó hoy, ya con nombres en vez de códigos. */
+/**
+ * Lo que la cocinera publicó hoy y TODAVÍA QUEDA, ya con nombres.
+ *
+ * Un item sin tope no se agota nunca (es lo normal: casi nada se limita). Uno
+ * con tope desaparece en cuanto las porciones consumidas lo alcanzan.
+ */
 function resolverItems(dailyMenu, todosLosItems, categoriaId) {
   const ids = dailyMenu?.itemsByCategory?.[categoriaId] || []
+  const topes = dailyMenu?.stockByItem || {}
+  const consumidas = dailyMenu?.consumedByItem || {}
+
   return ids
     .map(id => todosLosItems.find(m => m.id === id))
     .filter(m => m && !m.archived)
+    .filter(m => {
+      const tope = topes[m.id]
+      if (typeof tope !== 'number') return true
+      return (tope - (consumidas[m.id] || 0)) > 0
+    })
 }
 
 const dinero = v => (typeof v === 'number' && v > 0 ? v : 0)
@@ -182,7 +214,7 @@ function armarCorriente(dailyMenu, config, resueltos) {
     foto: FOTOS.corriente,
     emoji: '🍛',
     disponible: true,
-    orden: 1,
+    orden: 100,
     destacado: true,
     precio,
     gruposOpciones: grupos,
@@ -212,7 +244,7 @@ function armarEspecial(dailyMenu, resueltos) {
     foto: FOTOS.especial,
     emoji: '⭐',
     disponible: true,
-    orden: 2,
+    orden: 101,
     destacado: false,
     precio,
     gruposOpciones: grupos,
@@ -222,22 +254,34 @@ function armarEspecial(dailyMenu, resueltos) {
 /**
  * El menú de hoy de La Gran Esquina, como productos de Appetic.
  *
- * Devuelve [] cuando todavía no han publicado — no es un error, es que son las
- * ocho de la mañana y la cocinera aún no ha subido nada. La pantalla lo dice
- * con sus palabras en vez de mostrar un menú a medias.
+ * Cuando no hay nada que vender devuelve además el MOTIVO, porque los dos
+ * casos se ven igual —una lista vacía— y para el cliente son muy distintos:
+ * "todavía no lo han subido" invita a volver en un rato, "ya se acabó" no.
+ * Sin eso, la página quedaba en blanco sin explicar nada.
  */
 export async function getMenuLaGranEsquina() {
   const db = dbLaGranEsquina()
   const hoy = fechaDeHoyBogota()
 
-  const [diaSnap, configSnap, itemsSnap] = await Promise.all([
+  const [diaSnap, configSnap, desayunoSnap, itemsSnap] = await Promise.all([
     getDoc(doc(db, 'dailyMenu', hoy)),
     getDoc(doc(db, 'dailyMenu', 'corriente_config')),
+    getDoc(doc(db, 'dailyMenu', 'breakfast_config')),
     getDocs(collection(db, 'menuItems')),
   ])
 
+  // El desayuno no depende del día: sus piezas y precios son fijos, y se
+  // encienden o apagan con un interruptor. Por eso se arma aunque la cocinera
+  // todavía no haya publicado el almuerzo — a las siete de la mañana el
+  // desayuno ya se vende y el almuerzo no.
+  const desayunos = armarDesayunos(desayunoSnap.exists() ? desayunoSnap.data() : null)
+
   const dailyMenu = diaSnap.exists() ? diaSnap.data() : null
-  if (!dailyMenu) return []
+  if (!dailyMenu) {
+    return desayunos.length > 0
+      ? { productos: desayunos, avisoVacio: null }
+      : { productos: [], avisoVacio: SIN_PUBLICAR }
+  }
 
   const config = configSnap.exists() ? configSnap.data() : null
   const todosLosItems = itemsSnap.docs.map(d => ({ id: d.id, ...d.data() }))
@@ -246,8 +290,164 @@ export async function getMenuLaGranEsquina() {
   for (const cat of CATEGORIAS) resueltos[cat.id] = resolverItems(dailyMenu, todosLosItems, cat.id)
   resueltos.especial = resolverItems(dailyMenu, todosLosItems, 'especial')
 
-  return [
+  const productos = [
+    ...desayunos,
     armarCorriente(dailyMenu, config, resueltos),
     armarEspecial(dailyMenu, resueltos),
   ].filter(Boolean)
+
+  if (productos.length > 0) return { productos, avisoVacio: null }
+
+  // Hay menú publicado pero no queda nada que vender. Distinguimos "se acabó"
+  // de "aún no lo suben" mirando si HUBO algo: si la cocinera publicó
+  // proteínas y ahora no queda ninguna, es que se agotaron.
+  const publicoAlgo = (dailyMenu.itemsByCategory?.protein || []).length > 0
+  return { productos: [], avisoVacio: publicoAlgo ? SE_ACABO : SIN_PUBLICAR }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LOS DESAYUNOS
+//
+// El desayuno de La Gran Esquina se arma por piezas —caldo, huevos, arroz con
+// pan, bebida— y tiene COMBOS: ciertas combinaciones cuestan menos que la suma
+// de sus partes. Un caldo de costilla con huevos, arroz y bebida vale $12.000
+// sueltos $18.000.
+//
+// ── Por qué los combos van como platos y no como opciones ──
+//
+// Appetic suma: precio del plato más lo que sume cada opción elegida. No sabe
+// mirar una combinación y decir "ah, esto en realidad es el Combo Costilla,
+// cuesta menos". Ese motor vive en la app de La Gran Esquina.
+//
+// Meter el combo aquí como un descuento habría exigido reprogramar cómo suma
+// Appetic, para TODOS los locales, por un caso de uno.
+//
+// Así que cada combo es un PLATO con su precio cerrado, y las piezas sueltas
+// son platos aparte para quien solo quiere un caldo. Que es, además, como lo
+// canta cualquier desayunadero: "el combo le sale en doce".
+//
+// Los combos salen primero y son casi siempre más baratos que armar lo mismo
+// suelto, así que el cliente cae solo en el que le conviene.
+//
+// ── Todo con el recargo de llevar ──
+//
+// La Gran Esquina cobra un recargo fijo por empacar el desayuno. Va sumado en
+// cada precio de aquí, porque por Appetic nadie come en el local.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const HUEVOS_NORMALES = [
+  { id: 'revueltos', nombre: 'Huevos revueltos' },
+  { id: 'fritos', nombre: 'Huevos fritos' },
+  { id: 'pericos', nombre: 'Huevos pericos' },
+]
+const BEBIDAS = [
+  { id: 'cafe', nombre: 'Café' },
+  { id: 'chocolate', nombre: 'Chocolate' },
+]
+
+/** Un grupo de "elige 1" que no cambia el precio (viene incluido en el plato). */
+function grupoIncluido(id, nombre, emoji, opciones) {
+  return {
+    id: `g-${id}`,
+    nombre,
+    subtitulo: 'Elige 1',
+    emoji,
+    tipo: 'unica',
+    min: 1,
+    max: 1,
+    opciones: opciones.map(o => ({ ...o, emoji: '', precioExtra: 0, foto: '' })),
+  }
+}
+
+/** Lo que lleva un combo, dicho para que dé hambre. */
+function loQueLlevaElCombo(combo) {
+  const partes = []
+  if (combo.caldo === 'costilla') partes.push('caldo de costilla')
+  if (combo.caldo === 'pescado') partes.push('caldo de pescado')
+  partes.push(combo.huevos === 'rancheros' ? 'huevos rancheros' : 'huevos')
+  if (combo.arroz) partes.push('arroz con pan')
+  if (combo.bebida) partes.push('bebida caliente')
+  if (partes.length === 0) return ''
+  return `Lleva ${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}.`
+}
+
+function armarDesayunos(config) {
+  if (!config?.active) return []
+
+  const llevar = dinero(config.llevarSurcharge)
+  const productos = []
+  let orden = 10
+
+  // ── Los combos, primero ──
+  for (const combo of config.combos || []) {
+    const base = dinero(combo.priceMesa)
+    if (!base) continue
+
+    const grupos = []
+    // Un combo "normal" no dice CUÁLES huevos: eso lo elige el cliente y no
+    // cambia el precio. Los rancheros ya vienen decididos por el combo.
+    if (combo.huevos !== 'rancheros') {
+      grupos.push(grupoIncluido('huevos', 'Los huevos', '🥚', HUEVOS_NORMALES))
+    }
+    if (combo.bebida) {
+      grupos.push(grupoIncluido('bebida', 'La bebida', '☕', BEBIDAS))
+    }
+
+    productos.push({
+      id: `desayuno-${combo.id}`,
+      categoria: 'desayunos',
+      nombre: combo.name || 'Combo desayuno',
+      descripcion: loQueLlevaElCombo(combo),
+      foto: '',
+      emoji: '🍳',
+      disponible: true,
+      orden: orden++,
+      destacado: orden === 11,
+      precio: base + llevar,
+      gruposOpciones: grupos,
+    })
+  }
+
+  // ── Y las piezas sueltas, para quien solo quiere una cosa ──
+  const suelto = (id, nombre, emoji, precio, grupos = []) => {
+    if (!precio) return
+    productos.push({
+      id: `desayuno-${id}`,
+      categoria: 'desayunos',
+      nombre,
+      descripcion: '',
+      foto: '',
+      emoji,
+      disponible: true,
+      orden: orden++,
+      destacado: false,
+      precio: precio + llevar,
+      gruposOpciones: grupos,
+    })
+  }
+
+  suelto('caldo-costilla', 'Caldo de costilla', '🍲', dinero(config.caldoCostillaPrice))
+  suelto('caldo-pescado', 'Caldo de pescado', '🐟', dinero(config.caldoPescadoPrice))
+
+  const huevos = dinero(config.huevosNormalesPrice)
+  const recargoRancheros = dinero(config.rancherosRecargo)
+  if (huevos) {
+    // Los rancheros cuestan más, así que aquí sí suman: es la única diferencia
+    // de precio dentro del grupo.
+    const opciones = HUEVOS_NORMALES.map(o => ({ ...o, emoji: '', precioExtra: 0, foto: '' }))
+    if (recargoRancheros) {
+      opciones.push({ id: 'rancheros', nombre: 'Huevos rancheros', emoji: '', precioExtra: recargoRancheros, foto: '' })
+    }
+    suelto('huevos', 'Huevos', '🥚', huevos, [{
+      id: 'g-huevos', nombre: '¿Cómo los quieres?', subtitulo: 'Elige 1', emoji: '🥚',
+      tipo: 'unica', min: 1, max: 1, opciones,
+    }])
+  }
+
+  suelto('arroz-pan', 'Arroz con pan', '🍚', dinero(config.arrozPanPrice))
+  suelto('bebida', 'Bebida caliente', '☕', dinero(config.bebidaPrice), [
+    grupoIncluido('bebida', '¿Cuál?', '☕', BEBIDAS),
+  ])
+
+  return productos
 }

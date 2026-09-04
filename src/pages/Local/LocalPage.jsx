@@ -14,6 +14,10 @@ export default function LocalPage() {
   const [estado, setEstado] = useState('cargando') // cargando | ok | no-existe | error
   const [local, setLocal] = useState(null)
   const [productos, setProductos] = useState([])
+  // Un local de menú externo puede quedarse sin nada que vender —se acabó el
+  // almuerzo, o aún no lo suben— y entonces la página quedaba en blanco. Esto
+  // es lo que se le dice al cliente en ese caso, con las palabras del negocio.
+  const [avisoVacio, setAvisoVacio] = useState(null)
 
   // 🔙 Botón "atrás" del teléfono. Ponemos una entrada "centinela" encima del
   // menú; cuando el usuario presiona atrás, caemos en ella (popstate) y decidimos:
@@ -63,6 +67,7 @@ export default function LocalPage() {
           if (!activo) return
           setLocal(prev.local)
           setProductos(prev.productos)
+          setAvisoVacio(prev.avisoVacio || null)
           setEstado('ok')
           return
         }
@@ -75,12 +80,13 @@ export default function LocalPage() {
       // cada mañana desde su propia app —la de su caja y su cocina— y aquí se
       // lee tal cual, sin copiarlo. Sin caché por versión: el menú del día
       // cambia durante el día y una copia vieja vendería lo que ya no hay.
-      const prods = data.menuExterno
+      const res = data.menuExterno
         ? await getMenuExterno(data.menuExterno)
-        : await getProductos(data.id, data.menuVersion)
+        : { productos: await getProductos(data.id, data.menuVersion), avisoVacio: null }
       if (!activo) return
       setLocal(data)
-      setProductos(prods)
+      setProductos(res.productos)
+      setAvisoVacio(res.avisoVacio || null)
       setEstado('ok')
       // Cuenta la visita (1 vez por sesión, best-effort, no bloquea la carga).
       registrarVisita(data.id)
@@ -121,6 +127,17 @@ export default function LocalPage() {
         <h2>Algo falló al cargar</h2>
         <p>Revisa tu conexión e inténtalo de nuevo.</p>
         <button className="btn btn-primary" onClick={() => window.location.reload()}>Reintentar</button>
+      </div>
+    )
+  }
+
+  if (avisoVacio && productos.length === 0) {
+    return (
+      <div className="local-msg">
+        <div className="local-msg-emoji">{avisoVacio.emoji}</div>
+        <h2>{avisoVacio.titulo}</h2>
+        <p>{avisoVacio.detalle}</p>
+        <Link to="/" className="btn btn-ghost">Ver otros locales</Link>
       </div>
     )
   }
