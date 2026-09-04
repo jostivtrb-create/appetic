@@ -37,6 +37,14 @@ export async function getPreviewLocal(slug) {
     const { COMARCA_LOCAL, COMARCA_PRODUCTOS } = await import('./dev/laComarca')
     return { local: COMARCA_LOCAL, productos: COMARCA_PRODUCTOS }
   }
+  // La Gran Esquina no guarda su menú en Appetic: lo publica su cocinera desde
+  // la app del negocio. La vista previa lo lee EN VIVO, que es justo lo que hay
+  // que revisar aquí — que la traducción del menú del día se vea bien.
+  if (slug === 'la-gran-esquina') {
+    const { LGE_LOCAL } = await import('./dev/laGranEsquina')
+    const { getMenuLaGranEsquina } = await import('./services/menuLaGranEsquina')
+    return { local: LGE_LOCAL, productos: await getMenuLaGranEsquina() }
+  }
   if (slug === 'el-monumento') {
     const { MONUMENTO_LOCAL, MONUMENTO_PRODUCTOS } = await import('./dev/elMonumento')
     return { local: MONUMENTO_LOCAL, productos: MONUMENTO_PRODUCTOS }

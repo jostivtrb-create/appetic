@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getLocalBySlug } from '../../services/locales'
 import { getProductos } from '../../services/productos'
+import { getMenuExterno } from '../../services/menuExterno'
 import { registrarVisita } from '../../services/stats'
 import { CartProvider } from '../../contexts/CartContext'
 import LocalMenu from './LocalMenu'
@@ -70,8 +71,13 @@ export default function LocalPage() {
       const data = await getLocalBySlug(slug)
       if (!activo) return
       if (!data) { setEstado('no-existe'); return }
-      // Caché del menú por versión: si no cambió, no re-lee los productos.
-      const prods = await getProductos(data.id, data.menuVersion)
+      // Hay locales cuyo menú NO vive en Appetic. La Gran Esquina lo publica
+      // cada mañana desde su propia app —la de su caja y su cocina— y aquí se
+      // lee tal cual, sin copiarlo. Sin caché por versión: el menú del día
+      // cambia durante el día y una copia vieja vendería lo que ya no hay.
+      const prods = data.menuExterno
+        ? await getMenuExterno(data.menuExterno)
+        : await getProductos(data.id, data.menuVersion)
       if (!activo) return
       setLocal(data)
       setProductos(prods)
