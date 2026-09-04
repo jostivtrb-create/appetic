@@ -122,6 +122,10 @@ function grupoDeCategoria(categoria, items) {
       emoji: '',
       precioExtra: 0,
       foto: '',
+      // Solo las proteínas lo traen. Es el producto del inventario que sale de
+      // la nevera al vender este almuerzo; sin él, la pechuga no se descuenta.
+      // Appetic no lo usa: viaja de vuelta con el pedido.
+      ...(it.productId ? { productId: it.productId } : {}),
     })),
   }
 }
@@ -157,11 +161,20 @@ function loQueVaIncluido(resueltos) {
 function grupoDeAdiciones(config, proteinas) {
   const opciones = []
 
+  // Cada adición lleva apuntado QUÉ es (`lgeAddon`). La Gran Esquina las
+  // guarda como líneas propias del pedido, no como un extra del almuerzo:
+  // una proteína adicional descuenta su propia porción del inventario.
   const sopa = dinero(config?.addonSoupPriceLlevar)
-  if (sopa) opciones.push({ id: 'ad-sopa', nombre: 'Sopa adicional', emoji: '🥣', precioExtra: sopa, foto: '' })
+  if (sopa) opciones.push({
+    id: 'ad-sopa', nombre: 'Sopa adicional', emoji: '🥣', precioExtra: sopa, foto: '',
+    lgeAddon: { type: 'soup', unitPrice: sopa },
+  })
 
   const huevo = dinero(config?.addonEggPriceLlevar)
-  if (huevo) opciones.push({ id: 'ad-huevo', nombre: 'Huevo', emoji: '🍳', precioExtra: huevo, foto: '' })
+  if (huevo) opciones.push({
+    id: 'ad-huevo', nombre: 'Huevo', emoji: '🍳', precioExtra: huevo, foto: '',
+    lgeAddon: { type: 'egg', unitPrice: huevo },
+  })
 
   const proteina = dinero(config?.addonProteinPriceLlevar)
   if (proteina) {
@@ -172,6 +185,7 @@ function grupoDeAdiciones(config, proteinas) {
         emoji: '🍖',
         precioExtra: proteina,
         foto: '',
+        lgeAddon: { type: 'protein', unitPrice: proteina, proteinId: p.id, proteinName: p.name },
       })
     }
   }
@@ -188,6 +202,24 @@ function grupoDeAdiciones(config, proteinas) {
     max: 6,
     opciones,
   }
+}
+
+/**
+ * Las categorías que van FIJAS hoy (una sola opción, no se preguntan).
+ *
+ * Hay que llevárselas apuntadas: al cliente no se le pregunta por el arroz,
+ * pero la cocina tiene que saber que el plato lo lleva. Sin esto, el pedido
+ * llegaría a la cocina sin acompañante y saldría un almuerzo incompleto.
+ */
+function loQueVaFijo(resueltos) {
+  const fijos = {}
+  for (const cat of CATEGORIAS) {
+    const items = resueltos[cat.id] || []
+    if (items.length === 1) {
+      fijos[cat.id] = { id: items[0].id, name: items[0].name }
+    }
+  }
+  return fijos
 }
 
 /** El almuerzo corriente de hoy, o null si hoy no se puede pedir. */
@@ -218,6 +250,8 @@ function armarCorriente(dailyMenu, config, resueltos) {
     destacado: true,
     precio,
     gruposOpciones: grupos,
+    // Para rehacer el pedido del lado de La Gran Esquina (ver pedidoLaGranEsquina.js).
+    lge: { tipo: 'corriente', fijos: loQueVaFijo(resueltos) },
   }
 }
 
@@ -248,6 +282,11 @@ function armarEspecial(dailyMenu, resueltos) {
     destacado: false,
     precio,
     gruposOpciones: grupos,
+    lge: {
+      tipo: 'especial',
+      fijos: loQueVaFijo({ side: resueltos.side, salad: resueltos.salad }),
+      especial: platos.length === 1 ? { id: platos[0].id, name: platos[0].name } : null,
+    },
   }
 }
 
@@ -405,11 +444,26 @@ function armarDesayunos(config) {
       destacado: orden === 11,
       precio: base + llevar,
       gruposOpciones: grupos,
+      lge: {
+        tipo: 'breakfast',
+        comboId: combo.id,
+        comboName: combo.name || null,
+        // Lo que el combo trae decidido. Los huevos solo si son rancheros: los
+        // normales los elige el cliente y llegan por el grupo de opciones.
+        fijos: {
+          ...(combo.caldo === 'costilla' ? { caldo: { id: 'costilla', name: 'Caldo de costilla' } } : {}),
+          ...(combo.caldo === 'pescado' ? { caldo: { id: 'pescado', name: 'Caldo de pescado' } } : {}),
+          ...(combo.huevos === 'rancheros'
+            ? { huevos: { id: 'rancheros', name: 'Huevos rancheros', isRanchero: true } }
+            : {}),
+          ...(combo.arroz ? { arroz: { id: 'arroz_pan', name: 'Arroz con pan' } } : {}),
+        },
+      },
     })
   }
 
   // ── Y las piezas sueltas, para quien solo quiere una cosa ──
-  const suelto = (id, nombre, emoji, precio, grupos = []) => {
+  const suelto = (id, nombre, emoji, precio, grupos = [], fijos = {}) => {
     if (!precio) return
     productos.push({
       id: `desayuno-${id}`,
@@ -423,11 +477,14 @@ function armarDesayunos(config) {
       destacado: false,
       precio: precio + llevar,
       gruposOpciones: grupos,
+      lge: { tipo: 'breakfast', comboId: null, comboName: null, fijos },
     })
   }
 
-  suelto('caldo-costilla', 'Caldo de costilla', '🍲', dinero(config.caldoCostillaPrice))
-  suelto('caldo-pescado', 'Caldo de pescado', '🐟', dinero(config.caldoPescadoPrice))
+  suelto('caldo-costilla', 'Caldo de costilla', '🍲', dinero(config.caldoCostillaPrice), [],
+    { caldo: { id: 'costilla', name: 'Caldo de costilla' } })
+  suelto('caldo-pescado', 'Caldo de pescado', '🐟', dinero(config.caldoPescadoPrice), [],
+    { caldo: { id: 'pescado', name: 'Caldo de pescado' } })
 
   const huevos = dinero(config.huevosNormalesPrice)
   const recargoRancheros = dinero(config.rancherosRecargo)
@@ -444,7 +501,8 @@ function armarDesayunos(config) {
     }])
   }
 
-  suelto('arroz-pan', 'Arroz con pan', '🍚', dinero(config.arrozPanPrice))
+  suelto('arroz-pan', 'Arroz con pan', '🍚', dinero(config.arrozPanPrice), [],
+    { arroz: { id: 'arroz_pan', name: 'Arroz con pan' } })
   suelto('bebida', 'Bebida caliente', '☕', dinero(config.bebidaPrice), [
     grupoIncluido('bebida', '¿Cuál?', '☕', BEBIDAS),
   ])

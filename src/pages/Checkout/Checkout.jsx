@@ -9,6 +9,10 @@ import { generarCodigoPedido } from '../../utils/codigoPedido'
 import { guardarEnHistorial } from '../../services/historial'
 import { getPerfil, guardarPerfil } from '../../services/usuarios'
 import './Checkout.css'
+import { crearPedidoLaGranEsquina } from '../../services/pedidoLaGranEsquina'
+
+// Dónde vive la app de La Gran Esquina, para armar el link de la comanda.
+const LA_GRAN_ESQUINA_WEB = 'https://la-gran-esquina-lyart.vercel.app'
 
 // 💾 Datos del cliente guardados en el propio dispositivo, para recordarlos
 // aunque pida como invitado (sin iniciar sesión). Si inicia sesión, además se
@@ -129,6 +133,24 @@ export default function Checkout({ local, onClose, abierto = true }) {
       subtotal,
       total,
     }
+    // Locales con su propia app: el pedido se deja escrito ALLÁ, con la forma
+    // que su pantalla de comandas espera. El link que sale de aquí va en el
+    // WhatsApp y lo manda a la cocina de un toque.
+    //
+    // Best-effort y con tope de tiempo, igual que el guardado normal: si falla
+    // o tarda, el cliente manda su WhatsApp con el pedido escrito y en el local
+    // lo teclean, como cualquier pedido por teléfono. Nadie se queda esperando.
+    if (local.menuExterno === 'la-gran-esquina') {
+      const id = await Promise.race([
+        crearPedidoLaGranEsquina(items, pago).catch(err => {
+          console.warn('[checkout] no se pudo dejar el pedido en La Gran Esquina:', err?.message || err)
+          return null
+        }),
+        new Promise(res => setTimeout(() => res(null), 6000)),
+      ])
+      if (id) pedido.linkComanda = `${LA_GRAN_ESQUINA_WEB}/comanda/${id}`
+    }
+
     // Guarda el pedido COMPLETO en Firestore con su código (antes de abrir WhatsApp).
     // Le damos hasta 6s: así el pedido alcanza a guardarse antes de navegar a WhatsApp
     // (importante en móvil, donde la navegación corta las peticiones en curso), pero si la

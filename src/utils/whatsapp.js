@@ -112,6 +112,15 @@ export function textoPedido(local, pedido) {
     L.push(`\u{1F4DD} *Notas:* ${notas}`)
   }
 
+  // Locales con su propia app (La Gran Esquina): el pedido ya quedó escrito
+  // allá, y este link lo manda a la cocina de un toque. Sin él, alguien
+  // tendría que teclear el almuerzo entero mirando este mensaje.
+  if (pedido.linkComanda) {
+    L.push('')
+    L.push('\u{1F373} *Mandar a la cocina (toca aquí):*')
+    L.push(pedido.linkComanda)
+  }
+
   // Link para que el LOCAL responda al cliente de un toque (y confirme su WhatsApp).
   const linkResp = linkRespuestaCliente(local, pedido)
   if (linkResp) {
