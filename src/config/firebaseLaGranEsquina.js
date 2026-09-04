@@ -70,3 +70,18 @@ export function dbLaGranEsquina() {
 export function fechaDeHoyBogota() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
 }
+
+/**
+ * La hora de Bogotá como "HH:MM", con el reloj del local y no el del cliente.
+ *
+ * Se compara como texto a propósito: "09:30" < "11:00" es cierto tal cual, sin
+ * convertir a minutos ni arrastrar husos horarios. Por eso el formato de 24
+ * horas con cero delante es obligatorio (`en-GB` lo da así).
+ */
+export function horaDeBogota() {
+  return new Date().toLocaleTimeString('en-GB', {
+    timeZone: 'America/Bogota',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}

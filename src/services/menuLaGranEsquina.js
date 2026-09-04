@@ -34,7 +34,7 @@
 // almuerzo entero deja de venderse. Es lo correcto: no hay almuerzo que dar.
 
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
-import { dbLaGranEsquina, fechaDeHoyBogota } from '../config/firebaseLaGranEsquina'
+import { dbLaGranEsquina, fechaDeHoyBogota, horaDeBogota } from '../config/firebaseLaGranEsquina'
 
 // Fotos fijas de los dos platos. Van vacías hasta que existan los archivos en
 // public/locales/la-gran-esquina/ (los prompts están en su PROMPTS.md): una
@@ -44,6 +44,29 @@ import { dbLaGranEsquina, fechaDeHoyBogota } from '../config/firebaseLaGranEsqui
 // Son fijas y no del panel porque este local no guarda productos en Appetic:
 // no hay dónde subirlas por local. Y no hace falta — el corrientazo se ve
 // igual todos los días aunque cambie la proteína.
+// ── A qué hora se pide cada cosa ──
+//
+// A las diez de la mañana nadie está sirviendo almuerzo, y a la una ya no hay
+// caldo. Enseñar las dos cosas a toda hora acaba en un pedido que el local no
+// puede cumplir y en una llamada para deshacerlo.
+//
+// Son horas del local (Bogotá), no del celular del cliente: alguien con el
+// reloj mal puesto vería el menú que no es.
+//
+// ⚠️ Puestas a ojo — que Andrés diga las de verdad. Cambiarlas es cambiar
+// estas cuatro líneas.
+const FRANJAS = {
+  desayunos: { desde: '06:00', hasta: '11:00' },
+  almuerzos: { desde: '11:00', hasta: '15:30' },
+}
+
+/** ¿Es hora de pedir esto? */
+function esLaHoraDe(queCosa, ahora) {
+  const f = FRANJAS[queCosa]
+  if (!f) return true
+  return ahora >= f.desde && ahora < f.hasta
+}
+
 // Lo que se le dice al cliente cuando no hay nada. Van aquí y no en la
 // pantalla porque son cosas de ESTE negocio, no de Appetic.
 const SIN_PUBLICAR = {
@@ -55,6 +78,12 @@ const SE_ACABO = {
   emoji: '🙌',
   titulo: 'Por hoy se acabó el almuerzo',
   detalle: 'Se vendió todo lo de hoy. Mañana hay más desde temprano.',
+}
+const FUERA_DE_HORA = {
+  emoji: '🕐',
+  titulo: 'No es hora de pedir',
+  detalle: `Desayunos de ${FRANJAS.desayunos.desde} a ${FRANJAS.desayunos.hasta}, `
+    + `y almuerzo de ${FRANJAS.almuerzos.desde} a ${FRANJAS.almuerzos.hasta}.`,
 }
 
 const FOTOS = {
@@ -301,6 +330,14 @@ function armarEspecial(dailyMenu, resueltos) {
 export async function getMenuLaGranEsquina() {
   const db = dbLaGranEsquina()
   const hoy = fechaDeHoyBogota()
+  const ahora = horaDeBogota()
+  const horaDeDesayuno = esLaHoraDe('desayunos', ahora)
+  const horaDeAlmuerzo = esLaHoraDe('almuerzos', ahora)
+
+  // Ni una cosa ni la otra: no vale la pena ni leer el menú.
+  if (!horaDeDesayuno && !horaDeAlmuerzo) {
+    return { productos: [], avisoVacio: FUERA_DE_HORA }
+  }
 
   const [diaSnap, configSnap, desayunoSnap, itemsSnap] = await Promise.all([
     getDoc(doc(db, 'dailyMenu', hoy)),
@@ -313,13 +350,16 @@ export async function getMenuLaGranEsquina() {
   // encienden o apagan con un interruptor. Por eso se arma aunque la cocinera
   // todavía no haya publicado el almuerzo — a las siete de la mañana el
   // desayuno ya se vende y el almuerzo no.
-  const desayunos = armarDesayunos(desayunoSnap.exists() ? desayunoSnap.data() : null)
+  const desayunos = horaDeDesayuno
+    ? armarDesayunos(desayunoSnap.exists() ? desayunoSnap.data() : null)
+    : []
 
   const dailyMenu = diaSnap.exists() ? diaSnap.data() : null
   if (!dailyMenu) {
-    return desayunos.length > 0
-      ? { productos: desayunos, avisoVacio: null }
-      : { productos: [], avisoVacio: SIN_PUBLICAR }
+    if (desayunos.length > 0) return { productos: desayunos, avisoVacio: null }
+    // A la hora del desayuno, que no haya menú del día no es raro: la cocinera
+    // lo sube más tarde. Lo que falta entonces es el desayuno, no el almuerzo.
+    return { productos: [], avisoVacio: horaDeAlmuerzo ? SIN_PUBLICAR : FUERA_DE_HORA }
   }
 
   const config = configSnap.exists() ? configSnap.data() : null
@@ -331,8 +371,9 @@ export async function getMenuLaGranEsquina() {
 
   const productos = [
     ...desayunos,
-    armarCorriente(dailyMenu, config, resueltos),
-    armarEspecial(dailyMenu, resueltos),
+    ...(horaDeAlmuerzo
+      ? [armarCorriente(dailyMenu, config, resueltos), armarEspecial(dailyMenu, resueltos)]
+      : []),
   ].filter(Boolean)
 
   if (productos.length > 0) return { productos, avisoVacio: null }
@@ -340,6 +381,7 @@ export async function getMenuLaGranEsquina() {
   // Hay menú publicado pero no queda nada que vender. Distinguimos "se acabó"
   // de "aún no lo suben" mirando si HUBO algo: si la cocinera publicó
   // proteínas y ahora no queda ninguna, es que se agotaron.
+  if (!horaDeAlmuerzo) return { productos: [], avisoVacio: FUERA_DE_HORA }
   const publicoAlgo = (dailyMenu.itemsByCategory?.protein || []).length > 0
   return { productos: [], avisoVacio: publicoAlgo ? SE_ACABO : SIN_PUBLICAR }
 }
