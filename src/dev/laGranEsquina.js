@@ -73,7 +73,7 @@ export const LGE_LOCAL = {
   // entera de que el pedido entró por aquí.
   pagos: [
     { id: 'efectivo', nombre: 'Efectivo', tipo: 'efectivo' },
-    { id: 'nequi', nombre: 'Nequi / Daviplata', tipo: 'transferencia', llave: '3223739540' },
+    { id: 'bold', nombre: 'Bold', tipo: 'transferencia', llave: '3223739540' },
   ],
 
   // En el orden del día: primero el desayuno, después el almuerzo.
