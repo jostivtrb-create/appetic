@@ -104,15 +104,15 @@ const FOTOS = {
 }
 
 // Las mismas seis categorías que maneja la cocinera, en el orden en que se
-// sirve un almuerzo. `pregunta` marca las que tiene sentido preguntarle al
-// cliente; el arroz y la ensalada van siempre y no se eligen.
+// sirve un almuerzo. Todas se le muestran al cliente: armar el plato es el
+// momento, y ver qué lleva es la mitad de la gracia.
 const CATEGORIAS = [
-  { id: 'soup',      nombre: 'Sopa',        emoji: '🥣', pregunta: true,  obligatoria: true,  max: 1 },
-  { id: 'principio', nombre: 'Principio',   emoji: '🫘', pregunta: true,  obligatoria: false, max: 2 },
-  { id: 'protein',   nombre: 'Proteína',    emoji: '🍗', pregunta: true,  obligatoria: true,  max: 1 },
-  { id: 'side',      nombre: 'Acompañante', emoji: '🍚', pregunta: false, obligatoria: false, max: 1 },
-  { id: 'salad',     nombre: 'Ensalada',    emoji: '🥗', pregunta: false, obligatoria: false, max: 1 },
-  { id: 'juice',     nombre: 'Jugo',        emoji: '🥤', pregunta: true,  obligatoria: true,  max: 1 },
+  { id: 'soup',      nombre: 'Sopa',        emoji: '🥣', obligatoria: true,  max: 1 },
+  { id: 'principio', nombre: 'Principio',   emoji: '🫘', obligatoria: false, max: 2 },
+  { id: 'protein',   nombre: 'Proteína',    emoji: '🍗', obligatoria: true,  max: 1 },
+  { id: 'side',      nombre: 'Acompañante', emoji: '🍚', obligatoria: false, max: 1 },
+  { id: 'salad',     nombre: 'Ensalada',    emoji: '🥗', obligatoria: false, max: 1 },
+  { id: 'juice',     nombre: 'Jugo',        emoji: '🥤', obligatoria: true,  max: 1 },
 ]
 
 /**
@@ -141,18 +141,30 @@ const dinero = v => (typeof v === 'number' && v > 0 ? v : 0)
 /**
  * Convierte una categoría del día en un grupo de opciones de Appetic.
  *
- * Devuelve null cuando no hay nada que preguntar: si la cocinera publicó un
- * solo jugo, obligar al cliente a "elegir" entre una opción es ruido. Eso se
- * cuenta en la descripción del plato y ya.
+ * ── Se muestran TODAS, tengan una opción o diez ──
+ *
+ * Al principio esto escondía las categorías con una sola opción: parecía de
+ * sentido común no hacer "elegir" entre una cosa, y se contaba en la
+ * descripción.
+ *
+ * Salió mal. El menú de un día normal trae una sopa, una proteína y un jugo, y
+ * dos principios. Con aquella regla el cliente veía **un solo paso** —el
+ * principio— y de ahí al pedido. No parecía que estuviera armando un almuerzo:
+ * parecía que la app estaba rota.
+ *
+ * Armar el plato ES el momento. El cliente quiere ver qué lleva su almuerzo
+ * paso a paso, aunque en varios pasos no haya nada que decidir. Ahorrarle dos
+ * toques no vale perder eso.
  */
 function grupoDeCategoria(categoria, items) {
-  if (!categoria.pregunta) return null
-  if (items.length < 2) return null
+  if (items.length === 0) return null
 
   return {
     id: `g-${categoria.id}`,
     nombre: categoria.nombre,
-    subtitulo: categoria.max > 1 ? `Elige hasta ${categoria.max}` : 'Elige 1',
+    subtitulo: items.length === 1
+      ? 'Va incluido'
+      : categoria.max > 1 ? `Elige hasta ${categoria.max}` : 'Elige 1',
     emoji: categoria.emoji,
     tipo: categoria.max > 1 ? 'multiple' : 'unica',
     min: categoria.obligatoria ? 1 : 0,
@@ -172,23 +184,25 @@ function grupoDeCategoria(categoria, items) {
 }
 
 /**
- * Lo que va incluido sin que el cliente elija nada.
+ * Qué trae el almuerzo, en una línea, para la tarjeta del menú.
  *
- * Sale en la descripción del plato porque es justo lo que hace que un almuerzo
- * se vea completo: "con arroz, ensalada y jugo de mora" antoja mucho más que
- * un plato pelado que solo dice "almuerzo".
+ * Va en la descripción, que es lo que se lee ANTES de abrir el plato: hay que
+ * poder decidir si te antoja sin tocar nada. Dentro, cada cosa vuelve a
+ * aparecer como su propio paso.
  */
 function loQueVaIncluido(resueltos) {
   const partes = []
   for (const cat of CATEGORIAS) {
     const items = resueltos[cat.id] || []
-    // Si hay una sola opción va fija; si hay varias, el cliente la elige y no
-    // hay que anunciarla aquí.
-    if (items.length === 1) partes.push(items[0].name.toLowerCase())
+    if (items.length === 0) continue
+    // Con una sola opción se dice cuál; con varias, que hay para elegir.
+    partes.push(items.length === 1
+      ? items[0].name.toLowerCase()
+      : cat.nombre.toLowerCase())
   }
   if (partes.length === 0) return ''
-  if (partes.length === 1) return `Incluye ${partes[0]}.`
-  return `Incluye ${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}.`
+  if (partes.length === 1) return `Con ${partes[0]}.`
+  return `Con ${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}.`
 }
 
 /**
@@ -246,11 +260,12 @@ function grupoDeAdiciones(config, proteinas) {
 }
 
 /**
- * Las categorías que van FIJAS hoy (una sola opción, no se preguntan).
+ * Las categorías con una sola opción, apuntadas aparte.
  *
- * Hay que llevárselas apuntadas: al cliente no se le pregunta por el arroz,
- * pero la cocina tiene que saber que el plato lo lleva. Sin esto, el pedido
- * llegaría a la cocina sin acompañante y saldría un almuerzo incompleto.
+ * Ahora también se le muestran al cliente, pero las opcionales (el arroz, la
+ * ensalada) puede dejarlas sin tocar. Si no las toca, el pedido igual tiene que
+ * llegar completo a la cocina — de ahí este respaldo. Lo que el cliente SÍ
+ * elija manda sobre esto.
  */
 function loQueVaFijo(resueltos) {
   const fijos = {}
