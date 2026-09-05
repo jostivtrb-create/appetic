@@ -60,8 +60,20 @@ const FRANJAS = {
   almuerzos: { desde: '11:00', hasta: '15:30' },
 }
 
+// ⚠️ TEMPORAL — 2026-09-04. Enseñar el menú COMPLETO a cualquier hora, para
+// que Zeven pueda explicarle la app al personal sin depender del reloj.
+//
+// El local NO sale en el buscador de Appetic (`suscripcion.activa: false`), así
+// que nadie de la calle llega aquí de casualidad: solo quien tenga el link.
+// Por eso abrirlo no expone a recibir un pedido a las diez de la noche.
+//
+// PARA VOLVER A LA NORMALIDAD: poner esto en false. Nada más. Las franjas de
+// abajo siguen escritas tal cual y vuelven a mandar solas.
+const MODO_EXPLICACION = true
+
 /** ¿Es hora de pedir esto? */
 function esLaHoraDe(queCosa, ahora) {
+  if (MODO_EXPLICACION) return true
   const f = FRANJAS[queCosa]
   if (!f) return true
   return ahora >= f.desde && ahora < f.hasta
