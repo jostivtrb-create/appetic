@@ -48,6 +48,10 @@ function repartirOpciones(producto, seleccion) {
   const elegidoPorGrupo = seleccion?.grupos || {}
   const selections = { ...(producto.lge?.fijos || {}) }
   const adiciones = []
+  // "Sin sopa, mejor huevo" → allá eso NO es una selección, es un REEMPLAZO:
+  // la sopa queda vacía y aparte se anota qué quiere en su lugar. La cocina lo
+  // lee así desde siempre, y por eso se traduce en vez de mandar el texto.
+  const replacements = {}
 
   for (const grupo of producto.gruposOpciones || []) {
     const ids = elegidoPorGrupo[grupo.id] || []
@@ -65,6 +69,17 @@ function repartirOpciones(producto, seleccion) {
     // El id del grupo es 'g-' + la categoría de allá (g-protein → protein),
     // así que no hace falta una tabla de equivalencias que mantener.
     const categoria = grupo.id.replace(/^g-/, '')
+
+    // ¿Pidió quitarlo, o cambiarlo por otra cosa?
+    const reemplazo = opciones.find(o => o.lgeReemplazo)
+    const quitar = opciones.some(o => o.lgeQuitar)
+    if (reemplazo || quitar) {
+      // Vacía de verdad: la cocina lee "SIN SOPA" y no un plato inventado.
+      selections[categoria] = null
+      if (reemplazo) replacements[categoria] = reemplazo.lgeReemplazo
+      continue
+    }
+
     const partes = opciones.map(o => ({
       id: o.id,
       name: o.nombre,
@@ -77,7 +92,7 @@ function repartirOpciones(producto, seleccion) {
     selections[categoria] = partes.length === 1 ? partes[0] : partes
   }
 
-  return { selections, adiciones }
+  return { selections, adiciones, replacements }
 }
 
 /** Convierte UN item del carrito en las líneas que entiende La Gran Esquina. */
@@ -88,7 +103,8 @@ function lineasDeUnItem(item) {
 
   const cuantos = Math.max(1, Number(item.cantidad) || 1)
   const nota = (item.notas || '').toString().trim() || null
-  const { selections, adiciones } = repartirOpciones(producto, item.seleccion)
+  const { selections, adiciones, replacements } = repartirOpciones(producto, item.seleccion)
+  const hayReemplazos = Object.keys(replacements).length > 0
 
   const lineas = []
 
@@ -111,6 +127,7 @@ function lineasDeUnItem(item) {
           ? { ...selections, especial: producto.lge.especial }
           : selections,
         price: Number(producto.precio) || 0,
+        ...(hayReemplazos ? { replacements } : {}),
         ...(nota ? { note: nota } : {}),
       })
     }

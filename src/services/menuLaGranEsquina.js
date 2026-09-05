@@ -106,14 +106,36 @@ const FOTOS = {
 // Las mismas seis categorías que maneja la cocinera, en el orden en que se
 // sirve un almuerzo. Todas se le muestran al cliente: armar el plato es el
 // momento, y ver qué lleva es la mitad de la gracia.
+// `reemplazos`: lo que se le ofrece a cambio si NO quiere esa parte. En la app
+// del negocio eso es un paso aparte —"¿qué deseas en vez de la sopa?"—, pero
+// Appetic no sabe hacer preguntas condicionales: sus grupos son planos.
+//
+// Así que las alternativas entran COMO OPCIONES DEL MISMO GRUPO. El cliente ve
+// "Sancocho / Sin sopa, mejor huevo / Sin sopa, más arroz" y elige una sola
+// vez. Menos pasos que allá, y el pedido llega igual de completo.
+//
+// `sePuedeQuitar`: el arroz, la ensalada y el jugo van servidos, pero hay quien
+// no los quiere. Sin esta opción tendría que pedirlo por la nota y confiar.
 const CATEGORIAS = [
-  { id: 'soup',      nombre: 'Sopa',        emoji: '🥣', obligatoria: true,  max: 1 },
-  { id: 'principio', nombre: 'Principio',   emoji: '🫘', obligatoria: false, max: 2 },
+  { id: 'soup',      nombre: 'Sopa',        emoji: '🥣', obligatoria: true,  max: 1,
+    reemplazos: ['huevo', 'extra_principio', 'extra_arroz', 'extra_salad', 'extra_juice', 'nada'] },
+  { id: 'principio', nombre: 'Principio',   emoji: '🫘', obligatoria: false, max: 2,
+    reemplazos: ['huevo', 'extra_arroz', 'extra_salad', 'extra_juice', 'nada'] },
   { id: 'protein',   nombre: 'Proteína',    emoji: '🍗', obligatoria: true,  max: 1 },
-  { id: 'side',      nombre: 'Acompañante', emoji: '🍚', obligatoria: false, max: 1 },
-  { id: 'salad',     nombre: 'Ensalada',    emoji: '🥗', obligatoria: false, max: 1 },
-  { id: 'juice',     nombre: 'Jugo',        emoji: '🥤', obligatoria: true,  max: 1 },
+  { id: 'side',      nombre: 'Acompañante', emoji: '🍚', obligatoria: false, max: 1, sePuedeQuitar: true },
+  { id: 'salad',     nombre: 'Ensalada',    emoji: '🥗', obligatoria: false, max: 1, sePuedeQuitar: true },
+  { id: 'juice',     nombre: 'Jugo',        emoji: '🥤', obligatoria: true,  max: 1, sePuedeQuitar: true },
 ]
+
+// Los mismos nombres que usa la cocina al leer la comanda.
+const NOMBRE_DEL_REEMPLAZO = {
+  huevo:            { txt: 'mejor huevo',       emoji: '🍳' },
+  extra_principio:  { txt: 'más principio',     emoji: '🫘' },
+  extra_arroz:      { txt: 'más arroz',         emoji: '🍚' },
+  extra_salad:      { txt: 'más ensalada',      emoji: '🥗' },
+  extra_juice:      { txt: 'más jugo',          emoji: '🥤' },
+  nada:             { txt: 'así está bien',     emoji: '👌' },
+}
 
 /**
  * Lo que la cocinera publicó hoy y TODAVÍA QUEDA, ya con nombres.
@@ -169,17 +191,37 @@ function grupoDeCategoria(categoria, items) {
     tipo: categoria.max > 1 ? 'multiple' : 'unica',
     min: categoria.obligatoria ? 1 : 0,
     max: categoria.max,
-    opciones: items.map(it => ({
-      id: it.id,
-      nombre: it.name,
-      emoji: '',
-      precioExtra: 0,
-      foto: '',
-      // Solo las proteínas lo traen. Es el producto del inventario que sale de
-      // la nevera al vender este almuerzo; sin él, la pechuga no se descuenta.
-      // Appetic no lo usa: viaja de vuelta con el pedido.
-      ...(it.productId ? { productId: it.productId } : {}),
-    })),
+    opciones: [
+      ...items.map(it => ({
+        id: it.id,
+        nombre: it.name,
+        emoji: '',
+        precioExtra: 0,
+        foto: '',
+        // Solo las proteínas lo traen. Es el producto del inventario que sale de
+        // la nevera al vender este almuerzo; sin él, la pechuga no se descuenta.
+        // Appetic no lo usa: viaja de vuelta con el pedido.
+        ...(it.productId ? { productId: it.productId } : {}),
+      })),
+      // "No quiero sopa, mejor huevo" y sus hermanas.
+      ...(categoria.reemplazos || []).map(r => ({
+        id: `sin-${categoria.id}-${r}`,
+        nombre: `Sin ${categoria.nombre.toLowerCase()}, ${NOMBRE_DEL_REEMPLAZO[r].txt}`,
+        emoji: NOMBRE_DEL_REEMPLAZO[r].emoji,
+        precioExtra: 0,
+        foto: '',
+        lgeReemplazo: r,
+      })),
+      // Quitar el arroz, la ensalada o el jugo sin tener que pedirlo por nota.
+      ...(categoria.sePuedeQuitar ? [{
+        id: `sin-${categoria.id}`,
+        nombre: `Sin ${categoria.nombre.toLowerCase()}`,
+        emoji: '🚫',
+        precioExtra: 0,
+        foto: '',
+        lgeQuitar: true,
+      }] : []),
+    ],
   }
 }
 
