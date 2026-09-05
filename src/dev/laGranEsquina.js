@@ -43,13 +43,10 @@ export const LGE_LOCAL = {
   // las pone desde su panel con "usar mi ubicación actual", parado en el local.
   ubicacion: null,
 
-  // ⚠️ TEMPORAL — 2026-09-04: abierto 24h para que Zeven pueda enseñarle la app
-  // al personal a cualquier hora. Las horas de verdad eran 07:00–15:30 (y aun
-  // esas estaban puestas a ojo: que Andrés diga las suyas).
-  // Va de la mano con MODO_EXPLICACION en services/menuLaGranEsquina.js.
+  // El horario que ellos pusieron desde el panel.
   horario: {
-    abre: '00:00',
-    cierra: '23:59',
+    abre: '08:00',
+    cierra: '00:00',
     dias: { lun: true, mar: true, mie: true, jue: true, vie: true, sab: true, dom: true },
   },
 

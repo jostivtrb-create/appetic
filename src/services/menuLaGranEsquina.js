@@ -69,7 +69,7 @@ const FRANJAS = {
 //
 // PARA VOLVER A LA NORMALIDAD: poner esto en false. Nada más. Las franjas de
 // abajo siguen escritas tal cual y vuelven a mandar solas.
-const MODO_EXPLICACION = true
+const MODO_EXPLICACION = false
 
 /** ¿Es hora de pedir esto? */
 function esLaHoraDe(queCosa, ahora) {
