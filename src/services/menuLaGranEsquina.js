@@ -203,17 +203,9 @@ function grupoDeCategoria(categoria, items) {
         // Appetic no lo usa: viaja de vuelta con el pedido.
         ...(it.productId ? { productId: it.productId } : {}),
       })),
-      // "No quiero sopa, mejor huevo" y sus hermanas.
-      ...(categoria.reemplazos || []).map(r => ({
-        id: `sin-${categoria.id}-${r}`,
-        nombre: `Sin ${categoria.nombre.toLowerCase()}, ${NOMBRE_DEL_REEMPLAZO[r].txt}`,
-        emoji: NOMBRE_DEL_REEMPLAZO[r].emoji,
-        precioExtra: 0,
-        foto: '',
-        lgeReemplazo: r,
-      })),
-      // Quitar el arroz, la ensalada o el jugo sin tener que pedirlo por nota.
-      ...(categoria.sePuedeQuitar ? [{
+      // Una sola opción para decir que no. Lo que quiere EN SU LUGAR se
+      // pregunta después, y solo si dijo que no (ver `grupoDelCambio`).
+      ...((categoria.reemplazos || categoria.sePuedeQuitar) ? [{
         id: `sin-${categoria.id}`,
         nombre: `Sin ${categoria.nombre.toLowerCase()}`,
         emoji: '🚫',
@@ -224,6 +216,41 @@ function grupoDeCategoria(categoria, items) {
     ],
   }
 }
+
+/**
+ * El paso que solo sale si dijo que NO quiere esa parte.
+ *
+ * "¿Qué deseas en vez de la sopa?" — huevo, más principio, más arroz… Es un
+ * paso aparte y no siete tarjetas metidas junto a la sopa: quien SÍ quiere
+ * sopa no tiene por qué ver esa lista, y a quien no la quiere se le pregunta
+ * en su propia pantalla, como se lo preguntarían en el mostrador.
+ *
+ * `soloSi` es lo que hace que aparezca y desaparezca (ver utils/price.js).
+ */
+function grupoDelCambio(categoria) {
+  if (!categoria.reemplazos) return null
+  const mayus = t => t.charAt(0).toUpperCase() + t.slice(1)
+  return {
+    id: `g-${categoria.id}-cambio`,
+    // 'la sopa' pero 'el principio': sin esto salia "En vez de la principio".
+    nombre: `En vez ${categoria.id === 'soup' ? 'de la' : 'del'} ${categoria.nombre.toLowerCase()}`,
+    subtitulo: '¿Qué prefieres?',
+    emoji: '🔄',
+    tipo: 'unica',
+    min: 1,
+    max: 1,
+    soloSi: { grupo: `g-${categoria.id}`, opciones: [`sin-${categoria.id}`] },
+    opciones: categoria.reemplazos.map(r => ({
+      id: `cambio-${categoria.id}-${r}`,
+      nombre: mayus(NOMBRE_DEL_REEMPLAZO[r].txt),
+      emoji: NOMBRE_DEL_REEMPLAZO[r].emoji,
+      precioExtra: 0,
+      foto: '',
+      lgeReemplazo: r,
+    })),
+  }
+}
+
 
 /**
  * Qué trae el almuerzo, en una línea, para la tarjeta del menú.
@@ -331,7 +358,12 @@ function armarCorriente(dailyMenu, config, resueltos) {
   const grupos = []
   for (const cat of CATEGORIAS) {
     const g = grupoDeCategoria(cat, resueltos[cat.id] || [])
-    if (g) grupos.push(g)
+    if (!g) continue
+    grupos.push(g)
+    // Detrás de cada categoría que se puede cambiar, su paso de "¿y entonces
+    // qué?". El wizard lo salta solo si el cliente sí quiso la sopa.
+    const cambio = grupoDelCambio(cat)
+    if (cambio) grupos.push(cambio)
   }
   const adiciones = grupoDeAdiciones(config, resueltos.protein || [])
   if (adiciones) grupos.push(adiciones)

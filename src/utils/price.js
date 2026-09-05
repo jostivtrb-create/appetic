@@ -70,11 +70,33 @@ export function tieneOpciones(producto) {
 }
 
 // Valida que las elecciones cumplan min/max de cada grupo. Devuelve null si ok, o un mensaje.
+/**
+ * ¿Este grupo aplica, según lo que el cliente ya eligió?
+ *
+ * Un grupo puede traer `soloSi: { grupo, opciones }` y entonces solo cuenta
+ * —se muestra y se valida— si en ese otro grupo eligió una de esas opciones.
+ *
+ * Sirve para preguntar en cadena, que es como se pide de verdad: "¿quieres
+ * sopa?" y solo si dice que no, "¿y qué quieres en su lugar?". Sin esto hay
+ * que poner todas las alternativas juntas en la misma pantalla, y el cliente
+ * se encuentra siete tarjetas donde debería haber dos.
+ */
+export function grupoAplica(grupo, seleccion = {}) {
+  const cond = grupo?.soloSi
+  if (!cond?.grupo) return true
+  const elegidas = seleccion.grupos?.[cond.grupo] || []
+  const requeridas = cond.opciones || []
+  return elegidas.some(id => requeridas.includes(id))
+}
+
 export function validarSeleccion(producto, seleccion = {}) {
   if (producto.variantes?.length && !seleccion.varianteId) {
     return 'Elige una opción'
   }
   for (const grupo of producto.gruposOpciones || []) {
+    // Un grupo que no aplica no se valida: pedir "elige al menos 1" de algo
+    // que el cliente ni siquiera ve deja el botón bloqueado sin explicación.
+    if (!grupoAplica(grupo, seleccion)) continue
     const elegidas = (seleccion.grupos?.[grupo.id]) || []
     const max = maxDelGrupo(grupo, seleccion.varianteId)
     // El mínimo nunca puede pedir más de lo que el tamaño permite elegir.

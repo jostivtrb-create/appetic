@@ -66,17 +66,23 @@ function repartirOpciones(producto, seleccion) {
       continue
     }
 
+    // El paso de "¿qué quieres en vez de la sopa?" — su id es
+    // 'g-soup-cambio'. No es una selección: es el reemplazo de la anterior.
+    if (grupo.id.endsWith('-cambio')) {
+      const cat = grupo.id.replace(/^g-/, '').replace(/-cambio$/, '')
+      const r = opciones.find(o => o.lgeReemplazo)
+      if (r) replacements[cat] = r.lgeReemplazo
+      continue
+    }
+
     // El id del grupo es 'g-' + la categoría de allá (g-protein → protein),
     // así que no hace falta una tabla de equivalencias que mantener.
     const categoria = grupo.id.replace(/^g-/, '')
 
-    // ¿Pidió quitarlo, o cambiarlo por otra cosa?
-    const reemplazo = opciones.find(o => o.lgeReemplazo)
-    const quitar = opciones.some(o => o.lgeQuitar)
-    if (reemplazo || quitar) {
-      // Vacía de verdad: la cocina lee "SIN SOPA" y no un plato inventado.
+    // ¿Dijo que no la quiere? La categoría queda vacía de verdad: la cocina
+    // lee "SIN SOPA" y no un plato inventado.
+    if (opciones.some(o => o.lgeQuitar)) {
       selections[categoria] = null
-      if (reemplazo) replacements[categoria] = reemplazo.lgeReemplazo
       continue
     }
 

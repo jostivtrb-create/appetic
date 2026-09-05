@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { cop } from '../../utils/money'
-import { maxDelGrupo, precioUnitario, recortarPorVariante, validarSeleccion } from '../../utils/price'
+import { grupoAplica, maxDelGrupo, precioUnitario, recortarPorVariante, validarSeleccion } from '../../utils/price'
 import ImagenApp from '../Imagen/ImagenApp'
 import './ProductWizard.css'
 
@@ -13,16 +13,22 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   const [grupos, setGrupos] = useState({}) // { grupoId: [opcionId, ...] }
   const [paso, setPaso] = useState(0)
 
-  // Pasos: (variante si existe) → cada grupo → resumen
+  const seleccion = useMemo(() => ({ varianteId, grupos }), [varianteId, grupos])
+
+  // Pasos: (variante si existe) → cada grupo que APLIQUE → resumen
+  //
+  // Los grupos con `soloSi` aparecen y desaparecen según lo que se va
+  // eligiendo: el de "¿qué quieres en vez de la sopa?" solo sale si dijo que
+  // no la quiere. Por eso la lista se recalcula con cada cambio y no una vez.
   const pasos = useMemo(() => {
     const arr = []
     if (producto.variantes?.length) arr.push({ tipo: 'variante' })
-    for (const g of producto.gruposOpciones || []) arr.push({ tipo: 'grupo', grupo: g })
+    for (const g of producto.gruposOpciones || []) {
+      if (grupoAplica(g, seleccion)) arr.push({ tipo: 'grupo', grupo: g })
+    }
     arr.push({ tipo: 'resumen' })
     return arr
-  }, [producto])
-
-  const seleccion = useMemo(() => ({ varianteId, grupos }), [varianteId, grupos])
+  }, [producto, seleccion])
   const unitario = precioUnitario(producto, seleccion)
   const total = pasos.length
   const actual = pasos[paso]
