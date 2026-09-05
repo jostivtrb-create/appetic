@@ -225,16 +225,3 @@
   border: 1px solid var(--border); background: var(--surface);
   font-family: inherit; font-size: 14px; resize: vertical; outline: none;
 }
-.pw-cantidad {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-top: 14px; padding: 12px 14px; border-radius: 14px;
-  border: 1px solid var(--border); background: var(--surface);
-  font-size: 14px; font-weight: 700;
-}
-.pw-cantidad-ctrl { display: flex; align-items: center; gap: 4px; }
-.pw-cantidad-ctrl button {
-  width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
-  border: 1px solid var(--border); background: var(--bg);
-  font-family: inherit; font-size: 19px; font-weight: 700; color: var(--text-1);
-}
-.pw-cantidad-ctrl strong { min-width: 34px; text-align: center; font-size: 17px; }

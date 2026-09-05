@@ -12,11 +12,20 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   const [varianteId, setVarianteId] = useState(producto.variantes?.length ? producto.variantes[0].id : null)
   const [grupos, setGrupos] = useState({}) // { grupoId: [opcionId, ...] }
   const [paso, setPaso] = useState(0)
-  // El armador no tenía ni notas ni cantidad: mandaba `notas: ''` y
-  // `cantidad: 1` siempre. Para "arma tu perro" daba igual, pero un almuerzo
-  // sin poder decir "sin cebolla" —ni pedir dos— es un almuerzo a medias.
+  // Indicaciones sí; cantidad NO.
+  //
+  // El armador mandaba `notas: ''` fijo y eso sí faltaba: un almuerzo sin poder
+  // decir "sin cebolla" queda a medias.
+  //
+  // La cantidad se llegó a poner y hubo que quitarla. **Cada plato que se arma
+  // es único**: nadie pide tres almuerzos con la misma sopa, la misma proteína
+  // y el mismo jugo — los pide para tres personas, y cada una quiere lo suyo.
+  // Un selector de "¿cuántos?" invita justo a lo que nadie hace, y de paso se
+  // saltaría el control de porciones ("quedan 2 pechugas") de un tirón.
+  //
+  // Quien quiera otro lo arma otra vez. Son treinta segundos y sale como él lo
+  // quiere, que es de lo que se trata.
   const [notas, setNotas] = useState('')
-  const [cantidad, setCantidad] = useState(1)
 
   const seleccion = useMemo(() => ({ varianteId, grupos }), [varianteId, grupos])
 
@@ -89,7 +98,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
 
   function agregar() {
     if (validarSeleccion(producto, seleccion)) return
-    onAgregar({ producto, seleccion, cantidad, notas: notas.trim() })
+    onAgregar({ producto, seleccion, cantidad: 1, notas: notas.trim() })
   }
 
   // Detalle del resumen: variante elegida + grupos con sus opciones elegidas.
@@ -209,16 +218,6 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
                 />
               </div>
 
-              {/* Cuántos iguales. Antes había que rehacer el armador entero
-                  para pedir dos almuerzos iguales. */}
-              <div className="pw-cantidad">
-                <span>¿Cuántos?</span>
-                <div className="pw-cantidad-ctrl">
-                  <button type="button" onClick={() => setCantidad(c => Math.max(1, c - 1))}>−</button>
-                  <strong>{cantidad}</strong>
-                  <button type="button" onClick={() => setCantidad(c => Math.min(20, c + 1))}>+</button>
-                </div>
-              </div>
             </>
           )}
         </div>
@@ -234,7 +233,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
             </button>
           ) : (
             <button className="btn btn-primary pw-next" onClick={agregar}>
-              Agregar a mi orden · {cop(unitario * cantidad)}
+              Agregar a mi orden · {cop(unitario)}
             </button>
           )}
         </div>
