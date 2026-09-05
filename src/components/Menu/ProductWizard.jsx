@@ -140,7 +140,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
           {/* Paso resumen — detalle vertical de lo que armó */}
           {esUltimo && (
             <>
-              <h2 className="pw-titulo">{producto.emoji || '✅'} Tu perro está listo</h2>
+              <h2 className="pw-titulo">{producto.emoji || '✅'} Tu {producto.nombre?.toLowerCase() || "pedido"} está listo</h2>
               <p className="pw-sub">Revisa y agrégalo a tu orden.</p>
               <div className="pw-resumen">
                 <div className="pw-resumen-top">

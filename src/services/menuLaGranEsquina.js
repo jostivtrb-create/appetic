@@ -347,6 +347,16 @@ function armarCorriente(dailyMenu, config, resueltos) {
     orden: 100,
     destacado: true,
     precio,
+    // PASO A PASO, no un formulario de una pantalla.
+    //
+    // Así es como se pide un almuerzo en el local y en la app del negocio: la
+    // sopa, luego el principio, luego la proteína. Metido todo junto en una
+    // sola pantalla con listas, el cliente no siente que esté armando su plato
+    // — y armarlo ES el momento.
+    //
+    // Appetic ya sabía hacer esto (`ProductWizard`, para el "arma tu perro").
+    // No hubo que construir nada: solo decirle que este plato es de esos.
+    modo: 'pasos',
     gruposOpciones: grupos,
     // Para rehacer el pedido del lado de La Gran Esquina (ver pedidoLaGranEsquina.js).
     lge: { tipo: 'corriente', fijos: loQueVaFijo(resueltos) },
@@ -379,6 +389,7 @@ function armarEspecial(dailyMenu, resueltos) {
     orden: 101,
     destacado: false,
     precio,
+    modo: 'pasos',
     gruposOpciones: grupos,
     lge: {
       tipo: 'especial',
