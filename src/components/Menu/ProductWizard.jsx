@@ -12,6 +12,11 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   const [varianteId, setVarianteId] = useState(producto.variantes?.length ? producto.variantes[0].id : null)
   const [grupos, setGrupos] = useState({}) // { grupoId: [opcionId, ...] }
   const [paso, setPaso] = useState(0)
+  // El armador no tenía ni notas ni cantidad: mandaba `notas: ''` y
+  // `cantidad: 1` siempre. Para "arma tu perro" daba igual, pero un almuerzo
+  // sin poder decir "sin cebolla" —ni pedir dos— es un almuerzo a medias.
+  const [notas, setNotas] = useState('')
+  const [cantidad, setCantidad] = useState(1)
 
   const seleccion = useMemo(() => ({ varianteId, grupos }), [varianteId, grupos])
 
@@ -84,8 +89,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
 
   function agregar() {
     if (validarSeleccion(producto, seleccion)) return
-    // Cada perro se arma individual (cantidad 1); si quiere otro, lo arma de nuevo.
-    onAgregar({ producto, seleccion, cantidad: 1, notas: '' })
+    onAgregar({ producto, seleccion, cantidad, notas: notas.trim() })
   }
 
   // Detalle del resumen: variante elegida + grupos con sus opciones elegidas.
@@ -178,6 +182,43 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
                   <p className="pw-resumen-vacio">Sencillo, sin toppings ni salsas.</p>
                 )}
               </div>
+
+              {/* Indicaciones para la cocina. Los atajos son los que la gente
+                  pide de verdad; el que quiera otra cosa la escribe. */}
+              <div className="pw-notas-bloque">
+                <div className="pw-notas-head">
+                  <h3>¿Algo más?</h3><span>Opcional</span>
+                </div>
+                <div className="pw-chips">
+                  {['Sin sal', 'Sin cebolla', 'Sin tomate', 'Bien caliente', 'Aparte'].map(c => (
+                    <button
+                      key={c}
+                      type="button"
+                      className="pw-chip"
+                      onClick={() => setNotas(n => n.includes(c) ? n : (n ? `${n} · ${c}` : c))}
+                    >{c}</button>
+                  ))}
+                </div>
+                <textarea
+                  className="pw-notas"
+                  rows={2}
+                  maxLength={200}
+                  value={notas}
+                  onChange={e => setNotas(e.target.value)}
+                  placeholder="Ej: sin cebolla, salsa aparte…"
+                />
+              </div>
+
+              {/* Cuántos iguales. Antes había que rehacer el armador entero
+                  para pedir dos almuerzos iguales. */}
+              <div className="pw-cantidad">
+                <span>¿Cuántos?</span>
+                <div className="pw-cantidad-ctrl">
+                  <button type="button" onClick={() => setCantidad(c => Math.max(1, c - 1))}>−</button>
+                  <strong>{cantidad}</strong>
+                  <button type="button" onClick={() => setCantidad(c => Math.min(20, c + 1))}>+</button>
+                </div>
+              </div>
             </>
           )}
         </div>
@@ -193,7 +234,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
             </button>
           ) : (
             <button className="btn btn-primary pw-next" onClick={agregar}>
-              Agregar a mi orden · {cop(unitario)}
+              Agregar a mi orden · {cop(unitario * cantidad)}
             </button>
           )}
         </div>

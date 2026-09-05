@@ -205,3 +205,36 @@
 }
 .pw-next { flex: 1; }
 .pw-next:disabled { opacity: 0.55; }
+
+/* Indicaciones y cantidad en el resumen.
+   El armador nació sin ellas —para "arma tu perro" no hacían falta— y un
+   almuerzo sin poder decir "sin cebolla" ni pedir dos queda a medias. */
+.pw-notas-bloque { margin-top: 14px; }
+.pw-notas-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.pw-notas-head h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.pw-notas-head span { font-size: 12px; color: var(--text-3); }
+.pw-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.pw-chip {
+  padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface);
+  font-family: inherit; font-size: 12.5px; font-weight: 600; color: var(--text-2);
+}
+.pw-chip:active { transform: scale(0.96); }
+.pw-notas {
+  width: 100%; box-sizing: border-box; padding: 11px 13px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-family: inherit; font-size: 14px; resize: vertical; outline: none;
+}
+.pw-cantidad {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 14px; padding: 12px 14px; border-radius: 14px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-size: 14px; font-weight: 700;
+}
+.pw-cantidad-ctrl { display: flex; align-items: center; gap: 4px; }
+.pw-cantidad-ctrl button {
+  width: 36px; height: 36px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--bg);
+  font-family: inherit; font-size: 19px; font-weight: 700; color: var(--text-1);
+}
+.pw-cantidad-ctrl strong { min-width: 34px; text-align: center; font-size: 17px; }
