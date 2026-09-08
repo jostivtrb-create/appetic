@@ -54,9 +54,18 @@ import { dbLaGranEsquina, fechaDeHoyBogota, horaDeBogota } from '../config/fireb
 // reloj mal puesto vería el menú que no es.
 //
 // ⚠️ Puestas a ojo — que Andrés diga las de verdad. Cambiarlas es cambiar
-// estas cuatro líneas.
+// estas tres líneas.
+//
+// Los COMBOS no tienen hora. Antes esto decía `desayunos: 06:00 a 11:00`
+// porque lo único que había era el desayuno, y a la una de la tarde nadie
+// pide caldo. Pero un combo ya no es un desayuno: Andrés arma el que quiera
+// con los productos que tenga, y un combo de gaseosa y chocorramo se vende a
+// las cuatro de la tarde igual que a las siete de la mañana.
+//
+// Y sí tiene interruptor: el combo que solo quiera vender temprano lo apaga
+// desde Inventario. Eso lo decide él mirando el negocio, no una hora escrita
+// aquí que nadie recuerda que existe.
 const FRANJAS = {
-  desayunos: { desde: '06:00', hasta: '11:00' },
   almuerzos: { desde: '11:00', hasta: '15:30' },
 }
 
@@ -94,8 +103,7 @@ const SE_ACABO = {
 const FUERA_DE_HORA = {
   emoji: '🕐',
   titulo: 'No es hora de pedir',
-  detalle: `Desayunos de ${FRANJAS.desayunos.desde} a ${FRANJAS.desayunos.hasta}, `
-    + `y almuerzo de ${FRANJAS.almuerzos.desde} a ${FRANJAS.almuerzos.hasta}.`,
+  detalle: `El almuerzo se pide de ${FRANJAS.almuerzos.desde} a ${FRANJAS.almuerzos.hasta}.`,
 }
 
 const FOTOS = {
@@ -443,35 +451,36 @@ export async function getMenuLaGranEsquina() {
   const db = dbLaGranEsquina()
   const hoy = fechaDeHoyBogota()
   const ahora = horaDeBogota()
-  const horaDeDesayuno = esLaHoraDe('desayunos', ahora)
   const horaDeAlmuerzo = esLaHoraDe('almuerzos', ahora)
 
-  // Ni una cosa ni la otra: no vale la pena ni leer el menú.
-  if (!horaDeDesayuno && !horaDeAlmuerzo) {
-    return { productos: [], avisoVacio: FUERA_DE_HORA }
-  }
-
-  const [diaSnap, configSnap, desayunoSnap, itemsSnap] = await Promise.all([
-    getDoc(doc(db, 'dailyMenu', hoy)),
-    getDoc(doc(db, 'dailyMenu', 'corriente_config')),
-    getDoc(doc(db, 'dailyMenu', 'breakfast_config')),
-    getDocs(collection(db, 'menuItems')),
+  // Los combos se leen SIEMPRE, aunque no sea hora de almuerzo: no tienen
+  // franja. Lo que sí se ahorra fuera de hora es el menú del día, que a las
+  // ocho de la mañana no se va a usar.
+  const [combosSnap, diaSnap, configSnap, itemsSnap] = await Promise.all([
+    getDocs(collection(db, 'combos')),
+    horaDeAlmuerzo ? getDoc(doc(db, 'dailyMenu', hoy)) : null,
+    horaDeAlmuerzo ? getDoc(doc(db, 'dailyMenu', 'corriente_config')) : null,
+    horaDeAlmuerzo ? getDocs(collection(db, 'menuItems')) : null,
   ])
 
-  // El desayuno no depende del día: sus piezas y precios son fijos, y se
-  // encienden o apagan con un interruptor. Por eso se arma aunque la cocinera
-  // todavía no haya publicado el almuerzo — a las siete de la mañana el
-  // desayuno ya se vende y el almuerzo no.
-  const desayunos = horaDeDesayuno
-    ? armarDesayunos(desayunoSnap.exists() ? desayunoSnap.data() : null)
-    : []
+  const combos = armarCombos(combosSnap.docs.map(d => ({ id: d.id, ...d.data() })))
+
+  if (!horaDeAlmuerzo) {
+    // Fuera de la hora del almuerzo el local todavía vende sus combos. Solo
+    // cuando tampoco hay combos encendidos se dice que no es hora de pedir.
+    return combos.length > 0
+      ? { productos: combos, avisoVacio: null }
+      : { productos: [], avisoVacio: FUERA_DE_HORA }
+  }
 
   const dailyMenu = diaSnap.exists() ? diaSnap.data() : null
   if (!dailyMenu) {
-    if (desayunos.length > 0) return { productos: desayunos, avisoVacio: null }
-    // A la hora del desayuno, que no haya menú del día no es raro: la cocinera
-    // lo sube más tarde. Lo que falta entonces es el desayuno, no el almuerzo.
-    return { productos: [], avisoVacio: horaDeAlmuerzo ? SIN_PUBLICAR : FUERA_DE_HORA }
+    // Que no haya menú del día no siempre es un problema: la cocinera lo sube
+    // cuando lo tiene. Si hay combos, se venden igual y no se le dice nada al
+    // cliente; el aviso de "todavía no publicamos" solo sale si de verdad no
+    // hay nada que ofrecer.
+    if (combos.length > 0) return { productos: combos, avisoVacio: null }
+    return { productos: [], avisoVacio: SIN_PUBLICAR }
   }
 
   const config = configSnap.exists() ? configSnap.data() : null
@@ -482,10 +491,9 @@ export async function getMenuLaGranEsquina() {
   resueltos.especial = resolverItems(dailyMenu, todosLosItems, 'especial')
 
   const productos = [
-    ...desayunos,
-    ...(horaDeAlmuerzo
-      ? [armarCorriente(dailyMenu, config, resueltos), armarEspecial(dailyMenu, resueltos)]
-      : []),
+    ...combos,
+    armarCorriente(dailyMenu, config, resueltos),
+    armarEspecial(dailyMenu, resueltos),
   ].filter(Boolean)
 
   if (productos.length > 0) return { productos, avisoVacio: null }
@@ -493,173 +501,123 @@ export async function getMenuLaGranEsquina() {
   // Hay menú publicado pero no queda nada que vender. Distinguimos "se acabó"
   // de "aún no lo suben" mirando si HUBO algo: si la cocinera publicó
   // proteínas y ahora no queda ninguna, es que se agotaron.
-  if (!horaDeAlmuerzo) return { productos: [], avisoVacio: FUERA_DE_HORA }
   const publicoAlgo = (dailyMenu.itemsByCategory?.protein || []).length > 0
   return { productos: [], avisoVacio: publicoAlgo ? SE_ACABO : SIN_PUBLICAR }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LOS DESAYUNOS
+// LOS COMBOS
 //
-// El desayuno de La Gran Esquina se arma por piezas —caldo, huevos, arroz con
-// pan, bebida— y tiene COMBOS: ciertas combinaciones cuestan menos que la suma
-// de sus partes. Un caldo de costilla con huevos, arroz y bebida vale $12.000
-// sueltos $18.000.
+// Antes aquí se armaba el desayuno: cuatro categorías escritas en el código
+// —caldo, huevos, arroz con pan, bebida— con ocho opciones fijas y unos
+// precios que vivían en un documento aparte. Para vender un tamal había que
+// tocar el programa, en dos apps.
 //
-// ── Por qué los combos van como platos y no como opciones ──
+// Ya no. Andrés arma sus combos en el inventario de La Gran Esquina con los
+// productos que él mismo tiene cargados: "COMBO 1 = 2 huevos + 1 tamal + 1
+// chocolate, $12.000". Este archivo solo los lee y los enseña.
 //
-// Appetic suma: precio del plato más lo que sume cada opción elegida. No sabe
-// mirar una combinación y decir "ah, esto en realidad es el Combo Costilla,
-// cuesta menos". Ese motor vive en la app de La Gran Esquina.
+// ── Por qué el combo es un PLATO y no una lista de opciones ──
 //
-// Meter el combo aquí como un descuento habría exigido reprogramar cómo suma
-// Appetic, para TODOS los locales, por un caso de uno.
+// Appetic suma: precio del plato más lo que sume cada opción elegida. Un combo
+// no funciona así — su gracia es justamente que cuesta MENOS que la suma de
+// sus partes. Meterlo como descuento habría exigido reprogramar cómo suma
+// Appetic, para todos los locales, por un caso de uno.
 //
-// Así que cada combo es un PLATO con su precio cerrado, y las piezas sueltas
-// son platos aparte para quien solo quiere un caldo. Que es, además, como lo
-// canta cualquier desayunadero: "el combo le sale en doce".
+// Así que cada combo es un plato de precio cerrado, sin grupos de opciones.
+// Que es además lo que Andrés pidió: el combo es el combo, el cliente no le
+// quita ni le pone. Y es como se canta en cualquier esquina: "el combo le
+// sale en doce".
 //
-// Los combos salen primero y son casi siempre más baratos que armar lo mismo
-// suelto, así que el cliente cae solo en el que le conviene.
+// ── Lo que viaja de vuelta ──
 //
-// ── Todo con el recargo de llevar ──
+// Solo el ID y el nombre. Appetic NO puede leer /products —ahí están los
+// costos y las reglas piden sesión—, así que no tiene con qué congelar lo que
+// lleva el combo. Eso lo hace la caja al confirmar el pedido, que sí tiene el
+// inventario a la mano. Es además el momento correcto: el combo vale lo que
+// vale cuando se confirma.
 //
-// La Gran Esquina cobra un recargo fijo por empacar el desayuno. Va sumado en
-// cada precio de aquí, porque por Appetic nadie come en el local.
+// ── Precio de llevar ──
+//
+// Por Appetic nadie come en el local, así que se usa `priceLlevar`. Vacío no
+// quiere decir gratis: quiere decir "cuesta lo mismo".
 // ─────────────────────────────────────────────────────────────────────────────
 
-const HUEVOS_NORMALES = [
-  { id: 'revueltos', nombre: 'Huevos revueltos' },
-  { id: 'fritos', nombre: 'Huevos fritos' },
-  { id: 'pericos', nombre: 'Huevos pericos' },
-]
-const BEBIDAS = [
-  { id: 'cafe', nombre: 'Café' },
-  { id: 'chocolate', nombre: 'Chocolate' },
-]
-
-/** Un grupo de "elige 1" que no cambia el precio (viene incluido en el plato). */
-function grupoIncluido(id, nombre, emoji, opciones) {
-  return {
-    id: `g-${id}`,
-    nombre,
-    subtitulo: 'Elige 1',
-    emoji,
-    tipo: 'unica',
-    min: 1,
-    max: 1,
-    opciones: opciones.map(o => ({ ...o, emoji: '', precioExtra: 0, foto: '' })),
-  }
+/** El precio que paga quien pide por aquí, que siempre es para llevar. */
+function precioParaLlevar(combo) {
+  const llevar = dinero(combo.priceLlevar)
+  return llevar > 0 ? llevar : dinero(combo.priceMesa)
 }
 
-/** Lo que lleva un combo, dicho para que dé hambre. */
-function loQueLlevaElCombo(combo) {
-  const partes = []
-  if (combo.caldo === 'costilla') partes.push('caldo de costilla')
-  if (combo.caldo === 'pescado') partes.push('caldo de pescado')
-  partes.push(combo.huevos === 'rancheros' ? 'huevos rancheros' : 'huevos')
-  if (combo.arroz) partes.push('arroz con pan')
-  if (combo.bebida) partes.push('bebida caliente')
+/**
+ * Lo que lleva el combo, dicho para que dé hambre.
+ *
+ * Los nombres vienen copiados dentro del propio combo (`items[].productName`),
+ * y por eso se puede escribir esto sin leer el inventario — que es justo lo
+ * que Appetic no tiene permitido.
+ */
+function loQueLleva(combo) {
+  const partes = (combo.items || [])
+    .map(it => {
+      const nombre = String(it.productName || '').trim()
+      if (!nombre) return null
+      const qty = Number(it.qty) || 1
+      return qty > 1 ? `${qty} ${nombre.toLowerCase()}` : nombre.toLowerCase()
+    })
+    .filter(Boolean)
+
   if (partes.length === 0) return ''
+  if (partes.length === 1) return `Lleva ${partes[0]}.`
   return `Lleva ${partes.slice(0, -1).join(', ')} y ${partes[partes.length - 1]}.`
 }
 
-function armarDesayunos(config) {
-  if (!config?.active) return []
-
-  const llevar = dinero(config.llevarSurcharge)
+/**
+ * Los combos encendidos, como platos de Appetic.
+ *
+ * Un combo sin precio o sin nada adentro no se enseña. No es un capricho: es
+ * un combo a medio armar, y ofrecerlo termina en un pedido que la caja no sabe
+ * cobrar.
+ */
+function armarCombos(combos = []) {
   const productos = []
   let orden = 10
 
-  // ── Los combos, primero ──
-  for (const combo of config.combos || []) {
-    const base = dinero(combo.priceMesa)
-    if (!base) continue
-
-    const grupos = []
-    // Un combo "normal" no dice CUÁLES huevos: eso lo elige el cliente y no
-    // cambia el precio. Los rancheros ya vienen decididos por el combo.
-    if (combo.huevos !== 'rancheros') {
-      grupos.push(grupoIncluido('huevos', 'Los huevos', '🥚', HUEVOS_NORMALES))
-    }
-    if (combo.bebida) {
-      grupos.push(grupoIncluido('bebida', 'La bebida', '☕', BEBIDAS))
-    }
+  for (const combo of combos) {
+    if (combo.active === false) continue
+    const precio = precioParaLlevar(combo)
+    if (!precio) continue
+    if ((combo.items || []).length === 0) continue
 
     productos.push({
-      id: `desayuno-${combo.id}`,
-      categoria: 'desayunos',
-      nombre: combo.name || 'Combo desayuno',
-      descripcion: loQueLlevaElCombo(combo),
+      id: `combo-${combo.id}`,
+      categoria: 'combos',
+      // Por si el local todavía no tiene la categoría "Combos" en su panel de
+      // Appetic: así la pestaña sale con nombre de verdad y no con el id en
+      // minúscula.
+      categoriaNombre: 'Combos',
+      categoriaEmoji: '🧺',
+      nombre: combo.name || 'Combo',
+      descripcion: loQueLleva(combo),
       foto: '',
-      emoji: '🍳',
+      emoji: '🧺',
       disponible: true,
       orden: orden++,
       destacado: orden === 11,
-      precio: base + llevar,
-      gruposOpciones: grupos,
+      precio,
+      // Cerrado a propósito: el combo es el combo. Sin grupos, el cliente lo
+      // agrega de un toque y no hay pasos que atravesar.
+      gruposOpciones: [],
       lge: {
-        tipo: 'breakfast',
+        tipo: 'combo',
         comboId: combo.id,
         comboName: combo.name || null,
-        // Lo que el combo trae decidido. Los huevos solo si son rancheros: los
-        // normales los elige el cliente y llegan por el grupo de opciones.
-        fijos: {
-          ...(combo.caldo === 'costilla' ? { caldo: { id: 'costilla', name: 'Caldo de costilla' } } : {}),
-          ...(combo.caldo === 'pescado' ? { caldo: { id: 'pescado', name: 'Caldo de pescado' } } : {}),
-          ...(combo.huevos === 'rancheros'
-            ? { huevos: { id: 'rancheros', name: 'Huevos rancheros', isRanchero: true } }
-            : {}),
-          ...(combo.arroz ? { arroz: { id: 'arroz_pan', name: 'Arroz con pan' } } : {}),
-        },
+        fijos: {},
       },
     })
   }
 
-  // ── Y las piezas sueltas, para quien solo quiere una cosa ──
-  const suelto = (id, nombre, emoji, precio, grupos = [], fijos = {}) => {
-    if (!precio) return
-    productos.push({
-      id: `desayuno-${id}`,
-      categoria: 'desayunos',
-      nombre,
-      descripcion: '',
-      foto: '',
-      emoji,
-      disponible: true,
-      orden: orden++,
-      destacado: false,
-      precio: precio + llevar,
-      gruposOpciones: grupos,
-      lge: { tipo: 'breakfast', comboId: null, comboName: null, fijos },
-    })
-  }
-
-  suelto('caldo-costilla', 'Caldo de costilla', '🍲', dinero(config.caldoCostillaPrice), [],
-    { caldo: { id: 'costilla', name: 'Caldo de costilla' } })
-  suelto('caldo-pescado', 'Caldo de pescado', '🐟', dinero(config.caldoPescadoPrice), [],
-    { caldo: { id: 'pescado', name: 'Caldo de pescado' } })
-
-  const huevos = dinero(config.huevosNormalesPrice)
-  const recargoRancheros = dinero(config.rancherosRecargo)
-  if (huevos) {
-    // Los rancheros cuestan más, así que aquí sí suman: es la única diferencia
-    // de precio dentro del grupo.
-    const opciones = HUEVOS_NORMALES.map(o => ({ ...o, emoji: '', precioExtra: 0, foto: '' }))
-    if (recargoRancheros) {
-      opciones.push({ id: 'rancheros', nombre: 'Huevos rancheros', emoji: '', precioExtra: recargoRancheros, foto: '' })
-    }
-    suelto('huevos', 'Huevos', '🥚', huevos, [{
-      id: 'g-huevos', nombre: '¿Cómo los quieres?', subtitulo: 'Elige 1', emoji: '🥚',
-      tipo: 'unica', min: 1, max: 1, opciones,
-    }])
-  }
-
-  suelto('arroz-pan', 'Arroz con pan', '🍚', dinero(config.arrozPanPrice), [],
-    { arroz: { id: 'arroz_pan', name: 'Arroz con pan' } })
-  suelto('bebida', 'Bebida caliente', '☕', dinero(config.bebidaPrice), [
-    grupoIncluido('bebida', '¿Cuál?', '☕', BEBIDAS),
-  ])
-
+  // Del más barato al más caro. Quien entra a mirar combos está mirando
+  // precio; que el primero sea el que le conviene.
+  productos.sort((a, b) => a.precio - b.precio)
   return productos
 }

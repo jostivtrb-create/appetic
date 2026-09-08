@@ -46,36 +46,52 @@ Las piezas:
 
 ## Cosas que ya están resueltas (y que conviene no "arreglar")
 
-- **Cada cosa a su hora.** Desayunos de 06:00 a 11:00, almuerzo de 11:00 a 15:30. Fuera de
-  esas horas dice *"no es hora de pedir"*. Se cambia en `FRANJAS`, en
-  `src/services/menuLaGranEsquina.js`.
+- **El almuerzo tiene hora; los combos no.** El almuerzo se pide de 11:00 a 15:30 y fuera de
+  esa franja dice *"no es hora de pedir"* (se cambia en `FRANJAS`, en
+  `src/services/menuLaGranEsquina.js`). Los combos están todo el día a propósito: un combo
+  ya no es un desayuno —puede ser gaseosa y chocorramo— y Andrés lo prende o lo apaga con
+  el interruptor de cada combo en su inventario, que es un control más fino que una hora.
 - **Lo que se acabó no se ofrece.** Si la cocinera dice "solo 5 pechugas" y se venden,
   desaparecen del menú solas. Si se acaba toda la proteína, el almuerzo entero deja de
   venderse.
-- **Los combos de desayuno son platos**, no descuentos. Appetic suma opciones y no sabe
-  aplicar un combo; ponerlos como platos con precio cerrado es fiel y es como se canta en
-  el local: *"el combo le sale en doce"*.
+- **Los combos son platos cerrados**, no descuentos. Appetic suma opciones y no sabe aplicar
+  un combo; ponerlos como platos con precio cerrado es fiel y es como se canta en el local:
+  *"el combo le sale en doce"*. Por eso salen sin `gruposOpciones`: el combo es el combo.
+- **El combo viaja SIN lo que lleva adentro, y es correcto.** Appetic pide sin cuenta, y las
+  reglas de La Gran Esquina no le dejan leer `/products` —ahí están los costos y la marca de
+  "va a cocina"—. Así que de aquí sale solo el `comboId`; la caja, que sí tiene sesión y el
+  inventario entero, lo congela al confirmar el pedido. **No intentes "arreglarlo" abriendo
+  `/products` a lectura pública: eso filtraría los costos del negocio.**
+- **Un combo pedido por internet siempre genera comanda**, aunque no lleve nada de fogón.
+  Esa cola es también donde el local marca "listo" y "entregado"; sin comanda, el pedido no
+  sale en ninguna pantalla y el cliente llega a reclamar algo que nadie apartó.
 - **Sin menú publicado no queda la pantalla en blanco**: dice *"todavía no publicamos"* o
   *"por hoy se acabó"*, que para el cliente son cosas distintas.
 
 ---
 
-## ⚠️ Lo que falta, y le toca a Andrés
+## ⚠️ Lo que falta
 
-Todo desde su panel: **`appetic.vercel.app/la-gran-esquina/admin`**, entrando con
-`andresguz2084@gmail.com`.
+Ojo con a quién se le pide: **Andrés no entra al panel de Appetic**, lo maneja Zeven. Lo que
+Andrés sí maneja es su propia app —inventario, combos, menú del día—, y de ahí sale casi
+todo lo que el cliente ve aquí. El panel es
+**`appetic.vercel.app/la-gran-esquina/admin`**.
 
 1. **📍 La ubicación** — ⚙️ Configuración → "Usar mi ubicación actual", **parado en el
-   local**. Sin esto el domicilio queda apagado (la app lo dice y solo deja recoger).
-2. **🕐 Las horas** — las de arriba están puestas a ojo. Si su desayuno empieza a las 6:30 o
-   el almuerzo va hasta las 4, hay que ajustarlas.
+   local**. Sin esto el domicilio queda apagado (la app lo dice y solo deja recoger). Es la
+   única de esta lista que hay que hacer *desde el local*.
+2. **🕐 La hora del almuerzo** — 11:00 a 15:30 está puesto a ojo. Si en el local va hasta las
+   4, hay que ajustarlo. Los combos no tienen hora, no hay nada que tocarles.
 3. **📸 El banner** — ⚙️ Configuración → Banner. **Para este local importa más que para los
    demás**: como no tiene productos guardados en Appetic, el inicio no puede mostrar fotos
    de sus platos, así que la tarjeta del local se apoya en el banner. El prompt para
    generarlo está en `public/locales/la-gran-esquina/PROMPTS.md`.
-4. **🔔 Encenderlo** — hoy está **apagado** (`suscripcion.activa: false`): no sale en el
-   buscador y nadie llega por casualidad. Se enciende desde el panel de superadmin cuando
-   ya esté probado.
+
+> **Nota:** `suscripcion.activa` ya está en **`true`** en Firestore (el local sale en el
+> buscador). En `src/dev/laGranEsquina.js` sigue en `false`, que era el valor del alta.
+> **Por eso NO se debe volver a correr el seed sin más:** pisaría el doc vivo y apagaría el
+> local. Para un cambio puntual se usa `update()` sobre el campo, como dice el propio
+> `scripts/_seed-guard.mjs`.
 
 ---
 

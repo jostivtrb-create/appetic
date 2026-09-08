@@ -73,13 +73,15 @@ export const LGE_LOCAL = {
     { id: 'bold', nombre: 'Bold', tipo: 'transferencia', llave: '3223739540' },
   ],
 
-  // En el orden del día: primero el desayuno, después el almuerzo.
+  // Los combos primero porque están todo el día; el almuerzo solo aparece en
+  // su franja, y si fuera la primera pestaña el cliente entraría a una lista
+  // vacía media mañana.
   categorias: [
-    { id: 'desayunos', nombre: 'Desayunos', emoji: '🍳' },
+    { id: 'combos', nombre: 'Combos', emoji: '🧺' },
     { id: 'almuerzos', nombre: 'Almuerzo del día', emoji: '🍛' },
   ],
 
-  etiquetas: ['almuerzos', 'desayunos', 'casero', 'panaderia'],
+  etiquetas: ['almuerzos', 'combos', 'casero', 'panaderia'],
 
   admins: [ADMIN_EMAIL, 'sinfiniity@gmail.com'],
 

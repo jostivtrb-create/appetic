@@ -117,10 +117,17 @@ function lineasDeUnItem(item) {
   // Allá cada plato es una línea suya: dos almuerzos son dos comandas, porque
   // cada uno se prepara, se marca listo y se entrega por separado.
   for (let i = 0; i < cuantos; i++) {
-    if (tipo === 'breakfast') {
+    if (tipo === 'combo') {
+      // El combo no se arma por pasos ni admite cambios: es una lista cerrada
+      // que Andrés definió en su inventario. Por eso no viajan `selections`.
+      //
+      // Y tampoco viaja lo que lleva adentro. Appetic pide sin cuenta, y las
+      // reglas de La Gran Esquina no le dejan leer /products —ahí están los
+      // costos y la marca de "va a cocina"—, así que desde aquí no hay con qué
+      // congelarlo. Se manda el ID y allá, en la caja, que sí tiene el
+      // inventario entero, se congela al confirmar el pedido.
       lineas.push({
-        kind: 'breakfast',
-        selections,
+        kind: 'combo',
         price: Number(producto.precio) || 0,
         ...(producto.lge.comboId ? { comboId: producto.lge.comboId } : {}),
         ...(producto.lge.comboName ? { comboName: producto.lge.comboName } : {}),

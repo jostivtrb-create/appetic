@@ -103,16 +103,35 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
     }
   })
 
-  // Categorías: usar las del local o derivarlas de los productos
+  // Categorías: las del local, más las que traigan los productos y no estén
+  // en esa lista.
+  //
+  // Ese "más" no sobraba: abajo el menú se arma recorriendo ESTAS categorías,
+  // así que un producto de una categoría que no figure aquí no se muestra en
+  // ninguna parte. No da error, no sale un aviso — sencillamente no está, y
+  // desde el panel se ve cargado y disponible.
+  //
+  // Pasa cuando alguien borra una categoría con productos dentro, y pasa con
+  // los locales de menú externo, donde las categorías las decide la otra app y
+  // pueden cambiar sin que nadie toque el panel de Appetic. Que aparezca al
+  // final es mejor que no aparecer: el dueño lo ve y lo acomoda.
   const categorias = useMemo(() => {
-    if (local.categorias?.length) return local.categorias
-    const vistas = []
+    const delLocal = local.categorias?.length ? local.categorias : []
+    const conocidas = new Set(delLocal.map(c => c.id))
+    const huerfanas = []
     for (const p of productos) {
-      if (p.categoria && !vistas.find(c => c.id === p.categoria)) {
-        vistas.push({ id: p.categoria, nombre: p.categoria })
+      if (p.categoria && !conocidas.has(p.categoria)) {
+        conocidas.add(p.categoria)
+        // Un menú externo puede decir cómo se llama su categoría; si no lo
+        // dice, queda el id, que al menos se lee.
+        huerfanas.push({
+          id: p.categoria,
+          nombre: p.categoriaNombre || p.categoria,
+          emoji: p.categoriaEmoji || '',
+        })
       }
     }
-    return vistas
+    return [...delLocal, ...huerfanas]
   }, [local, productos])
 
   const [catActiva, setCatActiva] = useState(categorias[0]?.id)
