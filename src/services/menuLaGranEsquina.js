@@ -584,6 +584,20 @@ function armarCombos(combos = []) {
 
   for (const combo of combos) {
     if (combo.active === false) continue
+
+    // Los que se ARMAN al pedir no salen por internet, y es a propósito.
+    //
+    // Allá el "Desayuno" no es un plato: es una lista de grupos —caldo, huevos,
+    // bebida— donde la mesera va marcando lo que el cliente dice, y el precio
+    // es la suma de lo escogido. Aquí no hay quién escoja: saldría un producto
+    // sin precio ni contenido, y al local le llegaría una comanda en blanco que
+    // la cocinera no sabría preparar.
+    //
+    // Ofrecerlo de verdad pediría leer /products —el precio de cada opción— y
+    // Appetic pide sin cuenta, así que no puede. Lo que sí sale son los combos
+    // cerrados, que ya traen todo decidido.
+    if (Array.isArray(combo.groups) && combo.groups.length > 0) continue
+
     const precio = precioParaLlevar(combo)
     if (!precio) continue
     if ((combo.items || []).length === 0) continue
