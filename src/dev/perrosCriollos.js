@@ -27,7 +27,7 @@ export const ADMIN_EMAIL = 'sinfiniity@gmail.com'
 // En producción casi todas estas opciones ya tienen foto propia subida al panel; estas
 // rutas solo son el respaldo para la vista previa en DEV y para un alta desde cero.
 const FOTOS_TOPPINGS = new Set(['t1', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9', 't10', 't12'])
-const FOTOS_SALSAS = new Set(['s3', 's4', 's9'])
+const FOTOS_SALSAS = new Set(['s1', 's2', 's3', 's4', 's5', 's7', 's9'])
 
 // Toppings: todos gratis y sin límite (el corazón del "arma tu perro a tu gusto").
 // Cada uno trae emoji (respaldo visual) y foto (ruta a la imagen apetitosa).
@@ -65,17 +65,21 @@ const TOPPINGS = [
 }))
 
 // Salsas: también gratis y sin límite. Mismas reglas de id que los toppings.
-//   • s1 (BBQ), s2 (maíz dulce), s5 (guacamole) y s7 (queso cheddar) quedaron RETIRADAS.
+// Son DIEZ, en orden alfabético — que es el orden en que el dueño las canta.
 //   • s8 (Ajo) ya lo había agregado el dueño desde el panel, con su foto.
 //   • s9 (Rosada) y s10 (Buffalo) son las nuevas.
 // A diferencia de los toppings, aquí el nombre NO lleva emoji: así están en producción.
 const SALSAS = [
-  ['s4',  'Tomate',  '🍅'],
-  ['s9',  'Rosada',  '🩷'],
-  ['s8',  'Ajo',     '🧄'],
-  ['s6',  'Showy',   '💛'],
-  ['s10', 'Buffalo', '🌶️'],
-  ['s3',  'Piña',    '🍍'],
+  ['s8',  'Ajo',           '🧄'],
+  ['s1',  'BBQ',           '🍖'],
+  ['s10', 'Buffalo',       '🌶️'],
+  ['s5',  'Guacamole',     '🥑'],
+  ['s2',  'Maíz dulce',    '🌽'],
+  ['s3',  'Piña',          '🍍'],
+  ['s7',  'Queso cheddar', '🧀'],
+  ['s9',  'Rosada',        '🩷'],
+  ['s6',  'Showy',         '💛'],
+  ['s4',  'Tomate',        '🍅'],
 ].map(([id, nombre, emoji]) => ({
   id, nombre, emoji, precioExtra: 0,
   foto: FOTOS_SALSAS.has(id) ? `/locales/perros-criollos/salsas/${id}.webp` : '',
@@ -135,8 +139,9 @@ export const PERROS_LOCAL = {
   suscripcion: { activa: true, plan: 'piloto' },
   // Súbelo cada vez que cambie el menú: invalida la caché del menú en los clientes.
   // v2: armador por pasos + fotos de toppings/salsas.
-  // v5: menú real de septiembre 2026 — 16 toppings, 6 salsas y perro a $8.000.
-  menuVersion: 5,
+  // v5: menú real de septiembre 2026 — 16 toppings y perro a $8.000.
+  // v6: las salsas son DIEZ, no seis (la v5 salió corta y alcanzó a publicarse).
+  menuVersion: 6,
 }
 
 export const PERROS_PRODUCTOS = [

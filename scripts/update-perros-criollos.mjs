@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { initializeApp, cert } from 'firebase-admin/app'
 import { getFirestore } from 'firebase-admin/firestore'
+import { getStorage } from 'firebase-admin/storage'
 import { SLUG, PERROS_LOCAL, PERROS_PRODUCTOS } from '../src/dev/perrosCriollos.js'
 import { computeDestacadosHome } from '../src/utils/destacadosHome.js'
 
@@ -26,10 +27,30 @@ const PRODUCTO_ID = 'arma-tu-perro'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const serviceAccount = JSON.parse(readFileSync(join(__dirname, 'serviceAccount.json'), 'utf8'))
-initializeApp({ credential: cert(serviceAccount) })
+const BUCKET = `${serviceAccount.project_id}.firebasestorage.app`
+initializeApp({ credential: cert(serviceAccount), storageBucket: BUCKET })
 const db = getFirestore()
 
 const esSubida = foto => typeof foto === 'string' && /^https?:\/\//i.test(foto)
+
+// 🛟 Las fotos que el dueño sube quedan en Storage bajo un nombre predecible
+// (locales/<slug>/opciones/<grupoId>-<opcionId>.webp) y NO se borran cuando una opción
+// sale del menú: lo único que se pierde es la URL guardada en Firestore, que lleva el
+// token de descarga. Si una salsa se retira y después vuelve, su foto sigue ahí pero
+// quedó huérfana. Este índice la rescata reconstruyendo la URL desde el token que el
+// propio archivo guarda en sus metadatos, para no pedirle al dueño que suba de nuevo
+// algo que nunca se fue.
+async function fotosHuerfanas() {
+  const mapa = new Map()
+  const [files] = await getStorage().bucket().getFiles({ prefix: `locales/${SLUG}/opciones/` })
+  for (const f of files) {
+    const token = f.metadata?.metadata?.firebaseStorageDownloadTokens
+    if (!token) continue
+    const clave = f.name.split('/').pop().replace(/\.[^.]+$/, '') // g-salsas-s5
+    mapa.set(clave, `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(f.name)}?alt=media&token=${token.split(',')[0]}`)
+  }
+  return mapa
+}
 
 async function run() {
   const localRef = db.collection('locales').doc(SLUG)
@@ -51,7 +72,9 @@ async function run() {
   const fuente = PERROS_PRODUCTOS.find(p => p.id === PRODUCTO_ID)
   if (!fuente) throw new Error(`${PRODUCTO_ID} no está en src/dev/perrosCriollos.js`)
 
+  const huerfanas = await fotosHuerfanas()
   const conservadas = []
+  const rescatadas = []
   const gruposNuevos = fuente.gruposOpciones.map(g => ({
     ...g,
     opciones: g.opciones.map(o => {
@@ -59,6 +82,13 @@ async function run() {
       if (previa && esSubida(previa.foto)) {
         conservadas.push(`${o.nombre} (${o.id})`)
         return { ...o, foto: previa.foto }
+      }
+      // No estaba en Firestore (o su foto era una ruta estática), pero su archivo sigue
+      // en Storage: es una opción que salió del menú y volvió. Se le devuelve su foto.
+      const rescate = huerfanas.get(`${g.id}-${o.id}`)
+      if (rescate) {
+        rescatadas.push(`${o.nombre} (${o.id})`)
+        return { ...o, foto: rescate }
       }
       return o
     }),
@@ -104,6 +134,9 @@ async function run() {
   lista('➖ Salen', salen)
   lista('✏️  Se renombran', renombradas)
   lista('🖼️  Fotos subidas por el dueño que se CONSERVAN', conservadas)
+  lista('🛟 Fotos huérfanas RESCATADAS de Storage', rescatadas)
+  const sinFoto = gruposNuevos.flatMap(g => g.opciones.filter(o => !o.foto).map(o => `${o.nombre} (${o.id})`))
+  lista('📷 Quedan SIN foto (genéralas desde el panel)', sinFoto)
   if (!conservadas.length) console.log('\n  🖼️  No había fotos subidas desde el panel: nada que conservar.')
 
   if (!APPLY) {
