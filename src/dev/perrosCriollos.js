@@ -39,7 +39,9 @@ const FOTOS_SALSAS = new Set(['s1', 's2', 's3', 's4', 's5', 's7', 's9'])
 // genera con el índice del array — cada línea trae su id escrito a mano.
 //   • t11 dejó de ser la zanahoria rayada: el dueño ya lo cambió a "Takis endiablados"
 //     desde el panel, con su propia foto. El id se mantiene para no perderla.
-//   • t13–t16 son los nuevos; nacen sin foto y se generan desde el panel.
+//   • t13, t15 y t16 son los nuevos; nacen sin foto y se generan desde el panel.
+//   • t14 (platanito salado) se pidió pero nunca se vendió: el local maneja el platanito
+//     dulce y ya. Su id queda quemado para que no se reutilice.
 // El nombre lleva el emoji al final porque así quedaron en producción: el armador por
 // pasos los muestra tal cual, y quitarlos ahora cambiaría lo que el cliente ya ve.
 const TOPPINGS = [
@@ -56,7 +58,6 @@ const TOPPINGS = [
   ['t11', 'Takis endiablados 🥵',      '🥵'],
   ['t12', 'Cebolla rayada 🧅',         '🧅'],
   ['t13', 'Chorizo picado 🍖',         '🍖'],
-  ['t14', 'Platanito salado 🥨',       '🥨'],
   ['t15', 'Coco rayado 🥥',            '🥥'],
   ['t16', 'Trocipollos crocantes 🍗',  '🍗'],
 ].map(([id, nombre, emoji]) => ({
@@ -141,7 +142,8 @@ export const PERROS_LOCAL = {
   // v2: armador por pasos + fotos de toppings/salsas.
   // v5: menú real de septiembre 2026 — 16 toppings y perro a $8.000.
   // v6: las salsas son DIEZ, no seis (la v5 salió corta y alcanzó a publicarse).
-  menuVersion: 6,
+  // v7: los toppings son QUINCE — el platanito salado nunca entró a la carta.
+  menuVersion: 7,
 }
 
 export const PERROS_PRODUCTOS = [
