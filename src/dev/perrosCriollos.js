@@ -17,33 +17,75 @@ export const SLUG = 'perros-criollos'
 //    entra a /perros-criollos/admin para editar menú, horario y WhatsApp.
 export const ADMIN_EMAIL = 'sinfiniity@gmail.com'
 
+// Qué ids tienen una foto USABLE en public/. Los que no están aquí nacen con `foto: ''`
+// para que el panel muestre el botón de generar con IA en vez de una imagen equivocada.
+//
+// Ojo con dos archivos que quedaron desfasados y por eso NO se listan:
+//   • toppings/t11.webp es una zanahoria rallada, pero t11 hoy es "Takis endiablados".
+//   • salsas/s6.webp es una salsa rosada, pero s6 hoy es "Showy" (crema con hierbas).
+//     Esa foto sí sirve para la salsa Rosada, y por eso se copió a salsas/s9.webp.
+// En producción casi todas estas opciones ya tienen foto propia subida al panel; estas
+// rutas solo son el respaldo para la vista previa en DEV y para un alta desde cero.
+const FOTOS_TOPPINGS = new Set(['t1', 't2', 't3', 't4', 't5', 't6', 't7', 't8', 't9', 't10', 't12'])
+const FOTOS_SALSAS = new Set(['s3', 's4', 's9'])
+
 // Toppings: todos gratis y sin límite (el corazón del "arma tu perro a tu gusto").
 // Cada uno trae emoji (respaldo visual) y foto (ruta a la imagen apetitosa).
 // La foto puede venir de aquí (archivo en public/) o subirse luego desde el panel.
+//
+// ⚠️ EL `id` MANDA, NO LA POSICIÓN. Las fotos de public/ están numeradas (t1.webp,
+// t2.webp…) y se emparejan por id, así que un id NO se puede reciclar ni renumerar:
+// si mañana sale un topping, su número se retira con él. Por eso esta lista ya no se
+// genera con el índice del array — cada línea trae su id escrito a mano.
+//   • t11 dejó de ser la zanahoria rayada: el dueño ya lo cambió a "Takis endiablados"
+//     desde el panel, con su propia foto. El id se mantiene para no perderla.
+//   • t13–t16 son los nuevos; nacen sin foto y se generan desde el panel.
+// El nombre lleva el emoji al final porque así quedaron en producción: el armador por
+// pasos los muestra tal cual, y quitarlos ahora cambiaría lo que el cliente ya ve.
 const TOPPINGS = [
-  ['Queso rallado', '🧀'], ['Maíz tierno', '🌽'], ['Chicharrón rayado', '🥓'],
-  ['Trozos de piña', '🍍'], ['Maní', '🥜'], ['Jalapeños', '🌶️'],
-  ['Pepinillos', '🥒'], ['Pico de gallo', '🍅'], ['Platanitos', '🍌'],
-  ['Papa chip', '🍟'], ['Zanahoria rayada', '🥕'], ['Cebolla rayada', '🧅'],
-].map(([nombre, emoji], i) => ({
-  id: `t${i + 1}`, nombre, emoji, precioExtra: 0,
-  foto: `/locales/perros-criollos/toppings/t${i + 1}.webp`,
+  ['t1',  'Queso rallado 🧀',          '🧀'],
+  ['t2',  'Maíz tierno 🌽',            '🌽'],
+  ['t3',  'Chicharrón rayado 🐷',      '🥓'],
+  ['t4',  'Trozos de piña 🍍',         '🍍'],
+  ['t5',  'Maní tostado 🥜',           '🥜'],
+  ['t6',  'Jalapeños picantes 🌶️',    '🌶️'],
+  ['t7',  'Pepinillos agridulces 🥒',  '🥒'],
+  ['t8',  'Pico de gallo 🐓',          '🍅'],
+  ['t9',  'Platanito dulce 🍌',        '🍌'],
+  ['t10', 'Papa chip 🍟',              '🍟'],
+  ['t11', 'Takis endiablados 🥵',      '🥵'],
+  ['t12', 'Cebolla rayada 🧅',         '🧅'],
+  ['t13', 'Chorizo picado 🍖',         '🍖'],
+  ['t14', 'Platanito salado 🥨',       '🥨'],
+  ['t15', 'Coco rayado 🥥',            '🥥'],
+  ['t16', 'Trocipollos crocantes 🍗',  '🍗'],
+].map(([id, nombre, emoji]) => ({
+  id, nombre, emoji, precioExtra: 0,
+  foto: FOTOS_TOPPINGS.has(id) ? `/locales/perros-criollos/toppings/${id}.webp` : '',
 }))
 
-// Salsas: también gratis y sin límite.
+// Salsas: también gratis y sin límite. Mismas reglas de id que los toppings.
+//   • s1 (BBQ), s2 (maíz dulce), s5 (guacamole) y s7 (queso cheddar) quedaron RETIRADAS.
+//   • s8 (Ajo) ya lo había agregado el dueño desde el panel, con su foto.
+//   • s9 (Rosada) y s10 (Buffalo) son las nuevas.
+// A diferencia de los toppings, aquí el nombre NO lleva emoji: así están en producción.
 const SALSAS = [
-  ['BBQ', '🍖'], ['Maíz dulce', '🌽'], ['Piña', '🍍'], ['Tomate', '🍅'],
-  ['Guacamole', '🥑'], ['Showy', '🩷'], ['Queso cheddar', '🧀'],
-].map(([nombre, emoji], i) => ({
-  id: `s${i + 1}`, nombre, emoji, precioExtra: 0,
-  foto: `/locales/perros-criollos/salsas/s${i + 1}.webp`,
+  ['s4',  'Tomate',  '🍅'],
+  ['s9',  'Rosada',  '🩷'],
+  ['s8',  'Ajo',     '🧄'],
+  ['s6',  'Showy',   '💛'],
+  ['s10', 'Buffalo', '🌶️'],
+  ['s3',  'Piña',    '🍍'],
+].map(([id, nombre, emoji]) => ({
+  id, nombre, emoji, precioExtra: 0,
+  foto: FOTOS_SALSAS.has(id) ? `/locales/perros-criollos/salsas/${id}.webp` : '',
 }))
 
 export const PERROS_LOCAL = {
   id: SLUG,
   slug: SLUG,
   nombre: 'Perros Criiollos',
-  descripcion: 'Arma tu perro a tu gusto · siempre $7.000',
+  descripcion: 'Arma tu perro a tu gusto · siempre $8.000',
   // El dueño lo configura desde el panel (Configuración → Datos del negocio).
   whatsapp: '',
   logo: '/locales/perros-criollos/logo.png',
@@ -93,7 +135,8 @@ export const PERROS_LOCAL = {
   suscripcion: { activa: true, plan: 'piloto' },
   // Súbelo cada vez que cambie el menú: invalida la caché del menú en los clientes.
   // v2: armador por pasos + fotos de toppings/salsas.
-  menuVersion: 4,
+  // v5: menú real de septiembre 2026 — 16 toppings, 6 salsas y perro a $8.000.
+  menuVersion: 5,
 }
 
 export const PERROS_PRODUCTOS = [
@@ -101,13 +144,13 @@ export const PERROS_PRODUCTOS = [
     id: 'arma-tu-perro',
     categoria: 'perros',
     nombre: 'Arma Tu Perro',
-    descripcion: 'Tu perro caliente como te gusta: súmale todos los toppings y salsas que quieras. Siempre $7.000.',
+    descripcion: 'Tu perro caliente como te gusta: súmale todos los toppings y salsas que quieras. Siempre $8.000.',
     foto: '',
     emoji: '🌭',
     destacado: true, // tarjeta resaltada: es el fuerte del local
     disponible: true,
     orden: 1,
-    precio: 7000,
+    precio: 8000,
     // 🪄 Modo "pasos": abre el armador por pasos (toppings → salsas → resumen)
     // en vez de la lista corrida. Cada perro se arma de cero y entra único al carrito.
     modo: 'pasos',

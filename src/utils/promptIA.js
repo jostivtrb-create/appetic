@@ -97,8 +97,26 @@ export function construirPromptImagenIA({ nombre, descripcion = '', tipo = 'prod
     return `Photorealistic wide horizontal banner food photography of the real menu of a food place called "${n}"${detalle}, freshly made, vibrant and mouth-watering, natural lighting, ${fondo}, horizontal cinematic composition, high detail, sharp focus, no text, no watermark, no logo, no hands.`
   }
   if (tipo === 'opcion') {
-    // Topping / salsa / adición: primer plano de un solo ingrediente.
-    return `Photorealistic professional close-up food photography of "${n}"${desc}, a single fresh ingredient or topping, appetizing, vibrant colors, soft natural lighting, shallow depth of field, high detail, sharp focus, ${fondo}, centered, square composition, no text, no watermark, no logo, no hands.`
+    // Topping / salsa / adición.
+    //
+    // Aquí la foto BONITA no basta: estas miniaturas se ven TODAS JUNTAS en la grilla del
+    // armador, así que lo que importa es que parezcan una colección, no 16 fotos sueltas.
+    // Por eso el encuadre va clavado (cenital, plato blanco, misma distancia) en vez de
+    // dejárselo al modelo: dos toppings con distinto ángulo o distinto plato se notan al
+    // instante uno al lado del otro.
+    //
+    // Ojo con dos cosas que se aprendieron a la mala:
+    //  • "shallow depth of field" peleaba con la vista cenital y sacaba medio plato borroso.
+    //    En un plano desde arriba todo está al mismo plano: enfoque parejo.
+    //  • Un modelo de imagen mete objetos que nadie pidió si el encuadre le queda vacío
+    //    (en una tanda salió un zapato dentro de las papas). De ahí el cierre explícito de
+    //    "solo comida dentro del plato".
+    //
+    // Lo que se riega ALREDEDOR del plato se deja abierto a propósito ("de la comida misma
+    // o de sus ingredientes crudos"): un topping riega trozos de sí mismo, pero una salsa
+    // no se puede regar — ahí el modelo pone sus ingredientes (el ají, el ajo, las hierbas)
+    // y la foto sigue perteneciendo a la misma familia.
+    return `Photorealistic top-down food photography of "${n}"${desc}, shot straight from directly above at a 90 degree overhead angle. Served in a small round white ceramic bowl centred in the frame, with a few loose pieces of the food itself, or of its main raw ingredients, scattered on the surface around the bowl. Soft diffused natural lighting with a gentle soft shadow under the bowl, everything evenly in sharp focus, high detail, fresh and appetizing, vibrant natural colors. ${fondo}, plain uncluttered flat surface, square 1:1 composition. The bowl must contain ONLY this food and nothing else: no other objects, no props, no cutlery, no hands, no text, no watermark, no logo.`
   }
   // Plato / bebida principal.
   return `Photorealistic professional food photography of "${n}"${desc}, freshly made, appetizing and mouth-watering, natural soft lighting, shallow depth of field, high detail, sharp focus, ${fondo}, centered on a clean serving surface, square composition, no text, no watermark, no logo, no hands.`
