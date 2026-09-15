@@ -1,7 +1,13 @@
+import { ofertaAplicada } from './price'
+
 // 📝 Resume las elecciones de un ítem en texto legible.
 // Ej: "Doble carne · Queso extra, Tocineta"
+// Si una oferta le aplicó, va primero: "Combo Costilla · Caldo de costilla, …"
 export function resumenSeleccion(producto, seleccion = {}) {
   const partes = []
+
+  const oferta = ofertaAplicada(producto, seleccion)
+  if (oferta?.oferta?.nombre) partes.push(oferta.oferta.nombre)
 
   if (producto.variantes?.length && seleccion.varianteId) {
     const v = producto.variantes.find(x => x.id === seleccion.varianteId)

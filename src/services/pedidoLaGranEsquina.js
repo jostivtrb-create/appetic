@@ -32,6 +32,7 @@
 
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 import { dbLaGranEsquina } from '../config/firebaseLaGranEsquina'
+import { ofertaAplicada, precioUnitario } from '../utils/price'
 
 /** El pago de Appetic dicho como lo entiende La Gran Esquina. */
 function comoVaAPagar(pago) {
@@ -101,6 +102,29 @@ function repartirOpciones(producto, seleccion) {
   return { selections, adiciones, replacements }
 }
 
+/**
+ * Lo que el cliente escogió en el desayuno armado, con la forma que la caja
+ * espera: `{ [grupoId]: opcionId }` y la lista de piezas con nombre.
+ */
+function seleccionDelArmable(producto, seleccion) {
+  const elegidoPorGrupo = seleccion?.grupos || {}
+  const comboSeleccion = {}
+  const comboItems = []
+  for (const grupo of producto.gruposOpciones || []) {
+    const id = (elegidoPorGrupo[grupo.id] || [])[0]
+    if (!id) continue
+    const opcion = (grupo.opciones || []).find(o => o.id === id)
+    if (!opcion) continue
+    comboSeleccion[grupo.id] = opcion.id
+    comboItems.push({
+      productId: opcion.lgeProductId || null,
+      productName: opcion.lgeProductName || opcion.nombre,
+      qty: opcion.lgeQty || 1,
+    })
+  }
+  return { comboSeleccion, comboItems }
+}
+
 /** Convierte UN item del carrito en las líneas que entiende La Gran Esquina. */
 function lineasDeUnItem(item) {
   const producto = item.producto
@@ -117,6 +141,29 @@ function lineasDeUnItem(item) {
   // Allá cada plato es una línea suya: dos almuerzos son dos comandas, porque
   // cada uno se prepara, se marca listo y se entrega por separado.
   for (let i = 0; i < cuantos; i++) {
+    if (tipo === 'armable') {
+      // El desayuno que se arma por piezas. Viaja lo que el cliente escogió
+      // en cada grupo —con los ids de allá— y la caja congela y cobra con sus
+      // precios de hoy. `comboItems` va con solo nombres para que quien
+      // confirma vea qué pidió; el costo y la marca de cocina los pone la
+      // caja, que es la que puede leer el inventario. `comboDeal` es el precio
+      // de combo que el cliente vio ("Combo Costilla"); la caja lo recalcula.
+      const { comboSeleccion, comboItems } = seleccionDelArmable(producto, item.seleccion)
+      const oferta = ofertaAplicada(producto, item.seleccion)
+      lineas.push({
+        kind: 'combo',
+        price: Number(precioUnitario(producto, item.seleccion)) || 0,
+        comboId: producto.lge.comboId,
+        ...(producto.lge.comboName ? { comboName: producto.lge.comboName } : {}),
+        comboSeleccion,
+        comboItems,
+        comboDeal: oferta
+          ? { id: oferta.oferta.id, name: oferta.oferta.nombre, price: oferta.oferta.precio }
+          : null,
+        ...(nota ? { note: nota } : {}),
+      })
+      continue
+    }
     if (tipo === 'combo') {
       // El combo no se arma por pasos ni admite cambios: es una lista cerrada
       // que Andrés definió en su inventario. Por eso no viajan `selections`.

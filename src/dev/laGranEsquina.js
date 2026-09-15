@@ -73,10 +73,18 @@ export const LGE_LOCAL = {
     { id: 'bold', nombre: 'Bold', tipo: 'transferencia', llave: '3223739540' },
   ],
 
-  // Los combos primero porque están todo el día; el almuerzo solo aparece en
-  // su franja, y si fuera la primera pestaña el cliente entraría a una lista
-  // vacía media mañana.
+  // El desayuno primero: es lo que se arma por piezas y lo que más se pide
+  // por la mañana. Los combos cerrados siguen (están todo el día); el almuerzo
+  // solo aparece en su franja, y si fuera la primera pestaña el cliente
+  // entraría a una lista vacía media mañana.
+  //
+  // ⚠️ Esto es el archivo del alta. El doc vivo en Firestore es el que manda
+  // y NO se reescribe con el seed (pisaría `suscripcion.activa`): la
+  // categoría "Desayuno" se agrega allá con un update() puntual del campo
+  // `categorias`. Si no se agrega, LocalMenu la pinta igual al final, con el
+  // nombre que trae el producto (`categoriaNombre`).
   categorias: [
+    { id: 'desayunos', nombre: 'Desayuno', emoji: '🍳' },
     { id: 'combos', nombre: 'Combos', emoji: '🧺' },
     { id: 'almuerzos', nombre: 'Almuerzo del día', emoji: '🍛' },
   ],

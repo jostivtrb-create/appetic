@@ -453,17 +453,25 @@ export async function getMenuLaGranEsquina() {
   const ahora = horaDeBogota()
   const horaDeAlmuerzo = esLaHoraDe('almuerzos', ahora)
 
-  // Los combos se leen SIEMPRE, aunque no sea hora de almuerzo: no tienen
-  // franja. Lo que sí se ahorra fuera de hora es el menú del día, que a las
-  // ocho de la mañana no se va a usar.
-  const [combosSnap, diaSnap, configSnap, itemsSnap] = await Promise.all([
+  // Los combos y la carta pública se leen SIEMPRE, aunque no sea hora de
+  // almuerzo: no tienen franja. El menú del día también, porque además del
+  // almuerzo trae qué opciones del desayuno hay HOY. Lo único que se ahorra
+  // fuera de hora es el catálogo del almuerzo, que a las ocho no se usa.
+  const [combosSnap, publicoSnap, diaSnap, configSnap, itemsSnap] = await Promise.all([
     getDocs(collection(db, 'combos')),
-    horaDeAlmuerzo ? getDoc(doc(db, 'dailyMenu', hoy)) : null,
+    getDoc(doc(db, 'negocio', 'publico')),
+    getDoc(doc(db, 'dailyMenu', hoy)),
     horaDeAlmuerzo ? getDoc(doc(db, 'dailyMenu', 'corriente_config')) : null,
     horaDeAlmuerzo ? getDocs(collection(db, 'menuItems')) : null,
   ])
 
-  const combos = armarCombos(combosSnap.docs.map(d => ({ id: d.id, ...d.data() })))
+  const dailyMenu = diaSnap.exists() ? diaSnap.data() : null
+  const carta = publicoSnap.exists() ? (publicoSnap.data()?.carta?.armables || {}) : {}
+  const todosLosCombos = combosSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const combos = [
+    ...armarArmables(todosLosCombos, carta, dailyMenu),
+    ...armarCombos(todosLosCombos),
+  ]
 
   if (!horaDeAlmuerzo) {
     // Fuera de la hora del almuerzo el local todavía vende sus combos. Solo
@@ -473,7 +481,6 @@ export async function getMenuLaGranEsquina() {
       : { productos: [], avisoVacio: FUERA_DE_HORA }
   }
 
-  const dailyMenu = diaSnap.exists() ? diaSnap.data() : null
   if (!dailyMenu) {
     // Que no haya menú del día no siempre es un problema: la cocinera lo sube
     // cuando lo tiene. Si hay combos, se venden igual y no se le dice nada al
@@ -585,17 +592,8 @@ function armarCombos(combos = []) {
   for (const combo of combos) {
     if (combo.active === false) continue
 
-    // Los que se ARMAN al pedir no salen por internet, y es a propósito.
-    //
-    // Allá el "Desayuno" no es un plato: es una lista de grupos —caldo, huevos,
-    // bebida— donde la mesera va marcando lo que el cliente dice, y el precio
-    // es la suma de lo escogido. Aquí no hay quién escoja: saldría un producto
-    // sin precio ni contenido, y al local le llegaría una comanda en blanco que
-    // la cocinera no sabría preparar.
-    //
-    // Ofrecerlo de verdad pediría leer /products —el precio de cada opción— y
-    // Appetic pide sin cuenta, así que no puede. Lo que sí sale son los combos
-    // cerrados, que ya traen todo decidido.
+    // Los que se ARMAN al pedir salen por otro lado (`armarArmables`): no
+    // tienen precio ni lista fija, y aquí se está armando platos cerrados.
     if (Array.isArray(combo.groups) && combo.groups.length > 0) continue
 
     const precio = precioParaLlevar(combo)
@@ -634,4 +632,173 @@ function armarCombos(combos = []) {
   // precio; que el primero sea el que le conviene.
   productos.sort((a, b) => a.precio - b.precio)
   return productos
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LO QUE SE ARMA AL PEDIR (el desayuno)
+//
+// Allá el "Desayuno" no es un plato cerrado: es una lista de grupos —caldo,
+// huevos, arroz, bebida— donde la mesera va marcando lo que el cliente dice.
+// Quien solo quiere un caldito pide solo el caldito. Y si lo que marcó
+// coincide con un combo —"caldo, huevos, arroz y bebida le sale en doce"— el
+// precio del combo cae solo.
+//
+// Durante un tiempo esto no salía por internet. El motivo era real: cada
+// opción es un producto del inventario y su precio vive en /products, que pide
+// sesión porque ahí están los costos. Appetic pide sin cuenta. Así que aquí
+// solo se veían los combos cerrados, y Andrés lo dijo claro: "la gente va a
+// pedir y no le sale la opción de pedir solo un caldito de costilla".
+//
+// La salida no fue abrir /products —eso regala los costos del negocio— sino
+// que la app del local publique lo poco que la calle necesita en
+// `negocio/publico.carta.armables[comboId]`: cada opción con su nombre y su
+// precio de venta, y los precios de combo. La escribe la caja sola cada vez
+// que algo cambia (ver cartaPublica.js allá). Si para un armable no hay carta
+// publicada, no se ofrece: mejor no salir que salir sin precio.
+//
+// Lo que hay HOY viene de `dailyMenu/{hoy}.armables[comboId]`, igual que la
+// mesera lo ve: si Andrés publicó que hoy no hay pescado, aquí tampoco. Y si
+// no publicó nada, se ofrece todo, que es la regla de allá.
+//
+// ── Cómo se traduce ──
+//
+// Un producto `modo: 'pasos'` con un grupo por cada grupo de allá, todos
+// opcionales (min 0, max 1). El precio base es el recargo de llevar —por aquí
+// nadie come en el local— y cada opción trae su precio como `precioExtra`.
+// Los precios de combo van como `ofertas` (ver utils/price.js): la oferta
+// vale precio del combo + recargo, y lo que no cubra se suma aparte.
+//
+// De vuelta al local viaja `comboSeleccion` —qué opción escogió en cada
+// grupo, con los ids de allá— y la caja congela y cobra con SUS precios de
+// hoy. La carta es una copia; la caja es quien cobra.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Los grupos con solo lo que hay hoy, según lo que Andrés publicó. */
+function gruposDeHoy(carta, dailyMenu, comboId) {
+  const dia = dailyMenu?.armables?.[comboId]
+  if (!dia) return { hayHoy: true, groups: carta.groups || [] }
+  if (dia.active === false) return { hayHoy: false, groups: [] }
+  const groups = (carta.groups || [])
+    .map(g => {
+      const hoy = dia.opciones?.[g.id]
+      // Un grupo que Andrés nunca tocó al publicar sale completo, igual que allá.
+      if (!Array.isArray(hoy)) return g
+      return { ...g, options: (g.options || []).filter(o => hoy.includes(o.id)) }
+    })
+    .filter(g => (g.options || []).length > 0)
+  return { hayHoy: groups.length > 0, groups }
+}
+
+/** "Caldo · Huevos · Arroz con pan · Bebida caliente." */
+function loQueSeEscoge(groups) {
+  const nombres = groups.map(g => g.label.toLowerCase())
+  if (nombres.length === 0) return ''
+  if (nombres.length === 1) return `Escoge tu ${nombres[0]}.`
+  return `Escoge ${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}. Pide solo lo que quieras.`
+}
+
+function armarArmables(combos = [], carta = {}, dailyMenu = null) {
+  const productos = []
+  let orden = 1
+
+  for (const combo of combos) {
+    if (combo.active === false) continue
+    if (!Array.isArray(combo.groups) || combo.groups.length === 0) continue
+    const publicada = carta[combo.id]
+    // Sin carta publicada no hay precios, y sin precios no se ofrece. La caja
+    // la escribe sola en cuanto alguien abre la app del local.
+    if (!publicada || !Array.isArray(publicada.groups)) continue
+
+    const { hayHoy, groups } = gruposDeHoy(publicada, dailyMenu, combo.id)
+    if (!hayHoy) continue
+
+    const recargo = dinero(publicada.llevarSurcharge)
+    const idsDeHoy = new Set(groups.flatMap(g => g.options.map(o => o.id)))
+
+    const gruposOpciones = groups.map(g => ({
+      id: g.id,
+      nombre: g.label || 'Escoge',
+      subtitulo: 'Opcional · elige 1 o ninguno',
+      emoji: '',
+      tipo: 'unica',
+      min: 0,
+      max: 1,
+      opciones: g.options.map(o => ({
+        id: o.id,
+        nombre: o.qty > 1 ? `${o.qty} ${o.name}` : o.name,
+        emoji: '',
+        precioExtra: dinero(o.price) * (Number(o.qty) || 1),
+        foto: '',
+        // Lo que la caja necesita para congelar el pedido. Appetic no lo usa.
+        lgeProductId: o.productId || null,
+        lgeProductName: o.name,
+        lgeQty: Number(o.qty) || 1,
+      })),
+    }))
+
+    // Los precios de combo, solo los que hoy se pueden armar: un "Combo
+    // Pescado" el día que no hay pescado sería anunciar lo que no se puede
+    // pedir. Y las opciones que hoy no están se les quitan.
+    const ofertas = (publicada.deals || [])
+      .map(d => {
+        const requiere = {}
+        for (const [grupoId, ids] of Object.entries(d.match || {})) {
+          const hoy = (Array.isArray(ids) ? ids : []).filter(id => idsDeHoy.has(id))
+          if (hoy.length === 0) return null
+          requiere[grupoId] = hoy
+        }
+        if (Object.keys(requiere).length === 0) return null
+        return { id: d.id, nombre: d.name, precio: dinero(d.price), requiere }
+      })
+      .filter(Boolean)
+
+    // El "desde" de la tarjeta: el combo más barato, o si no hay combos lo más
+    // económico de cada grupo sumado. Con el recargo de llevar encima, que es
+    // lo que de verdad va a pagar.
+    const completoSuelto = groups.reduce(
+      (suma, g) => suma + Math.min(...g.options.map(o => dinero(o.price) * (Number(o.qty) || 1))), 0
+    )
+    const desde = (ofertas.length > 0
+      ? Math.min(completoSuelto, ...ofertas.map(o => o.precio))
+      : completoSuelto) + recargo
+
+    productos.push({
+      id: `armable-${combo.id}`,
+      categoria: 'desayunos',
+      categoriaNombre: 'Desayuno',
+      categoriaEmoji: '🍳',
+      nombre: publicada.name || combo.name || 'Desayuno',
+      descripcion: [
+        loQueSeEscoge(groups),
+        ofertas.length > 0 ? `Combos desde ${cop(desde)}.` : '',
+      ].filter(Boolean).join(' '),
+      foto: '',
+      emoji: '🍳',
+      disponible: true,
+      orden: orden++,
+      destacado: true,
+      // El precio base es el recargo de llevar: se le suma a lo que arme.
+      precio: recargo,
+      precioDesde: desde,
+      modo: 'pasos',
+      gruposOpciones,
+      ofertas,
+      // Todos los pasos son opcionales, pero algo tiene que llevar.
+      minElecciones: 1,
+      lge: {
+        tipo: 'armable',
+        comboId: combo.id,
+        comboName: publicada.name || combo.name || null,
+        llevarSurcharge: recargo,
+        fijos: {},
+      },
+    })
+  }
+
+  return productos
+}
+
+/** "$12.000", como lo escribe Appetic en la descripción. */
+function cop(valor) {
+  return '$' + Math.round(Number(valor) || 0).toLocaleString('es-CO')
 }
