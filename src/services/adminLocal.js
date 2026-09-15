@@ -1,5 +1,5 @@
 import {
-  doc, updateDoc, collection, addDoc, deleteDoc, increment,
+  doc, updateDoc, collection, addDoc, deleteDoc, increment, FieldPath, deleteField,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
@@ -36,3 +36,10 @@ export async function borrarProducto(localId, productoId) {
 
 // Nota: las métricas ahora viven en services/stats.js (contadores incrementales),
 // para NO leer toda la colección de pedidos cada vez (cuida costos D32).
+
+// 🔗 Foto de un plato/opción de un MENÚ EXTERNO: `locales/{id}.fotosExternas[clave]`.
+// Con `url` vacía la borra. Va por FieldPath para no depender de que la clave
+// sea "limpia" (los ids de allá traen guiones y guiones bajos).
+export async function guardarFotoExterna(localId, clave, url) {
+  await updateDoc(doc(db, 'locales', localId), new FieldPath('fotosExternas', clave), url || deleteField())
+}

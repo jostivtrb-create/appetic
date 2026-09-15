@@ -20,11 +20,12 @@
  * Nunca lanza: si algo falla, el cliente ve un aviso en vez de una página
  * caída, y el detalle queda en la consola.
  */
-export async function getMenuExterno(fuente) {
+export async function getMenuExterno(fuente, local = null) {
   try {
     if (fuente === 'la-gran-esquina') {
       const { getMenuLaGranEsquina } = await import('./menuLaGranEsquina')
-      return await getMenuLaGranEsquina()
+      // Las fotos sí son de Appetic (ver `fotosExternas` en el doc del local).
+      return await getMenuLaGranEsquina({ fotos: local?.fotosExternas })
     }
     console.warn('[menuExterno] fuente desconocida:', fuente)
     return { productos: [], avisoVacio: null }
@@ -39,4 +40,18 @@ export async function getMenuExterno(fuente) {
       },
     }
   }
+}
+
+/**
+ * Todo lo que puede llevar foto en un menú externo, para el panel del dueño.
+ * Secciones `{ id, titulo, items: [{ clave, nombre, detalle, tipo, apagado }] }`;
+ * la `clave` es con la que la foto se guarda en `local.fotosExternas`.
+ */
+export async function getCatalogoFotosExterno(fuente) {
+  if (fuente === 'la-gran-esquina') {
+    const { getCatalogoFotosLaGranEsquina } = await import('./menuLaGranEsquina')
+    return await getCatalogoFotosLaGranEsquina()
+  }
+  console.warn('[menuExterno] fuente desconocida:', fuente)
+  return []
 }
