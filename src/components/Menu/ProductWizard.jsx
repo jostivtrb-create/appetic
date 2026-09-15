@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { cop } from '../../utils/money'
-import { grupoAplica, maxDelGrupo, precioUnitario, recortarPorVariante, validarSeleccion } from '../../utils/price'
+import { grupoAplica, maxDelGrupo, ofertaAplicada, precioUnitario, recortarPorVariante, validarSeleccion } from '../../utils/price'
 import ImagenApp from '../Imagen/ImagenApp'
 import './ProductWizard.css'
 
@@ -47,6 +47,11 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   const total = pasos.length
   const actual = pasos[paso]
   const esUltimo = actual?.tipo === 'resumen'
+  // Lo que falta para poder agregar (ej. "elige al menos una cosa"). Antes el
+  // botón se quedaba mudo si algo no cuadraba; ahora lo dice.
+  const errorFinal = esUltimo ? validarSeleccion(producto, seleccion) : null
+  // La oferta que le cayó a lo que armó ("Combo Costilla"), si alguna.
+  const oferta = ofertaAplicada(producto, seleccion)
 
   function toggleOpcion(grupo, opcId) {
     // El tope manda sobre grupo.tipo: el mismo grupo es "elige 1" en un tamaño y
@@ -97,7 +102,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   }
 
   function agregar() {
-    if (validarSeleccion(producto, seleccion)) return
+    if (errorFinal) return
     onAgregar({ producto, seleccion, cantidad: 1, notas: notas.trim() })
   }
 
@@ -166,6 +171,9 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
                   <strong className="pw-resumen-nombre">{producto.nombre}</strong>
                   <span className="pw-resumen-precio">{cop(unitario)}</span>
                 </div>
+                {oferta && (
+                  <p className="pw-resumen-oferta">🏷️ Te sale como <strong>{oferta.oferta.nombre}</strong></p>
+                )}
 
                 {varianteElegida && (
                   <div className="pw-resumen-grupo">
@@ -232,8 +240,8 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
               {errorPaso || `Siguiente${pasos[paso + 1]?.grupo ? `: ${pasos[paso + 1].grupo.nombre.toLowerCase()}` : ''} ›`}
             </button>
           ) : (
-            <button className="btn btn-primary pw-next" onClick={agregar}>
-              Agregar a mi orden · {cop(unitario)}
+            <button className="btn btn-primary pw-next" onClick={agregar} disabled={!!errorFinal}>
+              {errorFinal || <>Agregar a mi orden · {cop(unitario)}</>}
             </button>
           )}
         </div>

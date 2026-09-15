@@ -225,3 +225,10 @@
   border: 1px solid var(--border); background: var(--surface);
   font-family: inherit; font-size: 14px; resize: vertical; outline: none;
 }
+
+/* La oferta que le cayó a lo que armó ("Te sale como Combo Costilla"). */
+.pw-resumen-oferta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--primary, #9F5929);
+}

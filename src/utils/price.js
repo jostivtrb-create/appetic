@@ -35,6 +35,76 @@ export function recortarPorVariante(producto, grupos = {}, varianteId) {
   return { grupos: next, cambio }
 }
 
+// 🏷️ OFERTAS: "si lleva esto y esto, sale en X".
+//
+// Appetic suma: precio base más lo que sume cada opción. Un combo no funciona
+// así —su gracia es que cuesta MENOS que la suma de sus partes— y hasta ahora
+// no había forma de decirlo. Un producto puede traer:
+//
+//   ofertas: [{ id, nombre: 'Combo Costilla', precio: 12000,
+//               requiere: { [grupoId]: [opcionId, ...] } }]
+//
+// La oferta aplica cuando en CADA grupo que nombra el cliente eligió una de
+// esas opciones. Entonces el precio de esas opciones se reemplaza por el de la
+// oferta; lo que eligió en grupos que la oferta no nombra se suma aparte, y el
+// precio base (si lo hay) también. Si aplican varias, gana la más barata.
+//
+// El cliente no escoge la oferta: arma su plato y, si coincide, el precio cae
+// solo. Es como se canta en cualquier esquina: "el combo le sale en doce".
+//
+// Nace para el desayuno de La Gran Esquina, pero no sabe nada de ese local:
+// cualquier producto con grupos puede traer ofertas.
+
+function opcionesElegidas(producto, seleccion = {}) {
+  const grupos = seleccion.grupos || {}
+  const elegidas = []
+  for (const grupo of producto.gruposOpciones || []) {
+    for (const opcId of grupos[grupo.id] || []) {
+      const opc = (grupo.opciones || []).find(o => o.id === opcId)
+      if (opc) elegidas.push({ grupoId: grupo.id, opcion: opc })
+    }
+  }
+  return elegidas
+}
+
+function precioConOferta(oferta, elegidas) {
+  const requiere = oferta?.requiere || {}
+  const grupos = Object.keys(requiere)
+  if (grupos.length === 0) return null
+  for (const grupoId of grupos) {
+    const permitidas = Array.isArray(requiere[grupoId]) ? requiere[grupoId] : []
+    const enGrupo = elegidas.filter(e => e.grupoId === grupoId)
+    if (enGrupo.length === 0) return null
+    if (!enGrupo.every(e => permitidas.includes(e.opcion.id))) return null
+  }
+  const fuera = elegidas
+    .filter(e => !requiere[e.grupoId])
+    .reduce((s, e) => s + (Number(e.opcion.precioExtra) || 0), 0)
+  return (Number(oferta.precio) || 0) + fuera
+}
+
+/**
+ * La oferta que le toca a lo elegido, si alguna: `{ oferta, precio }` donde
+ * `precio` es lo que valdrían las opciones con la oferta (sin el precio base).
+ * null cuando se cobra sumando.
+ */
+export function ofertaAplicada(producto, seleccion = {}) {
+  const ofertas = Array.isArray(producto?.ofertas) ? producto.ofertas : []
+  if (ofertas.length === 0) return null
+  const elegidas = opcionesElegidas(producto, seleccion)
+  if (elegidas.length === 0) return null
+  const suma = elegidas.reduce((s, e) => s + (Number(e.opcion.precioExtra) || 0), 0)
+  let mejor = null
+  for (const oferta of ofertas) {
+    const precio = precioConOferta(oferta, elegidas)
+    if (precio == null) continue
+    // Una oferta que salga más cara que sumar no es oferta: no se aplica.
+    if (precio >= suma) continue
+    if (!mejor || precio < mejor.precio) mejor = { oferta, precio }
+  }
+  return mejor
+}
+
 // Precio unitario (1 unidad) con sus elecciones aplicadas.
 export function precioUnitario(producto, seleccion = {}) {
   let base = Number(producto.precio) || 0
@@ -55,6 +125,10 @@ export function precioUnitario(producto, seleccion = {}) {
       if (opc) extras += Number(opc.precioExtra) || 0
     }
   }
+
+  // Si una oferta cubre lo elegido, manda su precio en vez de la suma.
+  const oferta = ofertaAplicada(producto, seleccion)
+  if (oferta) extras = oferta.precio
 
   return base + extras
 }
@@ -92,6 +166,14 @@ export function grupoAplica(grupo, seleccion = {}) {
 export function validarSeleccion(producto, seleccion = {}) {
   if (producto.variantes?.length && !seleccion.varianteId) {
     return 'Elige una opción'
+  }
+  // Un plato donde TODOS los pasos son opcionales —"arma tu desayuno: caldo,
+  // huevos, bebida"— necesita al menos algo elegido, o se estaría agregando
+  // un plato vacío. `minElecciones` lo pide en total, no por grupo.
+  const minTotal = Number(producto.minElecciones) || 0
+  if (minTotal > 0) {
+    const total = Object.values(seleccion.grupos || {}).reduce((n, ids) => n + (ids?.length || 0), 0)
+    if (total < minTotal) return minTotal === 1 ? 'Elige al menos una cosa' : `Elige al menos ${minTotal} cosas`
   }
   for (const grupo of producto.gruposOpciones || []) {
     // Un grupo que no aplica no se valida: pedir "elige al menos 1" de algo

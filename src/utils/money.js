@@ -12,7 +12,13 @@ export function cop(valor) {
 //
 // `rango` es false cuando no hay nada que comparar (precio fijo, una sola variante
 // o todas al mismo precio): ahí se muestra el precio solo, sin "entre".
+// `desde` es para los platos que se arman desde cero y cuyo precio base es
+// cero o un recargo (el desayuno que se pide por piezas): la tarjeta no puede
+// decir "$1.500" cuando lo más barato completo vale $13.500. El producto lo
+// trae en `precioDesde` y aquí se enseña como "desde".
 export function rangoPrecio(producto) {
+  const desde = Number(producto?.precioDesde) || 0
+  if (desde > 0) return { min: desde, max: desde, rango: false, desde: true }
   const precios = (producto?.variantes || [])
     .map(v => Number(v.precio) || 0)
     .filter(n => n > 0)

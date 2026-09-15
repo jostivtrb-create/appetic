@@ -46,22 +46,34 @@ Las piezas:
 
 ## Cosas que ya están resueltas (y que conviene no "arreglar")
 
-- **El almuerzo tiene hora; los combos no.** El almuerzo se pide de 11:00 a 15:30 y fuera de
-  esa franja dice *"no es hora de pedir"* (se cambia en `FRANJAS`, en
+- **El almuerzo tiene hora; los combos y el desayuno no.** El almuerzo se pide de 11:00 a
+  15:30 y fuera de esa franja dice *"no es hora de pedir"* (se cambia en `FRANJAS`, en
   `src/services/menuLaGranEsquina.js`). Los combos están todo el día a propósito: un combo
-  ya no es un desayuno —puede ser gaseosa y chocorramo— y Andrés lo prende o lo apaga con
-  el interruptor de cada combo en su inventario, que es un control más fino que una hora.
+  puede ser gaseosa y chocorramo, y Andrés lo prende o lo apaga con el interruptor de cada
+  combo en su inventario. El desayuno lo controla él con *"hoy no hay desayuno"* desde su
+  panel. Si algún día quiere que por internet solo se pida hasta cierta hora, es una
+  franja más en `FRANJAS` — pendiente de que lo diga.
 - **Lo que se acabó no se ofrece.** Si la cocinera dice "solo 5 pechugas" y se venden,
   desaparecen del menú solas. Si se acaba toda la proteína, el almuerzo entero deja de
   venderse.
-- **Los combos son platos cerrados**, no descuentos. Appetic suma opciones y no sabe aplicar
-  un combo; ponerlos como platos con precio cerrado es fiel y es como se canta en el local:
-  *"el combo le sale en doce"*. Por eso salen sin `gruposOpciones`: el combo es el combo.
-- **El combo viaja SIN lo que lleva adentro, y es correcto.** Appetic pide sin cuenta, y las
-  reglas de La Gran Esquina no le dejan leer `/products` —ahí están los costos y la marca de
-  "va a cocina"—. Así que de aquí sale solo el `comboId`; la caja, que sí tiene sesión y el
-  inventario entero, lo congela al confirmar el pedido. **No intentes "arreglarlo" abriendo
-  `/products` a lectura pública: eso filtraría los costos del negocio.**
+- **El desayuno se arma por piezas, y los combos caen solos.** El "Desayuno" de allá es un
+  combo *armable*: caldo, huevos, arroz, bebida, todos opcionales. Quien quiere un caldito
+  pide el caldito. Sus precios NO están en `/combos` (viven en `/products`, que pide sesión):
+  la app del local publica una **carta pública** en `negocio/publico.carta.armables[comboId]`
+  con cada opción, su precio y los *precios de combo*. Aquí se traduce a un plato
+  `modo: 'pasos'` con `ofertas` (ver `utils/price.js`): si lo que armó coincide con un
+  combo —"caldo, huevos, arroz y bebida"— el precio del combo cae solo. Lo que hay HOY sale
+  de `dailyMenu/{hoy}.armables[comboId]`, igual que lo ve la mesera. **Si no hay carta
+  publicada, el desayuno no se ofrece**: la caja del local la escribe sola en cuanto
+  alguien abre su app. El precio base del plato es el recargo de llevar.
+- **Los combos cerrados son platos cerrados**, no descuentos: salen sin `gruposOpciones`.
+- **El combo viaja SIN costos, y es correcto.** Appetic pide sin cuenta, y las reglas de La
+  Gran Esquina no le dejan leer `/products` —ahí están los costos y la marca de "va a
+  cocina"—. Del cerrado sale solo el `comboId`; del armable, además `comboSeleccion` (qué
+  escogió en cada grupo, con los ids de allá), `comboItems` con solo nombres y el
+  `comboDeal` que vio el cliente. La caja, que sí tiene sesión y el inventario entero, lo
+  congela y **cobra con sus precios de hoy** al confirmar. **No intentes "arreglarlo"
+  abriendo `/products` a lectura pública: eso filtraría los costos del negocio.**
 - **Un combo pedido por internet siempre genera comanda**, aunque no lleve nada de fogón.
   Esa cola es también donde el local marca "listo" y "entregado"; sin comanda, el pedido no
   sale en ninguna pantalla y el cliente llega a reclamar algo que nadie apartó.
@@ -77,6 +89,11 @@ Andrés sí maneja es su propia app —inventario, combos, menú del día—, y 
 todo lo que el cliente ve aquí. El panel es
 **`appetic.vercel.app/la-gran-esquina/admin`**.
 
+0. **🍳 La categoría "Desayuno" en el doc del local** — el traductor la manda con
+   `categoriaNombre`, así que sale igual aunque no esté en `categorias`; pero sale al final.
+   Para que sea la primera pestaña en la mañana, agregar `{ id: 'desayunos', nombre:
+   'Desayuno', emoji: '🍳' }` al principio de `categorias` en Firestore con un `update()`
+   puntual (NO el seed: pisaría `suscripcion.activa`).
 1. **📍 La ubicación** — ⚙️ Configuración → "Usar mi ubicación actual", **parado en el
    local**. Sin esto el domicilio queda apagado (la app lo dice y solo deja recoger). Es la
    única de esta lista que hay que hacer *desde el local*.

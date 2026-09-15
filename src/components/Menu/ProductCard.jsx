@@ -6,7 +6,7 @@ export default function ProductCard({ producto, onPedir }) {
   const agotado = producto.disponible === false
   // Con variantes mostramos el rango COMPLETO ("entre $19.000 - $65.000") en vez del
   // viejo "desde $19.000": el cliente ve de una hasta dónde puede llegar el plato.
-  const { min, max, rango } = rangoPrecio(producto)
+  const { min, max, rango, desde } = rangoPrecio(producto)
 
   return (
     <button
@@ -25,7 +25,9 @@ export default function ProductCard({ producto, onPedir }) {
                   <span className="pcard-desde">entre </span>
                   {cop(min)} <span className="pcard-guion">-</span> {cop(max)}
                 </>
-              : cop(min)}
+              : desde
+                ? <><span className="pcard-desde">desde </span>{cop(min)}</>
+                : cop(min)}
           </span>
           {/* Tocar la tarjeta abre el panel de detalle (ver más grande + Agregar).
               Un chip discreto "Ver" invita a tocar, sin prometer que agrega directo. */}
