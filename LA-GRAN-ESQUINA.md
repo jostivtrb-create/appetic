@@ -27,6 +27,7 @@ Las piezas:
 | `src/services/menuExterno.js` | El desvío: los locales con `menuExterno` no leen sus productos de aquí. |
 | `src/services/pedidoLaGranEsquina.js` | El viaje de vuelta: deja el pedido en la app del negocio. |
 | `scripts/seed-la-gran-esquina.mjs` | El alta en Firestore. **No siembra productos**, solo la identidad. |
+| `scripts/update-la-gran-esquina-categorias.mjs` | El `update()` puntual que pone "Desayuno" de primera categoría sin pisar nada más. |
 
 ---
 
@@ -91,9 +92,11 @@ todo lo que el cliente ve aquí. El panel es
 
 0. **🍳 La categoría "Desayuno" en el doc del local** — el traductor la manda con
    `categoriaNombre`, así que sale igual aunque no esté en `categorias`; pero sale al final.
-   Para que sea la primera pestaña en la mañana, agregar `{ id: 'desayunos', nombre:
-   'Desayuno', emoji: '🍳' }` al principio de `categorias` en Firestore con un `update()`
-   puntual (NO el seed: pisaría `suscripcion.activa`).
+   Para que sea la primera pestaña en la mañana, correr desde el PC que tenga
+   `scripts/serviceAccount.json`:
+   `node scripts/update-la-gran-esquina-categorias.mjs` (muestra el plan) y luego con
+   `--apply` (escribe). Solo toca `categorias` y conserva las que ya haya. **NO el seed**:
+   pisaría `suscripcion.activa`.
 1. **📍 La ubicación** — ⚙️ Configuración → "Usar mi ubicación actual", **parado en el
    local**. Sin esto el domicilio queda apagado (la app lo dice y solo deja recoger). Es la
    única de esta lista que hay que hacer *desde el local*.
