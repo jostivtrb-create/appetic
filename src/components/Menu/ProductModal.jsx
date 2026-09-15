@@ -25,7 +25,8 @@ export default function ProductModal({ producto, onCerrar, onAgregar }) {
       // hasta llenar. Mandamos por el TOPE y no por grupo.tipo: la misma pizza es
       // "elige 1" en personal y "elige hasta 3" en familiar.
       if (max <= 1) {
-        nuevas = [opcId]
+        // Y si el grupo no exige nada (min 0), tocar de nuevo lo elegido lo quita.
+        nuevas = yaEsta && (grupo.min ?? 0) < 1 ? [] : [opcId]
       } else {
         if (yaEsta) nuevas = actuales.filter(id => id !== opcId)
         else {

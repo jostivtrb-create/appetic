@@ -28,6 +28,7 @@ Las piezas:
 | `src/services/pedidoLaGranEsquina.js` | El viaje de vuelta: deja el pedido en la app del negocio. |
 | `scripts/seed-la-gran-esquina.mjs` | El alta en Firestore. **No siembra productos**, solo la identidad. |
 | `scripts/update-la-gran-esquina-categorias.mjs` | El `update()` puntual que pone "Desayuno" de primera categoría sin pisar nada más. |
+| `src/pages/Admin/AdminFotosExternas.jsx` | El panel de fotos: como aquí no hay productos que editar, el catálogo del admin es esto. |
 
 ---
 
@@ -68,6 +69,13 @@ Las piezas:
   publicada, el desayuno no se ofrece**: la caja del local la escribe sola en cuanto
   alguien abre su app. El precio base del plato es el recargo de llevar.
 - **Los combos cerrados son platos cerrados**, no descuentos: salen sin `gruposOpciones`.
+- **Las fotos sí son de Appetic.** Allá no hay fotos (es una caja, no una carta). Andrés las
+  genera con IA desde su panel de Appetic como cualquier dueño, y quedan en el doc del local
+  en `fotosExternas: { [clave]: url }`: la clave es el `id` del plato que arma el traductor
+  (`combo-<id>`, `armable-<id>`, `almuerzo-corriente`, `almuerzo-especial`) o `opcion-<id>`
+  con el id de allá (un `menuItem` del almuerzo, `o_costilla` del desayuno, `ad-sopa`). El
+  traductor las pega al armar el menú (`conFotos`). La porción extra de proteína usa la foto
+  de esa proteína. Se suben una vez y sirven cada día que ese plato salga.
 - **El combo viaja SIN costos, y es correcto.** Appetic pide sin cuenta, y las reglas de La
   Gran Esquina no le dejan leer `/products` —ahí están los costos y la marca de "va a
   cocina"—. Del cerrado sale solo el `comboId`; del armable, además `comboSeleccion` (qué
@@ -106,6 +114,9 @@ todo lo que el cliente ve aquí. El panel es
    demás**: como no tiene productos guardados en Appetic, el inicio no puede mostrar fotos
    de sus platos, así que la tarjeta del local se apoya en el banner. El prompt para
    generarlo está en `public/locales/la-gran-esquina/PROMPTS.md`.
+4. **📸 Las fotos de los platos** — 🍔 Catálogo del panel. Lista el desayuno con sus
+   opciones, los combos y todo el inventario del almuerzo; en cada uno, **✨ IA** arma el
+   prompt y abre Gemini, y **📱 Subir** la guarda. Una vez por plato, y queda.
 
 > **Nota:** `suscripcion.activa` ya está en **`true`** en Firestore (el local sale en el
 > buscador). En `src/dev/laGranEsquina.js` sigue en `false`, que era el valor del alta.

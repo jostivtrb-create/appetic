@@ -827,3 +827,45 @@
   background: #25D366; color: #fff;
 }
 .dif-wa svg { flex: none; }
+
+/* 📸 Fotos de un menú EXTERNO (el menú no vive en Appetic; las fotos sí) */
+.afe-intro { margin-bottom: 14px; }
+.afe-titulo { font-size: 17px; font-weight: 800; margin: 0 0 4px; }
+.afe-texto { font-size: 13.5px; color: var(--text-soft); margin: 0; line-height: 1.5; }
+.afe-progreso {
+  display: inline-block; margin: 10px 0 0;
+  font-size: 12.5px; font-weight: 700;
+  color: var(--local-primary-strong, var(--brand-orange-strong));
+  background: var(--brand-orange-tint);
+  padding: 4px 10px; border-radius: var(--radius-pill);
+}
+.afe-sec-title { cursor: default; }
+.afe-item { align-items: center; }
+.afe-detalle { font-size: 12.5px; color: var(--text-soft); margin: 2px 0 0; }
+.afe-foto-error { outline: 2px solid var(--danger); }
+.afe-acciones { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.afe-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 8px 10px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-soft);
+  font-weight: 700; font-size: 12.5px;
+  cursor: pointer; white-space: nowrap;
+}
+.afe-btn-off { opacity: 0.6; cursor: wait; }
+.afe-btn-ia {
+  border-color: var(--local-primary, var(--brand-orange));
+  color: var(--local-primary-strong, var(--brand-orange-strong));
+  background: var(--brand-orange-tint);
+}
+.afe-quitar {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--surface-2); color: var(--text-faint);
+  font-size: 12px; font-weight: 700;
+}
+@media (max-width: 420px) {
+  .afe-btn span { display: none; }
+  .afe-btn { padding: 8px 9px; }
+}

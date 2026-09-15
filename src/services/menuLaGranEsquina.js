@@ -447,7 +447,119 @@ function armarEspecial(dailyMenu, resueltos) {
  * "todavía no lo han subido" invita a volver en un rato, "ya se acabó" no.
  * Sin eso, la página quedaba en blanco sin explicar nada.
  */
-export async function getMenuLaGranEsquina() {
+export async function getMenuLaGranEsquina({ fotos } = {}) {
+  const res = await leerMenuDeHoy()
+  return { ...res, productos: conFotos(res.productos, fotos) }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LAS FOTOS
+//
+// El menú se arma en vivo desde la app del local y allá no hay fotos: es una
+// caja, no una carta. Pero una tarjeta sin foto se ve pobre, y las fotos son
+// de Appetic —Andrés las genera con IA desde su panel, igual que los demás
+// dueños—. Como aquí no hay productos guardados donde colgarlas, viven en el
+// doc del local, en `fotosExternas: { [clave]: url }`, y se pegan sobre lo que
+// el traductor arma:
+//
+//   • un plato  → su `id` de Appetic ("combo-<id>", "armable-<id>",
+//                 "almuerzo-corriente", "almuerzo-especial")
+//   • una opción → "opcion-<id>" con el id de allá (un menuItem del almuerzo,
+//                 una opción del desayuno como "o_costilla", o "ad-sopa")
+//
+// La porción extra de proteína ("ad-prot-<id>") usa la foto de esa proteína:
+// es la misma pechuga.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** La clave con la que una opción busca su foto en `fotosExternas`. */
+function claveDeOpcion(opcion) {
+  return `opcion-${opcion.lgeAddon?.proteinId || opcion.id}`
+}
+
+function conFotos(productos, fotos) {
+  if (!fotos || typeof fotos !== 'object') return productos
+  return productos.map(p => ({
+    ...p,
+    foto: fotos[p.id] || p.foto || '',
+    gruposOpciones: (p.gruposOpciones || []).map(g => ({
+      ...g,
+      opciones: (g.opciones || []).map(o => ({ ...o, foto: fotos[claveDeOpcion(o)] || o.foto || '' })),
+    })),
+  }))
+}
+
+/**
+ * Todo lo que puede llevar foto, para el panel: el desayuno con cada una de
+ * sus opciones, los combos cerrados y el almuerzo con TODOS los ítems del
+ * inventario de la cocina (no solo los de hoy: la foto de la sopa de mondongo
+ * se sube una vez y sirve cada jueves).
+ *
+ * Devuelve secciones `{ id, titulo, items: [{ clave, nombre, detalle, tipo, apagado }] }`.
+ */
+export async function getCatalogoFotosLaGranEsquina() {
+  const db = dbLaGranEsquina()
+  const [combosSnap, publicoSnap, itemsSnap] = await Promise.all([
+    getDocs(collection(db, 'combos')),
+    getDoc(doc(db, 'negocio', 'publico')),
+    getDocs(collection(db, 'menuItems')),
+  ])
+  const combos = combosSnap.docs.map(d => ({ id: d.id, ...d.data() }))
+  const carta = publicoSnap.exists() ? (publicoSnap.data()?.carta?.armables || {}) : {}
+  const secciones = []
+
+  // El desayuno (y cualquier otro armable): el plato y cada opción.
+  for (const combo of combos) {
+    if (!Array.isArray(combo.groups) || combo.groups.length === 0) continue
+    const publicada = carta[combo.id]
+    const nombre = publicada?.name || combo.name || 'Desayuno'
+    const items = [{
+      clave: `armable-${combo.id}`, nombre, detalle: 'La tarjeta del plato en el menú',
+      tipo: 'producto', apagado: combo.active === false,
+    }]
+    for (const g of publicada?.groups || []) {
+      for (const o of g.options || []) {
+        items.push({ clave: `opcion-${o.id}`, nombre: o.name, detalle: g.label, tipo: 'opcion' })
+      }
+    }
+    secciones.push({ id: `armable-${combo.id}`, titulo: `🍳 ${nombre}`, items })
+  }
+
+  // Los combos cerrados.
+  const cerrados = combos.filter(c => !(Array.isArray(c.groups) && c.groups.length > 0))
+  if (cerrados.length > 0) {
+    secciones.push({
+      id: 'combos', titulo: '🧺 Combos',
+      items: cerrados.map(c => ({
+        clave: `combo-${c.id}`, nombre: c.name || 'Combo', detalle: loQueLleva(c),
+        tipo: 'producto', apagado: c.active === false,
+      })),
+    })
+  }
+
+  // El almuerzo: las dos tarjetas y todo el inventario de la cocina por categoría.
+  const menuItems = itemsSnap.docs.map(d => ({ id: d.id, ...d.data() })).filter(m => !m.archived)
+  const items = [
+    { clave: 'almuerzo-corriente', nombre: 'Almuerzo del día', detalle: 'La tarjeta del plato en el menú', tipo: 'producto' },
+    { clave: 'almuerzo-especial', nombre: 'Almuerzo especial', detalle: 'La tarjeta, los días que la cocina lo activa', tipo: 'producto' },
+  ]
+  for (const cat of [...CATEGORIAS, { id: 'especial', nombre: 'Especial' }]) {
+    const deLaCategoria = menuItems
+      .filter(m => m.category === cat.id)
+      .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'es'))
+    for (const m of deLaCategoria) {
+      items.push({ clave: `opcion-${m.id}`, nombre: m.name || '(sin nombre)', detalle: cat.nombre, tipo: 'opcion' })
+    }
+  }
+  items.push(
+    { clave: 'opcion-ad-sopa', nombre: 'Sopa adicional', detalle: '¿Algo más?', tipo: 'opcion' },
+    { clave: 'opcion-ad-huevo', nombre: 'Huevo', detalle: '¿Algo más?', tipo: 'opcion' },
+  )
+  secciones.push({ id: 'almuerzos', titulo: '🍛 Almuerzo del día', items })
+
+  return secciones
+}
+
+async function leerMenuDeHoy() {
   const db = dbLaGranEsquina()
   const hoy = fechaDeHoyBogota()
   const ahora = horaDeBogota()

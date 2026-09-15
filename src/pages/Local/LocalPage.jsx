@@ -81,7 +81,7 @@ export default function LocalPage() {
       // lee tal cual, sin copiarlo. Sin caché por versión: el menú del día
       // cambia durante el día y una copia vieja vendería lo que ya no hay.
       const res = data.menuExterno
-        ? await getMenuExterno(data.menuExterno)
+        ? await getMenuExterno(data.menuExterno, data)
         : { productos: await getProductos(data.id, data.menuVersion), avisoVacio: null }
       if (!activo) return
       setLocal(data)

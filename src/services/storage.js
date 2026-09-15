@@ -29,3 +29,14 @@ export async function subirFotoOpcion(localId, grupoId, opcId, file) {
   await uploadBytes(r, blob, { contentType: tipo })
   return await getDownloadURL(r)
 }
+
+// 🔗 Sube la foto de un plato u opción de un MENÚ EXTERNO (el menú no vive en
+// Appetic, pero sus fotos sí). `clave` es la misma con la que se guarda en
+// `local.fotosExternas` ("combo-<id>", "opcion-<id>"…).
+export async function subirFotoExterna(localId, clave, file) {
+  const { blob, tipo, ext } = await comprimirImagen(file)
+  const ruta = `locales/${localId}/externas/${clave}.${ext}`
+  const r = ref(storage, ruta)
+  await uploadBytes(r, blob, { contentType: tipo })
+  return await getDownloadURL(r)
+}

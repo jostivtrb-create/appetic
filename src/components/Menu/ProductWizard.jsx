@@ -62,7 +62,10 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
       const yaEsta = actuales.includes(opcId)
       let nuevas
       if (max <= 1) {
-        nuevas = [opcId]
+        // Tope 1: radio. Pero si el grupo no exige nada (min 0, "elige 1 o
+        // ninguno"), tocar de nuevo lo elegido lo QUITA: quien marcó huevos y
+        // se arrepintió tiene que poder quedarse sin huevos, no solo cambiarlos.
+        nuevas = yaEsta && (grupo.min ?? 0) < 1 ? [] : [opcId]
       } else {
         if (yaEsta) nuevas = actuales.filter(id => id !== opcId)
         else {

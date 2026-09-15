@@ -4,10 +4,11 @@ import { useAuth } from '../../contexts/AuthContext'
 import { getLocalBySlug } from '../../services/locales'
 import { getProductos } from '../../services/productos'
 import {
-  agregarProducto, actualizarProducto, borrarProducto, actualizarLocal,
+  agregarProducto, actualizarProducto, borrarProducto, actualizarLocal, guardarFotoExterna,
 } from '../../services/adminLocal'
-import { subirFotoProducto, subirFotoOpcion, subirBanner } from '../../services/storage'
+import { subirFotoProducto, subirFotoOpcion, subirBanner, subirFotoExterna } from '../../services/storage'
 import AdminProductos from './AdminProductos'
+import AdminFotosExternas from './AdminFotosExternas'
 import AdminConfig from './AdminConfig'
 import AdminMetricas from './AdminMetricas'
 import AdminDifundir from './AdminDifundir'
@@ -168,6 +169,22 @@ export default function AdminPage() {
     if (demo) return URL.createObjectURL(file)
     return await subirFotoOpcion(local.id, grupoId, opcId, file)
   }
+  // 📸 Menú EXTERNO: la foto de un plato/opción que Appetic no guarda como producto.
+  // Va a Storage y su URL a `local.fotosExternas[clave]`; el traductor la pega al
+  // armar el menú. Con `null` se quita.
+  async function subirFotoExternaYGuardar(clave, file) {
+    const url = demo ? URL.createObjectURL(file) : await subirFotoExterna(local.id, clave, file)
+    if (!demo) await guardarFotoExterna(local.id, clave, url)
+    setLocal(l => ({ ...l, fotosExternas: { ...(l.fotosExternas || {}), [clave]: url } }))
+    return url
+  }
+  async function quitarFotoExterna(clave) {
+    if (!demo) await guardarFotoExterna(local.id, clave, null)
+    setLocal(l => {
+      const { [clave]: _, ...resto } = l.fotosExternas || {}
+      return { ...l, fotosExternas: resto }
+    })
+  }
   // 🖼️ Sube el banner del local y lo guarda en local.banner (se ve en el inicio + hero).
   async function subirBannerYGuardar(file) {
     if (demo) { const url = URL.createObjectURL(file); await updateLocal({ banner: url }); return url }
@@ -259,7 +276,11 @@ export default function AdminPage() {
         {seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} />
           : seccion === 'config' ? <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} />
             : seccion === 'metricas' ? <AdminMetricas local={local} demo={demo} />
-              : (
+              : local.menuExterno ? (
+                // El menú vive en la app del negocio: aquí no hay productos que
+                // editar, solo fotos que ponerles.
+                <AdminFotosExternas local={local} onFoto={subirFotoExternaYGuardar} onQuitarFoto={quitarFotoExterna} />
+              ) : (
                 <AdminProductos
                   local={local}
                   slug={slug}
