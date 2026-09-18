@@ -259,7 +259,14 @@
 .pw-card-nolleva .pw-card-nombre { text-decoration: line-through; opacity: 0.75; }
 .pw-card-nolleva .pw-card-foto-img { opacity: 0.5; }
 
-.pw-resumen-nolleva .pw-resumen-nombre-opc { text-decoration: line-through; opacity: 0.7; }
+/* "No lo lleva" no va tachado: no es una opción descartada, es una decisión.
+   Lo tachado insinúa que escogió algo y se arrepintió, y no fue así. */
+.pw-resumen-nolleva .pw-resumen-nombre-opc { font-weight: 700; }
+.pw-nolleva-cobro {
+  margin-left: 6px; font-size: 11.5px; font-weight: 500; color: var(--text-faint);
+}
+/* La cuadrícula, apagada mientras manda el chip. */
+.pw-card-apagada { opacity: 0.35; }
 .pw-nolleva-tag {
   margin-left: 6px;
   font-size: 11.5px;

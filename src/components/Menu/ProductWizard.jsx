@@ -11,14 +11,21 @@ import './ProductWizard.css'
 export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   const [varianteId, setVarianteId] = useState(producto.variantes?.length ? producto.variantes[0].id : null)
   const [grupos, setGrupos] = useState({}) // { grupoId: [opcionId, ...] }
-  // ⊘ Lo que escogió pero NO quiere que le pongan: { grupoId: true }.
+  // ⊘ Los pasos que el cliente dijo que NO le pongan: { grupoId: true }.
   //
-  // No es "seguir sin escoger". Los pasos del desayuno son obligatorios, así
-  // que sin elegir nada el paso no se completa y el descuento no aplica. Es
-  // "escogí esto Y no me lo pongas": sigue costando igual —el desayuno vale
-  // lo mismo— y viaja marcado para que en la cocina lean "Chocolate — NO LO
-  // LLEVA" en vez de tener que adivinar si el cliente no lo pidió o si la app
-  // se lo comió. En la duda lo preparan, y ahí se pierde.
+  // Esto pedía dos toques: marcar "no lo lleva" y después decir cuál era. La
+  // razón era el precio —la bebida puede ser un chocolate de $3.000 o un jugo
+  // de $5.000, y sin saber cuál no hay qué cobrar—, pero le cargaba al cliente
+  // una pregunta que él no puede contestar: no quiere bebida, no "no quiere el
+  // chocolate". Preguntarle cuál no quiere es pedirle que se invente un dato.
+  //
+  // Ahora el chip resuelve el paso solo: cobra la opción más barata de la
+  // sección —para que la cuenta cuadre, y es la que le conviene— y la marca.
+  // Un toque.
+  //
+  // Se marca y no se calla porque del otro lado la cocinera lee "no lleva" en
+  // vez de adivinar: si el renglón simplemente faltara, en la duda lo prepara.
+  // Y el inventario no le baja el stock a algo que sigue en la olla.
   const [noLleva, setNoLleva] = useState({})
   const [paso, setPaso] = useState(0)
   // Indicaciones sí; cantidad NO.
@@ -86,19 +93,35 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
       }
       return { ...prev, [grupo.id]: nuevas }
     })
-  }
-
-  // El chip de "no lo lleva" de un paso. Va aparte de la elección a propósito:
-  // el que sí se lo lleva —el 95%— no lo toca nunca y su camino queda igual
-  // que siempre (toca su opción y sigue). El que no, lo toca y además dice
-  // cuál era; en cualquier orden, porque son dos cosas independientes.
-  function toggleNoLleva(grupoId) {
+    // Si venía marcado "no lo lleva" y ahora escoge de verdad, la marca sobra.
     setNoLleva(prev => {
+      if (!prev[grupo.id]) return prev
       const next = { ...prev }
-      if (next[grupoId]) delete next[grupoId]
-      else next[grupoId] = true
+      delete next[grupo.id]
       return next
     })
+  }
+
+  // El chip de "no lo lleva" resuelve el paso de un toque: escoge la opción más
+  // barata —para que haya qué cobrar— y la marca. Volverlo a tocar deshace las
+  // dos cosas y el paso queda como estaba, sin nada escogido.
+  //
+  // El que sí se lo lleva —el 95%— no lo toca nunca: su camino es el de
+  // siempre, tocar su opción y seguir.
+  function toggleNoLleva(grupo) {
+    const yaEsta = !!noLleva[grupo.id]
+    if (yaEsta) {
+      setNoLleva(prev => { const n = { ...prev }; delete n[grupo.id]; return n })
+      setGrupos(prev => ({ ...prev, [grupo.id]: [] }))
+      return
+    }
+    const opciones = grupo.opciones || []
+    if (opciones.length === 0) return
+    const barata = opciones.reduce((min, o) => (
+      (Number(o.precioExtra) || 0) < (Number(min.precioExtra) || 0) ? o : min
+    ), opciones[0])
+    setGrupos(prev => ({ ...prev, [grupo.id]: [barata.id] }))
+    setNoLleva(prev => ({ ...prev, [grupo.id]: true }))
   }
 
   // Volver atrás y cambiar de tamaño puede encoger el tope: recortamos lo que ya no cabe.
@@ -187,7 +210,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
               max={maxDelGrupo(actual.grupo, varianteId)}
               noLleva={!!noLleva[actual.grupo.id]}
               onToggle={toggleOpcion}
-              onToggleNoLleva={toggleNoLleva}
+              onToggleNoLleva={() => toggleNoLleva(actual.grupo)}
             />
           )}
 
@@ -218,12 +241,25 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
 
                 {gruposConSeleccion.map(g => (
                   <div key={g.id} className="pw-resumen-grupo">
-                    <span className="pw-resumen-grupo-titulo">{g.emoji} {g.nombre} · {g.elegidas.length}</span>
+                    <span className="pw-resumen-grupo-titulo">
+                      {g.emoji} {g.nombre}{g.noLleva ? '' : ` · ${g.elegidas.length}`}
+                    </span>
                     <ul className="pw-resumen-lista">
-                      {g.elegidas.map(o => (
-                        <li key={o.id} className={g.noLleva ? 'pw-resumen-nolleva' : ''}>
+                      {/* Si no lo lleva se dice ESO, no el nombre de la opción:
+                          no escogió el chocolate, dijo que no quiere bebida.
+                          Enseñárselo tachado es contarle una decisión que no
+                          tomó. El nombre va chiquito, porque es lo que se le
+                          cobra y tiene derecho a verlo. */}
+                      {g.noLleva ? (
+                        <li className="pw-resumen-nolleva">
+                          <span className="pw-resumen-nombre-opc">No lo lleva</span>
+                          {g.elegidas[0] && (
+                            <span className="pw-nolleva-cobro">se cobra {g.elegidas[0].nombre.toLowerCase()}</span>
+                          )}
+                        </li>
+                      ) : g.elegidas.map(o => (
+                        <li key={o.id}>
                           <span className="pw-resumen-nombre-opc">{o.emoji ? `${o.emoji} ` : ''}{o.nombre}</span>
-                          {g.noLleva && <span className="pw-nolleva-tag">⊘ no lo lleva</span>}
                         </li>
                       ))}
                     </ul>
@@ -306,34 +342,37 @@ function PasoGrupo({ grupo, elegidas, max, noLleva = false, onToggle, onToggleNo
           type="button"
           className={`pw-nolleva ${noLleva ? 'on' : ''}`}
           aria-pressed={noLleva}
-          onClick={() => onToggleNoLleva(grupo.id)}
+          onClick={() => onToggleNoLleva()}
         >
-          ⊘ No lo lleva <span className="pw-nolleva-nota">(se cobra igual)</span>
+          {noLleva
+            ? <>✓ No lleva {grupo.nombre.toLowerCase()} <span className="pw-nolleva-nota">(toca para deshacer)</span></>
+            : <>⊘ No lleva {grupo.nombre.toLowerCase()} <span className="pw-nolleva-nota">(se cobra igual)</span></>}
         </button>
       )}
       <div className="pw-contador" aria-live="polite">
         {noLleva
-          ? (elegidas.length > 0
-              ? 'Marcado: no se lo ponemos ✓'
-              : 'Dinos cuál era — se cobra igual y la cocina lo verá marcado')
+          ? 'Listo — no te lo ponemos. Se cobra igual y la cocina lo verá marcado.'
           : elegidas.length > 0
             ? `${elegidas.length}${conTope ? ` de ${max}` : ''} elegido${elegidas.length > 1 ? 's' : ''} ✓`
             : 'Toca para agregar'}
       </div>
       <div className="pw-grid">
         {grupo.opciones.map(opc => {
-          const sel = elegidas.includes(opc.id)
+          // Con "no lo lleva" puesto, la opción más barata queda escogida para
+          // poder cobrar — pero el cliente no la escogió, así que no se pinta
+          // como suya: se apaga la cuadrícula entera y manda el chip.
+          const sel = elegidas.includes(opc.id) && !noLleva
           const bloqueada = max > 1 && lleno && !sel
           return (
             <button
               key={opc.id}
-              className={`pw-card ${sel ? 'sel' : ''} ${bloqueada ? 'pw-card-bloq' : ''} ${sel && noLleva ? 'pw-card-nolleva' : ''}`}
+              className={`pw-card ${sel ? 'sel' : ''} ${bloqueada ? 'pw-card-bloq' : ''} ${noLleva ? 'pw-card-apagada' : ''}`}
               disabled={bloqueada}
               onClick={() => onToggle(grupo, opc.id)}
             >
               <span className="pw-card-foto">
                 <ImagenApp className="pw-card-foto-img" src={opc.foto} alt="" />
-                {sel && <span className="pw-card-check">{noLleva ? '⊘' : '✓'}</span>}
+                {sel && <span className="pw-card-check">✓</span>}
               </span>
               <span className="pw-card-nombre">{opc.nombre}</span>
               {opc.precioExtra > 0 && <span className="pw-card-precio">+{cop(opc.precioExtra)}</span>}

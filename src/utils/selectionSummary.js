@@ -25,13 +25,16 @@ export function resumenSeleccion(producto, seleccion = {}) {
     const nombres = elegidas
       .map(id => grupo.opciones.find(o => o.id === id)?.nombre)
       .filter(Boolean)
-    // ⊘ Lo que escogió y NO quiere que le pongan va DICHO, no callado. Este
-    // texto es el que viaja en el WhatsApp y el que alguien lee en el local:
-    // "Chocolate (NO LO LLEVA)" se entiende; un renglón que falta, no — y en
-    // la duda lo preparan.
+    // ⊘ Lo que NO quiere que le pongan va DICHO, no callado: un renglón que
+    // falta no se distingue de uno que se perdió, y en la duda lo preparan.
+    //
+    // Se nombra el PASO y no la opción. Con "no lo lleva" se deja escogida la
+    // más barata para poder cobrar, pero el cliente no la escogió: escribir
+    // "Chocolate (NO LO LLEVA)" le atribuye una decisión que no tomó, y a quien
+    // lo lee en el local le hace pensar que pidió chocolate.
     if (nombres.length) {
       partes.push(noLleva[grupo.id]
-        ? `${nombres.join(', ')} (NO LO LLEVA)`
+        ? `SIN ${(grupo.nombre || 'esto').toLowerCase()}`
         : nombres.join(', '))
     }
   }

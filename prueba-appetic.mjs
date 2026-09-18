@@ -72,6 +72,7 @@ const conNombres = {
   ...desayuno,
   gruposOpciones: desayuno.gruposOpciones.map(g => ({
     ...g,
+    nombre: { caldo:'Caldos', huevos:'Huevos', acompanante:'Acompañante', bebida:'Bebida' }[g.id],
     opciones: g.opciones.map(o => ({
       ...o,
       nombre: { o_cost:'Caldo de costilla', o_frit:'Huevos fritos', o_ranch:'Huevos rancheros',
@@ -114,9 +115,9 @@ eq('una marca sobre un grupo vacío no viaja',
    seleccionDelArmable(conNombres, sel({caldo:['o_cost']}, {bebida:true})).comboNoLleva, null)
 
 console.log('\n── ⊘ Lo que lee la cocinera en el WhatsApp ──')
-eq('el resumen lo DICE, no lo calla',
+eq('el resumen nombra el PASO, no la opción que se cobró',
    resumenSeleccion(conNombres, sinBebida),
-   'Completo · Caldo de costilla · Huevos fritos · Arroz con pan · Chocolate (NO LO LLEVA)')
+   'Completo · Caldo de costilla · Huevos fritos · Arroz con pan · SIN bebida')
 
 
 // ── El almuerzo no se tocó ───────────────────────────────────────────────────
