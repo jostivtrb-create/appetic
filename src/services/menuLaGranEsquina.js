@@ -65,8 +65,22 @@ import { dbLaGranEsquina, fechaDeHoyBogota, horaDeBogota } from '../config/fireb
 // Los COMBOS sueltos siguen sin hora: un combo de gaseosa y chocorramo se
 // vende a las cuatro igual que a las siete, y el que solo quiera vender
 // temprano lo apaga desde la app del local.
+//
+// ⚠️ TEMPORAL — 2026-09-18. El desayuno abre a MEDIANOCHE y no a las 06:00.
+//
+// Andrés quería probar el "no lo lleva" y a la hora en que lo tuvo listo ya
+// eran pasadas las once y media: el desayuno no salía, y esperar a la mañana
+// siguiente para tocar un botón es como se pierden los cambios sin revisar.
+//
+// Lo que esto abre de verdad es la madrugada, de 00:00 a 06:00. El riesgo es
+// bajo pero existe: un pedido a las tres de la mañana entra a `customerOrders`
+// y nadie lo ve hasta que alguien abra la caja. Lo aguanta porque este local
+// NO sale en el buscador de Appetic (`suscripcion.activa: false`): solo pide
+// quien tenga el link, que hoy son Andrés y quien él le pase.
+//
+// PARA VOLVER A LA NORMALIDAD: `desde: '06:00'`. Una línea.
 const FRANJAS = {
-  desayunos: { desde: '06:00', hasta: '11:30' },
+  desayunos: { desde: '00:00', hasta: '11:30' },
   almuerzos: { desde: '11:00', hasta: '15:30' },
 }
 
