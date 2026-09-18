@@ -56,16 +56,17 @@ import { dbLaGranEsquina, fechaDeHoyBogota, horaDeBogota } from '../config/fireb
 // ⚠️ Puestas a ojo — que Andrés diga las de verdad. Cambiarlas es cambiar
 // estas tres líneas.
 //
-// Los COMBOS no tienen hora. Antes esto decía `desayunos: 06:00 a 11:00`
-// porque lo único que había era el desayuno, y a la una de la tarde nadie
-// pide caldo. Pero un combo ya no es un desayuno: Andrés arma el que quiera
-// con los productos que tenga, y un combo de gaseosa y chocorramo se vende a
-// las cuatro de la tarde igual que a las siete de la mañana.
+// El DESAYUNO vuelve a tener hora. Se le había quitado cuando pasó a ser un
+// combo cualquiera, y quedó pasando esto: se podía pedir un caldo de costilla
+// a las cuatro de la tarde, cuando en el local hace rato apagaron esa olla.
+// Andrés pidió 06:00 a 11:30 — la media hora de más es para el que manda el
+// pedido justo cuando la cocina está cerrando el desayuno.
 //
-// Y sí tiene interruptor: el combo que solo quiera vender temprano lo apaga
-// desde Inventario. Eso lo decide él mirando el negocio, no una hora escrita
-// aquí que nadie recuerda que existe.
+// Los COMBOS sueltos siguen sin hora: un combo de gaseosa y chocorramo se
+// vende a las cuatro igual que a las siete, y el que solo quiera vender
+// temprano lo apaga desde la app del local.
 const FRANJAS = {
+  desayunos: { desde: '06:00', hasta: '11:30' },
   almuerzos: { desde: '11:00', hasta: '15:30' },
 }
 
@@ -103,7 +104,8 @@ const SE_ACABO = {
 const FUERA_DE_HORA = {
   emoji: '🕐',
   titulo: 'No es hora de pedir',
-  detalle: `El almuerzo se pide de ${FRANJAS.almuerzos.desde} a ${FRANJAS.almuerzos.hasta}.`,
+  detalle: `El desayuno se pide de ${FRANJAS.desayunos.desde} a ${FRANJAS.desayunos.hasta}`
+    + `, y el almuerzo de ${FRANJAS.almuerzos.desde} a ${FRANJAS.almuerzos.hasta}.`,
 }
 
 const FOTOS = {
@@ -564,6 +566,10 @@ async function leerMenuDeHoy() {
   const hoy = fechaDeHoyBogota()
   const ahora = horaDeBogota()
   const horaDeAlmuerzo = esLaHoraDe('almuerzos', ahora)
+  // A las cuatro de la tarde en el local ya apagaron la olla del caldo. Sin
+  // esto el desayuno se podía pedir a cualquier hora, que fue justo lo que
+  // pasó cuando dejó de tener franja.
+  const horaDeDesayuno = esLaHoraDe('desayunos', ahora)
 
   // Los combos y la carta pública se leen SIEMPRE, aunque no sea hora de
   // almuerzo: no tienen franja. El menú del día también, porque además del
@@ -581,7 +587,7 @@ async function leerMenuDeHoy() {
   const carta = publicoSnap.exists() ? (publicoSnap.data()?.carta?.armables || {}) : {}
   const todosLosCombos = combosSnap.docs.map(d => ({ id: d.id, ...d.data() }))
   const combos = [
-    ...armarArmables(todosLosCombos, carta, dailyMenu),
+    ...armarArmables(todosLosCombos, carta, dailyMenu, horaDeDesayuno),
     ...armarCombos(todosLosCombos),
   ]
 
@@ -774,11 +780,12 @@ function armarCombos(combos = []) {
 //
 // ── Cómo se traduce ──
 //
-// Un producto `modo: 'pasos'` con un grupo por cada grupo de allá, todos
-// opcionales (min 0, max 1). El precio base es el recargo de llevar —por aquí
-// nadie come en el local— y cada opción trae su precio como `precioExtra`.
-// Los precios de combo van como `ofertas` (ver utils/price.js): la oferta
-// vale precio del combo + recargo, y lo que no cubra se suma aparte.
+// Un producto `modo: 'pasos'` con un grupo por cada grupo de allá. Si es el
+// desayuno van obligatorios (min 1): se pide entero, y quien quiere solo el
+// caldito lo pide como producto suelto. El precio base es el recargo de
+// llevar —por aquí nadie come en el local— y cada opción trae su precio como
+// `precioExtra`. La rebaja por armarlo completo va como `descuentoCompleto`
+// (ver utils/price.js): un número, que se resta cuando están todos los pasos.
 //
 // De vuelta al local viaja `comboSeleccion` —qué opción escogió en cada
 // grupo, con los ids de allá— y la caja congela y cobra con SUS precios de
@@ -809,7 +816,7 @@ function loQueSeEscoge(groups) {
   return `Escoge ${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}. Pide solo lo que quieras.`
 }
 
-function armarArmables(combos = [], carta = {}, dailyMenu = null) {
+function armarArmables(combos = [], carta = {}, dailyMenu = null, esHoraDeDesayuno = true) {
   const productos = []
   let orden = 1
 
@@ -821,20 +828,41 @@ function armarArmables(combos = [], carta = {}, dailyMenu = null) {
     // la escribe sola en cuanto alguien abre la app del local.
     if (!publicada || !Array.isArray(publicada.groups)) continue
 
+    // La franja es del DESAYUNO, no de los armables en general. Un armable que
+    // no es desayuno —si Andrés arma otro— se vende a la hora que sea, igual
+    // que los combos cerrados. Quien manda es la marca que publica la caja.
+    if (publicada.esDesayuno === true && !esHoraDeDesayuno) continue
+
     const { hayHoy, groups } = gruposDeHoy(publicada, dailyMenu, combo.id)
     if (!hayHoy) continue
 
     const recargo = dinero(publicada.llevarSurcharge)
-    const idsDeHoy = new Set(groups.flatMap(g => g.options.map(o => o.id)))
 
+    // Un desayuno se pide entero: caldo, huevos, acompañante y bebida. Quien
+    // quiere solo el caldito lo pide como producto suelto, a su precio. Por eso
+    // los pasos son obligatorios — es lo que hace que el descuento signifique
+    // algo— y Appetic ya sabía hacerlo: es el mismo `min: 1` de la sopa y la
+    // proteína del almuerzo.
+    const obligatorios = publicada.esDesayuno === true
     const gruposOpciones = groups.map(g => ({
       id: g.id,
       nombre: g.label || 'Escoge',
-      subtitulo: 'Opcional · elige 1 o ninguno',
+      subtitulo: obligatorios ? 'Elige 1' : 'Opcional · elige 1 o ninguno',
       emoji: '',
       tipo: 'unica',
-      min: 0,
+      min: obligatorios ? 1 : 0,
       max: 1,
+      // ⊘ "No lo lleva": el que no quiere chocolate igual dice CUÁL era y lo
+      // marca. Paga lo mismo —el desayuno vale igual— y se marca de todas
+      // formas por tres razones que en el local ya costaron caro: el precio
+      // queda exacto (la bebida puede ser un chocolate de $3.000 o un jugo de
+      // $5.000, y no es lo mismo); la cocinera lee "Chocolate — NO LO LLEVA"
+      // en vez de adivinar, que si el renglón no apareciera lo prepararía por
+      // si acaso; y el inventario no descuenta lo que sigue en la olla.
+      //
+      // Solo en los pasos obligatorios. Donde se puede seguir sin escoger, no
+      // llevarlo es simplemente no marcarlo, y un chip de más sobra.
+      permiteNoLleva: obligatorios,
       opciones: g.options.map(o => ({
         id: o.id,
         nombre: o.qty > 1 ? `${o.qty} ${o.name}` : o.name,
@@ -848,31 +876,19 @@ function armarArmables(combos = [], carta = {}, dailyMenu = null) {
       })),
     }))
 
-    // Los precios de combo, solo los que hoy se pueden armar: un "Combo
-    // Pescado" el día que no hay pescado sería anunciar lo que no se puede
-    // pedir. Y las opciones que hoy no están se les quitan.
-    const ofertas = (publicada.deals || [])
-      .map(d => {
-        const requiere = {}
-        for (const [grupoId, ids] of Object.entries(d.match || {})) {
-          const hoy = (Array.isArray(ids) ? ids : []).filter(id => idsDeHoy.has(id))
-          if (hoy.length === 0) return null
-          requiere[grupoId] = hoy
-        }
-        if (Object.keys(requiere).length === 0) return null
-        return { id: d.id, nombre: d.name, precio: dinero(d.price), requiere }
-      })
-      .filter(Boolean)
+    // Lo que se rebaja por armarlo completo. Un solo número que llega de la
+    // caja: antes aquí se reconstruían las reglas de combinación una por una y
+    // había que reimplementar el mismo motor de coincidencias para llegar al
+    // mismo precio.
+    const descuentoCompleto = Math.max(0, dinero(publicada.descuentoCompleto))
 
-    // El "desde" de la tarjeta: el combo más barato, o si no hay combos lo más
-    // económico de cada grupo sumado. Con el recargo de llevar encima, que es
-    // lo que de verdad va a pagar.
+    // El "desde" de la tarjeta: lo más económico de cada grupo, menos el
+    // descuento, con el recargo de llevar encima — que es lo que de verdad va
+    // a pagar quien pide por aquí.
     const completoSuelto = groups.reduce(
       (suma, g) => suma + Math.min(...g.options.map(o => dinero(o.price) * (Number(o.qty) || 1))), 0
     )
-    const desde = (ofertas.length > 0
-      ? Math.min(completoSuelto, ...ofertas.map(o => o.precio))
-      : completoSuelto) + recargo
+    const desde = Math.max(0, completoSuelto - descuentoCompleto) + recargo
 
     productos.push({
       id: `armable-${combo.id}`,
@@ -882,7 +898,7 @@ function armarArmables(combos = [], carta = {}, dailyMenu = null) {
       nombre: publicada.name || combo.name || 'Desayuno',
       descripcion: [
         loQueSeEscoge(groups),
-        ofertas.length > 0 ? `Combos desde ${cop(desde)}.` : '',
+        descuentoCompleto > 0 ? `Armándolo completo te rebajamos ${cop(descuentoCompleto)}.` : '',
       ].filter(Boolean).join(' '),
       foto: '',
       emoji: '🍳',
@@ -894,8 +910,9 @@ function armarArmables(combos = [], carta = {}, dailyMenu = null) {
       precioDesde: desde,
       modo: 'pasos',
       gruposOpciones,
-      ofertas,
-      // Todos los pasos son opcionales, pero algo tiene que llevar.
+      descuentoCompleto,
+      // Con pasos obligatorios el mínimo lo exige cada grupo; el tope global
+      // se queda en 1 para los armables que no son el desayuno.
       minElecciones: 1,
       lge: {
         tipo: 'armable',
