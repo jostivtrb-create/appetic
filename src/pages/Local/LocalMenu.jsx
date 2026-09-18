@@ -347,7 +347,9 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
 
       {/* 🛒 Carrito flotante de PRUEBA (solo para el dueño): la barra de admin no
           tiene botón de pedido, así que aquí puede probar el flujo de compra. */}
-      {esDueno && totalItems > 0 && (
+      {/* El botón flotante del pedido de prueba se aparta mientras hay una capa
+          abierta: encima del armador por pasos solo estorba y le come el pie. */}
+      {esDueno && totalItems > 0 && !hayCapa && (
         <button className="menu-test-cart" onClick={() => setDrawerAbierto(true)}>
           <span className="menu-test-cart-count">{totalItems}</span>
           Pedido de prueba

@@ -41,6 +41,17 @@ export default function BottomNav() {
 
   // ---------- MODO DUEÑO (barra de administración) ----------
   if (esDueno) {
+    // El dueño también entra a su propio menú a probarlo como cliente. Cuando
+    // ahí abre una capa (detalle del plato, armador por pasos, carrito de
+    // prueba), su barra debe apartarse igual que la del cliente: en el celular
+    // la hoja llega hasta abajo y la barra le tapaba el pie —el botón
+    // "Siguiente" del armador quedaba escondido detrás y no había cómo
+    // avanzar—. En PC las capas son ventanas centradas, así que el rail se
+    // queda pero cede la capa, como en el modo cliente.
+    const capaEncima = Boolean(live) && live.oculta
+    if (capaEncima && !esPC) return null
+    const railBajoCapa = capaEncima && esPC
+
     const oscuro = localSel && esColorOscuro(localSel.tema?.bg)
     const solido = Boolean(localSel?.tema?.navSolid)
     const style = localSel
@@ -60,7 +71,7 @@ export default function BottomNav() {
     }
 
     return (
-      <nav className={`bnav bnav--admin ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''}`} style={style} aria-label="Administración">
+      <nav className={`bnav bnav--admin ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''} ${railBajoCapa ? 'bnav--bajo-capa' : ''}`} style={style} aria-label="Administración">
         <MarcaRail
           logo={localSel?.logo || localSel?.icono || logoAppetic}
           nombre={localSel?.nombre || 'Appetic'}
