@@ -309,7 +309,7 @@ export default function Superadmin() {
         <span className="sa-descarga-ico">⬇️</span>
         <span className="sa-descarga-txt">
           <strong>Descargar propuesta comercial</strong>
-          <small>PDF · Suscripción $18.900/mes · 1er mes gratis</small>
+          <small>PDF · Montaje $50.000 · $18.900/mes desde el 2º mes</small>
         </span>
       </a>
 
