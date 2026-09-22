@@ -84,14 +84,17 @@ li.lead::before{top:9px;}
 .prow .val{font-size:9.6pt;opacity:.96;text-align:right;line-height:1.4;}
 
 /* ---- CTA ---- */
-.cta{border:1px solid var(--line);border-radius:22px;padding:22px;margin-top:16px;text-align:center;background:linear-gradient(180deg,#fff, #FFF6EC);}
+.cta{border:1px solid var(--line);border-radius:22px;padding:19px;margin-top:14px;text-align:center;background:linear-gradient(180deg,#fff, #FFF6EC);}
 .cta .k2{color:var(--orange-strong);font-size:8pt;letter-spacing:.3em;font-weight:800;text-transform:uppercase;}
 .cta h3{font-family:var(--serif);font-weight:800;color:var(--orange-strong);font-size:17pt;margin:7px 0 8px;}
 .cta p{font-size:10.2pt;line-height:1.55;color:var(--ink-soft);max-width:135mm;margin:0 auto;}
 .btn-wa{display:inline-block;background:linear-gradient(135deg,#25D366,#1EAF56);color:#fff;border-radius:999px;padding:14px 30px;font-weight:800;font-size:11.5pt;margin-top:16px;box-shadow:0 10px 22px rgba(30,175,86,.3);}
 .cta .fine{margin-top:12px;font-size:9pt;color:var(--faint);}
 
-.close{text-align:center;font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:11pt;margin-top:18px;}
+/* La firma va justo encima del pie, que está en position:absolute a 10mm del
+   borde. Sin este margen de seguridad las dos líneas se montan una sobre otra
+   —venía pasando en la página 3 del PDF publicado—. */
+.close{text-align:center;font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:11pt;margin-top:14px;margin-bottom:16mm;}
 
 /* ---- Footer ---- */
 .footer{position:absolute;bottom:10mm;left:0;right:0;text-align:center;font-family:var(--serif);font-size:8.5pt;color:rgba(42,33,28,.4);letter-spacing:.02em;}
@@ -140,7 +143,7 @@ li.lead::before{top:9px;}
     </div>
   </div>
 
-  <div class="footer">Appetic · El menú digital del barrio · Julio 2026</div>
+  <div class="footer">Appetic · El menú digital del barrio · Septiembre 2026</div>
 </div>
 
 <!-- ===================== PÁGINA 2 ===================== -->
@@ -171,10 +174,10 @@ li.lead::before{top:9px;}
     </div>
 
     <div class="hl">
-      <p><span class="big">🛵 ¿No tienes domiciliario? Nosotros lo ponemos.</span>
-        Y no te cuesta nada extra: el <span class="ink-b">domicilio lo paga el cliente</span>, calculado
-        automáticamente por distancia. Si ya tienes tu propio domiciliario, también funciona — tú defines
-        los precios por tramo.</p>
+      <p><span class="big">🛵 Tú sigues entregando con tu domiciliario.</span>
+        Appetic no es Rappi: no repartimos nosotros, no te quitamos el cliente y
+        <span class="ink-b">no te cobramos comisión por pedido</span>. El domicilio lo paga el cliente,
+        calculado automáticamente por distancia, y tú defines los precios por tramo.</p>
     </div>
 
     <div class="grad-card demo">
@@ -187,7 +190,7 @@ li.lead::before{top:9px;}
     </div>
   </div>
 
-  <div class="footer">Appetic · El menú digital del barrio · Julio 2026</div>
+  <div class="footer">Appetic · El menú digital del barrio · Septiembre 2026</div>
 </div>
 
 <!-- ===================== PÁGINA 3 ===================== -->
@@ -209,19 +212,19 @@ li.lead::before{top:9px;}
 
     <div style="margin-top:20px;">
       <div class="k">Inversión</div>
-      <h2>Empieza gratis, luego una mensualidad baja</h2>
+      <h2>Un pago de montaje y una mensualidad baja</h2>
     </div>
 
     <div class="grad-card price">
-      <div class="k2">Suscripción mensual</div>
-      <div class="amount">$18.900 <small>COP / mes</small></div>
-      <span class="promo">★ Primer mes gratis</span>
+      <div class="k2">Montaje · una sola vez</div>
+      <div class="amount">$50.000 <small>COP</small></div>
+      <span class="promo">★ Se paga el día de la entrega</span>
       <div class="rows">
-        <div class="prow"><span class="lbl">Primer mes</span><span class="val">Gratis. Pruebas todo funcionando, sin pagar nada.</span></div>
-        <div class="prow"><span class="lbl">Luego</span><span class="val">$18.900 al mes. Sin permanencia, cancelas cuando quieras.</span></div>
-        <div class="prow"><span class="lbl">¿Qué incluye?</span><span class="val">Menú digital completo + Kit de Bienvenida + soporte.</span></div>
-        <div class="prow"><span class="lbl">Domicilio</span><span class="val">Ponemos el domiciliario si no tienes. El cliente paga el domicilio; a ti no te cuesta extra.</span></div>
-        <div class="prow" style="border-bottom:none;"><span class="lbl">Entrega</span><span class="val">Menú montado, instalable y listo para pedir.</span></div>
+        <div class="prow"><span class="lbl">¿Qué cubre?</span><span class="val">Menú armado con fotos, link, QR, diseño, panel y entrenamiento.</span></div>
+        <div class="prow"><span class="lbl">Cuándo se paga</span><span class="val">Cuando ya te lo entregamos funcionando. Ni un peso antes.</span></div>
+        <div class="prow"><span class="lbl">Mensualidad</span><span class="val"><b>$18.900 desde el segundo mes.</b> El primero va incluido.</span></div>
+        <div class="prow"><span class="lbl">Comisión</span><span class="val">Ninguna. La plata entra completa a tu caja.</span></div>
+        <div class="prow" style="border-bottom:none;"><span class="lbl">Domicilio</span><span class="val">Tú entregas con tu domiciliario. Nosotros no repartimos.</span></div>
       </div>
     </div>
 
@@ -229,7 +232,7 @@ li.lead::before{top:9px;}
       <div class="k2">El siguiente paso</div>
       <h3>¿Llevamos tu carta a Appetic?</h3>
       <p>En cuanto nos des el visto bueno, montamos tu menú y te lo entregamos <span class="ink-b">listo para pedir</span>.
-        El primer mes es gratis: tus clientes empiezan a armar su pedido en segundos y tú decides con calma.</p>
+        Pagas el día de la entrega, cuando ya lo tienes funcionando y te enseñamos a usarlo.</p>
       <a class="btn-wa" href="https://wa.me/573208435143?text=Hola%20%F0%9F%91%8B%20Me%20interesa%20la%20propuesta%20de%20Appetic%20para%20mi%20negocio.%20%C2%BFMe%20cuentan%20c%C3%B3mo%20montar%20mi%20men%C3%BA%20digital%3F">✆  Me interesa la propuesta</a>
       <div class="fine">Toca el botón y nos escribes por WhatsApp. Te respondemos y arrancamos.</div>
     </div>
@@ -237,7 +240,7 @@ li.lead::before{top:9px;}
     <div class="close">Appetic — el menú digital del barrio.</div>
   </div>
 
-  <div class="footer">Appetic · El menú digital del barrio · Julio 2026</div>
+  <div class="footer">Appetic · El menú digital del barrio · Septiembre 2026</div>
 </div>
 
 </body>

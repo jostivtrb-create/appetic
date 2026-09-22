@@ -168,15 +168,20 @@ Todo vive en `cartilla/`, calcado de cómo está montada `propuesta/`.
 
 **Entregable secundario, DESPUÉS de la cartilla (D9 + D23):** actualizar la propuesta vieja
 (`propuesta/propuesta-appetic.html` → regenerar PDF → `public/` y `firebase-pdf/`) para que deje de
-decir que el menú es gratis. **Sigue pendiente** — es otra tarea, no parte de la cartilla.
+decir que el menú es gratis. ✅ **Hecho el 22 de septiembre de 2026.** Cuatro cosas que ya no eran
+verdad: el precio *"Empieza gratis / primer mes gratis"* (ahora tarjeta de **$50.000 de montaje**
+que se paga el día de la entrega + **$18.900 desde el segundo mes**), la promesa *"¿No tienes
+domiciliario? Nosotros lo ponemos"* —choca de frente con D8 y D16, ahora dice *"tú sigues
+entregando con tu domiciliario, Appetic no es Rappi, no te cobramos comisión por pedido"*—, el
+párrafo del cierre y la fecha del pie (*Julio* → *Septiembre 2026*).
 
 ### Lo que quedó entregado
 
 | Archivo | Qué es |
 |---|---|
 | `cartilla/cartilla-appetic.html` | **El original.** Lo único que se edita. 18 páginas A4. |
-| `cartilla/cartilla-appetic-impresa.pdf` | Para imprimir y anillar (~26 MB). |
-| `cartilla/cartilla-appetic-whatsapp.pdf` | Para mandar por chat a un vendedor nuevo (~26 MB). |
+| `cartilla/cartilla-appetic-impresa.pdf` | Para imprimir y anillar (4,5 MB). |
+| `cartilla/cartilla-appetic-whatsapp.pdf` | Para mandar por chat a un vendedor nuevo (4,7 MB). |
 | `cartilla/generar.sh` | `bash cartilla/generar.sh` → rehace los dos PDF. |
 | `cartilla/capturar.mjs` | `node cartilla/capturar.mjs [filtro]` → rehace las capturas. |
 | `cartilla/capturas/` | Las 9 fotos de la app y del panel. |
@@ -263,3 +268,16 @@ decir que el menú es gratis. **Sigue pendiente** — es otra tarea, no parte de
   - **En la captura se ocultan el sello `DEMO` y se cambia el WhatsApp real del local** por el
     3208435143. El sello es un artefacto de mi método, no algo que el dueño vaya a ver; y el número
     de un negocio ajeno no se reparte impreso.
+- **2026-09-22 · La propuesta vieja (entregable secundario, D9 + D23).** No era solo el precio: la
+  propuesta prometía **"¿No tienes domiciliario? Nosotros lo ponemos"**, y eso contradice de frente
+  lo que el vendedor va a decir en la calle (D8: solo locales que ya tengan domiciliario; D16: no
+  somos Rappi, no cobramos comisión). Un vendedor que enseña la cartilla y el dueño que descarga el
+  PDF del sitio tienen que leer **lo mismo**. Cambiados los cuatro puntos y regenerado el PDF a
+  `public/` y `firebase-pdf/` con `bash propuesta/generar.sh` (704 KB, 3 páginas).
+  Dos tropiezos de camino:
+  - **La página 3 se desbordó dos veces** al crecer la tarjeta de precio de 5 a 6 filas. Fusionar
+    *"Primer mes"* + *"Luego"* en una sola fila **"Mensualidad"** no alcanzó; hubo que dejar cada
+    valor en **una sola línea**.
+  - **La firma se montaba encima del pie** — y comprobado con `git show HEAD:public/propuesta-appetic.pdf`
+    que **ya estaba rota en el PDF publicado**, no la rompí yo. El pie está en `position:absolute` a
+    10 mm del borde, así que `.close` necesitaba `margin-bottom:16mm` de colchón. Arreglado de paso.
