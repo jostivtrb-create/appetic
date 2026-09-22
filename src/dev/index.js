@@ -8,8 +8,14 @@
 const DEV_SLUGS = ['demo']
 
 // ¿Este slug es un local de previsualización en DEV? (síncrono, para decidir modo)
+// El ?preview=1 —el mismo que ya abre el MENÚ desde el código— también vale aquí:
+// así se puede revisar el PANEL de cualquier local armado en src/dev sin sembrarlo
+// ni iniciar sesión. Igual que el modo demo, no escribe nada en Firestore, y va
+// atado a DEV para que no exista en producción.
 export function isDevSlug(slug) {
-  return import.meta.env.DEV && DEV_SLUGS.includes(slug)
+  if (!import.meta.env.DEV) return false
+  if (DEV_SLUGS.includes(slug)) return true
+  return new URLSearchParams(window.location.search).has('preview')
 }
 
 export async function getDevLocal(slug) {
@@ -20,5 +26,7 @@ export async function getDevLocal(slug) {
     return { local: MOCK_LOCAL, productos: MOCK_PRODUCTOS }
   }
 
-  return null
+  // Los demás locales de src/dev los arma la vista previa (fuente única).
+  const { getPreviewLocal } = await import('../preview')
+  return getPreviewLocal(slug)
 }

@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Cartilla · Appetic</title>
+<link rel="stylesheet" href="fuentes.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARTILLA DE VENTA · APPETIC
+   18 páginas A4. El ORDEN DE LAS PÁGINAS ES EL GUION: el vendedor las pasa
+   de corrido y así todos explican lo mismo. Todo el contenido es de cara al
+   cliente — aquí NO hay notas internas ni se menciona la comisión.
+   Se genera con cartilla/generar.sh (Chrome headless → PDF).
+
+   Dos salidas del mismo archivo (?salida=impresa | ?salida=digital):
+   la impresa deja margen izquierdo ancho para anillar; la digital no, porque
+   en el celular se vería descuadrada.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* Identidad de marca — la misma de propuesta/propuesta-appetic.html */
+  --orange:#ED7D2B; --orange-strong:#E0692A; --orange-soft:#F6A45C;
+  --tint:#FCEBD9; --ink:#2A211C; --ink-soft:#6B5647; --faint:#9A8B7E;
+  --bg:#FFFBF4; --paper:#FFFFFF; --surface2:#FAF4EA;
+  --line:rgba(42,33,28,.09);
+  --grad:linear-gradient(125deg,#E0692A 0%,#ED7D2B 46%,#F6A45C 100%);
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Plus Jakarta Sans',system-ui,sans-serif;
+  --wa:#25D366;
+  /* Canal de anillado: lo cambia el atributo data-salida del body */
+  --canal:26mm;
+}
+body[data-salida="digital"]{ --canal:15mm; }
+
+*{margin:0;padding:0;box-sizing:border-box;}
+@page{size:A4;margin:0;}
+html,body{background:var(--bg);}
+body{
+  font-family:var(--sans);color:var(--ink);
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+
+.page{
+  position:relative;width:210mm;height:297mm;overflow:hidden;
+  background:var(--bg);page-break-after:always;
+}
+.page:last-child{page-break-after:auto;}
+/* El canal de anillado va SOLO a la izquierda: el contenido se corre para
+   que la perforación no se coma ni una palabra. */
+.pad{padding:14mm 15mm 19mm var(--canal);height:100%;
+  display:flex;flex-direction:column;}
+
+/* El bloque marcado .crece se come el sobrante de altura de la hoja. Así el
+   pie no queda flotando con media página en blanco, y —esto es lo importante—
+   el sobrante lo absorben las imágenes y los huecos, nunca el texto: la
+   tipografía mide igual en las 18 páginas. */
+/* Nada se encoge salvo .crece. Sin esto, una hoja que se pasa por 3mm no se ve
+   rota: flexbox le quita el relleno al último bloque y el texto queda pegado al
+   borde de la tarjeta. Prefiero que se note en la revisión. */
+.pad > *:not(.crece){flex-shrink:0;}
+.crece{flex:1 1 auto;min-height:0;}
+.crece > .col{display:flex;flex-direction:column;}
+.abajo{margin-top:auto;}
+.reparte{display:flex;flex-direction:column;justify-content:space-between;}
+
+/* ── Tipografía ───────────────────────────────────────────────────────── */
+.k{color:var(--orange-strong);font-size:8pt;letter-spacing:.26em;font-weight:800;text-transform:uppercase;}
+h2{font-family:var(--serif);font-weight:800;font-size:23pt;color:var(--ink);line-height:1.08;margin-top:4px;}
+h2 em{font-style:normal;color:var(--orange-strong);}
+.sub{font-size:11pt;line-height:1.5;color:var(--ink-soft);margin-top:8px;max-width:150mm;}
+.mark{color:var(--orange-strong);font-weight:700;}
+.ink-b{color:var(--ink);font-weight:700;}
+
+/* ── Marco de celular (dibujado, sin sombras: imprimen sucias) ─────────── */
+.phone{
+  position:relative;width:var(--pw,54mm);
+  border:1.1mm solid var(--ink);border-radius:5.5mm;
+  background:var(--ink);overflow:hidden;flex:none;
+}
+.phone img{display:block;width:100%;height:auto;}
+/* Recorta la captura a una altura fija mostrando la parte de arriba */
+.phone--corto{height:var(--ph,95mm);}
+.phone--corto img{height:100%;object-fit:cover;object-position:top center;}
+.phone--medio img{object-position:center center;}
+.phone-cap{
+  text-align:center;font-size:8.2pt;font-weight:700;color:var(--orange-strong);
+  margin-top:6px;letter-spacing:.02em;
+}
+
+/* ── Marco de computador (panel del dueño) ────────────────────────────── */
+.laptop{border:1.1mm solid var(--ink);border-radius:4mm;overflow:hidden;background:var(--ink);}
+.laptop-bar{
+  height:5.5mm;background:var(--ink);display:flex;align-items:center;gap:4px;padding:0 4mm;
+}
+.laptop-bar i{width:2mm;height:2mm;border-radius:50%;background:rgba(255,255,255,.35);display:block;}
+.laptop img{display:block;width:100%;height:auto;}
+.laptop--corto .laptop-shot{height:var(--lh,80mm);overflow:hidden;}
+.laptop--corto .laptop-shot img{height:100%;object-fit:cover;object-position:top center;}
+
+/* ── Tarjetas ─────────────────────────────────────────────────────────── */
+.card{
+  border:1px solid var(--line);border-radius:18px;padding:13px 16px;background:var(--paper);
+}
+.card-title{color:var(--orange-strong);font-family:var(--serif);font-weight:700;font-size:12.5pt;margin-bottom:3px;}
+.card p{font-size:10pt;line-height:1.5;color:var(--ink-soft);}
+
+.hl{background:var(--tint);border:1px solid rgba(224,105,42,.16);border-radius:18px;padding:14px 17px;}
+.hl .big{font-family:var(--serif);font-weight:800;color:var(--orange-strong);font-size:13pt;display:block;margin-bottom:4px;}
+.hl p{font-size:10.4pt;line-height:1.5;color:var(--ink);}
+
+.grad-card{
+  background:var(--grad);color:#fff;border-radius:20px;padding:20px 22px;overflow:hidden;position:relative;
+}
+
+/* ── Listas ───────────────────────────────────────────────────────────── */
+ul{list-style:none;}
+li{position:relative;padding-left:19px;font-size:10.2pt;line-height:1.45;color:var(--ink-soft);margin-top:8px;}
+li:first-child{margin-top:4px;}
+li::before{content:"";position:absolute;left:2px;top:6px;width:7px;height:7px;border-radius:50%;background:var(--orange);}
+li b{color:var(--ink);}
+ul.check li::before{
+  content:"✓";background:none;width:auto;height:auto;left:0;top:0;
+  color:var(--orange-strong);font-weight:800;font-size:11pt;
+}
+ul.check li{padding-left:20px;}
+
+/* ── Rejillas ─────────────────────────────────────────────────────────── */
+.row{display:flex;gap:10mm;align-items:flex-start;}
+.row--tight{gap:6mm;}
+.col{flex:1;min-width:0;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6mm;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5mm;}
+
+/* ── Pasos numerados ──────────────────────────────────────────────────── */
+.step-n{
+  width:11mm;height:11mm;border-radius:50%;background:var(--grad);color:#fff;
+  font-family:var(--serif);font-weight:800;font-size:15pt;
+  display:flex;align-items:center;justify-content:center;flex:none;
+}
+/* Los cuatro pasos se reparten en toda la hoja; la línea punteada entre los
+   números es lo que hace que ese aire se lea como una secuencia y no como un
+   hueco. */
+.pasos{position:relative;}
+.pasos::before{
+  content:"";position:absolute;left:5mm;top:11mm;bottom:11mm;width:1.2mm;
+  border-radius:1mm;
+  background:repeating-linear-gradient(to bottom,
+    var(--orange-soft) 0 3.2mm, transparent 3.2mm 6mm);
+}
+.pasos .step-n{position:relative;z-index:1;}
+/* Quién pone la mano en cada paso. Es la respuesta a la objeción de siempre
+   ("yo no sé de eso") y de paso el aire entre pasos deja de leerse vacío. */
+.step-quien{
+  display:inline-block;margin-top:5px;padding:1.4mm 3mm;border-radius:99px;
+  font-size:7.6pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+}
+.step-quien.tu{background:#EFEBE6;color:#6B5647;}
+.step-quien.nos{background:var(--orange-soft);color:var(--orange-strong);}
+.step-t{font-family:var(--serif);font-weight:800;font-size:12.5pt;color:var(--ink);margin-top:7px;}
+.step-d{font-size:9.6pt;line-height:1.45;color:var(--ink-soft);margin-top:3px;}
+
+/* ── Burbuja de WhatsApp (el pedido como le llega al local) ───────────── */
+.wa{
+  background:#E8E2DA;border-radius:14px;padding:5mm;border:1px solid var(--line);
+}
+.wa-top{
+  display:flex;align-items:center;gap:3mm;padding-bottom:3mm;margin-bottom:3mm;
+  border-bottom:1px solid rgba(42,33,28,.12);
+}
+.wa-av{width:8mm;height:8mm;border-radius:50%;background:var(--wa);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:10pt;font-weight:800;flex:none;}
+.wa-who{font-weight:800;font-size:9.4pt;color:var(--ink);}
+.wa-when{font-size:7.8pt;color:var(--faint);}
+.wa-burbuja{
+  background:#fff;border-radius:10px 10px 10px 2px;padding:4mm 4.5mm;
+  font-size:8.6pt;line-height:1.5;color:#111;white-space:pre-line;
+  font-family:var(--sans);
+}
+.wa-burbuja b{color:#111;}
+.wa-hora{text-align:right;font-size:7pt;color:#9aa;margin-top:2mm;}
+
+/* ── "Antes vs Después" ───────────────────────────────────────────────── */
+.malo{
+  background:#EFEBE6;border:1px dashed rgba(42,33,28,.28);border-radius:14px;
+  padding:6mm 5mm;height:100%;display:flex;flex-direction:column;
+}
+.malo-t{font-family:var(--serif);font-weight:800;font-size:11pt;color:#6B5647;}
+.malo-hoja{
+  background:#fff;border:1px solid rgba(42,33,28,.16);border-radius:4px;margin-top:4mm;
+  padding:4mm;filter:blur(.6px);opacity:.75;
+}
+.malo-hoja .l{height:2.4mm;background:#CFC7BE;border-radius:2px;margin-bottom:2.6mm;}
+.malo-hoja .l.s{width:55%;}
+/* En la tarjeta del chat: las barras de la derecha son "lo que contesta el
+   local", para que la hoja se lea como una conversación y no como otra carta. */
+.malo-hoja .l.der{margin-left:auto;background:#C6D9C9;}
+.malo-hoja .l.m{width:78%;}
+.malo-hoja .t{height:3.4mm;background:#B9AFA4;border-radius:2px;width:45%;margin-bottom:4mm;}
+.malo li::before{background:#B9AFA4;}
+.malo li{font-size:9.4pt;}
+
+.vs{
+  font-family:var(--serif);font-weight:800;font-size:13pt;color:var(--orange-strong);
+  text-align:center;align-self:center;flex:none;
+}
+
+/* ── Rejilla de fotos de platos ───────────────────────────────────────── */
+.fotos{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm;}
+.fotos img{
+  display:block;width:100%;height:42mm;object-fit:cover;border-radius:12px;
+  border:1px solid var(--line);
+}
+.fotos--alta img{height:51mm;}
+
+/* ── Precio ───────────────────────────────────────────────────────────── */
+.precio-big{
+  font-family:var(--serif);font-weight:800;font-size:54pt;line-height:.95;letter-spacing:-.02em;
+}
+.precio-big small{font-size:18pt;font-weight:700;opacity:.92;}
+.precio-k{font-size:8.5pt;letter-spacing:.28em;font-weight:800;text-transform:uppercase;opacity:.92;}
+.precio-nota{font-size:10pt;line-height:1.5;opacity:.95;margin-top:6px;}
+.prow{
+  display:flex;justify-content:space-between;gap:10mm;padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,.22);font-size:9.6pt;
+}
+.prow:last-child{border-bottom:none;}
+.prow .lbl{font-family:var(--serif);font-weight:700;font-size:10pt;}
+
+/* ── Chips / etiquetas ────────────────────────────────────────────────── */
+.chip{
+  display:inline-block;background:var(--tint);color:var(--orange-strong);
+  border-radius:999px;padding:5px 13px;font-size:8.4pt;font-weight:800;
+  letter-spacing:.04em;margin:0 4px 5px 0;
+}
+.chip--w{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);}
+
+/* ── Preguntas frecuentes ─────────────────────────────────────────────── */
+.faq{border-top:1px solid var(--line);padding:9px 0;}
+.faq:last-of-type{border-bottom:1px solid var(--line);}
+.faq-q{font-family:var(--serif);font-weight:700;font-size:11pt;color:var(--ink);}
+.faq-a{font-size:9.8pt;line-height:1.45;color:var(--ink-soft);margin-top:2px;}
+
+/* ── Pie de página ────────────────────────────────────────────────────── */
+.footer{
+  position:absolute;bottom:9mm;left:var(--canal);right:15mm;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:8pt;color:rgba(42,33,28,.42);letter-spacing:.02em;
+}
+.footer b{color:var(--orange-strong);font-weight:800;}
+.footer .num{font-family:var(--serif);font-weight:700;}
+
+/* ── Portada ──────────────────────────────────────────────────────────── */
+.cover{height:100%;background:var(--grad);color:#fff;position:relative;overflow:hidden;
+  padding:34mm 18mm 18mm var(--canal);}
+.cover-logo{width:26mm;height:26mm;border-radius:7mm;background:#fff;padding:4mm;}
+.cover h1{font-family:var(--serif);font-weight:800;font-size:46pt;line-height:1;margin:14mm 0 0;letter-spacing:-.02em;}
+.cover .tag{font-size:14pt;font-weight:500;line-height:1.35;margin-top:7mm;max-width:120mm;opacity:.96;}
+.cover .eyebrow{font-size:9pt;letter-spacing:.32em;font-weight:800;text-transform:uppercase;opacity:.9;margin-top:9mm;}
+.cover-pie{position:absolute;left:var(--canal);right:18mm;bottom:16mm;
+  border-top:1px solid rgba(255,255,255,.35);padding-top:6mm;
+  display:flex;justify-content:space-between;align-items:flex-end;}
+.cover-pie .wa-num{font-family:var(--serif);font-weight:800;font-size:17pt;}
+.cover-pie .wa-lbl{font-size:8.4pt;letter-spacing:.2em;font-weight:700;text-transform:uppercase;opacity:.85;}
+.swish{position:absolute;border-radius:999px;background:rgba(255,255,255,.14);}
+.swish.s1{width:210px;height:26px;top:56mm;right:-40px;transform:rotate(-42deg);}
+.swish.s2{width:130px;height:20px;top:78mm;right:26mm;transform:rotate(-42deg);}
+.swish.s3{width:90px;height:15px;top:96mm;right:-10px;transform:rotate(-42deg);}
+</style>
+</head>
+<body data-salida="impresa">
+<script>
+  // ?salida=digital quita el canal de anillado (la versión que se manda por WhatsApp).
+  document.body.dataset.salida =
+    new URLSearchParams(location.search).get('salida') === 'digital' ? 'digital' : 'impresa'
+</script>
+
+<!-- ══════════════ 1 · PORTADA ══════════════ -->
+<section class="page">
+  <div class="cover">
+    <span class="swish s1"></span><span class="swish s2"></span><span class="swish s3"></span>
+    <img class="cover-logo" src="../src/assets/appetic-logo.png" alt="Appetic">
+    <h1>Tu carta,<br>en el celular<br>de tu cliente.</h1>
+    <p class="tag">El menú digital de tu negocio: con fotos de tus platos,
+       con tu logo y tus colores, y los pedidos te llegan directo a tu WhatsApp.</p>
+    <p class="eyebrow">Hecho en Bogotá · Para negocios de barrio</p>
+    <div class="cover-pie">
+      <div>
+        <div class="wa-lbl">Escríbenos por WhatsApp</div>
+        <div class="wa-num">320 843 5143</div>
+      </div>
+      <div style="text-align:right;font-size:9pt;opacity:.9;line-height:1.5">
+        appetic.vercel.app<br><b style="font-weight:800">Appetic</b>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ 2 · EL PROBLEMA DE HOY ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Seamos sinceros</p>
+  <h2>Así es como estás<br>vendiendo <em>hoy</em>.</h2>
+
+  <div class="row crece" style="margin-top:9mm;align-items:stretch">
+    <div class="col">
+      <div class="malo">
+        <p class="malo-t">📄 La foto de la carta</p>
+        <div class="malo-hoja" style="flex:1 1 auto">
+          <div class="t"></div>
+          <div class="l"></div><div class="l m"></div><div class="l s"></div>
+          <div class="l"></div><div class="l m"></div>
+          <div class="t" style="width:38%;margin-top:6mm"></div>
+          <div class="l m"></div><div class="l"></div><div class="l s"></div>
+          <div class="l m"></div><div class="l"></div>
+          <div class="t" style="width:44%;margin-top:6mm"></div>
+          <div class="l"></div><div class="l s"></div><div class="l m"></div>
+        </div>
+        <ul class="abajo" style="padding-top:5mm">
+          <li>Se ve borrosa cuando le hacen zoom.</li>
+          <li>Cambiaste un precio y toca volverla a hacer.</li>
+          <li>Nadie ve cómo se ven tus platos.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="malo">
+        <p class="malo-t">💬 El pedido por chat</p>
+        <div class="malo-hoja" style="filter:none;opacity:1;flex:1 1 auto">
+          <div class="l m"></div><div class="l" style="width:62%"></div>
+          <div class="l s der"></div><div class="l m der"></div>
+          <div class="l" style="width:40%"></div>
+          <div class="l m" style="margin-top:6mm"></div><div class="l s"></div>
+          <div class="l der" style="width:70%"></div><div class="l m der"></div>
+          <div class="l s" style="margin-top:6mm"></div><div class="l"></div>
+          <div class="l m der"></div><div class="l der" style="width:48%"></div>
+          <div class="l s"></div>
+          <div class="l" style="width:66%;margin-top:6mm"></div>
+          <div class="l m der"></div><div class="l der" style="width:36%"></div>
+          <div class="l s"></div><div class="l m"></div>
+        </div>
+        <ul class="abajo" style="padding-top:5mm">
+          <li>«¿Me mandas la carta?» otra vez.</li>
+          <li>Diez mensajes para un solo pedido.</li>
+          <li>Se te pasó la dirección entre el desorden.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="hl" style="margin-top:9mm">
+    <span class="big">Y mientras tanto, el cliente se cansa.</span>
+    <p>El que tiene hambre no espera. Si en dos minutos no sabe qué hay, cuánto vale y
+       cómo se ve, pide en otro lado. <span class="mark">No es que tu comida no guste:
+       es que no alcanzó a verla.</span></p>
+  </div>
+
+  <div class="card" style="margin-top:7mm;border-color:rgba(224,105,42,.25)">
+    <p class="card-title">Lo que vamos a hacer</p>
+    <p>Pasar tu carta a una página propia, con foto de cada plato, que se abre de un toque
+       y arma el pedido sola. <b class="ink-b">Y te lo dejamos listo nosotros</b> — tú no
+       tienes que aprender nada.</p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">2</span></div>
+</div></section>
+
+<!-- ══════════════ 3 · APPETIC EN 3 PASOS ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Cómo funciona</p>
+  <h2>Tres pasos. <em>Nada más.</em></h2>
+
+  <div class="row row--tight" style="margin-top:8mm;align-items:stretch">
+    <div class="col">
+      <div class="step-n">1</div>
+      <p class="step-t">Tu cliente abre tu link</p>
+      <p class="step-d">Lo pones en tu estado, en la vitrina o en el empaque.
+         Se abre de una, sin descargar nada.</p>
+      <div class="phone abajo" style="--pw:100%;margin-top:5mm">
+        <img src="capturas/menu-jasbury.png" alt="Menú de ejemplo">
+      </div>
+    </div>
+    <div class="col">
+      <div class="step-n">2</div>
+      <p class="step-t">Arma su pedido solo</p>
+      <p class="step-d">Escoge platos, adiciones y cómo paga. La app le suma el
+         domicilio según qué tan lejos esté.</p>
+      <div class="phone abajo" style="--pw:100%;margin-top:5mm">
+        <img src="capturas/checkout-pilotos.png" alt="Pantalla de datos del pedido">
+      </div>
+    </div>
+    <div class="col">
+      <div class="step-n">3</div>
+      <p class="step-t">Te llega a tu WhatsApp</p>
+      <p class="step-d">Ordenadito, con todo: qué pidió, dirección, cómo paga y
+         cuánto es. Tú solo lo despachas.</p>
+      <div class="abajo" style="margin-top:5mm">
+        <div class="wa" style="padding:4mm">
+          <div class="wa-burbuja" style="font-size:7.6pt;padding:3.5mm"><b>Nuevo pedido — Jasbury</b> 🍔
+🔖 <b>Código:</b> A7K2
+
+👤 <b>Cliente:</b> Andrés Gómez
+📞 <b>Tel:</b> 320 843 5143
+🛵 <b>Entrega:</b> Domicilio
+📍 <b>Dirección:</b> Cra 10 #5-23
+
+<b>Tu pedido:</b>
+• 1x Hamburguesa Sencilla — $13.000
+• 1x Salchipapa Sencilla — $9.000
+
+Subtotal: $22.000
+Domicilio: $2.000
+<b>Total: $24.000</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hl" style="margin-top:8mm">
+    <span class="big">Tú sigues entregando con tu domiciliario.</span>
+    <p>Appetic <span class="mark">no es Rappi</span>: no te quitamos el cliente, no te
+       cobramos comisión por pedido y no repartimos nosotros. El pedido llega a tu
+       WhatsApp y <b class="ink-b">la plata entra completa a tu caja</b>, como siempre.</p>
+  </div>
+
+  <div class="grid3" style="margin-top:7mm">
+    <div class="card"><p class="card-title">Tu cliente no descarga nada</p>
+      <p>Se abre en el navegador que ya tiene. Android o iPhone, da igual.</p></div>
+    <div class="card"><p class="card-title">Tú no instalas nada</p>
+      <p>Tu menú vive en internet. No ocupa tu celular ni se te borra.</p></div>
+    <div class="card"><p class="card-title">Sigues en tu WhatsApp</p>
+      <p>El mismo número de siempre. No tienes que aprender otra cosa.</p></div>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">3</span></div>
+</div></section>
+
+<!-- ══════════════ 4 · ANTES vs DESPUÉS ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">La diferencia</p>
+  <h2>Lo mismo que vendes,<br><em>visto de otra forma.</em></h2>
+
+  <div class="row" style="margin-top:9mm;gap:6mm;align-items:center">
+    <div class="col">
+      <p class="chip" style="background:#EFEBE6;color:#6B5647">Antes</p>
+      <div class="malo" style="margin-top:2mm">
+        <div class="malo-hoja" style="padding:5mm">
+          <div class="t" style="width:60%"></div>
+          <div class="l"></div><div class="l m"></div><div class="l s"></div>
+          <div class="l"></div><div class="l m"></div><div class="l"></div>
+          <div class="l s"></div><div class="l m"></div><div class="l"></div>
+          <div class="l m"></div><div class="l s"></div>
+        </div>
+        <p style="font-size:9.4pt;color:#6B5647;margin-top:4mm;line-height:1.45">
+          Una foto de la carta. Se lee mal, no tiene fotos de la comida y para
+          cambiar un precio toca hacerla de nuevo.</p>
+      </div>
+    </div>
+    <div class="vs">→</div>
+    <div class="col" style="text-align:center">
+      <p class="chip">Después</p>
+      <div class="phone" style="--pw:72mm;margin:2mm auto 0">
+        <img src="capturas/menu-jasbury.png" alt="Menú Appetic con fotos">
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3" style="margin-top:8mm">
+    <div class="card"><p class="card-title">Se ve tu comida</p>
+      <p>Cada plato con su foto. El antojo entra por los ojos.</p></div>
+    <div class="card"><p class="card-title">Siempre al día</p>
+      <p>Cambias un precio y queda cambiado al instante.</p></div>
+    <div class="card"><p class="card-title">Tu estilo</p>
+      <p>Tu logo y tus colores. No parece plantilla de nadie.</p></div>
+  </div>
+
+  <div class="hl" style="margin-top:7mm">
+    <span class="big">Es la misma carta. Cambia quién la mira.</span>
+    <p>No te estamos pidiendo que cambies tu comida ni tus precios.
+       <span class="mark">Lo único que cambia es que ahora sí se ve</span> — y el que
+       la ve con hambre, pide.</p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">4</span></div>
+</div></section>
+
+<!-- ══════════════ 5 · EL MENÚ POR DENTRO ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">El menú por dentro</p>
+  <h2>Pedir queda <em>así de fácil.</em></h2>
+
+  <div class="row row--tight" style="margin-top:8mm;justify-content:space-between">
+    <div style="text-align:center">
+      <div class="phone" style="--pw:55mm"><img src="capturas/menu-jasbury.png" alt="Menú"></div>
+      <p class="phone-cap">Ve el menú completo</p>
+    </div>
+    <div style="text-align:center">
+      <div class="phone" style="--pw:55mm"><img src="capturas/producto-jasbury.png" alt="Plato con adiciones"></div>
+      <p class="phone-cap">Escoge sus adiciones</p>
+    </div>
+    <div style="text-align:center">
+      <div class="phone" style="--pw:55mm"><img src="capturas/carrito-jasbury.png" alt="Pedido armado"></div>
+      <p class="phone-cap">Ve cuánto va sumando</p>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:8mm">
+    <div class="card">
+      <p class="card-title">Las adiciones se cobran solas</p>
+      <p>Si el combo vale $6.000 más, la app lo suma. Se acabó el
+         «ay, se me olvidó cobrarle la gaseosa».</p>
+    </div>
+    <div class="card">
+      <p class="card-title">Te dice si algo se acabó</p>
+      <p>Marcas un plato como agotado y deja de aparecer disponible.
+         Nadie pide lo que no hay.</p>
+    </div>
+    <div class="card">
+      <p class="card-title">Respeta tu horario</p>
+      <p>Fuera de hora tus clientes ven el menú, pero no pueden pedir.
+         Así no te llegan pedidos a las 3 de la mañana.</p>
+    </div>
+    <div class="card">
+      <p class="card-title">El cliente escribe sus notas</p>
+      <p>«Sin cebolla», «salsa aparte». Llega escrito en el pedido,
+         no en un audio de dos minutos.</p>
+    </div>
+  </div>
+
+  <div class="hl" style="margin-top:7mm">
+    <span class="big">Y el pedido te llega completo.</span>
+    <p>Sin el «¿me repite la dirección?», sin cuentas hechas a mano y sin
+       acordarse de nada. <span class="mark">Tú solo lees y despachas.</span></p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">5</span></div>
+</div></section>
+
+<!-- ══════════════ 6 · LAS FOTOS DE LOS PLATOS ⭐ ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">La ventaja estrella</p>
+  <h2>Tus platos, <em>con foto.</em><br>Todos.</h2>
+  <p class="sub">Esto es lo que más vende y casi nadie lo tiene. No son fotos de banco de
+     imágenes genéricas: son las de <b class="ink-b">tus platos</b>, y te las dejamos puestas
+     nosotros. Si mañana sacas uno nuevo, el panel te ayuda a generar la suya.</p>
+
+  <div class="fotos fotos--alta" style="margin-top:7mm">
+    <img src="../public/locales/jasbury/hamburguesa-especial.webp" alt="">
+    <img src="../public/locales/pilotos/costillas.webp" alt="">
+    <img src="../public/locales/jasbury/salchipapa-costena.webp" alt="">
+  </div>
+  <div class="fotos" style="margin-top:4mm">
+    <img src="../public/locales/pilotos/alitas.webp" alt="">
+    <img src="../public/locales/jasbury/perro-americano.webp" alt="">
+    <img src="../public/locales/pilotos/picada.webp" alt="">
+    <img src="../public/locales/jasbury/churrasco.webp" alt="">
+    <img src="../public/locales/pilotos/pizza.webp" alt="">
+    <img src="../public/locales/jasbury/mazorcada.webp" alt="">
+  </div>
+
+  <div class="grad-card" style="margin-top:8mm">
+    <p class="precio-k">Piénsalo así</p>
+    <p style="font-family:var(--serif);font-weight:800;font-size:17pt;line-height:1.2;margin-top:4px">
+      Nadie pide una hamburguesa<br>que no ha visto.</p>
+    <p style="font-size:10.2pt;line-height:1.5;opacity:.95;margin-top:7px;max-width:130mm">
+      Con foto, el cliente se antoja y pide más caro. Sin foto, pide «lo de siempre»
+      o no pide. Es el cambio más barato que puedes hacerle a tu negocio.</p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">6</span></div>
+</div></section>
+
+<!-- ══════════════ 7 · TU NEGOCIO, TU ESTILO ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Tu marca</p>
+  <h2>No parece de nadie más.<br><em>Parece tuyo.</em></h2>
+  <p class="sub">Dos negocios, la misma app, y no se parecen en nada. Tu logo, tus colores,
+     tu portada y el nombre de tus categorías como tú los llames.</p>
+
+  <div class="row" style="margin-top:8mm;justify-content:center;gap:16mm">
+    <div style="text-align:center">
+      <div class="phone" style="--pw:70mm"><img src="capturas/menu-jasbury.png" alt="Jasbury"></div>
+      <p class="phone-cap">Rojo vivo, alegre</p>
+    </div>
+    <div style="text-align:center">
+      <div class="phone" style="--pw:70mm"><img src="capturas/menu-pilotos.png" alt="Pilotos Burger House"></div>
+      <p class="phone-cap">Oscuro, de noche</p>
+    </div>
+  </div>
+
+  <div class="grid3" style="margin-top:9mm">
+    <div class="card"><p class="card-title">Tu logo arriba</p>
+      <p>Lo primero que ve tu cliente al abrir. Con una entrada bonita.</p></div>
+    <div class="card"><p class="card-title">Tus colores</p>
+      <p>Los sacamos de tu logo para que todo combine sin que pienses en eso.</p></div>
+    <div class="card"><p class="card-title">Tus palabras</p>
+      <p>Si tus combos se llaman «Zona de Despegue», así se llaman.</p></div>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">7</span></div>
+</div></section>
+
+<!-- ══════════════ 8 · EL PANEL: TÚ MANDAS ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Tu panel</p>
+  <h2>Aquí mandas tú.<br><em>Sin pedirle permiso a nadie.</em></h2>
+  <p class="sub">Entras desde tu celular o tu computador con tu correo. Son cuatro pestañas
+     y ya. Nosotros te lo dejamos armado y te enseñamos a usarlo el día de la entrega.</p>
+
+  <div class="laptop" style="margin-top:7mm">
+    <div class="laptop-bar"><i></i><i></i><i></i></div>
+    <div class="laptop-shot"><img src="capturas/panel-catalogo.png" alt="Panel de Appetic"></div>
+  </div>
+
+  <div class="grid2" style="margin-top:7mm">
+    <div class="card"><p class="card-title">🍔 Catálogo</p>
+      <p>Tus platos: precios, fotos, descripciones, agotados y en qué orden salen.</p></div>
+    <div class="card"><p class="card-title">📣 Difundir</p>
+      <p>Tu link, tu código QR, el afiche y la publicidad para tus redes.</p></div>
+    <div class="card"><p class="card-title">⚙️ Configuración</p>
+      <p>Tu WhatsApp, tu horario, tu portada, si haces domicilios y cuánto cobras.</p></div>
+    <div class="card"><p class="card-title">📊 Métricas</p>
+      <p>Cuánta gente entró a tu menú, cuántos pidieron y cuánto sumaron.</p></div>
+  </div>
+
+  <div class="hl" style="margin-top:7mm">
+    <span class="big">No hay que pedirnos permiso para nada.</span>
+    <p>El panel es tuyo y entras cuando quieras, a la hora que quieras.
+       <span class="mark">Nosotros no tocamos tu menú</span> a menos que tú nos lo pidas.</p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">8</span></div>
+</div></section>
+
+<!-- ══════════════ 9 · CAMBIAR PRECIOS Y AGOTADOS ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">La duda de siempre</p>
+  <h2>«¿Y si me sube<br>el precio de la carne?»</h2>
+  <p class="sub">Lo cambias tú, en diez segundos, desde el celular. No nos llamas, no esperas
+     a nadie y no reimprimes nada. Queda cambiado para todos al instante.</p>
+
+  <div class="row" style="margin-top:7mm;gap:8mm;align-items:flex-start">
+    <div style="flex:0 0 92mm">
+      <div class="laptop">
+        <div class="laptop-bar"><i></i><i></i><i></i></div>
+        <div class="laptop-shot"><img src="capturas/zoom-editar.png" alt="Editor de producto"></div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="grad-card">
+        <p class="precio-k">En diez segundos</p>
+        <p style="font-family:var(--serif);font-weight:800;font-size:16pt;line-height:1.2;margin-top:5px">
+          Abres, escribes el<br>precio nuevo y guardas.</p>
+        <p style="font-size:9.8pt;line-height:1.5;opacity:.95;margin-top:7px">
+          Desde el celular, en la cocina, con las manos sucias. Tu cliente ve
+          el precio nuevo en la siguiente vez que abra tu menú.</p>
+      </div>
+      <div class="card" style="margin-top:6mm">
+        <p class="card-title">¿Y lo que no te salga?</p>
+        <p>Nos escribes al <b class="ink-b">320 843 5143</b> y lo hacemos nosotros.
+           Eso ya va incluido en tu mensualidad.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="hl" style="margin-top:7mm">
+    <span class="big">Lo que cambias tú solo, sin llamar a nadie</span>
+    <ul class="check" style="margin-top:2mm;columns:2;column-gap:9mm">
+      <li>El <b>precio</b> de cualquier plato.</li>
+      <li>Marcar <b>agotado</b> y volver a activarlo.</li>
+      <li>El <b>nombre</b> y la descripción.</li>
+      <li>La <b>foto</b>, o pedirle una nueva a la app.</li>
+      <li>Las <b>adiciones</b> y cuánto cobra cada una.</li>
+      <li>Agregar <b>platos nuevos</b> y categorías.</li>
+      <li>El <b>orden</b>: qué sale primero en tu menú.</li>
+      <li>Tu <b>horario</b> y tus tarifas de domicilio.</li>
+    </ul>
+  </div>
+
+  <div class="grid3" style="margin-top:7mm">
+    <div class="card"><p class="card-title">Se acabó el pollo</p>
+      <p>Lo marcas agotado y deja de aparecer. Nadie te pide lo que no tienes.</p></div>
+    <div class="card"><p class="card-title">Subió la carne</p>
+      <p>Cambias el precio y queda cambiado. No hay carta vieja rodando por ahí.</p></div>
+    <div class="card"><p class="card-title">Hoy cierras temprano</p>
+      <p>Cambias el horario y tu menú lo dice solo, sin que llames a nadie.</p></div>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">9</span></div>
+</div></section>
+
+<!-- ══════════════ 10 · TU LINK Y TU QR ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Para que lo vean</p>
+  <h2>Un link tuyo<br>y un <em>código QR.</em></h2>
+  <p class="sub">Tu negocio queda en una dirección propia, fácil de decir por teléfono.
+     Y el QR lo pegas donde quieras: la mesa, la vitrina, la caja, el empaque, la moto.</p>
+
+  <div class="row" style="margin-top:7mm;gap:8mm;align-items:flex-start">
+    <div style="flex:0 0 98mm">
+      <img src="capturas/zoom-qr.png" alt="Link y QR en el panel"
+           style="width:100%;border-radius:14px;border:1px solid var(--line)">
+    </div>
+    <div class="col">
+      <div class="grad-card">
+        <p class="precio-k">Tu dirección</p>
+        <p style="font-family:var(--serif);font-weight:800;font-size:15pt;margin-top:5px;line-height:1.2">
+          appetic.vercel.app/<br><span style="opacity:.85">tu-negocio</span></p>
+        <p style="font-size:9.6pt;line-height:1.5;opacity:.95;margin-top:7px">
+          Mándalo por WhatsApp, ponlo en tu estado o en la bio de Instagram.
+          Se abre de una, sin instalar nada.</p>
+      </div>
+      <ul class="check" style="margin-top:6mm">
+        <li>El QR te lo damos en <b>imagen</b>, listo para imprimir donde quieras.</li>
+        <li>También te damos un <b>afiche armado</b> con tu QR y tu número.</li>
+        <li>Funciona en cualquier celular: no hay que descargar app.</li>
+      </ul>
+    </div>
+  </div>
+
+  <p class="k" style="margin-top:8mm">Dónde ponerlo</p>
+  <div class="grid3" style="margin-top:4mm">
+    <div class="card"><p class="card-title">🪧 En la mesa y la vitrina</p>
+      <p>El que ya está sentado pide sin llamar a nadie; el que va pasando
+         ve tu carta desde la calle.</p></div>
+    <div class="card"><p class="card-title">📦 En el empaque y la moto</p>
+      <p>El domicilio de hoy es el cliente de la otra semana. Va pegado en
+         la bolsa y ya sabe cómo volver a pedir.</p></div>
+    <div class="card"><p class="card-title">📱 En tu estado y tu bio</p>
+      <p>El link pegado en WhatsApp e Instagram. Se abre de una, sin
+         explicarle nada a nadie.</p></div>
+  </div>
+
+  <div class="hl" style="margin-top:7mm">
+    <p><span class="mark">La dirección es tuya y no cambia.</span> Aunque cambies de
+       platos, de precios o de fotos, el link y el QR que repartiste siguen sirviendo
+       igual — no hay que reimprimir nada.</p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">10</span></div>
+</div></section>
+
+<!-- ══════════════ 11 · ARTES Y MENSAJES PARA TUS REDES ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Esto casi nadie lo espera</p>
+  <h2>Publicidad para tus redes,<br><em>hecha por la app.</em></h2>
+  <p class="sub">Le das a un botón y te arma una imagen para tu estado de WhatsApp o tu
+     Instagram, con tu comida, tu número y tus colores. Cada vez sale en un estilo distinto.</p>
+
+  <div class="row" style="margin-top:7mm;gap:8mm;align-items:flex-start">
+    <div style="flex:0 0 110mm">
+      <img src="capturas/zoom-artes.png" alt="Publicidad con IA y mensaje de bienvenida"
+           style="width:100%;border-radius:14px;border:1px solid var(--line)">
+    </div>
+    <div class="col">
+      <div class="card">
+        <p class="card-title">✨ Publicidad lista</p>
+        <p>Diez estilos distintos. La descargas y la subes. No pagas diseñador
+           por un post de un martes.</p>
+      </div>
+      <div class="card" style="margin-top:5mm">
+        <p class="card-title">👋 Mensaje de bienvenida</p>
+        <p>El texto ya escrito para mandarle tu menú a un cliente nuevo.
+           Lo copias, lo pegas y listo.</p>
+      </div>
+      <div class="hl" style="margin-top:5mm">
+        <span class="big">Y sí: también puedes editarlo</span>
+        <p>Todo lo que te damos armado lo puedes cambiar antes de mandarlo.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grad-card" style="margin-top:5mm">
+    <p class="precio-k">Piénsalo así</p>
+    <p style="font-family:var(--serif);font-weight:800;font-size:17pt;line-height:1.2;margin-top:4px">
+      Un post mandado a hacer<br>te cuesta más que todo esto.</p>
+    <p style="font-size:10.2pt;line-height:1.5;opacity:.95;margin-top:7px;max-width:132mm">
+      Y aquí lo sacas cuantas veces quieras, el día que quieras, sin pedirle
+      el favor a nadie ni esperar a que te lo manden.</p>
+  </div>
+
+  <p class="k" style="margin-top:5mm">Cuándo usarla</p>
+  <div class="grid3" style="margin-top:2.5mm">
+    <div class="card"><p class="card-title">El viernes a mediodía</p>
+      <p>Cuando la gente está decidiendo dónde almorzar y todavía no eligió.</p></div>
+    <div class="card"><p class="card-title">Cuando sacas algo nuevo</p>
+      <p>Plato nuevo o promoción: una imagen y ya está anunciado.</p></div>
+    <div class="card"><p class="card-title">El día que está flojo</p>
+      <p>Un estado con tu comida y tu link mueve pedidos esa misma tarde.</p></div>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">11</span></div>
+</div></section>
+
+<!-- ══════════════ 12 · TUS NÚMEROS ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Tus números</p>
+  <h2>Por fin vas a saber<br><em>cuánta gente te ve.</em></h2>
+  <p class="sub">Hoy no tienes forma de saber cuántos miraron tu carta y no pidieron.
+     Con Appetic sí: entras a Métricas y lo ves.</p>
+
+  <div class="laptop" style="margin-top:7mm">
+    <div class="laptop-bar"><i></i><i></i><i></i></div>
+    <div class="laptop-shot"><img src="capturas/panel-metricas.png" alt="Métricas"></div>
+  </div>
+  <p style="font-size:8pt;color:var(--faint);margin-top:3mm;text-align:right">
+    Pantalla de ejemplo con números de muestra.</p>
+
+  <div class="grid3" style="margin-top:6mm">
+    <div class="card"><p class="card-title">Visitas</p>
+      <p>Cuántas personas abrieron tu menú hoy y en total.</p></div>
+    <div class="card"><p class="card-title">Pedidos</p>
+      <p>Cuántos llegaron a mandarte el pedido por WhatsApp.</p></div>
+    <div class="card"><p class="card-title">Cuánto sumaron</p>
+      <p>El valor de esos pedidos, para que compares tus días.</p></div>
+  </div>
+
+  <div class="hl" style="margin-top:6mm">
+    <span class="big">Para qué te sirve</span>
+    <p>Si un día entraron 80 personas y solo pidieron 4, algo pasa: el precio, la foto
+       o la hora. <span class="mark">Ahora lo ves y lo puedes arreglar</span> en vez de
+       adivinar.</p>
+  </div>
+
+  <div class="card" style="margin-top:6mm;border-color:rgba(224,105,42,.25)">
+    <p class="card-title">Y son tuyos</p>
+    <p>Esos números no se los mostramos a nadie ni los publicamos en ninguna parte.
+       Los ves tú desde tu panel y ya.</p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">12</span></div>
+</div></section>
+
+<!-- ══════════════ 13 · EL MENÚ DEL DÍA ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Para restaurantes de almuerzo</p>
+  <h2>El menú del día,<br><em>cambiado cada mañana.</em></h2>
+  <p class="sub">Si tu carta cambia todos los días, esto es para ti: entras, pones el
+     almuerzo de hoy y ya. Tus clientes lo ven al instante y tú no imprimes ni un papel.</p>
+
+  <div class="row" style="margin-top:7mm;gap:9mm;align-items:flex-start">
+    <div style="flex:none;text-align:center">
+      <div class="phone" style="--pw:70mm"><img src="capturas/menu-del-dia.png" alt="Menú del día"></div>
+      <p class="phone-cap">El almuerzo de hoy</p>
+    </div>
+    <div class="col">
+      <div class="card">
+        <p class="card-title">Lo cambias en la mañana</p>
+        <p>Sopa, seco, principio, jugo. Lo escribes una vez y queda publicado
+           para todo el día.</p>
+      </div>
+      <div class="card" style="margin-top:5mm">
+        <p class="card-title">Se acabó el «¿qué hay hoy?»</p>
+        <p>Mandas tu link por WhatsApp y todos ven el almuerzo del día
+           sin que tengas que contestar uno por uno.</p>
+      </div>
+      <div class="card" style="margin-top:5mm">
+        <p class="card-title">También sirve para los fijos</p>
+        <p>Lo que siempre tienes —bandeja, ejecutivo, a la carta— se queda quieto,
+           y solo cambias lo del día.</p>
+      </div>
+      <div class="card" style="margin-top:5mm">
+        <p class="card-title">Y cuando se acaba, se acaba</p>
+        <p>Si el sancocho se agotó a la una, lo marcas agotado y deja de
+           aparecer. Nadie llega preguntando por lo que ya no hay.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="hl" style="margin-top:7mm">
+    <span class="big">Sin reimprimir nada.</span>
+    <p>Ni tablero, ni hoja pegada en la ventana, ni foto nueva cada mañana.
+       <span class="mark">Lo escribes una vez y lo ve todo el mundo.</span></p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">13</span></div>
+</div></section>
+
+<!-- ══════════════ 14 · EL BUSCADOR DEL BARRIO ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Clientes nuevos</p>
+  <h2>Y si quieres, te encuentran<br><em>sin conocerte.</em></h2>
+
+  <div class="row" style="margin-top:7mm;gap:9mm;align-items:flex-start">
+    <div style="flex:none;text-align:center">
+      <div class="phone" style="--pw:74mm"><img src="capturas/buscador.png" alt="Buscador de Appetic"></div>
+      <p class="phone-cap">El buscador de Appetic</p>
+    </div>
+    <div class="col">
+      <p class="sub" style="margin-top:0">Appetic también tiene un buscador donde la gente
+        del barrio ve los negocios que están en la app. Quien entre puede encontrarte
+        aunque nunca haya oído de ti.</p>
+
+      <div class="grad-card" style="margin-top:6mm">
+        <p class="precio-k">Tranquilo</p>
+        <p style="font-family:var(--serif);font-weight:800;font-size:17pt;line-height:1.2;margin-top:4px">
+          Tú decides si apareces.</p>
+        <p style="font-size:10pt;line-height:1.5;opacity:.95;margin-top:7px">
+          Si no quieres salir ahí, no sales — y tu menú sigue funcionando igual
+          por tu link y tu QR. Es tu decisión, no la nuestra, y la puedes cambiar
+          cuando quieras.</p>
+      </div>
+
+      <div class="card" style="margin-top:6mm">
+        <p class="card-title">Si decides aparecer</p>
+        <p>Sales con tu logo, tu nombre y tus platos destacados. Y quien toque tu
+           negocio cae directo en tu menú, no en el de otro.</p>
+      </div>
+
+      <div class="card" style="margin-top:6mm">
+        <p class="card-title">Si decides no aparecer</p>
+        <p>Tu local no sale en ninguna búsqueda y quien entre por tu link tampoco ve
+           el buscador. Solo te ve el que tú invitaste.</p>
+      </div>
+
+      <div class="card" style="margin-top:6mm;border-color:rgba(224,105,42,.25)">
+        <p class="card-title">No cuesta más</p>
+        <p>Salir en el buscador va incluido en la mensualidad. No es un plan aparte
+           ni te cobramos por los clientes que lleguen por ahí.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="hl" style="margin-top:7mm">
+    <span class="big">Sin comisión, aparezcas o no</span>
+    <p>Aunque el cliente te encuentre por el buscador, el pedido va a tu WhatsApp y
+       la plata es tuya completa. <span class="mark">Nunca cobramos por pedido.</span></p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">14</span></div>
+</div></section>
+
+<!-- ══════════════ 15 · TODO LO QUE RECIBES ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">El paquete completo</p>
+  <h2>Esto es <em>todo</em><br>lo que te llevas.</h2>
+  <p class="sub">Un solo pago de montaje y te entregamos el negocio funcionando.
+     No hay letra chiquita ni cosas que se cobren aparte.</p>
+
+  <div class="grid2" style="margin-top:7mm">
+    <div class="card"><p class="card-title">1 · Tu menú armado</p>
+      <p>Pasamos tu carta completa: platos, precios, descripciones, adiciones y
+         categorías. Lo hacemos nosotros, tú solo nos la pasas.</p></div>
+    <div class="card"><p class="card-title">2 · Las fotos de tus platos</p>
+      <p>Cada plato con su foto. Si no tienes fotos buenas, te las generamos.</p></div>
+    <div class="card"><p class="card-title">3 · Tu link y tu QR</p>
+      <p>Tu dirección propia y el código QR en imagen, listo para imprimir.</p></div>
+    <div class="card"><p class="card-title">4 · Tu diseño</p>
+      <p>Tu logo, tus colores y tu portada. Que se vea tuyo y no de plantilla.</p></div>
+    <div class="card"><p class="card-title">5 · Tu panel</p>
+      <p>Para que edites precios, agotados, fotos y horarios cuando quieras.</p></div>
+    <div class="card"><p class="card-title">6 · El buscador del barrio</p>
+      <p>Te dejamos listo para aparecer — si tú quieres aparecer.</p></div>
+    <div class="card"><p class="card-title">7 · Te enseñamos a usarlo</p>
+      <p>El día de la entrega nos sentamos contigo hasta que te salga solo.</p></div>
+    <div class="card"><p class="card-title">8 · Artes y mensajes</p>
+      <p>Publicidad para Instagram y WhatsApp, y el mensaje de bienvenida escrito.</p></div>
+    <div class="card"><p class="card-title">9 · El primer mes, incluido</p>
+      <p>La mensualidad empieza desde el segundo mes. El primero ya va dentro
+         del montaje.</p></div>
+    <div class="card"><p class="card-title">10 · Nuestro WhatsApp</p>
+      <p>Para lo que no te salga, cuando no te salga. Va incluido en la
+         mensualidad, no se cobra aparte.</p></div>
+  </div>
+
+  <div class="grad-card" style="margin-top:7mm;text-align:center">
+    <p class="precio-k">Y muy importante</p>
+    <p style="font-family:var(--serif);font-weight:800;font-size:18pt;margin-top:5px">
+      Pagas cuando ya lo tienes funcionando.</p>
+    <p style="font-size:10pt;opacity:.95;margin-top:6px">
+      Primero te lo entregamos y te lo enseñamos. Después cobramos.</p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">15</span></div>
+</div></section>
+
+<!-- ══════════════ 16 · EL PRECIO ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">El precio</p>
+  <h2>Claro y sin vueltas.</h2>
+
+  <div class="grad-card" style="margin-top:8mm;text-align:center;padding:12mm 10mm">
+    <p class="precio-k">Montaje · una sola vez</p>
+    <p class="precio-big" style="margin-top:4mm">$50.000</p>
+    <p class="precio-nota" style="max-width:120mm;margin:6mm auto 0">
+      Todo lo de la página anterior: el menú armado, las fotos, tu link, tu QR,
+      tu diseño, tu panel y el entrenamiento. <b>Se paga el día de la entrega</b>,
+      cuando ya está funcionando.</p>
+  </div>
+
+  <div class="card" style="margin-top:7mm;text-align:center;border-color:rgba(224,105,42,.28);padding:9mm 8mm">
+    <p class="k">Mensualidad · desde el segundo mes</p>
+    <p style="font-family:var(--serif);font-weight:800;font-size:40pt;color:var(--orange-strong);line-height:1;margin-top:3mm">
+      $18.900<small style="font-size:13pt;font-weight:700"> / mes</small></p>
+    <p style="font-size:10.2pt;color:var(--ink-soft);margin-top:4mm;max-width:130mm;margin-left:auto;margin-right:auto;line-height:1.5">
+      <b class="ink-b">El primer mes va incluido</b> en el montaje. Empiezas a pagar
+      mensualidad a partir del segundo.</p>
+  </div>
+
+  <div class="row" style="margin-top:7mm;gap:6mm">
+    <div class="col">
+      <div class="hl" style="height:100%">
+        <span class="big">Qué cubre la mensualidad</span>
+        <ul class="check" style="margin-top:2mm">
+          <li>Tu menú en línea y funcionando.</li>
+          <li>Seguir en el buscador del barrio.</li>
+          <li>Soporte cuando lo necesites.</li>
+          <li>Los cambios que no te salgan a ti.</li>
+          <li>Las mejoras nuevas, sin pagar más.</li>
+          <li>Tus métricas al día.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card" style="height:100%">
+        <p class="card-title">Lo que NO te cobramos</p>
+        <ul style="margin-top:2mm">
+          <li><b>Comisión por pedido.</b> Ni un peso. La venta es tuya completa.</li>
+          <li><b>Por cambiar precios</b> o agregar platos.</li>
+          <li><b>Por las fotos</b> de tus platos.</li>
+          <li><b>Por las visitas</b> que reciba tu menú.</li>
+          <li><b>Por aparecer</b> en el buscador del barrio.</li>
+          <li><b>Por el soporte</b> cuando algo no te salga.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="hl" style="margin-top:7mm">
+    <span class="big">Sin permanencia y sin multa</span>
+    <p>No firmas nada que te amarre. Si un mes decides que no,
+       <span class="mark">dejas de pagar y ya está</span> — no hay cláusula, ni cobro
+       de salida, ni llamadas insistiendo.</p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">16</span></div>
+</div></section>
+
+<!-- ══════════════ 17 · CÓMO ES EL PROCESO ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Si dices que sí</p>
+  <h2>Cuatro pasos<br>y <em>ya estás vendiendo.</em></h2>
+
+  <div class="crece reparte pasos" style="margin-top:9mm;padding-bottom:3mm">
+    <div class="row" style="gap:6mm;align-items:flex-start">
+      <div class="step-n">1</div>
+      <div class="col">
+        <p class="step-t" style="margin-top:2mm">Nos pasas tu carta</p>
+        <p class="step-d">Hoy mismo. Una foto de tu carta o la lista escrita, tu logo si
+           lo tienes, tu WhatsApp y tu horario. Nada más.</p>
+        <span class="step-quien tu">Lo pones tú · 5 minutos</span>
+      </div>
+    </div>
+    <div class="row" style="gap:6mm;align-items:flex-start;margin-top:8mm">
+      <div class="step-n">2</div>
+      <div class="col">
+        <p class="step-t" style="margin-top:2mm">Nosotros lo armamos</p>
+        <p class="step-d">Montamos tu menú completo, le ponemos las fotos a cada plato,
+           sacamos tus colores del logo y te dejamos el link y el QR listos.
+           <b class="ink-b">Tú no haces nada en este paso.</b></p>
+        <span class="step-quien nos">Lo hacemos nosotros · 2 o 3 días</span>
+      </div>
+    </div>
+    <div class="row" style="gap:6mm;align-items:flex-start;margin-top:8mm">
+      <div class="step-n">3</div>
+      <div class="col">
+        <p class="step-t" style="margin-top:2mm">Volvemos a tu local y te lo entregamos</p>
+        <p class="step-d">Te mostramos tu menú funcionando, te entregamos el QR y el afiche,
+           y nos sentamos contigo a enseñarte el panel hasta que te salga solo.</p>
+        <span class="step-quien nos">Vamos a tu local · el mismo día</span>
+      </div>
+    </div>
+    <div class="row" style="gap:6mm;align-items:flex-start;margin-top:8mm">
+      <div class="step-n">4</div>
+      <div class="col">
+        <p class="step-t" style="margin-top:2mm">Ahí pagas</p>
+        <p class="step-d">Los $50.000 se pagan cuando ya lo tienes en la mano y
+           funcionando. Ni un peso antes.</p>
+        <span class="step-quien tu">Solo cuando ya te gustó</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grad-card" style="margin-top:9mm">
+    <p class="precio-k">¿Cuánto se demora?</p>
+    <p style="font-family:var(--serif);font-weight:800;font-size:19pt;margin-top:5px">
+      Normalmente, dos o tres días.</p>
+    <p style="font-size:10pt;opacity:.95;margin-top:6px;max-width:135mm">
+      Depende de qué tan grande sea tu carta. Si es corta, puede quedar al día siguiente.
+      Te avisamos por WhatsApp apenas esté.</p>
+  </div>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">17</span></div>
+</div></section>
+
+<!-- ══════════════ 18 · PREGUNTAS FRECUENTES + CONTACTO ══════════════ -->
+<section class="page"><div class="pad">
+  <p class="k">Antes de decidir</p>
+  <h2>Las dudas de siempre.</h2>
+
+  <div style="margin-top:6mm">
+    <div class="faq">
+      <p class="faq-q">¿Me van a cobrar comisión por cada pedido?</p>
+      <p class="faq-a">No. Nunca. Appetic no es Rappi: el pedido llega a tu WhatsApp y
+         la plata entra completa a tu caja. Solo pagas el montaje y la mensualidad.</p>
+    </div>
+    <div class="faq">
+      <p class="faq-q">¿Ustedes reparten?</p>
+      <p class="faq-a">No. Tú entregas con tu propio domiciliario, como siempre.
+         Nosotros te llevamos el pedido ordenado hasta tu WhatsApp; de ahí en adelante
+         es tu negocio de siempre.</p>
+    </div>
+    <div class="faq">
+      <p class="faq-q">¿Mi cliente tiene que descargar una app?</p>
+      <p class="faq-a">No. Toca tu link y se abre. Funciona en cualquier celular,
+         Android o iPhone, sin instalar nada y sin registrarse.</p>
+    </div>
+    <div class="faq">
+      <p class="faq-q">Yo no sé de tecnología. ¿Voy a poder?</p>
+      <p class="faq-a">Sí. Te lo dejamos armado y te enseñamos el día de la entrega.
+         Y si algo no te sale, nos escribes y lo hacemos nosotros: va incluido.</p>
+    </div>
+    <div class="faq">
+      <p class="faq-q">¿Y si me quiero salir?</p>
+      <p class="faq-a">Te sales. No hay permanencia ni multa: dejas de pagar la
+         mensualidad y listo.</p>
+    </div>
+    <div class="faq">
+      <p class="faq-q">¿Puedo probar antes de pagar?</p>
+      <p class="faq-a">Sí, y es como funciona siempre: primero te lo entregamos
+         funcionando y te lo enseñamos. El pago es después.</p>
+    </div>
+  </div>
+
+  <div class="grad-card" style="margin-top:8mm;text-align:center;padding:10mm">
+    <p class="precio-k">Cualquier cosa, escríbenos</p>
+    <p style="font-family:var(--serif);font-weight:800;font-size:30pt;margin-top:4mm;letter-spacing:.01em">
+      320 843 5143</p>
+    <p style="font-size:10.4pt;opacity:.96;margin-top:4mm">
+      WhatsApp directo con nosotros. No con un robot.</p>
+    <div style="margin-top:6mm">
+      <span class="chip chip--w">Bogotá</span>
+      <span class="chip chip--w">appetic.vercel.app</span>
+      <span class="chip chip--w">Sin comisiones</span>
+    </div>
+  </div>
+
+  <p style="text-align:center;font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:12pt;margin-top:8mm">
+    Tu comida ya es buena.<br>Ahora que se vea.</p>
+
+  <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">18</span></div>
+</div></section>
+
+</body>
+</html>

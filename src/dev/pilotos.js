@@ -72,7 +72,15 @@ export const PILOTOS_LOCAL = {
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.
   horario: { abre: '00:00', cierra: '00:00' },
   recoger: true,
-  domicilio: { activo: false, maxKm: 3, tarifas: {} },
+  // 📍 Ubicación de ejemplo (Bogotá) para que la demo muestre el flujo COMPLETO:
+  // sin ella el checkout solo ofrece "Recoger" y la demo se queda coja justo donde
+  // más vende —el domicilio—. El dueño real la fija desde 📍 Usar mi ubicación actual.
+  ubicacion: { lat: 4.6486, lng: -74.0639 },
+  domicilio: {
+    activo: true,
+    maxKm: 3,
+    tarifas: { '0.5': 2000, '1.0': 2000, '1.5': 3000, '2.0': 3500, '2.5': 4000, '3.0': 5000 },
+  },
   pagos: [
     { id: 'efectivo', nombre: 'Efectivo', tipo: 'efectivo' },
     { id: 'nequi', nombre: 'Nequi / Daviplata', tipo: 'transferencia', llave: '' },
