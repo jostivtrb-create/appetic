@@ -185,17 +185,49 @@ ul.check li{padding-left:20px;}
   padding:6mm 5mm;height:100%;display:flex;flex-direction:column;
 }
 .malo-t{font-family:var(--serif);font-weight:800;font-size:11pt;color:#6B5647;}
+/* Los dos recuadros de "así vendes hoy" llevaban barras grises de relleno. El
+   dueño abrió la página y dijo que no había nada que mirar, y tenía razón: un
+   bloque de barras no le recuerda su propio día. Ahora llevan texto de verdad
+   —una carta de barrio con sus precios, y un chat como los que él contesta— para
+   que se reconozca y el vendedor pueda señalar con el dedo. */
 .malo-hoja{
   background:#fff;border:1px solid rgba(42,33,28,.16);border-radius:4px;margin-top:4mm;
-  padding:4mm;filter:blur(.6px);opacity:.75;
+  padding:4mm;overflow:hidden;
 }
-.malo-hoja .l{height:2.4mm;background:#CFC7BE;border-radius:2px;margin-bottom:2.6mm;}
-.malo-hoja .l.s{width:55%;}
-/* En la tarjeta del chat: las barras de la derecha son "lo que contesta el
-   local", para que la hoja se lea como una conversación y no como otra carta. */
-.malo-hoja .l.der{margin-left:auto;background:#C6D9C9;}
-.malo-hoja .l.m{width:78%;}
-.malo-hoja .t{height:3.4mm;background:#B9AFA4;border-radius:2px;width:45%;margin-bottom:4mm;}
+
+/* La carta impresa: fotografiada torcida y sin enfocar, como llegan por WhatsApp.
+   El desenfoque es leve a propósito —lo justo para que se vea mal tomada pero aún
+   se adivine qué dice—; con más, volvía a parecer relleno. */
+.carta{transform:rotate(-1.1deg);filter:blur(.45px);opacity:.88;}
+.carta-h{
+  font-family:var(--serif);font-weight:800;font-size:10pt;text-align:center;
+  color:#3A2E26;letter-spacing:.06em;border-bottom:1.5px solid #3A2E26;
+  padding-bottom:1.4mm;margin-bottom:2.4mm;
+}
+.carta-s{font-size:7.4pt;font-weight:800;color:#8A7460;letter-spacing:.08em;margin:2.6mm 0 1.2mm;}
+.carta-i{display:flex;gap:2mm;font-size:8pt;color:#4A3C32;line-height:1.55;}
+.carta-i .p{flex:1;min-width:0;white-space:nowrap;overflow:hidden;}
+.carta-i .v{font-weight:700;font-variant-numeric:tabular-nums;}
+
+/* El chat: burbujas de verdad, las del cliente a la izquierda y las del local a
+   la derecha. Son ocho mensajes para un solo pedido, que es justo lo que dice la
+   viñeta de abajo: el vendedor los puede contar en voz alta delante del dueño. */
+/* height:100% para que el fondo del chat llegue hasta abajo del recuadro. Sin
+   esto las burbujas terminaban a media tarjeta y quedaba un vacío blanco que
+   parecía un error de maquetación. */
+.chat{background:#ECE5DD;border-radius:6px;padding:3mm 2.6mm;height:100%;}
+.chat .b{
+  max-width:86%;background:#fff;border-radius:7px;padding:1.5mm 2.2mm;
+  font-size:7.8pt;line-height:1.35;color:#2A211C;margin-bottom:1.6mm;
+  box-shadow:0 1px 1px rgba(0,0,0,.08);
+}
+.chat .b.mi{background:#DCF8C6;margin-left:auto;}
+.chat .b.foto{padding:1.5mm;}
+.chat .b.foto .ph{
+  height:11mm;border-radius:4px;background:#CFC7BE;
+  display:flex;align-items:center;justify-content:center;
+  font-size:6.6pt;color:#6B5647;font-weight:700;
+}
 .malo li::before{background:#B9AFA4;}
 .malo li{font-size:9.4pt;}
 
@@ -331,14 +363,22 @@ ul.check li{padding-left:20px;}
       <div class="malo">
         <p class="malo-t">📄 La foto de la carta</p>
         <div class="malo-hoja" style="flex:1 1 auto">
-          <div class="t"></div>
-          <div class="l"></div><div class="l m"></div><div class="l s"></div>
-          <div class="l"></div><div class="l m"></div>
-          <div class="t" style="width:38%;margin-top:6mm"></div>
-          <div class="l m"></div><div class="l"></div><div class="l s"></div>
-          <div class="l m"></div><div class="l"></div>
-          <div class="t" style="width:44%;margin-top:6mm"></div>
-          <div class="l"></div><div class="l s"></div><div class="l m"></div>
+          <div class="carta">
+            <div class="carta-h">LISTA DE PRECIOS</div>
+            <div class="carta-s">HAMBURGUESAS</div>
+            <div class="carta-i"><span class="p">Sencilla</span><span class="v">12.000</span></div>
+            <div class="carta-i"><span class="p">Especial</span><span class="v">16.000</span></div>
+            <div class="carta-i"><span class="p">Ranchera</span><span class="v">18.000</span></div>
+            <div class="carta-s">PERROS</div>
+            <div class="carta-i"><span class="p">Sencillo</span><span class="v">8.000</span></div>
+            <div class="carta-i"><span class="p">Americano</span><span class="v">11.000</span></div>
+            <div class="carta-s">PARA COMPARTIR</div>
+            <div class="carta-i"><span class="p">Salchipapa</span><span class="v">14.000</span></div>
+            <div class="carta-i"><span class="p">Picada mixta</span><span class="v">32.000</span></div>
+            <div class="carta-s">BEBIDAS</div>
+            <div class="carta-i"><span class="p">Gaseosa personal</span><span class="v">3.500</span></div>
+            <div class="carta-i"><span class="p">Limonada</span><span class="v">5.000</span></div>
+          </div>
         </div>
         <ul class="abajo" style="padding-top:5mm">
           <li>Se ve borrosa cuando le hacen zoom.</li>
@@ -350,18 +390,19 @@ ul.check li{padding-left:20px;}
     <div class="col">
       <div class="malo">
         <p class="malo-t">💬 El pedido por chat</p>
-        <div class="malo-hoja" style="filter:none;opacity:1;flex:1 1 auto">
-          <div class="l m"></div><div class="l" style="width:62%"></div>
-          <div class="l s der"></div><div class="l m der"></div>
-          <div class="l" style="width:40%"></div>
-          <div class="l m" style="margin-top:6mm"></div><div class="l s"></div>
-          <div class="l der" style="width:70%"></div><div class="l m der"></div>
-          <div class="l s" style="margin-top:6mm"></div><div class="l"></div>
-          <div class="l m der"></div><div class="l der" style="width:48%"></div>
-          <div class="l s"></div>
-          <div class="l" style="width:66%;margin-top:6mm"></div>
-          <div class="l m der"></div><div class="l der" style="width:36%"></div>
-          <div class="l s"></div><div class="l m"></div>
+        <div class="malo-hoja" style="padding:0;border:none;flex:1 1 auto">
+          <div class="chat">
+            <div class="b">Buenas, ¿me manda la carta?</div>
+            <div class="b mi foto"><div class="ph">📄 carta.jpg</div></div>
+            <div class="b">No se alcanza a leer 😕</div>
+            <div class="b">¿La especial a cómo?</div>
+            <div class="b mi">16 mil</div>
+            <div class="b">Deme 2, sin tomate</div>
+            <div class="b mi">¿Dirección?</div>
+            <div class="b">Cra 7 # 12-34, apto 301</div>
+            <div class="b mi">¿Efectivo o transferencia?</div>
+            <div class="b">Transferencia. ¿A qué número?</div>
+          </div>
         </div>
         <ul class="abajo" style="padding-top:5mm">
           <li>«¿Me mandas la carta?» otra vez.</li>
@@ -564,21 +605,25 @@ Domicilio: $2.000
 <section class="page"><div class="pad">
   <p class="k">La ventaja estrella</p>
   <h2>Tus platos, <em>con foto.</em><br>Todos.</h2>
-  <p class="sub">Esto es lo que más vende y casi nadie lo tiene. No son fotos de banco de
-     imágenes genéricas: son las de <b class="ink-b">tus platos</b>, y te las dejamos puestas
-     nosotros. Si mañana sacas uno nuevo, el panel te ayuda a generar la suya.</p>
+  <p class="sub">Esto es lo que más vende y casi nadie lo tiene. Las nueve de abajo son de
+     <b class="ink-b">un solo local de barrio</b>, no de un banco de imágenes. Las tuyas van a
+     ser de tus platos, y te las dejamos puestas nosotros.</p>
 
+  <!-- Las nueve son del MISMO local (Jasbury). Antes cuatro eran de Pilotos, y el
+       párrafo de arriba presume justo de que no son fotos sueltas de un banco de
+       imágenes: mezclarlas desmentía la frase en la misma página. Viniendo todas
+       de un solo negocio, la cuadrícula es la prueba de lo que se promete. -->
   <div class="fotos fotos--alta" style="margin-top:7mm">
     <img src="../public/locales/jasbury/hamburguesa-especial.webp" alt="">
-    <img src="../public/locales/pilotos/costillas.webp" alt="">
+    <img src="../public/locales/jasbury/churrasco.webp" alt="">
     <img src="../public/locales/jasbury/salchipapa-costena.webp" alt="">
   </div>
   <div class="fotos" style="margin-top:4mm">
-    <img src="../public/locales/pilotos/alitas.webp" alt="">
+    <img src="../public/locales/jasbury/pollo-broaster.webp" alt="">
     <img src="../public/locales/jasbury/perro-americano.webp" alt="">
-    <img src="../public/locales/pilotos/picada.webp" alt="">
-    <img src="../public/locales/jasbury/churrasco.webp" alt="">
-    <img src="../public/locales/pilotos/pizza.webp" alt="">
+    <img src="../public/locales/jasbury/tabla-mixta.webp" alt="">
+    <img src="../public/locales/jasbury/choripapa.webp" alt="">
+    <img src="../public/locales/jasbury/burrito.webp" alt="">
     <img src="../public/locales/jasbury/mazorcada.webp" alt="">
   </div>
 
