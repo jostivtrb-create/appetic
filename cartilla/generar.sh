@@ -13,12 +13,18 @@
 set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# Sello de versión. Va impreso en la portada del PDF y, en el mismo formato, al
+# lado del botón del panel: si los dos textos coinciden, el archivo que tienes
+# abierto es el que está publicado. Sin esto la única forma de saberlo era
+# comparar el PDF página por página, que es justo lo que no se puede pedir.
+VERSION="$(date '+%d/%m/%Y · %H:%M')"
+
 pdf() { # $1 = valor de ?salida=   $2 = nombre del archivo
   rm -rf /tmp/_cartilla_prof
   google-chrome --headless --disable-gpu --no-pdf-header-footer --no-sandbox \
     --user-data-dir=/tmp/_cartilla_prof \
     --print-to-pdf="$DIR/_crudo.pdf" \
-    "file://$DIR/cartilla-appetic.html?salida=$1"
+    "file://$DIR/cartilla-appetic.html?salida=$1&v=$(printf %s "$VERSION" | jq -sRr @uri)"
   sleep 1
 
   # Chrome mete las fotos sin comprimir: el PDF sale en 26 MB, y eso es una
@@ -42,8 +48,17 @@ pdf digital cartilla-appetic-whatsapp.pdf
 # en pantalla se ve descuadrada. Copiar aquí y no a mano es lo que evita que el
 # PDF publicado se quede atrás del original, que ya pasó una vez.
 ROOT="$(cd "$DIR/.." && pwd)"
-cp "$DIR/cartilla-appetic-whatsapp.pdf" "$ROOT/public/cartilla-appetic.pdf"
-cp "$DIR/cartilla-appetic-whatsapp.pdf" "$ROOT/firebase-pdf/cartilla-appetic.pdf"
-echo "  📤 copiada a public/ y firebase-pdf/ como cartilla-appetic.pdf"
+for destino in "$ROOT/public" "$ROOT/firebase-pdf"; do
+  cp "$DIR/cartilla-appetic-whatsapp.pdf" "$destino/cartilla-appetic.pdf"
+  # El mismo sello que quedó impreso en la portada, para que el panel lo lea y
+  # lo enseñe al lado del botón.
+  # du -m redondea hacia arriba y convierte 5,4 MB en "6". Con los bytes de
+  # verdad el número que ve el dueño es el mismo que le dice su celular.
+  printf '{"version":"%s","paginas":18,"mb":"%s"}\n' \
+    "$VERSION" \
+    "$(awk -v b="$(stat -c%s "$DIR/cartilla-appetic-whatsapp.pdf")" 'BEGIN{printf "%.1f", b/1048576}')" \
+    > "$destino/cartilla-version.json"
+done
+echo "  📤 copiada a public/ y firebase-pdf/ — versión $VERSION"
 
 echo "Listo. Para volver a sacar las capturas: node cartilla/capturar.mjs"

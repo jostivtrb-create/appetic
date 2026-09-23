@@ -155,6 +155,22 @@ export default function Superadmin() {
   const [guardandoId, setGuardandoId] = useState(null)
   const [adminEdits, setAdminEdits] = useState({}) // localId -> [correo1, correo2] en edición
   const [adminMsg, setAdminMsg] = useState({})     // localId -> 'guardando' | 'ok' | 'err' | 'dup'
+  const [cartilla, setCartilla] = useState(null)   // { version, paginas, mb } de cartilla-version.json
+
+  // Sello de la cartilla publicada. Lo escribe cartilla/generar.sh con la misma
+  // fecha y hora que imprime en la portada del PDF: si el texto de aquí y el de
+  // la portada coinciden, el archivo que tienes abierto es el que está arriba.
+  // Sin esto no había forma de distinguir una versión nueva de una descargada
+  // hace tres días, y eso ya costó una revisión entera sobre el PDF viejo.
+  useEffect(() => {
+    if (!superadmin) return
+    let activo = true
+    fetch('/cartilla-version.json', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(v => { if (activo) setCartilla(v) })
+      .catch(() => {})
+    return () => { activo = false }
+  }, [superadmin])
 
   const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
 
@@ -314,7 +330,16 @@ export default function Superadmin() {
         <span className="sa-descarga-ico">⬇️</span>
         <span className="sa-descarga-txt">
           <strong>Descargar cartilla de ventas</strong>
-          <small>PDF · 18 páginas · Montaje $50.000 · $18.900/mes desde el 2º mes</small>
+          <small>
+            {cartilla
+              ? `Subida el ${cartilla.version} · ${cartilla.paginas} páginas · ${cartilla.mb} MB`
+              : 'PDF · 18 páginas · Montaje $50.000 · $18.900/mes desde el 2º mes'}
+          </small>
+          {cartilla && (
+            <small className="sa-descarga-sello">
+              La portada del PDF lleva esta misma fecha. Si no coincide, lo que abriste es una copia vieja.
+            </small>
+          )}
         </span>
       </a>
 

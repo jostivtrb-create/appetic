@@ -298,3 +298,31 @@ párrafo del cierre y la fecha del pie (*Julio* → *Septiembre 2026*).
   - El PDF **no entra al precache del service worker** (`globPatterns` no incluye `.pdf`), y está
     bien: son 4,7 MB que nadie que viene a mirar un menú tiene por qué bajarse. Sí está en
     `navigateFallbackDenylist` para que el SW no lo desvíe al `index.html`.
+- **2026-09-22 · Las cuatro últimas páginas eran un muro de texto (fotos de Jasbury).** El dueño
+  lo vio al descargar la cartilla: *"faltan esas fotos, ¿no?"*. No era una impresión suya —
+  `pdfimages -list cartilla-appetic-whatsapp.pdf` contaba **cero imágenes en las páginas 15 a 18**,
+  justo en la parte donde el vendedor cierra la venta. La cartilla se pidió *"más visual que un
+  reguero de texto"* (D11) y ahí dejaba de serlo. Añadida una tira baja de platos (`.tira`, 26 mm
+  de alto, cinco por fila) en las páginas 15 y 17, y de cuatro (`.tira--4`, 30 mm) en la 18:
+  ocupa poco alto, así que entra en páginas que ya iban llenas sin desbordarlas.
+  - **Todas de Jasbury**, por pedido expreso suyo (*"acá usa solo fotos de jasbury"*): la cartilla
+    ya venía enseñando ese local en las capturas, y mezclar platos de otros negocios haría pensar
+    que son clientes que no son.
+  - **La página 16 se dejó a propósito sin fotos.** Es la de objeciones, todo texto a dos columnas;
+    meterle una tira era rellenar por simetría, no por necesidad.
+- **2026-09-22 · Sello de versión en la portada (pedido suyo).** Palabras suyas: *"no veo los
+  cambios, veo todo igual… pon en la cartilla la fecha y hora de subida antes del botón descargar
+  así sé si es la versión actualizada o no"*. El problema real: revisó **el PDF que ya tenía
+  bajado** creyendo que era el nuevo, y no había forma de distinguirlos — una revisión entera se
+  fue sobre el archivo viejo. Ahora `cartilla/generar.sh` sella `VERSION="$(date '+%d/%m/%Y ·
+  %H:%M')"` y lo escribe en **dos sitios a la vez**: se lo pasa a Chrome como `?v=…` (sale impreso
+  abajo a la derecha de la portada) y lo guarda en `cartilla-version.json` junto al PDF, que el
+  botón de `/superadmin` lee con `cache:'no-store'`. **Si los dos textos coinciden, el archivo que
+  tienes abierto es el que está publicado.** Tres cosas que costaron:
+  - **El sello salió vacío la primera vez, sin un solo error.** El `<script>` que lo rellenaba
+    estaba arriba del `<body>`, antes de que la portada se parseara, así que `getElementById`
+    devolvía `null` y el `if` se saltaba en silencio. Movido a después del `<div>`. Lo que lo
+    delató fue `pdftotext -f 1 -l 1`, no mirar el PDF.
+  - **`du -m` decía "6 MB" de un archivo de 5,4.** Redondea hacia arriba, y el número que ve el
+    dueño tiene que ser el que le dice su celular. Cambiado a `stat -c%s` + `awk` con un decimal.
+  - El `VERSION` lleva "·" y "/", así que va por `jq -sRr @uri` antes de entrar en la URL.

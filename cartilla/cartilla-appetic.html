@@ -281,8 +281,10 @@ ul.check li{padding-left:20px;}
 <body data-salida="impresa">
 <script>
   // ?salida=digital quita el canal de anillado (la versión que se manda por WhatsApp).
-  document.body.dataset.salida =
-    new URLSearchParams(location.search).get('salida') === 'digital' ? 'digital' : 'impresa'
+  // Va aquí arriba a propósito: el atributo decide márgenes, y ponerlo antes de que
+  // se dibuje nada evita que la primera pasada se maquete con el ancho equivocado.
+  const q = new URLSearchParams(location.search)
+  document.body.dataset.salida = q.get('salida') === 'digital' ? 'digital' : 'impresa'
 </script>
 
 <!-- ══════════════ 1 · PORTADA ══════════════ -->
@@ -301,10 +303,23 @@ ul.check li{padding-left:20px;}
       </div>
       <div style="text-align:right;font-size:9pt;opacity:.9;line-height:1.5">
         appetic.vercel.app<br><b style="font-weight:800">Appetic</b>
+        <!-- Sello de versión: sin esto no hay forma de saber, mirando el PDF que
+             tienes abierto, si es el último o uno que bajaste hace tres días. -->
+        <div id="sello" style="font-size:7.4pt;opacity:.62;margin-top:3mm;letter-spacing:.04em"></div>
       </div>
     </div>
   </div>
 </section>
+<script>
+  // ?v=... lo pone generar.sh con la fecha y hora de la generación. Va impreso en la
+  // portada para poder mirar un PDF ya descargado y saber si es el último.
+  //
+  // Esto tiene que ir DESPUÉS del div, no en el <script> de arriba del <body>: allí
+  // getElementById devuelve null porque la portada todavía no se ha parseado, y el
+  // sello sale vacío sin un solo error en consola. Ya pasó una vez.
+  const sello = document.getElementById('sello')
+  if (sello && q.get('v')) sello.textContent = 'Versión ' + q.get('v')
+</script>
 
 <!-- ══════════════ 2 · EL PROBLEMA DE HOY ══════════════ -->
 <section class="page"><div class="pad">
