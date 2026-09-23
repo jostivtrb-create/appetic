@@ -1,4 +1,7 @@
 {
+  "redirects": [
+    { "source": "/propuesta-appetic.pdf", "destination": "/cartilla-appetic.pdf", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]

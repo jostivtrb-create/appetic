@@ -17,8 +17,12 @@ export default defineConfig({
         clientsClaim: true,
         skipWaiting: true,
         cleanupOutdatedCaches: true,
-        // El PDF de la propuesta es un archivo real: que el SW no lo desvíe al index.html.
-        navigateFallbackDenylist: [/^\/propuesta-appetic\.pdf/],
+        // La cartilla es un archivo real: que el SW no la desvíe al index.html.
+        // La ruta vieja sigue en la lista porque hay enlaces sueltos que aún la
+        // usan; el redirect de vercel.json los manda a la cartilla.
+        // (No entra al precache, y está bien: son 4,7 MB que nadie que viene a
+        //  mirar un menú tiene por qué bajarse. Solo se pide al pulsar el botón.)
+        navigateFallbackDenylist: [/^\/cartilla-appetic\.pdf/, /^\/propuesta-appetic\.pdf/],
       },
       manifest: {
         name: 'Appetic — el menú de tu barrio',

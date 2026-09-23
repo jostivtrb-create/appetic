@@ -170,25 +170,30 @@ export default function Superadmin() {
     valores.map(v => String(v || '').trim().toLowerCase()).filter(Boolean)
   )]
 
-  // Fuerza la DESCARGA del PDF (no solo abrirlo). Baja la copia same-origin
+  // Fuerza la DESCARGA de la cartilla (no solo abrirla). Baja la copia same-origin
   // como blob y dispara el guardado con nombre. Si algo falla, abre la copia
   // de Firebase Hosting como respaldo.
-  async function descargarPropuesta(e) {
+  //
+  // Antes aquí colgaba la propuesta comercial de 3 páginas. La cartilla la
+  // reemplaza: dice lo mismo del precio y además lleva las fotos de la app y
+  // del panel, que es lo que el dueño quiere ver. Dos PDF contándole al cliente
+  // la misma venta con palabras distintas era justo el problema.
+  async function descargarCartilla(e) {
     e.preventDefault()
     try {
-      const res = await fetch('/propuesta-appetic.pdf', { cache: 'no-store' })
+      const res = await fetch('/cartilla-appetic.pdf', { cache: 'no-store' })
       const blob = await res.blob()
       if (!blob.type.includes('pdf')) throw new Error('no-pdf')
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'Propuesta-Appetic.pdf'
+      a.download = 'Cartilla-Appetic.pdf'
       document.body.appendChild(a)
       a.click()
       a.remove()
       setTimeout(() => URL.revokeObjectURL(url), 5000)
     } catch {
-      window.open('https://appetic-17477.web.app/propuesta-appetic.pdf', '_blank', 'noopener')
+      window.open('https://appetic-17477.web.app/cartilla-appetic.pdf', '_blank', 'noopener')
     }
   }
 
@@ -302,14 +307,14 @@ export default function Superadmin() {
 
       <a
         className="sa-descarga"
-        href="/propuesta-appetic.pdf"
-        download="Propuesta-Appetic.pdf"
-        onClick={descargarPropuesta}
+        href="/cartilla-appetic.pdf"
+        download="Cartilla-Appetic.pdf"
+        onClick={descargarCartilla}
       >
         <span className="sa-descarga-ico">⬇️</span>
         <span className="sa-descarga-txt">
-          <strong>Descargar propuesta comercial</strong>
-          <small>PDF · Montaje $50.000 · $18.900/mes desde el 2º mes</small>
+          <strong>Descargar cartilla de ventas</strong>
+          <small>PDF · 18 páginas · Montaje $50.000 · $18.900/mes desde el 2º mes</small>
         </span>
       </a>
 

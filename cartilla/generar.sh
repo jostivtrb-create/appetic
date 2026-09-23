@@ -37,4 +37,13 @@ pdf() { # $1 = valor de ?salida=   $2 = nombre del archivo
 pdf impresa cartilla-appetic-impresa.pdf
 pdf digital cartilla-appetic-whatsapp.pdf
 
+# La cartilla reemplazó a la propuesta: es lo que el dueño descarga del panel y
+# lo que sirve el sitio. Va la versión digital, no la del canal de anillado, que
+# en pantalla se ve descuadrada. Copiar aquí y no a mano es lo que evita que el
+# PDF publicado se quede atrás del original, que ya pasó una vez.
+ROOT="$(cd "$DIR/.." && pwd)"
+cp "$DIR/cartilla-appetic-whatsapp.pdf" "$ROOT/public/cartilla-appetic.pdf"
+cp "$DIR/cartilla-appetic-whatsapp.pdf" "$ROOT/firebase-pdf/cartilla-appetic.pdf"
+echo "  📤 copiada a public/ y firebase-pdf/ como cartilla-appetic.pdf"
+
 echo "Listo. Para volver a sacar las capturas: node cartilla/capturar.mjs"
