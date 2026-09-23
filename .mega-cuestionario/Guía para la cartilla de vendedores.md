@@ -281,3 +281,20 @@ párrafo del cierre y la fecha del pie (*Julio* → *Septiembre 2026*).
   - **La firma se montaba encima del pie** — y comprobado con `git show HEAD:public/propuesta-appetic.pdf`
     que **ya estaba rota en el PDF publicado**, no la rompí yo. El pie está en `position:absolute` a
     10 mm del borde, así que `.close` necesitaba `margin-bottom:16mm` de colchón. Arreglado de paso.
+- **2026-09-22 · La cartilla se come a la propuesta (decisión del dueño).** Palabras suyas:
+  *"esa cartilla reemplaza la propuesta, es lo mismo"*. Tenía razón: eran **dos documentos
+  vendiendo lo mismo con palabras distintas**, y el de 3 páginas se queda corto porque no lleva
+  las fotos de la app ni del panel —justo lo que D11 dice que es la ventaja estrella—. Cambios:
+  - El sitio y el botón de `/superadmin` sirven **`cartilla-appetic.pdf`** (la salida *digital*,
+    sin el canal de anillado de D13, que en pantalla se ve descuadrada). Se quitaron
+    `public/propuesta-appetic.pdf` y `firebase-pdf/propuesta-appetic.pdf`.
+  - **La ruta vieja no se rompe:** `/propuesta-appetic.pdf` redirige **301** a la cartilla, en
+    Vercel (`vercel.json`) y en Firebase Hosting (`firebase.json`). Ese enlace ya anda suelto.
+  - **`propuesta/` se queda** aunque no se publique: de su HTML salen las `@font-face` que usa la
+    cartilla (`cartilla/extraer-fuentes.mjs`) y es el historial de cómo se vendía antes. Lo que ya
+    no hace su `generar.sh` es **pisar `public/` ni `firebase-pdf/`** — eso pasó a
+    `cartilla/generar.sh`, que ahora copia solo. Copiar a mano fue lo que dejó el respaldo de
+    Firebase sirviendo el PDF viejo con "gratis" tres veces.
+  - El PDF **no entra al precache del service worker** (`globPatterns` no incluye `.pdf`), y está
+    bien: son 4,7 MB que nadie que viene a mirar un menú tiene por qué bajarse. Sí está en
+    `navigateFallbackDenylist` para que el SW no lo desvíe al `index.html`.
