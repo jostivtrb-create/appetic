@@ -212,6 +212,17 @@ ul.check li{padding-left:20px;}
 }
 .fotos--alta img{height:51mm;}
 
+/* Tira baja de platos: las últimas cuatro páginas eran puro texto y la cartilla
+   se vendió como "más visual que un reguero de texto". Ocupa poco alto, así que
+   entra en páginas que ya van llenas. Todas de Jasbury, por pedido del dueño. */
+.tira{display:grid;grid-template-columns:repeat(5,1fr);gap:3mm;}
+.tira img{
+  display:block;width:100%;height:26mm;object-fit:cover;border-radius:10px;
+  border:1px solid var(--line);
+}
+.tira--4{grid-template-columns:repeat(4,1fr);}
+.tira--4 img{height:30mm;}
+
 /* ── Precio ───────────────────────────────────────────────────────────── */
 .precio-big{
   font-family:var(--serif);font-weight:800;font-size:54pt;line-height:.95;letter-spacing:-.02em;
@@ -961,7 +972,16 @@ Domicilio: $2.000
          mensualidad, no se cobra aparte.</p></div>
   </div>
 
-  <div class="grad-card" style="margin-top:7mm;text-align:center">
+  <!-- El punto 2 de la lista son las fotos. Enseñarlas aquí vale más que decirlo. -->
+  <div class="tira" style="margin-top:6mm">
+    <img src="../public/locales/jasbury/hamburguesa-ahumada.webp" alt="">
+    <img src="../public/locales/jasbury/choriperro.webp" alt="">
+    <img src="../public/locales/jasbury/pollo-broaster.webp" alt="">
+    <img src="../public/locales/jasbury/tabla-mixta.webp" alt="">
+    <img src="../public/locales/jasbury/limonada.webp" alt="">
+  </div>
+
+  <div class="grad-card" style="margin-top:6mm;text-align:center">
     <p class="precio-k">Y muy importante</p>
     <p style="font-family:var(--serif);font-weight:800;font-size:18pt;margin-top:5px">
       Pagas cuando ya lo tienes funcionando.</p>
@@ -1079,7 +1099,16 @@ Domicilio: $2.000
     </div>
   </div>
 
-  <div class="grad-card" style="margin-top:9mm">
+  <!-- Lo que sale del paso 2, para que "nosotros lo armamos" se vea y no se lea. -->
+  <div class="tira" style="margin-top:5mm">
+    <img src="../public/locales/jasbury/hamburguesa-ranchera.webp" alt="">
+    <img src="../public/locales/jasbury/salchipapa-mixta.webp" alt="">
+    <img src="../public/locales/jasbury/pincho-pollo.webp" alt="">
+    <img src="../public/locales/jasbury/empanadas.webp" alt="">
+    <img src="../public/locales/jasbury/cerezada.webp" alt="">
+  </div>
+
+  <div class="grad-card" style="margin-top:6mm">
     <p class="precio-k">¿Cuánto se demora?</p>
     <p style="font-family:var(--serif);font-weight:800;font-size:19pt;margin-top:5px">
       Normalmente, dos o tres días.</p>
@@ -1143,7 +1172,15 @@ Domicilio: $2.000
     </div>
   </div>
 
-  <p style="text-align:center;font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:12pt;margin-top:8mm">
+  <!-- Cierra con comida, no con letra: es lo último que le queda en la cabeza. -->
+  <div class="tira tira--4" style="margin-top:7mm">
+    <img src="../public/locales/jasbury/hamburguesa-mixta.webp" alt="">
+    <img src="../public/locales/jasbury/patacon.webp" alt="">
+    <img src="../public/locales/jasbury/pechuga-criolla.webp" alt="">
+    <img src="../public/locales/jasbury/choripapa.webp" alt="">
+  </div>
+
+  <p style="text-align:center;font-family:var(--serif);font-style:italic;color:var(--ink-soft);font-size:12pt;margin-top:6mm">
     Tu comida ya es buena.<br>Ahora que se vea.</p>
 
   <div class="footer"><span>Appetic · WhatsApp <b>320 843 5143</b></span><span class="num">18</span></div>
