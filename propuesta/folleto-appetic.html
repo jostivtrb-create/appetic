@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Folleto · Appetic · Swiftfly Solutions</title>
+<link rel="stylesheet" href="fuentes.css">
+<style>
+:root{
+  --o:#ED7D2B; --o2:#E0692A; --o3:#F6A45C; --ink:#2A211C; --soft:#6B5647; --faint:#9A8B7E;
+  --tint:#FCEBD9; --cream:#FFFBF4; --paper:#FFFFFF;
+  --line:rgba(42,33,28,.10);
+  --grad:linear-gradient(125deg,#2A211C 0%,#8A4418 45%,#E0692A 100%);
+  --grad2:linear-gradient(125deg,#E0692A 0%,#ED7D2B 46%,#F6A45C 100%);
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Plus Jakarta Sans',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+@page{size:Letter;margin:0}
+html,body{background:#EFE7DC}
+body{font-family:var(--sans);color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{position:relative;width:215.9mm;height:279.4mm;overflow:hidden;background:var(--cream);page-break-after:always;margin:0 auto}
+.page:last-child{page-break-after:auto}
+.pad{padding:0 13mm}
+.k{color:var(--o2);font-size:7.4pt;letter-spacing:.26em;font-weight:800;text-transform:uppercase}
+h2{font-family:var(--serif);font-weight:800;font-size:16pt;color:var(--ink);line-height:1.12;margin-top:2px}
+h3{font-family:var(--serif);font-weight:700;font-size:11.5pt;color:var(--ink);line-height:1.2}
+.b{font-weight:700;color:var(--ink)}
+.sec{margin-top:5.5mm}
+
+/* ───── Portada ───── */
+.hero{position:relative;background:var(--grad);color:#fff;height:84mm;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-30mm;top:-30mm;width:120mm;height:120mm;border-radius:50%;background:radial-gradient(circle,rgba(255,220,180,.2),rgba(255,220,180,0) 65%)}
+.hero .in{position:relative;z-index:2;display:grid;grid-template-columns:1fr 70mm;gap:8mm;padding:8mm 13mm 0;height:100%}
+.brand{display:flex;align-items:center;gap:7px;font-size:8pt;letter-spacing:.2em;font-weight:800;text-transform:uppercase;color:#FFE0C2}
+.brand img{width:18px;height:18px;border-radius:5px;display:block}
+h1{font-family:var(--serif);font-weight:800;font-size:23pt;line-height:1.08;margin-top:5mm;color:#fff}
+h1 span{color:#FFD9B0}
+.lead{margin-top:4mm;font-size:9.6pt;line-height:1.5;color:rgba(255,255,255,.9);max-width:100mm}
+.pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:4.5mm}
+.pill{border:1.2px solid rgba(255,214,176,.75);color:#fff;border-radius:999px;padding:4px 10px;font-size:7.4pt;font-weight:700}
+.pill.solid{background:var(--o);color:#fff;border-color:var(--o)}
+.heroimg{align-self:end;width:70mm;height:66mm;border-radius:18px 18px 0 0;overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,.35);background:#2A211C}
+.heroimg img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ───── Dolor ───── */
+.pains{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:2.5mm}
+.pain{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:7px 10px;display:flex;gap:9px;align-items:flex-start}
+.pain .e{font-size:15pt;line-height:1;flex:0 0 auto}
+.pain b{display:block;font-size:8.8pt;color:var(--ink);line-height:1.25}
+.pain span{display:block;font-size:7.6pt;color:var(--soft);line-height:1.4;margin-top:2px}
+
+/* ───── Módulos ───── */
+.mods{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:2.5mm}
+.mod{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:5px 6px;min-height:15mm}
+.mod .ic{font-size:10pt;line-height:1}
+.mod .t{font-weight:800;font-size:7.2pt;color:var(--ink);margin-top:3px;line-height:1.14}
+.mod .d{font-size:6.1pt;color:var(--soft);line-height:1.32;margin-top:2px}
+.mod.plus{background:var(--ink);border-color:var(--ink)}
+.mod.plus .t{color:#FFD9B0}
+.mod.plus .d{color:rgba(255,255,255,.82)}
+
+.platos{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:2.5mm}
+.platos img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;display:block}
+
+/* ───── Precio ───── */
+.price{position:absolute;left:0;right:0;bottom:0;background:var(--grad2);color:#fff;padding:5mm 13mm;display:grid;grid-template-columns:1fr 32mm;gap:8mm;align-items:center}
+.price .k{color:#FFE7D0}
+.big{display:flex;align-items:baseline;gap:8px;margin-top:2mm}
+.big .n{font-family:var(--serif);font-size:27pt;font-weight:800;letter-spacing:-.02em;color:#fff;line-height:1}
+.big .u{font-size:9.6pt;font-weight:700;color:rgba(255,255,255,.9);line-height:1.25}
+.rule{margin-top:2mm;font-size:8.1pt;line-height:1.45;color:rgba(255,255,255,.92)}
+.rule b{color:#FFF0DF}
+.perks{display:flex;flex-wrap:wrap;gap:4px;margin-top:3mm}
+.perk{background:#fff;color:var(--o2);border-radius:999px;padding:3px 9px;font-size:7.1pt;font-weight:800}
+.perk.o{background:transparent;color:#fff;border:1.2px solid rgba(255,255,255,.7)}
+.qrbox{text-align:center}
+.qrbox img{width:28mm;height:28mm;display:block;margin:0 auto;border-radius:8px;background:#fff;padding:2mm}
+.qrbox b{display:block;margin-top:2mm;font-size:9.4pt;font-weight:900;color:#fff}
+.qrbox span{display:block;font-size:7pt;color:rgba(255,255,255,.85);line-height:1.35;margin-top:1mm}
+
+/* ───── Reverso ───── */
+.top2{background:var(--grad);color:#fff;padding:6mm 13mm 5mm}
+.top2 h2{color:#fff;font-size:17pt}
+.top2 .k{color:#FFD9B0}
+.flujos{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:3mm}
+.flujo{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 10px}
+.flujo h3{color:#FFD9B0;font-size:10pt;font-family:var(--sans);font-weight:800}
+.flujo p{font-size:7.7pt;line-height:1.42;color:rgba(255,255,255,.9);margin-top:3px}
+.tickets{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:3mm}
+.ticket{background:#FFFDF8;border-radius:11px;padding:7px 9px;color:var(--ink)}
+.tk-top{display:flex;justify-content:space-between;align-items:center}
+.dest{font-size:7.4pt;font-weight:800;letter-spacing:.09em;text-transform:uppercase;border-radius:6px;padding:3px 8px;color:#fff;background:var(--o)}
+.dest.dom{background:var(--ink)}
+.tk-cod{font-size:7pt;font-weight:800;color:var(--faint)}
+.ti{display:flex;gap:6px;font-size:7.4pt;line-height:1.35;margin-top:3px}
+.ti b{color:var(--o2);font-weight:800;flex:0 0 auto}
+.tk-pie{display:flex;justify-content:space-between;align-items:center;margin-top:5px;border-top:1px solid var(--line);padding-top:4px}
+.tk-pie span{font-size:6.6pt;color:var(--faint);font-weight:700}
+.tk-btn{background:#1F8A4C;color:#fff;font-size:6.8pt;font-weight:800;border-radius:999px;padding:3px 9px}
+
+.shots{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:2.5mm}
+
+.shot .fr{height:46mm;border-radius:14px;overflow:hidden;box-shadow:0 10px 22px rgba(42,33,28,.18);background:#1A1512}
+.shot .fr img{width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.cap{margin-top:4px;font-size:7.2pt;color:var(--soft);line-height:1.35;text-align:center}
+.cap b{display:block;color:var(--ink);font-size:8.4pt}
+
+.inc{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2.5mm}
+.i{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:6px 9px;display:flex;gap:8px;align-items:flex-start}
+.i .e{font-size:12pt;line-height:1;flex:0 0 auto;margin-top:1px}
+.i b{display:block;font-size:8.1pt;color:var(--ink);line-height:1.2}
+.i span{display:block;font-size:7pt;color:var(--soft);line-height:1.4;margin-top:2px}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:7mm;margin-top:4.5mm}
+.noes{list-style:none;margin-top:2.5mm}
+.noes li{position:relative;padding-left:14px;font-size:8pt;line-height:1.42;color:var(--soft);margin-top:4px}
+.noes li::before{content:"";position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:50%;background:var(--o)}
+.noes li b{color:var(--ink)}
+.steps{margin-top:2.5mm;display:grid;gap:4px}
+.step{display:flex;gap:8px;align-items:flex-start;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:4px 9px}
+.step .n{flex:0 0 20px;height:20px;border-radius:6px;background:var(--o);color:#fff;font-weight:900;font-size:8.6pt;text-align:center;line-height:20px}
+.step b{display:block;font-size:8.3pt;color:var(--ink);line-height:1.2}
+.step span{display:block;font-size:7.2pt;color:var(--soft);line-height:1.4;margin-top:1px}
+
+.foot{position:absolute;left:0;right:0;bottom:0;background:var(--ink);color:#fff;padding:4mm 13mm;display:grid;grid-template-columns:1fr auto 22mm;gap:7mm;align-items:center}
+.foot .brand{color:#FFD9B0}
+.foot p{font-size:7.2pt;line-height:1.45;color:rgba(255,255,255,.8);margin-top:2mm;max-width:95mm}
+.foot .cta{text-align:right}
+.foot .cta b{display:block;font-size:13pt;font-weight:900;color:#fff}
+.foot .cta span{display:block;font-size:7.6pt;color:#FFD9B0;font-weight:700;margin-top:1px}
+.foot img{width:22mm;height:22mm;display:block;border-radius:6px;background:#fff;padding:1.5mm}
+</style>
+</head>
+<body>
+
+<!-- ═════════════════ CARA 1 ═════════════════ -->
+<section class="page">
+  <div class="hero">
+    <div class="in">
+      <div>
+        <div class="brand"><img src="img/swiftfly-mark.png" alt=""> Swiftfly Solutions · Appetic</div>
+        <h1>Tu carta, tus meseros<br>y tu cocina,<br><span>hablando el mismo idioma.</span></h1>
+        <p class="lead">El cliente ve tu menú con fotos y pide desde su mesa. El mesero lo toma en su celular.
+          Y la comanda aparece sola en la pantalla de la cocina, diciendo si es para la <b>mesa 4</b> o para un <b>domicilio</b>.</p>
+        <div class="pills">
+          <span class="pill solid">$49.000 al mes</span>
+          <span class="pill">Sin montaje</span>
+          <span class="pill">Sin comisión por pedido</span>
+          <span class="pill">Sin contratos</span>
+        </div>
+      </div>
+      <div class="heroimg"><img src="img/portada-salon.jpg" alt=""></div>
+    </div>
+  </div>
+
+  <div class="pad sec">
+    <div class="k">Hoy, entre la mesa y la cocina</div>
+    <div class="pains">
+      <div class="pain"><div class="e">🗣️</div><div><b>El pedido se canta</b><span>El mesero apunta en una libreta y va a gritarle a la cocina. Si hay bulla, se repite; si se entiende mal, el plato se pierde.</span></div></div>
+      <div class="pain"><div class="e">📄</div><div><b>La carta está manchada</b><span>El cliente pregunta precios y toca ir por ella. Y todavía tiene el precio viejo, porque reimprimir cuesta.</span></div></div>
+      <div class="pain"><div class="e">🛵</div><div><b>El domicilio va aparte</b><span>Entra por WhatsApp en desorden y alguien lo vuelve a escribir para pasárselo a la cocina.</span></div></div>
+    </div>
+
+    <div class="sec"></div>
+    <div class="k">Todo en un solo lugar</div>
+    <h2>Doce cosas que vienen incluidas</h2>
+    <div class="mods">
+      <div class="mod"><div class="ic">📖</div><div class="t">Menú con fotos</div><div class="d">Tu carta, siempre al día.</div></div>
+      <div class="mod"><div class="ic">🪑</div><div class="t">QR en cada mesa</div><div class="d">El cliente pide desde su puesto.</div></div>
+      <div class="mod"><div class="ic">📱</div><div class="t">Mesero con su celular</div><div class="d">Toma el pedido sin caminar.</div></div>
+      <div class="mod"><div class="ic">🖥️</div><div class="t">Pantalla de cocina</div><div class="d">La comanda entra escrita.</div></div>
+      <div class="mod"><div class="ic">🏷️</div><div class="t">Mesa o domicilio</div><div class="d">Dice en grande a dónde va.</div></div>
+      <div class="mod"><div class="ic">✅</div><div class="t">«Lista» en un toque</div><div class="d">La cocina avisa cuando sale.</div></div>
+      <div class="mod"><div class="ic">🛵</div><div class="t">Domicilios</div><div class="d">Cobro por distancia; entregas tú.</div></div>
+      <div class="mod"><div class="ic">💬</div><div class="t">También al WhatsApp</div><div class="d">El pedido completo, como hoy.</div></div>
+      <div class="mod"><div class="ic">🧾</div><div class="t">Menú del día</div><div class="d">Cambias el almuerzo en un minuto.</div></div>
+      <div class="mod"><div class="ic">⚙️</div><div class="t">Tu panel</div><div class="d">Precios, fotos y agotados.</div></div>
+      <div class="mod"><div class="ic">📊</div><div class="t">Tus números</div><div class="d">Cuántos pedidos y cuánto sumaron.</div></div>
+      <div class="mod plus"><div class="ic">🔎</div><div class="t">Buscador del barrio</div><div class="d">Y tú decides si apareces.</div></div>
+    </div>
+
+    <div class="sec"></div>
+    <div class="k">La ventaja que se ve</div>
+    <h2 style="font-size:13.5pt">Las fotos de tus platos las hacemos nosotros</h2>
+    <p style="font-size:8.6pt;line-height:1.45;color:var(--soft);margin-top:2mm">No necesitas fotógrafo
+      ni comprar nada: armamos la foto de cada plato de tu carta y te las dejamos puestas en el menú.</p>
+    <div class="platos">
+      <img src="img/plato-bandeja-paisa.jpg" alt=""><img src="img/plato-ajiaco.jpg" alt="">
+      <img src="img/plato-sancocho.jpg" alt=""><img src="img/plato-mojarra-frita.jpg" alt="">
+      <img src="img/plato-churrasco.jpg" alt=""><img src="img/plato-picada.jpg" alt="">
+    </div>
+  </div>
+
+  <div class="price">
+    <div>
+      <div class="k">Cuánto cuesta</div>
+      <div class="big"><span class="n">$49.000</span><span class="u">al mes<br>todo incluido</span></div>
+      <p class="rule">Un solo número. <b>Sin montaje, sin comisión por pedido y sin contrato de permanencia.</b>
+        Meseros y pantallas, los que necesite tu salón.</p>
+      <div class="perks">
+        <span class="perk">Pagas el día de la entrega</span>
+        <span class="perk o">Sin comisión por pedido</span>
+        <span class="perk o">Cancelas cuando quieras</span>
+        <span class="perk o">Las fotos de tus platos, incluidas</span>
+      </div>
+    </div>
+    <div class="qrbox">
+      <img src="img/qr-whatsapp.png" alt="QR WhatsApp">
+      <b>320 843 5143</b>
+      <span>Escanee y hablamos por WhatsApp</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════ CARA 2 ═════════════════ -->
+<section class="page">
+  <div class="top2">
+    <div class="k">Cómo funciona</div>
+    <h2>El pedido entra por tres puertas y sale por una sola</h2>
+    <div class="flujos">
+      <div class="flujo"><h3>🪑 Desde la mesa</h3><p>El cliente escanea el QR de su mesa, ve el menú con fotos y pide. Queda marcado como <b>mesa 4</b>.</p></div>
+      <div class="flujo"><h3>📱 Con el mesero</h3><p>Si el cliente prefiere que le tomen el pedido, el mesero lo arma en su celular ahí mismo.</p></div>
+      <div class="flujo"><h3>🛵 Desde la casa</h3><p>Entra por tu link o tu QR, pide a domicilio y paga el envío calculado por distancia.</p></div>
+    </div>
+    <div class="tickets">
+      <div class="ticket">
+        <div class="tk-top"><span class="dest">Mesa 4</span><span class="tk-cod">#A7</span></div>
+        <div class="ti"><b>2×</b><span>Churrasco con papa</span></div>
+        <div class="ti"><b>1×</b><span>Limonada de coco</span></div>
+        <div class="tk-pie"><span>hace 2 min</span><span class="tk-btn">Marcar lista</span></div>
+      </div>
+      <div class="ticket">
+        <div class="tk-top"><span class="dest dom">Domicilio</span><span class="tk-cod">#A8</span></div>
+        <div class="ti"><b>1×</b><span>Bandeja paisa</span></div>
+        <div class="ti"><b>2×</b><span>Jugo natural</span></div>
+        <div class="tk-pie"><span>hace 5 min</span><span class="tk-btn">Marcar lista</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pad sec">
+    <div class="k">Así lo vive tu cliente</div>
+    <div class="shots">
+      <div class="shot"><div class="fr"><img src="img/menu-pilotos.jpg" alt=""></div><div class="cap"><b>El menú</b>Con la foto de cada plato.</div></div>
+      <div class="shot"><div class="fr"><img src="img/producto-jasbury.jpg" alt=""></div><div class="cap"><b>El plato</b>Adiciones y lo que no lleva.</div></div>
+      <div class="shot"><div class="fr"><img src="img/carrito-jasbury.jpg" alt=""></div><div class="cap"><b>El carrito</b>Cantidades, notas y total.</div></div>
+      <div class="shot"><div class="fr"><img src="img/checkout-pilotos.jpg" alt=""></div><div class="cap"><b>El pedido</b>Dónde lo quiere y cómo paga.</div></div>
+    </div>
+
+    <div class="two">
+      <div>
+        <div class="k">Lo que recibes</div>
+        <h2 style="font-size:13.5pt">El día de la entrega</h2>
+        <div class="inc" style="grid-template-columns:1fr 1fr">
+          <div class="i"><div class="e">🔗</div><div><b>Tu link y tus QR</b><span>Uno por mesa, listos para imprimir.</span></div></div>
+          <div class="i"><div class="e">📸</div><div><b>Tus platos con foto</b><span>Toda tu carta, puesta y ordenada.</span></div></div>
+          <div class="i"><div class="e">⚙️</div><div><b>Tu panel</b><span>Con tu clave, para cambiar lo que quieras.</span></div></div>
+          <div class="i"><div class="e">🧑‍🍳</div><div><b>Meseros y cocina</b><span>Creados, y les enseñamos en el local.</span></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="k">Para que quede claro</div>
+        <h2 style="font-size:13.5pt">Lo que Appetic NO es</h2>
+        <ul class="noes">
+          <li><b>No somos Rappi.</b> No cobramos comisión por pedido: vendas uno o cien, pagas lo mismo.</li>
+          <li><b>No repartimos.</b> El domicilio lo entrega tu domiciliario, con tu cobro por distancia.</li>
+          <li><b>No te quitamos el cliente.</b> El WhatsApp es tuyo y el menú lleva tu nombre.</li>
+          <li><b>No es una caja registradora.</b> La cuenta de la mesa la sigues manejando tú.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sec"></div>
+    <div class="k">Cómo arrancamos</div>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><div><b>Nos das el sí</b><span>Y nos pasas tu carta, tu logo y tu WhatsApp. Tú no haces nada más.</span></div></div>
+      <div class="step"><span class="n">2</span><div><b>Lo montamos</b><span>Tu menú con las fotos de tus platos, tus mesas y tu cocina.</span></div></div>
+      <div class="step"><span class="n">3</span><div><b>Te lo entregamos</b><span>En tu local, funcionando, y le enseñamos a tu equipo.</span></div></div>
+      <div class="step"><span class="n">4</span><div><b>Ahí se paga</b><span>El primer mes, con todo andando. Ni un peso antes.</span></div></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div>
+      <div class="brand"><img src="img/swiftfly-mark.png" alt="" style="width:18px;height:18px;border-radius:5px;display:inline-block;vertical-align:-4px;margin-right:6px">Swiftfly Solutions</div>
+      <p>Appetic · el menú digital de tu restaurante. Mes a mes, sin contratos de permanencia y sin comisión por pedido.
+        Mira un menú de verdad en <b style="color:#fff">appetic.vercel.app/pilotos</b></p>
+    </div>
+    <div class="cta"><b>320 843 5143</b><span>WhatsApp · escríbenos hoy</span></div>
+    <img src="img/qr-demo.png" alt="QR del menú de muestra">
+  </div>
+</section>
+
+</body>
+</html>

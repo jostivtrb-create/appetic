@@ -1,20 +1,27 @@
 #!/usr/bin/env bash
-# Regenera el PDF de la propuesta desde propuesta-appetic.html (self-contained:
-# fuentes + logo van incrustados).
+# Regenera los PDF de Appetic con Chrome headless.
 #
-# OJO: la propuesta YA NO SE PUBLICA. La cartilla de ventas la reemplazó, y el
-# botón del panel y el sitio sirven cartilla-appetic.pdf. Esto se queda porque
-# de aquí salen las @font-face que usa la cartilla (cartilla/extraer-fuentes.mjs)
-# y porque es el historial de cómo se vendía antes. Si lo que quieres es
-# actualizar lo que descarga el dueño, el archivo es cartilla/generar.sh.
+#   bash propuesta/generar.sh                  → los dos
+#   bash propuesta/generar.sh propuesta-appetic
+#   bash propuesta/generar.sh folleto-appetic
+#
+# Las imágenes viven en propuesta/img/ y las fuentes en propuesta/fuentes.css
+# (copiado de cartilla/fuentes.css). El PDF resultante sí es autosuficiente:
+# Chrome mete dentro las fuentes y las imágenes.
+#
+# Appetic tiene DOS piezas y ninguna cartilla (decisión T6, 25-oct-2026):
+#   · propuesta-appetic.html → 8 páginas A4, para la reunión y para WhatsApp
+#   · folleto-appetic.html   → una hoja carta, lado y lado, para dejar en el local
+# La cartilla de cartilla/ está jubilada: no se regenera.
 set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT="$(cd "$DIR/.." && pwd)"
-rm -rf /tmp/_prop_prof
-google-chrome --headless --disable-gpu --no-pdf-header-footer --no-sandbox \
-  --user-data-dir=/tmp/_prop_prof \
-  --print-to-pdf="$DIR/propuesta-appetic.pdf" \
-  "file://$DIR/propuesta-appetic.html"
-sleep 1
-echo "PDF regenerado en propuesta/. NO se copia a public/ ni a firebase-pdf/:"
-echo "lo que se publica es la cartilla (bash cartilla/generar.sh)."
+PROF="/tmp/_appetic_prop_prof"
+DOCS="${@:-propuesta-appetic folleto-appetic}"
+for d in $DOCS; do
+  rm -rf "$PROF"
+  google-chrome --headless --disable-gpu --no-pdf-header-footer --no-sandbox \
+    --user-data-dir="$PROF" --virtual-time-budget=5000 \
+    --print-to-pdf="$DIR/$d.pdf" "file://$DIR/$d.html" 2>/dev/null
+  echo "PDF regenerado: $d.pdf"
+done
+rm -rf "$PROF"
