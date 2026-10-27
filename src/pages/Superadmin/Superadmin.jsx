@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
 import { listarTodosLocales, setSuscripcion, setAdminEmails, setEtiquetas, setPrioridad } from '../../services/superadmin'
@@ -108,7 +108,7 @@ function DomiciliariosGlobal() {
   }
 
   return (
-    <div className="sa-domiglobal">
+    <div className="sa-domiglobal" id="domiciliarios">
       <div className="sa-domiglobal-head">
         <span className="sa-domiglobal-title">🛵 Domiciliarios</span>
         <Link to="/domiciliario" className="sa-domiglobal-link">Abrir panel →</Link>
@@ -148,6 +148,16 @@ function DomiciliariosGlobal() {
 export default function Superadmin() {
   const { user, cargando, entrar } = useAuth()
   const superadmin = esSuperadmin(user?.email)
+  const { hash } = useLocation()
+
+  // 🖥️ La barra lateral lleva a /superadmin#domiciliarios: el router no baja
+  // solo a un ancla, así que lo hacemos aquí (y arriba del todo sin ancla).
+  useEffect(() => {
+    if (!superadmin) return
+    const el = hash ? document.getElementById(hash.slice(1)) : null
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    else window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [hash, superadmin])
 
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [locales, setLocales] = useState([])

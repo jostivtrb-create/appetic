@@ -16,12 +16,14 @@ import { isDevSlug, getDevLocal } from '../../dev'
 import { computeDestacadosHome } from '../../utils/destacadosHome'
 import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
 import { useAdmin } from '../../contexts/AdminContext'
+import { useNavUI } from '../../contexts/NavUIContext'
 import './Admin.css'
 
 export default function AdminPage() {
   const { slug, panel } = useParams()
   const seccion = panel || 'catalogo' // catalogo | difundir | config | metricas
   const { esDueno } = useAdmin()
+  const { setPanelCatalogo } = useNavUI()
   const navigate = useNavigate()
   const { user, cargando: authCargando, entrar, salir } = useAuth()
   const demo = isDevSlug(slug) // previsualización de local en DEV (no escribe en Firestore)
@@ -69,6 +71,20 @@ export default function AdminPage() {
     cargar().catch(err => { console.error(err); if (activo) setEstado('error') })
     return () => { activo = false }
   }, [slug, demo])
+
+  // 🖥️ La barra lateral del panel (PC) despliega estas categorías bajo
+  // "Catálogo". Se publican EN VIVO para que crear, vaciar o reordenar una
+  // categoría se vea al instante allá también. El menú externo no tiene categorías.
+  useEffect(() => {
+    if (estado !== 'ok' || !local || local.menuExterno) { setPanelCatalogo(null); return }
+    const cuenta = {}
+    for (const p of productos) cuenta[p.categoria] = (cuenta[p.categoria] || 0) + 1
+    setPanelCatalogo({
+      slug,
+      categorias: (local.categorias || []).map(c => ({ id: c.id, nombre: c.nombre, emoji: c.emoji, count: cuenta[c.id] || 0 })),
+    })
+  }, [estado, local, productos, slug, setPanelCatalogo])
+  useEffect(() => () => setPanelCatalogo(null), [setPanelCatalogo])
 
   // ---- Operaciones (en demo solo tocan el estado; en real, Firestore + estado) ----
   // ⭐ "Nuestro fuerte" es UNO por categoría: al marcar uno, desmarca los demás de

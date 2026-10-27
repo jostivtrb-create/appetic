@@ -7,6 +7,8 @@ import { esColorOscuro, localThemeVars } from '../../utils/theme'
 import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import logoAppetic from '../../assets/appetic-logo.png'
 import ConfirmSalirMenu from '../ConfirmSalirMenu/ConfirmSalirMenu'
+import PanelRail from './PanelRail'
+import { esSuperadmin } from '../../config/roles'
 import './BottomNav.css'
 
 // 🧭 Barra de navegación FIJA. Tiene DOS modos:
@@ -31,8 +33,14 @@ export default function BottomNav() {
   const [avisoSalir, setAvisoSalir] = useState(false)
 
   const enAdminRoute = /\/admin(\/|$)/.test(pathname)
+  const enPanel = enAdminRoute || pathname.startsWith('/superadmin') || pathname.startsWith('/domiciliario')
+  const esSuper = esSuperadmin(user?.email) || devSuper()
 
-  // Superadmin vive en su propio panel, sin barra.
+  // 🖥️ Superadmin en PC: en sus pantallas de gestión usa la barra lateral del
+  // panel (PanelRail), con todo lo que puede abrir en grupos desplegables.
+  if (esPC && esSuper && enPanel && !(user && adminCargando)) return <PanelRail esSuper />
+
+  // Superadmin vive en su propio panel, sin barra (en el celular).
   if (pathname.startsWith('/superadmin')) return null
   // /r/… es solo un puente de medio segundo hacia WhatsApp: no es una pantalla de la app.
   if (pathname.startsWith('/r/')) return null
@@ -68,6 +76,18 @@ export default function BottomNav() {
     const irAdmin = (destino) => {
       if (!adminSlug) { navigate('/cuenta?elegir=1'); return }
       navigate(destino(adminSlug))
+    }
+
+    // 🖥️ En PC el dueño usa la barra lateral del panel (con Métricas, selector
+    // de local y, si además es superadmin, sus herramientas).
+    if (esPC) {
+      return (
+        <PanelRail
+          esSuper={esSuper}
+          className={`${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''} ${railBajoCapa ? 'bnav--bajo-capa' : ''}`}
+          style={style}
+        />
+      )
     }
 
     return (
@@ -186,6 +206,18 @@ export default function BottomNav() {
       />
     </>
   )
+}
+
+// 🧪 DEV: ?super=1 simula al superadmin SOLO para ver la barra lateral sin
+// iniciar sesión (los datos siguen exigiendo sesión real). No existe en producción.
+function devSuper() {
+  if (!import.meta.env.DEV) return false
+  try {
+    const q = new URLSearchParams(window.location.search).get('super')
+    if (q === '1') sessionStorage.setItem('appetic_dev_super', '1')
+    if (q === '0') sessionStorage.removeItem('appetic_dev_super')
+    return sessionStorage.getItem('appetic_dev_super') === '1'
+  } catch { return false }
 }
 
 // 🖥️ Cabecera de la barra lateral: logo + nombre. Existe SOLO en escritorio

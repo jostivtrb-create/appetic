@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { copRango, rangoPrecio } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
 import { construirPromptImagenIA } from '../../utils/promptIA'
@@ -18,6 +19,20 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
   }
 
   const categorias = local.categorias || []
+
+  // 🖥️ La barra lateral (PC) lleva a …/catalogo#cat-<id>: esa categoría se
+  // despliega y la pantalla baja hasta ella. Se limpia la búsqueda para que
+  // no quede escondida por un filtro viejo.
+  const { hash, key: navKey } = useLocation()
+  useEffect(() => {
+    if (!hash.startsWith('#cat-')) return
+    const id = decodeURIComponent(hash.slice(5))
+    setQuery('')
+    setExpandidas(prev => (prev.has(id) ? prev : new Set(prev).add(id)))
+    requestAnimationFrame(() => {
+      document.getElementById(`cat-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [hash, navKey]) // navKey: tocar otra vez la misma categoría vuelve a bajar
 
   function moverCategoria(i, dir) {
     const j = i + dir
@@ -91,7 +106,7 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
         // se ignora el minimizado para no esconder resultados.
         const colapsada = !expandidas.has(cat.id) && !buscando
         return (
-        <section key={cat.id} className="ap-grupo-cat">
+        <section key={cat.id} id={`cat-${cat.id}`} className="ap-grupo-cat">
           <div className="ap-grupo-cat-head">
             <button
               className="ap-grupo-cat-title"

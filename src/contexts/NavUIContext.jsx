@@ -10,6 +10,9 @@ import { createContext, useContext, useState, useCallback } from 'react'
 //    si hay una capa abierta. Solo existe dentro del menú del local.
 //  • pendiente: solicitud de cambio de local que espera confirmación (para el
 //    modal bonito que reemplaza al window.confirm).
+//  • panelCatalogo: las categorías del local que se está administrando AHORA
+//    ({ slug, categorias: [{ id, nombre, emoji, count }] }). Lo publica AdminPage
+//    y lo lee la barra lateral del panel en PC para desplegarlas bajo "Catálogo".
 const NavUIContext = createContext(null)
 export const useNavUI = () => useContext(NavUIContext)
 
@@ -18,6 +21,7 @@ export function NavUIProvider({ children }) {
   const [cartCount, setCartCount] = useState(0)
   const [live, setLive] = useState(null) // { slug, oculta, onCarrito, onMenu } | null
   const [pendiente, setPendiente] = useState(null) // { nombre, id, onOk } | null
+  const [panelCatalogo, setPanelCatalogo] = useState(null)
 
   // 🛒 Regla del negocio: solo se pide de UN local a la vez. Al ir a otro local
   // con carrito, abrimos el modal de confirmación; si no hay conflicto, sigue
@@ -43,6 +47,7 @@ export function NavUIProvider({ children }) {
     cartCount, setCartCount,
     live, setLive,
     irAOtroLocal, pendiente, confirmarCambio, cancelarCambio,
+    panelCatalogo, setPanelCatalogo,
   }
   return <NavUIContext.Provider value={value}>{children}</NavUIContext.Provider>
 }

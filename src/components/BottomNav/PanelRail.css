@@ -1,0 +1,309 @@
+/* 🖥️ Barra lateral del panel (PanelRail). Solo se monta en escritorio; el
+   layout base del rail (ancho, fondo, posición) lo pone desktop.css sobre
+   .bnav. Aquí van solo las piezas nuevas: selector de local, grupos
+   desplegables y el pie con la cuenta. */
+@media (min-width: 1024px) {
+  .bnav--panel { gap: 2px; }
+
+  /* --- Selector de local --- */
+  .prail-sel {
+    position: relative;
+    margin: 4px 0 10px;
+  }
+  .prail-sel-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+    border-radius: 14px;
+    background: color-mix(in srgb, currentColor 4%, transparent);
+    color: var(--bnav-active);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.16s ease, border-color 0.16s ease;
+  }
+  .prail-sel-btn:hover,
+  .prail-sel.is-open .prail-sel-btn {
+    background: color-mix(in srgb, currentColor 9%, transparent);
+    border-color: color-mix(in srgb, currentColor 26%, transparent);
+  }
+  .prail-sel-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    object-fit: cover;
+    flex: none;
+    background: #fff;
+    box-shadow: var(--shadow-sm);
+  }
+  .prail-sel-txt {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .prail-sel-txt small {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bnav-dim);
+  }
+  .prail-sel-txt strong {
+    font-size: 14px;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .prail-sel.is-open .prail-chev { transform: rotate(180deg); }
+
+  .prail-sel-pop {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 5;
+    max-height: min(60vh, 420px);
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    border-radius: 14px;
+    background: var(--surface, #fff);
+    color: var(--text, #2a211c);
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+    box-shadow: var(--shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.16));
+    animation: prailPop 0.16s ease both;
+  }
+  @keyframes prailPop {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .prail-sel-q {
+    margin: 2px 2px 6px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+    background: var(--surface-2, #faf7f3);
+    font: inherit;
+    font-size: 13.5px;
+    outline: none;
+  }
+  .prail-sel-pop ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+  }
+  .prail-sel-op {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 8px;
+    border: none;
+    border-radius: 10px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+  }
+  .prail-sel-op img {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    object-fit: cover;
+    flex: none;
+    background: #fff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  }
+  .prail-sel-op span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prail-sel-op:hover { background: var(--surface-2, #f6f1ea); }
+  .prail-sel-op.is-active {
+    background: var(--brand-orange-tint, #fdeee2);
+    color: var(--brand-orange-strong, #d4621f);
+    font-weight: 800;
+  }
+
+  /* --- Grupos desplegables --- */
+  .prail-grupo { margin-top: 6px; }
+  .prail-grupo-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px 6px;
+    border: none;
+    background: none;
+    color: var(--bnav-dim);
+    font: inherit;
+    font-size: 11.5px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .prail-grupo-head:hover { color: var(--bnav-active); }
+  .prail-grupo-titulo {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .prail-chev { flex: none; transition: transform 0.2s ease; }
+  .prail-grupo:not(.is-open) .prail-grupo-head .prail-chev { transform: rotate(-90deg); }
+
+  /* Altura animada sin medir con JS: grid 0fr → 1fr. */
+  .prail-grupo-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.22s ease;
+  }
+  .prail-grupo.is-open > .prail-grupo-body { grid-template-rows: 1fr; }
+  .prail-grupo-inner {
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .prail-item { padding: 9px 12px; font-size: 14px; }
+
+  .prail-hint {
+    margin: 2px 12px 6px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--bnav-dim);
+  }
+
+  /* --- Catálogo con sus categorías --- */
+  .prail-sub-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .prail-sub-row .prail-item { flex: 1; min-width: 0; }
+  .prail-sub-toggle {
+    flex: none;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 9px;
+    background: none;
+    color: var(--bnav-dim);
+    cursor: pointer;
+    transition: background 0.16s ease, color 0.16s ease;
+  }
+  .prail-sub-toggle:hover {
+    color: var(--bnav-active);
+    background: color-mix(in srgb, currentColor 9%, transparent);
+  }
+  .prail-sub:not(.is-open) .prail-sub-toggle .prail-chev { transform: rotate(-90deg); }
+  .prail-sub.is-open > .prail-grupo-body { grid-template-rows: 1fr; }
+
+  .prail-cats {
+    list-style: none;
+    margin: 0 0 0 22px;
+    padding: 0 0 0 12px;
+    border-left: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+    color: var(--bnav-dim);
+  }
+  .prail-cat {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 9px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.16s ease, color 0.16s ease;
+  }
+  .prail-cat:hover {
+    color: var(--bnav-active);
+    background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+  .prail-cat.is-active {
+    color: var(--bnav-active);
+    background: color-mix(in srgb, var(--bnav-active) 13%, transparent);
+    font-weight: 800;
+  }
+  .prail-cat-emoji { flex: none; width: 18px; text-align: center; font-size: 13px; }
+  .prail-cat-nombre {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .prail-cat-count {
+    flex: none;
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    font-size: 11px;
+    font-weight: 800;
+    text-align: center;
+  }
+
+  /* La cabecera del panel es sticky: que la categoría no quede escondida debajo. */
+  .ap-grupo-cat { scroll-margin-top: 96px; }
+
+  /* --- Pie: buscador + cuenta --- */
+  .prail-pie {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    color: var(--bnav-dim);
+  }
+  .prail-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    flex: none;
+    object-fit: cover;
+  }
+  .prail-cuenta-txt {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .prail-cuenta-txt small {
+    font-size: 11.5px;
+    font-weight: 600;
+    opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Con el rail del panel, las pestañas de arriba sobran (todo está al lado),
+     y la flecha "‹" del superadmin también. */
+  .app-shell:has(.bnav--panel) .admin-tabs,
+  .app-shell:has(.bnav--panel) .sa-top .cuenta-volver-chip { display: none; }
+  .app-shell:has(.bnav--panel) .admin-tabs + .admin-body,
+  .app-shell:has(.bnav--panel) .admin-super-aviso + .admin-body { padding-top: 22px; }
+}
