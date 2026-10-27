@@ -155,22 +155,6 @@ export default function Superadmin() {
   const [guardandoId, setGuardandoId] = useState(null)
   const [adminEdits, setAdminEdits] = useState({}) // localId -> [correo1, correo2] en edición
   const [adminMsg, setAdminMsg] = useState({})     // localId -> 'guardando' | 'ok' | 'err' | 'dup'
-  const [cartilla, setCartilla] = useState(null)   // { version, paginas, mb } de cartilla-version.json
-
-  // Sello de la cartilla publicada. Lo escribe cartilla/generar.sh con la misma
-  // fecha y hora que imprime en la portada del PDF: si el texto de aquí y el de
-  // la portada coinciden, el archivo que tienes abierto es el que está arriba.
-  // Sin esto no había forma de distinguir una versión nueva de una descargada
-  // hace tres días, y eso ya costó una revisión entera sobre el PDF viejo.
-  useEffect(() => {
-    if (!superadmin) return
-    let activo = true
-    fetch('/cartilla-version.json', { cache: 'no-store' })
-      .then(r => r.ok ? r.json() : null)
-      .then(v => { if (activo) setCartilla(v) })
-      .catch(() => {})
-    return () => { activo = false }
-  }, [superadmin])
 
   const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
 
@@ -185,33 +169,6 @@ export default function Superadmin() {
   const normalizar = (valores) => [...new Set(
     valores.map(v => String(v || '').trim().toLowerCase()).filter(Boolean)
   )]
-
-  // Fuerza la DESCARGA de la cartilla (no solo abrirla). Baja la copia same-origin
-  // como blob y dispara el guardado con nombre. Si algo falla, abre la copia
-  // de Firebase Hosting como respaldo.
-  //
-  // Antes aquí colgaba la propuesta comercial de 3 páginas. La cartilla la
-  // reemplaza: dice lo mismo del precio y además lleva las fotos de la app y
-  // del panel, que es lo que el dueño quiere ver. Dos PDF contándole al cliente
-  // la misma venta con palabras distintas era justo el problema.
-  async function descargarCartilla(e) {
-    e.preventDefault()
-    try {
-      const res = await fetch('/cartilla-appetic.pdf', { cache: 'no-store' })
-      const blob = await res.blob()
-      if (!blob.type.includes('pdf')) throw new Error('no-pdf')
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'Cartilla-Appetic.pdf'
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      setTimeout(() => URL.revokeObjectURL(url), 5000)
-    } catch {
-      window.open('https://appetic-17477.web.app/cartilla-appetic.pdf', '_blank', 'noopener')
-    }
-  }
 
   // Guarda de una sola vez los correos de admin del local (1 ó 2). El 2º campo es
   // opcional: vacío = el local queda con un solo dueño. Se exige al menos uno válido
@@ -321,25 +278,18 @@ export default function Superadmin() {
       {/* 🛵 Domiciliarios globales (una lista para toda Appetic) */}
       <DomiciliariosGlobal />
 
+      {/* La propuesta comercial ya no vive aquí: desde el 27-oct-2026 las propuestas
+          de todos los productos se publican en la web de Swiftfly (decisión P9). */}
       <a
         className="sa-descarga"
-        href="/cartilla-appetic.pdf"
-        download="Cartilla-Appetic.pdf"
-        onClick={descargarCartilla}
+        href="https://switflysolutions.com/#proyectos"
+        target="_blank"
+        rel="noopener noreferrer"
       >
-        <span className="sa-descarga-ico">⬇️</span>
+        <span className="sa-descarga-ico">📄</span>
         <span className="sa-descarga-txt">
-          <strong>Descargar cartilla de ventas</strong>
-          <small>
-            {cartilla
-              ? `Subida el ${cartilla.version} · ${cartilla.paginas} páginas · ${cartilla.mb} MB`
-              : 'PDF · 18 páginas · Montaje $50.000 · $18.900/mes desde el 2º mes'}
-          </small>
-          {cartilla && (
-            <small className="sa-descarga-sello">
-              La portada del PDF lleva esta misma fecha. Si no coincide, lo que abriste es una copia vieja.
-            </small>
-          )}
+          <strong>Propuesta de Appetic</strong>
+          <small>Está en la web de Swiftfly Solutions, en la sección de proyectos.</small>
         </span>
       </a>
 
