@@ -13,6 +13,8 @@ import { createContext, useContext, useState, useCallback } from 'react'
 //  • panelCatalogo: las categorías del local que se está administrando AHORA
 //    ({ slug, categorias: [{ id, nombre, emoji, count }] }). Lo publica AdminPage
 //    y lo lee la barra lateral del panel en PC para desplegarlas bajo "Catálogo".
+//  • panelMenu: si el cajón del panel (celular) está abierto. Lo abre el ☰ de
+//    la cabecera del panel (PanelMenuBoton) y lo pinta PanelDrawer.
 const NavUIContext = createContext(null)
 export const useNavUI = () => useContext(NavUIContext)
 
@@ -22,6 +24,7 @@ export function NavUIProvider({ children }) {
   const [live, setLive] = useState(null) // { slug, oculta, onCarrito, onMenu } | null
   const [pendiente, setPendiente] = useState(null) // { nombre, id, onOk } | null
   const [panelCatalogo, setPanelCatalogo] = useState(null)
+  const [panelMenu, setPanelMenu] = useState(false)
 
   // 🛒 Regla del negocio: solo se pide de UN local a la vez. Al ir a otro local
   // con carrito, abrimos el modal de confirmación; si no hay conflicto, sigue
@@ -48,6 +51,7 @@ export function NavUIProvider({ children }) {
     live, setLive,
     irAOtroLocal, pendiente, confirmarCambio, cancelarCambio,
     panelCatalogo, setPanelCatalogo,
+    panelMenu, setPanelMenu,
   }
   return <NavUIContext.Provider value={value}>{children}</NavUIContext.Provider>
 }

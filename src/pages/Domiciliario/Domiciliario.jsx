@@ -7,6 +7,7 @@ import { puedeVerRepartos } from '../../config/roles'
 import { cop } from '../../utils/money'
 import { mapsUrl } from '../../utils/geo'
 import { linkRespuestaCliente } from '../../utils/whatsapp'
+import PanelMenuBoton from '../../components/BottomNav/PanelMenuBoton'
 import './Domiciliario.css'
 
 // 🛵 Panel del domiciliario: SOLO un buscador por código.
@@ -167,9 +168,13 @@ export default function Domiciliario() {
   return (
     <div className="do">
       <header className="do-top">
-        <div>
-          <span className="do-eyebrow">🛵 Domiciliarios</span>
-          <h1>Buscar pedido</h1>
+        <div className="do-top-izq">
+          {/* Solo el superadmin (o un dueño) ve el ☰; el domiciliario no tiene panel. */}
+          <PanelMenuBoton />
+          <div>
+            <span className="do-eyebrow">🛵 Domiciliarios</span>
+            <h1>Buscar pedido</h1>
+          </div>
         </div>
         <div className="do-top-actions">
           <button className="do-salir" onClick={cerrarSesion}>Salir</button>

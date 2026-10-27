@@ -6,6 +6,7 @@
   padding: calc(16px + env(safe-area-inset-top)) 16px 96px;
 }
 
+.do-top-izq { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .do-top {
   display: flex;
   align-items: center;

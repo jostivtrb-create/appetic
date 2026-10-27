@@ -15,6 +15,7 @@ import Domiciliario from './pages/Domiciliario/Domiciliario.jsx'
 import Responder from './pages/Responder/Responder.jsx'
 import InstallPrompt from './components/InstallPrompt/InstallPrompt.jsx'
 import BottomNav from './components/BottomNav/BottomNav.jsx'
+import PanelDrawer from './components/BottomNav/PanelDrawer.jsx'
 import ConfirmCambioLocal from './components/ConfirmCambioLocal/ConfirmCambioLocal.jsx'
 
 export default function App() {
@@ -74,6 +75,9 @@ export default function App() {
 
       {/* Barra inferior de navegación (se pinta con el tema del local activo) */}
       <BottomNav />
+
+      {/* 📱 Cajón lateral del panel en el celular (dueños y superadmin) */}
+      <PanelDrawer />
 
       {/* Modal bonito al cambiar de local con carrito (reemplaza window.confirm) */}
       <ConfirmCambioLocal />

@@ -5,6 +5,7 @@ import { esSuperadmin } from '../../config/roles'
 import { listarTodosLocales, setSuscripcion, setAdminEmails, setEtiquetas, setPrioridad } from '../../services/superadmin'
 import { getDomiciliariosGlobal, setDomiciliariosGlobal } from '../../services/domiciliarios'
 import { CATEGORIAS_LOCALES } from '../../config/categoriasLocales'
+import PanelMenuBoton from '../../components/BottomNav/PanelMenuBoton'
 import './Superadmin.css'
 
 // 🗂️ Editor de ETIQUETAS (chips del inicio) + ⭐ prioridad de un local.
@@ -274,7 +275,9 @@ export default function Superadmin() {
   return (
     <div className="sa">
       <header className="sa-top">
-        <Link to="/cuenta" className="cuenta-volver-chip">‹</Link>
+        {/* En el celular el ☰ abre el cajón del panel (Cuenta incluida). En PC no
+            se pinta: la barra ya está al lado. */}
+        <PanelMenuBoton />
         <div>
           <span className="sa-eyebrow">👑 Superadmin</span>
           <h1>Suscripciones</h1>

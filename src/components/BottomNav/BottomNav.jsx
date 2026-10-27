@@ -7,15 +7,15 @@ import { esColorOscuro, localThemeVars } from '../../utils/theme'
 import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import logoAppetic from '../../assets/appetic-logo.png'
 import ConfirmSalirMenu from '../ConfirmSalirMenu/ConfirmSalirMenu'
-import PanelRail from './PanelRail'
+import PanelRail, { devSuper } from './PanelRail'
+import { PanelMenuFlotante } from './PanelMenuBoton'
 import { esSuperadmin } from '../../config/roles'
 import './BottomNav.css'
 
 // 🧭 Barra de navegación FIJA. Tiene DOS modos:
 //   • Cliente:  Menú · Cuenta · [🛒 Pedido] · Favoritos · Buscar
-//   • Dueño:    Menú · Catálogo · Difundir · Configuración · Cuenta
-// El dueño de un local ve SIEMPRE la barra de administración (no usa la app
-// como cliente). Se pinta con los colores del local que está administrando.
+//   • Con panel (dueño o superadmin): UNA barra lateral con todo lo que su rol
+//     permite (PanelRail) — rail fijo en PC, cajón en el celular (PanelDrawer).
 //
 // 🖥️ En escritorio es EL MISMO componente y el mismo marcado, pero desktop.css
 // lo convierte en una barra lateral fija a la izquierda. Se hace así a
@@ -24,7 +24,7 @@ import './BottomNav.css'
 // rail y que en PC la barra no se esconda al abrir una capa encima—.
 export default function BottomNav() {
   const { activeLocal, cartCount, live } = useNavUI()
-  const { esDueno, slug: adminSlug, localSel, cargando: adminCargando } = useAdmin()
+  const { esDueno, localSel, cargando: adminCargando } = useAdmin()
   const { user } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -36,86 +36,59 @@ export default function BottomNav() {
   const enPanel = enAdminRoute || pathname.startsWith('/superadmin') || pathname.startsWith('/domiciliario')
   const esSuper = esSuperadmin(user?.email) || devSuper()
 
-  // 🖥️ Superadmin en PC: en sus pantallas de gestión usa la barra lateral del
-  // panel (PanelRail), con todo lo que puede abrir en grupos desplegables.
-  if (esPC && esSuper && enPanel && !(user && adminCargando)) return <PanelRail esSuper />
-
-  // Superadmin vive en su propio panel, sin barra (en el celular).
-  if (pathname.startsWith('/superadmin')) return null
   // /r/… es solo un puente de medio segundo hacia WhatsApp: no es una pantalla de la app.
   if (pathname.startsWith('/r/')) return null
   // Mientras se sabe si es dueño (usuario con sesión), no parpadeamos la barra.
   if (user && adminCargando) return null
 
-  // ---------- MODO DUEÑO (barra de administración) ----------
-  if (esDueno) {
-    // El dueño también entra a su propio menú a probarlo como cliente. Cuando
-    // ahí abre una capa (detalle del plato, armador por pasos, carrito de
-    // prueba), su barra debe apartarse igual que la del cliente: en el celular
-    // la hoja llega hasta abajo y la barra le tapaba el pie —el botón
-    // "Siguiente" del armador quedaba escondido detrás y no había cómo
-    // avanzar—. En PC las capas son ventanas centradas, así que el rail se
-    // queda pero cede la capa, como en el modo cliente.
+  // ---------- CON PANEL (dueño de algún local o superadmin) ----------
+  // UNA sola barra que no cambia de pantalla a pantalla (como la de Registro
+  // Infiniity): PanelRail, con lo de administrar Y lo de cliente, mostrando
+  // solo lo que su rol permite. Antes había dos barras —la de cliente y la del
+  // panel— y saltaban según la pantalla, lo que enredaba para entrar.
+  if (esDueno || esSuper) {
+    // Si abre una capa en un menú (detalle del plato, armador, carrito), en el
+    // celular la barra se aparta —la hoja llega hasta abajo y le tapaba el
+    // botón "Siguiente"— y en PC se queda pero cede la capa.
     const capaEncima = Boolean(live) && live.oculta
-    if (capaEncima && !esPC) return null
-    const railBajoCapa = capaEncima && esPC
 
-    const oscuro = localSel && esColorOscuro(localSel.tema?.bg)
-    const solido = Boolean(localSel?.tema?.navSolid)
-    const style = localSel
-      ? { ...localThemeVars(localSel.tema), '--bnav-bg': localSel.tema?.bg || '#141014' }
-      : undefined
-
-    const activa = enAdminRoute
-      ? (pathname.includes('/difundir') ? 'difundir' : pathname.includes('/config') ? 'config' : 'catalogo')
-      : (adminSlug && pathname === `/${adminSlug}`) ? 'menu'
-        : pathname.startsWith('/cuenta') ? 'cuenta'
-          : ''
-
-    // Sin local seleccionado (varios locales, ninguno elegido) → a Cuenta a elegir.
-    const irAdmin = (destino) => {
-      if (!adminSlug) { navigate('/cuenta?elegir=1'); return }
-      navigate(destino(adminSlug))
-    }
-
-    // 🖥️ En PC el dueño usa la barra lateral del panel (con Métricas, selector
-    // de local y, si además es superadmin, sus herramientas).
-    if (esPC) {
+    // 📱 Celular: la barra es el cajón lateral (PanelDrawer). En las pantallas
+    // del panel lo abre el ☰ de su cabecera; en las demás, un botón flotante.
+    // Dentro de un menú se suma el botón del pedido: era la única entrada al
+    // carrito en el celular (en PC el carrito ya es un panel fijo al lado).
+    if (!esPC) {
+      if (capaEncima || enPanel) return null
       return (
-        <PanelRail
-          esSuper={esSuper}
-          className={`${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''} ${railBajoCapa ? 'bnav--bajo-capa' : ''}`}
-          style={style}
-        />
+        <>
+          <PanelMenuFlotante />
+          {live && (
+            <button className="prail-fab prail-fab--pedido" onClick={() => live.onCarrito()} aria-label="Ver pedido">
+              <IconBag />
+              {cartCount > 0 && <span className="bnav-cart-badge">{cartCount}</span>}
+            </button>
+          )}
+        </>
       )
     }
 
+    // 🖥️ PC: rail fijo. Con los colores del local que administra el dueño.
+    const temaLocal = esDueno ? localSel : null
+    const oscuro = temaLocal && esColorOscuro(temaLocal.tema?.bg)
+    const solido = Boolean(temaLocal?.tema?.navSolid)
+    const style = temaLocal
+      ? { ...localThemeVars(temaLocal.tema), '--bnav-bg': temaLocal.tema?.bg || '#141014' }
+      : undefined
     return (
-      <nav className={`bnav bnav--admin ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''} ${railBajoCapa ? 'bnav--bajo-capa' : ''}`} style={style} aria-label="Administración">
-        <MarcaRail
-          logo={localSel?.logo || localSel?.icono || logoAppetic}
-          nombre={localSel?.nombre || 'Appetic'}
-          rol="Panel del local"
-          onClick={() => irAdmin(s => `/${s}/admin/catalogo`)}
-        />
-        <button className={`bnav-item bnav-item--menu ${activa === 'menu' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}`)}>
-          <IconMenu /><span>Menú</span>
-        </button>
-        <button className={`bnav-item bnav-item--catalogo ${activa === 'catalogo' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}/admin/catalogo`)}>
-          <IconCatalogo /><span>Catálogo</span>
-        </button>
-        <button className={`bnav-item bnav-item--difundir ${activa === 'difundir' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}/admin/difundir`)}>
-          <IconDifundir /><span>Difundir</span>
-        </button>
-        <button className={`bnav-item bnav-item--config ${activa === 'config' ? 'is-active' : ''}`} onClick={() => irAdmin(s => `/${s}/admin/config`)}>
-          <IconConfig /><span>Config</span>
-        </button>
-        <button className={`bnav-item bnav-item--cuenta ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
-          <IconUser /><span>Cuenta</span>
-        </button>
-      </nav>
+      <PanelRail
+        esSuper={esSuper}
+        className={`${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''} ${capaEncima ? 'bnav--bajo-capa' : ''}`}
+        style={style}
+      />
     )
   }
+
+  // Superadmin vive en su propio panel; aquí solo cae quien no lo es (sin barra).
+  if (pathname.startsWith('/superadmin')) return null
 
   // No dueño dentro de una ruta de admin (superadmin/demo): sin barra (como hoy).
   if (enAdminRoute) return null
@@ -208,18 +181,6 @@ export default function BottomNav() {
   )
 }
 
-// 🧪 DEV: ?super=1 simula al superadmin SOLO para ver la barra lateral sin
-// iniciar sesión (los datos siguen exigiendo sesión real). No existe en producción.
-function devSuper() {
-  if (!import.meta.env.DEV) return false
-  try {
-    const q = new URLSearchParams(window.location.search).get('super')
-    if (q === '1') sessionStorage.setItem('appetic_dev_super', '1')
-    if (q === '0') sessionStorage.removeItem('appetic_dev_super')
-    return sessionStorage.getItem('appetic_dev_super') === '1'
-  } catch { return false }
-}
-
 // 🖥️ Cabecera de la barra lateral: logo + nombre. Existe SOLO en escritorio
 // (BottomNav.css la deja en display:none por debajo de 1024px): una barra
 // inferior de celular no tiene dónde poner un encabezado, pero un rail lateral
@@ -258,33 +219,4 @@ function IconSearch() {
 }
 function IconUser() {
   return <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><circle {...sw} cx="12" cy="8" r="3.4" /><path {...sw} d="M5 20a7 7 0 0 1 14 0" /></svg>
-}
-// Catálogo: rejilla de productos
-function IconCatalogo() {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-      <rect {...sw} x="4" y="4" width="7" height="7" rx="1.6" />
-      <rect {...sw} x="13" y="4" width="7" height="7" rx="1.6" />
-      <rect {...sw} x="4" y="13" width="7" height="7" rx="1.6" />
-      <rect {...sw} x="13" y="13" width="7" height="7" rx="1.6" />
-    </svg>
-  )
-}
-// Difundir: megáfono
-function IconDifundir() {
-  return (
-    <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true">
-      <path {...sw} d="M4 10v4a1 1 0 0 0 1 1h2l7 4V5L7 9H5a1 1 0 0 0-1 1z" />
-      <path {...sw} d="M17.5 8.5a5 5 0 0 1 0 7" />
-    </svg>
-  )
-}
-// Configuración: controles / sliders
-function IconConfig() {
-  return (
-    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-      <path {...sw} d="M4 7h9" /><path {...sw} d="M18 7h2" /><circle {...sw} cx="15.5" cy="7" r="2.1" />
-      <path {...sw} d="M4 17h4" /><path {...sw} d="M12.5 17h7.5" /><circle {...sw} cx="9.5" cy="17" r="2.1" />
-    </svg>
-  )
 }

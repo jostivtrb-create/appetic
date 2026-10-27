@@ -17,6 +17,7 @@ import { computeDestacadosHome } from '../../utils/destacadosHome'
 import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
 import { useAdmin } from '../../contexts/AdminContext'
 import { useNavUI } from '../../contexts/NavUIContext'
+import PanelMenuBoton from '../../components/BottomNav/PanelMenuBoton'
 import './Admin.css'
 
 export default function AdminPage() {
@@ -254,9 +255,12 @@ export default function AdminPage() {
   return (
     <div className="admin">
       <header className="admin-top">
-        <div>
-          <span className="admin-top-eyebrow">Panel · Appetic</span>
-          <h1 className="admin-top-nombre">{local.nombre}</h1>
+        <div className="admin-top-izq">
+          <PanelMenuBoton />
+          <div>
+            <span className="admin-top-eyebrow">Panel · Appetic</span>
+            <h1 className="admin-top-nombre">{local.nombre}</h1>
+          </div>
         </div>
         {!demo && (
           <Link to="/cuenta" className="admin-perfil" title="Mi perfil y locales" aria-label="Mi perfil y locales">

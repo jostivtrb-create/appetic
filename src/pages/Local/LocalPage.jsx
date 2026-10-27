@@ -7,6 +7,7 @@ import { registrarVisita } from '../../services/stats'
 import { CartProvider } from '../../contexts/CartContext'
 import LocalMenu from './LocalMenu'
 import './LocalPage.css'
+import { atrasEsDelCajon } from '../../utils/cajonPanel'
 
 export default function LocalPage() {
   const { slug } = useParams()
@@ -30,6 +31,8 @@ export default function LocalPage() {
   useEffect(() => {
     window.history.pushState(window.history.state, '')
     function alPresionarAtras() {
+      // Ese "atrás" cerró el cajón del panel (dueño/superadmin): no es salir.
+      if (atrasEsDelCajon()) return
       if (cerrarCapaRef.current()) {
         window.history.pushState(window.history.state, '')
       } else {

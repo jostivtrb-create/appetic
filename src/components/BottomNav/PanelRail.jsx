@@ -14,10 +14,19 @@ import './PanelRail.css'
 //   • "Este local": Ver menú · Catálogo (con sus categorías desplegables) ·
 //     Difundir · Configuración · Métricas.
 //   • "Superadmin" (solo superadmin): Locales y planes · Domiciliarios · Repartos.
-//   • Al pie: Cuenta y el buscador de Appetic.
+//   • "Appetic" (todos): Buscar · el menú que estés viendo · Favoritos ·
+//     Mis pedidos · Mis datos — lo de cliente, para no tener que cambiar de barra.
+//   • Al pie: Cuenta.
+// Es UNA sola barra para quien tiene panel (como la de Registro Infiniity): no
+// cambia de pantalla a pantalla, solo muestra u oculta lo que su rol permite.
 // Los grupos son desplegables y recuerdan si los dejaste abiertos o cerrados.
 // Reusa las clases .bnav/.bnav-item para heredar el rail de desktop.css (ancho,
 // colores del local, el velo cuando hay una ventana abierta).
+//
+// 📱 En el celular el MISMO contenido vive en un cajón lateral (modo "drawer",
+// ver PanelDrawer.jsx) que se abre con el ☰ de la cabecera del panel. Ahí las
+// navegaciones REEMPLAZAN la entrada del historial que abrió el cajón, para
+// que el botón "atrás" no tenga que pasar por un paso fantasma.
 
 const GRUPOS_KEY = 'appetic_rail_grupos'
 const SUPER_SLUG_KEY = 'appetic_super_slug'
@@ -39,11 +48,25 @@ const SECCIONES = [
   { id: 'metricas', label: 'Métricas', Icon: IconMetricas, ruta: s => `/${s}/admin/metricas` },
 ]
 
-export default function PanelRail({ esSuper, className = '', style }) {
+// 🧪 DEV: ?super=1 simula al superadmin SOLO para ver la barra sin iniciar
+// sesión (los datos siguen exigiendo sesión real). No existe en producción.
+export function devSuper() {
+  if (!import.meta.env.DEV) return false
+  try {
+    const q = new URLSearchParams(window.location.search).get('super')
+    if (q === '1') sessionStorage.setItem('appetic_dev_super', '1')
+    if (q === '0') sessionStorage.removeItem('appetic_dev_super')
+    return sessionStorage.getItem('appetic_dev_super') === '1'
+  } catch { return false }
+}
+
+export default function PanelRail({ esSuper, className = '', style, modo = 'rail', onCerrar }) {
+  const enCajon = modo === 'drawer'
   const { locales: misLocales, esDueno, slug: adminSlug, setSlug } = useAdmin()
   const { user } = useAuth()
-  const { panelCatalogo } = useNavUI()
+  const { panelCatalogo, activeLocal } = useNavUI()
   const navigate = useNavigate()
+  const ir = to => navigate(to, enCajon ? { replace: true } : undefined)
   const { pathname, hash } = useLocation()
 
   const [todos, setTodos] = useState([])
@@ -73,7 +96,9 @@ export default function PanelRail({ esSuper, className = '', style }) {
     try { localStorage.setItem(SUPER_SLUG_KEY, slugRuta) } catch { /* nada */ }
   }, [slugRuta, esSuper])
 
-  const slugActual = slugRuta || (esDueno ? adminSlug : null) || (esSuper ? superSlug : null)
+  // Superadmin sin local elegido todavía: el primero de la lista, para que el
+  // grupo del local nunca salga vacío.
+  const slugActual = slugRuta || (esDueno ? adminSlug : null) || (esSuper ? (superSlug || todos.map(l => l.slug).sort()[0] || null) : null)
   const localActual = elegibles.find(l => l.slug === slugActual) || null
 
   // Categorías bajo "Catálogo": en vivo desde el panel abierto; si no estás en
@@ -86,10 +111,19 @@ export default function PanelRail({ esSuper, className = '', style }) {
     || (pathname.startsWith('/superadmin') ? (hash === '#domiciliarios' ? 'sa-domis' : 'sa-locales') : '')
     || (pathname.startsWith('/domiciliario') ? 'sa-repartos' : '')
     || (pathname.startsWith('/cuenta') ? 'cuenta' : '')
+    || (pathname === '/' ? 'cli-buscar' : '')
+    || (pathname.startsWith('/favoritos') ? 'cli-favoritos' : '')
+    || (pathname.startsWith('/pedidos') ? 'cli-pedidos' : '')
+    || (pathname.startsWith('/datos') ? 'cli-datos' : '')
+    || (activeLocal && pathname === `/${activeLocal.slug}` ? 'cli-menu' : '')
+
+  // "El menú que estás viendo": el último local abierto como cliente, si no es
+  // el que ya administras (ese tiene su "Ver menú" arriba).
+  const menuCliente = activeLocal && activeLocal.slug !== slugActual ? activeLocal : null
 
   // ---- Grupos desplegables (recordados) ----
   const [abiertos, setAbiertos] = useState(() => {
-    try { return { local: true, super: true, ...JSON.parse(localStorage.getItem(GRUPOS_KEY) || '{}') } } catch { return { local: true, super: true } }
+    try { return { local: true, super: true, cli: true, ...JSON.parse(localStorage.getItem(GRUPOS_KEY) || '{}') } } catch { return { local: true, super: true, cli: true } }
   })
   function alternar(id) {
     setAbiertos(a => {
@@ -99,7 +133,7 @@ export default function PanelRail({ esSuper, className = '', style }) {
     })
   }
   // El grupo de la pantalla en la que estás siempre se ve abierto.
-  const grupoActivo = activa.startsWith('sa-') ? 'super' : SECCIONES.some(s => s.id === activa) ? 'local' : null
+  const grupoActivo = activa.startsWith('sa-') ? 'super' : activa.startsWith('cli-') ? 'cli' : SECCIONES.some(s => s.id === activa) ? 'local' : null
   const estaAbierto = id => abiertos[id] || grupoActivo === id
   // Las categorías arrancan abiertas estando en Catálogo, pero se pueden plegar.
   const catsAbiertas = abiertos.cats ?? (activa === 'catalogo')
@@ -120,20 +154,27 @@ export default function PanelRail({ esSuper, className = '', style }) {
     }
     // Te quedas en la misma sección, pero del otro local.
     const sec = SECCIONES.find(s => s.id === activa) || SECCIONES[1]
-    navigate(sec.ruta(l.slug))
+    ir(sec.ruta(l.slug))
   }
 
   const brandLogo = localActual?.logo || localActual?.icono || logoAppetic
 
   return (
-    <nav className={`bnav bnav--admin bnav--panel ${className}`} style={style} aria-label="Panel">
-      <button className="bnav-brand" onClick={() => navigate(esSuper ? '/superadmin' : (slugActual ? `/${slugActual}/admin/catalogo` : '/cuenta'))} tabIndex={-1} aria-hidden="true">
-        <img className="bnav-brand-logo" src={logoAppetic} alt="" />
-        <span className="bnav-brand-texto">
-          <span className="bnav-brand-nombre">Appetic</span>
-          <span className="bnav-brand-rol">{esSuper ? '👑 Superadmin' : 'Panel del local'}</span>
-        </span>
-      </button>
+    <nav className={enCajon ? `prail prail--drawer ${className}` : `bnav bnav--admin bnav--panel ${className}`} style={style} aria-label="Panel">
+      <div className="prail-brand-row">
+        <button className="bnav-brand" onClick={() => ir(esSuper ? '/superadmin' : (slugActual ? `/${slugActual}/admin/catalogo` : '/cuenta'))} tabIndex={-1} aria-hidden="true">
+          <img className="bnav-brand-logo" src={logoAppetic} alt="" />
+          <span className="bnav-brand-texto">
+            <span className="bnav-brand-nombre">Appetic</span>
+            <span className="bnav-brand-rol">{esSuper ? '👑 Superadmin' : 'Panel del local'}</span>
+          </span>
+        </button>
+        {enCajon && (
+          <button className="prail-cerrar" onClick={onCerrar} aria-label="Cerrar menú">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path {...sw} d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        )}
+      </div>
 
       {(elegibles.length > 1 || (esSuper && elegibles.length > 0) || !localActual) && (
         <SelectorLocal
@@ -149,7 +190,7 @@ export default function PanelRail({ esSuper, className = '', style }) {
         {slugActual ? SECCIONES.map(({ id, label, Icon, ruta }) => (id === 'catalogo' && categorias.length > 0) ? (
           <div key={id} className={`prail-sub ${catsAbiertas ? 'is-open' : ''}`}>
             <div className="prail-sub-row">
-              <button className={`bnav-item prail-item ${activa === id && !catActiva ? 'is-active' : ''}`} onClick={() => navigate(ruta(slugActual))}>
+              <button className={`bnav-item prail-item ${activa === id && !catActiva ? 'is-active' : ''}`} onClick={() => ir(ruta(slugActual))}>
                 <Icon /><span>{label}</span>
               </button>
               <button
@@ -168,7 +209,7 @@ export default function PanelRail({ esSuper, className = '', style }) {
                   <li key={c.id}>
                     <button
                       className={`prail-cat ${catActiva === c.id ? 'is-active' : ''}`}
-                      onClick={() => navigate(`${ruta(slugActual)}#cat-${encodeURIComponent(c.id)}`)}
+                      onClick={() => ir(`${ruta(slugActual)}#cat-${encodeURIComponent(c.id)}`)}
                     >
                       <span className="prail-cat-emoji" aria-hidden="true">{c.emoji || '•'}</span>
                       <span className="prail-cat-nombre">{c.nombre}</span>
@@ -180,7 +221,7 @@ export default function PanelRail({ esSuper, className = '', style }) {
             </div>
           </div>
         ) : (
-          <button key={id} className={`bnav-item prail-item ${activa === id ? 'is-active' : ''}`} onClick={() => navigate(ruta(slugActual))}>
+          <button key={id} className={`bnav-item prail-item ${activa === id ? 'is-active' : ''}`} onClick={() => ir(ruta(slugActual))}>
             <Icon /><span>{label}</span>
           </button>
         )) : <p className="prail-hint">Elige un local arriba para administrarlo.</p>}
@@ -188,23 +229,40 @@ export default function PanelRail({ esSuper, className = '', style }) {
 
       {esSuper && (
         <Grupo id="super" titulo="Superadmin" abierto={estaAbierto('super')} onAlternar={alternar}>
-          <button className={`bnav-item prail-item ${activa === 'sa-locales' ? 'is-active' : ''}`} onClick={() => navigate('/superadmin')}>
+          <button className={`bnav-item prail-item ${activa === 'sa-locales' ? 'is-active' : ''}`} onClick={() => ir('/superadmin')}>
             <IconTienda /><span>Locales y planes</span>
           </button>
-          <button className={`bnav-item prail-item ${activa === 'sa-domis' ? 'is-active' : ''}`} onClick={() => navigate('/superadmin#domiciliarios')}>
+          <button className={`bnav-item prail-item ${activa === 'sa-domis' ? 'is-active' : ''}`} onClick={() => ir('/superadmin#domiciliarios')}>
             <IconEquipo /><span>Domiciliarios</span>
           </button>
-          <button className={`bnav-item prail-item ${activa === 'sa-repartos' ? 'is-active' : ''}`} onClick={() => navigate('/domiciliario')}>
+          <button className={`bnav-item prail-item ${activa === 'sa-repartos' ? 'is-active' : ''}`} onClick={() => ir('/domiciliario')}>
             <IconMoto /><span>Repartos</span>
           </button>
         </Grupo>
       )}
 
-      <div className="prail-pie">
-        <button className="bnav-item prail-item" onClick={() => navigate('/')}>
-          <IconSearch /><span>Ir al buscador</span>
+      <Grupo id="cli" titulo="Appetic" abierto={estaAbierto('cli')} onAlternar={alternar}>
+        <button className={`bnav-item prail-item ${activa === 'cli-buscar' ? 'is-active' : ''}`} onClick={() => ir('/')}>
+          <IconSearch /><span>Buscar locales</span>
         </button>
-        <button className={`bnav-item prail-item prail-cuenta ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
+        {menuCliente && (
+          <button className={`bnav-item prail-item ${activa === 'cli-menu' ? 'is-active' : ''}`} onClick={() => ir(`/${menuCliente.slug}`)}>
+            <IconMenu /><span>Menú de {menuCliente.nombre}</span>
+          </button>
+        )}
+        <button className={`bnav-item prail-item ${activa === 'cli-favoritos' ? 'is-active' : ''}`} onClick={() => ir('/favoritos')}>
+          <IconHeart /><span>Favoritos</span>
+        </button>
+        <button className={`bnav-item prail-item ${activa === 'cli-pedidos' ? 'is-active' : ''}`} onClick={() => ir('/pedidos')}>
+          <IconRecibo /><span>Mis pedidos</span>
+        </button>
+        <button className={`bnav-item prail-item ${activa === 'cli-datos' ? 'is-active' : ''}`} onClick={() => ir('/datos')}>
+          <IconTarjeta /><span>Mis datos</span>
+        </button>
+      </Grupo>
+
+      <div className="prail-pie">
+        <button className={`bnav-item prail-item prail-cuenta ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => ir('/cuenta')}>
           {user?.photoURL
             ? <img className="prail-avatar" src={user.photoURL} alt="" referrerPolicy="no-referrer" />
             : <IconUser />}
@@ -331,6 +389,15 @@ function IconMoto() {
 }
 function IconSearch() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><circle {...sw} cx="11" cy="11" r="7" /><path {...sw} d="M16.5 16.5 21 21" /></svg>
+}
+function IconHeart() {
+  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M12 20s-7-4.6-7-9.4A3.6 3.6 0 0 1 12 8a3.6 3.6 0 0 1 7 2.6C19 15.4 12 20 12 20z" /></svg>
+}
+function IconRecibo() {
+  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /><path {...sw} d="M9 8h6" /><path {...sw} d="M9 12h6" /></svg>
+}
+function IconTarjeta() {
+  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><rect {...sw} x="3" y="5" width="18" height="14" rx="2.5" /><circle {...sw} cx="9" cy="11" r="2" /><path {...sw} d="M6 16a3 3 0 0 1 6 0" /><path {...sw} d="M15 10h3" /><path {...sw} d="M15 14h3" /></svg>
 }
 function IconUser() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><circle {...sw} cx="12" cy="8" r="3.4" /><path {...sw} d="M5 20a7 7 0 0 1 14 0" /></svg>
