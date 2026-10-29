@@ -155,9 +155,9 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
       pantalla siempre encendida, colores del local con MESA/LLEVAR en grande.
 - [x] 1f · **Aviso «listo» dentro de la app** en cualquier pantalla (aviso arriba + sonido) para el
       mesero que la mandó y los admins.
-- [ ] 1g · **Notificación con la app cerrada** (FCM + función de Vercel). Necesita la llave en
+- [~] 1g · **Notificación con la app cerrada** (código listo y publicado; falta la llave en Vercel) (FCM + función de Vercel). Necesita la llave en
       Vercel (acción del usuario).
-- [ ] 1h · Prueba completa en la vista previa (mesero → cocina → listo), desplegar reglas y app.
+- [x] 1h · Prueba completa en la vista previa (mesero → cocina → listo), desplegar reglas y app.
 
 ### Paso 2 — Correcciones con «CUIDADO» *(ronda corta antes)*
 ### Paso 3 — Link «Mi pedido» + «Confirmar pedido» *(ronda corta antes)*
@@ -187,3 +187,20 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
     para probar en `?preview=1`; en DEV `?equipo=slug:mesero|cocina` simula al personal.
   - Pendiente del paso 1: **1g** (notificación con la app cerrada — necesita la llave de Firebase en
     Vercel y la clave de notificaciones web) y **1h** (subir reglas + índices y desplegar).
+- **29-oct-2026** — Paso 1 PUBLICADO (reglas + índices + app). Agregado «¿Qué lleva?» (pedido del
+  usuario): ⓘ en cada producto del mesero y en cada ítem de la comanda (aparte del botón de tachar);
+  la comanda guarda la `descripcion` del plato al enviarse.
+- **29-oct-2026** — 🐞 **Fuga entre locales** (la encontró el usuario): con acceso a varios locales,
+  el pedido a medio armar de uno pasaba al otro al cambiar desde la barra (la pantalla no se
+  reiniciaba y además guardaba el carrito viejo con la clave del local nuevo). Arreglo: `key={local.id}`
+  en Mesero/Comandas, cada línea guarda `localId` y se cruza con el menú al abrir y al enviar.
+  Quedó en producción una comanda de prueba en Jasbury (mesa 2) con 2 platos de otro local.
+- **29-oct-2026** — «Sin conexión con la cocina» = la escucha falló mientras los índices se
+  construían y no reintentaba. Ahora se reconecta sola (3 s → 30 s) y el aviso dice la causa.
+- **29-oct-2026** — 1g construido: `ActivarAvisos` en Mesero, `public/firebase-messaging-sw.js`
+  (alcance propio, config por URL), `services/notificaciones.js`, `api/notificar-listo.js` (Vercel),
+  reglas de `dispositivos`. Problemas resueltos: (1) `vercel.json` reescribía /api al index.html →
+  se excluyó; (2) **firebase-admin 14 no carga en Vercel** (`jwks-rsa` hace `require()` de `jose`,
+  que es ESM, y Vercel no lo permite) → se fijó **firebase-admin 12.7.0** (+ `engines.node 22.x`);
+  se diagnosticó haciendo que la función cargue firebase-admin dentro de la petición y devuelva el
+  motivo. **Falta:** que el usuario ponga `FIREBASE_SERVICE_ACCOUNT` en Vercel y redespliegue.
