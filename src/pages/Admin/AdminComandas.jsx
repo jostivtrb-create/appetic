@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { comandasDe, etiquetaDestino, ms, POR_PAGINA } from '../../services/comandas'
 import AdminEquipo from './AdminEquipo'
+import { notificarListo } from '../../services/notificaciones'
 import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, UMBRALES_DEFECTO, itemsTxt } from './comandaUtils'
 import './Comandas.css'
 
@@ -64,7 +65,11 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
 
   async function entregar(c) {
     setConfirmar(null)
-    try { await api.entregar(c) } catch { setError('No se pudo marcar como entregada. Intenta de nuevo.') }
+    try {
+      await api.entregar(c)
+      // 🔔 Aviso con la app cerrada al mesero y al admin (no frena a la cocina si falla).
+      if (!demo) notificarListo(local.id, c.id)
+    } catch { setError('No se pudo marcar como entregada. Intenta de nuevo.') }
   }
 
   return (

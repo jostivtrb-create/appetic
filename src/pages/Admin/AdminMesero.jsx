@@ -8,6 +8,7 @@ import {
 import ProductModal from '../../components/Menu/ProductModal'
 import ProductWizard from '../../components/Menu/ProductWizard'
 import AdminEquipo from './AdminEquipo'
+import ActivarAvisos from './ActivarAvisos'
 import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, itemsTxt } from './comandaUtils'
 import './Mesero.css'
 
@@ -33,6 +34,7 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
 
   return (
     <div className="ms">
+      {!demo && <ActivarAvisos local={local} usuario={usuario} />}
       {esAdmin && (
         <div className="ms-admin">
           <AdminEquipo local={local} rol="mesero" demo={demo} />

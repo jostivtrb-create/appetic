@@ -186,3 +186,16 @@
 .ms-entregadas { list-style: none; display: grid; gap: 6px; }
 .ms-entregadas li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); font-size: 14px; }
 .ms-entregadas span { color: var(--text-soft); }
+
+/* 🔔 Activar avisos (notificaciones con la app cerrada) */
+.av {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; margin-bottom: 12px;
+  border-radius: 16px; background: var(--surface); border: 1.5px dashed var(--brand-orange);
+}
+.av > span { font-size: 24px; }
+.av > div { flex: 1; min-width: 0; display: grid; }
+.av strong { font-size: 15px; }
+.av small { font-size: 13px; color: var(--text-soft); }
+.av .av-error { color: #B3261E; }
+.av button { flex-shrink: 0; padding: 10px 16px; border-radius: 12px; font-weight: 800; background: var(--brand-orange); color: #fff; }
+.av-nota { font-size: 13.5px; color: var(--text-soft); background: var(--surface-2); padding: 10px 12px; border-radius: 12px; margin-bottom: 12px; }

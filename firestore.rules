@@ -4,6 +4,7 @@ rules_version = '2';
 // Cambios: EQUIPO por local (meseros y cocina en locales/{id}/equipo, privado) y COMANDAS
 //   (locales/{id}/comandas): las leen y escriben solo el admin, los meseros y la cocina ACTIVOS
 //   de ese local. El mesero crea; la cocina tacha y entrega. Ver «Guía para Mesero y Comandas».
+//   + dispositivos (celulares que reciben el aviso de «pedido listo» con la app cerrada).
 // Antes (2026-07-26): rol DOMICILIARIO GLOBAL.
 // Cambios: rol DOMICILIARIO GLOBAL (config/domiciliarios) que lee TODOS los pedidos a
 //   domicilio (consultas collectionGroup). Los pedidos se guardan completos (con código)
@@ -114,6 +115,16 @@ service cloud.firestore {
         allow update: if esPersonal(localId)
                       && request.resource.data.estado in ['activa', 'entregada', 'cancelada'];
         allow delete: if false;
+      }
+
+      // 🔔 Celulares que reciben el aviso de «pedido listo» (doc id = token de notificaciones).
+      // Cada persona del local registra SOLO el suyo (con su correo). Los lee y usa el servidor
+      // (/api/notificar-listo, con permisos de administrador), no la app.
+      match /dispositivos/{token} {
+        allow create, update: if esPersonal(localId)
+                              && request.resource.data.email == request.auth.token.email.lower()
+                              && request.resource.data.token == token;
+        allow read, delete: if request.auth != null && resource.data.email == request.auth.token.email.lower();
       }
 
       match /stats/{statId} {
