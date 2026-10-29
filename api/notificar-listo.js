@@ -11,8 +11,9 @@
 //   • La comanda tiene que existir y estar «entregada» (no se puede usar para mandar avisos al aire).
 //   • Una comanda avisa una sola vez cada 2 minutos (si la cocina deshace y vuelve a entregar).
 //
-// Requiere la variable de entorno secreta FIREBASE_SERVICE_ACCOUNT en Vercel (el JSON completo de
-// la llave de servicio de Firebase). Sin ella responde 503 y la app sigue funcionando igual.
+// Requiere la variable de entorno secreta FIREBASE_SERVICE_ACCOUNT en Vercel: la llave de servicio
+// de Firebase en base64 de una línea (scripts/serviceAccount.base64.txt, ignorado por git) o el
+// JSON tal cual. Sin ella responde 503 y la app sigue funcionando igual.
 // firebase-admin se carga DENTRO de la petición (no arriba del archivo): si algo falla al cargarlo,
 // la función responde el motivo en vez de morir con un FUNCTION_INVOCATION_FAILED mudo.
 let fa = null
@@ -31,11 +32,20 @@ async function cargar() {
 
 const SUPERADMINS = ['jostivtrb@gmail.com'] // espejo de src/config/roles.js
 
+// La llave puede venir como el JSON tal cual o en UNA línea base64 (más seguro de pegar en Vercel:
+// sin saltos de línea ni comillas que el formulario pueda alterar).
+function leerLlave(raw) {
+  let t = String(raw || '').trim()
+  if (/^["'].*["']$/s.test(t)) t = t.slice(1, -1).trim()
+  if (!t.startsWith('{')) t = Buffer.from(t, 'base64').toString('utf8').trim()
+  return JSON.parse(t)
+}
+
 function iniciar({ getApps, initializeApp, cert }) {
   if (getApps().length) return true
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT
   if (!raw) return false
-  initializeApp({ credential: cert(JSON.parse(raw)) })
+  initializeApp({ credential: cert(leerLlave(raw)) })
   return true
 }
 
@@ -50,7 +60,13 @@ export default async function handler(req, res) {
   try {
     if (!iniciar(f)) return res.status(503).json({ error: 'Falta FIREBASE_SERVICE_ACCOUNT en Vercel', node: process.version })
   } catch (e) {
-    return res.status(500).json({ error: 'La llave FIREBASE_SERVICE_ACCOUNT no es válida', detalle: String(e?.message || e).slice(0, 200) })
+    // Pistas SIN revelar la llave: largo, si tiene saltos de línea y cómo empieza (el comienzo es
+    // `{"type":"service_account"`, que no es secreto).
+    const raw = String(process.env.FIREBASE_SERVICE_ACCOUNT || '')
+    return res.status(500).json({
+      error: 'La llave FIREBASE_SERVICE_ACCOUNT no es válida', detalle: String(e?.message || e).slice(0, 160),
+      largo: raw.length, saltos: (raw.match(/\n/g) || []).length, empieza: raw.slice(0, 12),
+    })
   }
 
   try {

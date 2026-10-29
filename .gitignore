@@ -40,3 +40,6 @@ serviceAccount*.json
 scripts/.seed-backups/
 scripts/_recovery-*.json
 scripts/_backup-*.json
+
+# Llave de servicio en base64 (para pegar en Vercel). NUNCA se sube.
+scripts/serviceAccount.base64.txt
