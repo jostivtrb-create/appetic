@@ -13,14 +13,25 @@
 //
 // Requiere la variable de entorno secreta FIREBASE_SERVICE_ACCOUNT en Vercel (el JSON completo de
 // la llave de servicio de Firebase). Sin ella responde 503 y la app sigue funcionando igual.
-import { initializeApp, cert, getApps } from 'firebase-admin/app'
-import { getAuth } from 'firebase-admin/auth'
-import { getFirestore, FieldValue } from 'firebase-admin/firestore'
-import { getMessaging } from 'firebase-admin/messaging'
+// firebase-admin se carga DENTRO de la petición (no arriba del archivo): si algo falla al cargarlo,
+// la función responde el motivo en vez de morir con un FUNCTION_INVOCATION_FAILED mudo.
+let fa = null
+async function cargar() {
+  if (fa) return fa
+  const [app, auth, fs, msg] = await Promise.all([
+    import('firebase-admin/app'), import('firebase-admin/auth'),
+    import('firebase-admin/firestore'), import('firebase-admin/messaging'),
+  ])
+  fa = {
+    initializeApp: app.initializeApp, cert: app.cert, getApps: app.getApps,
+    getAuth: auth.getAuth, getFirestore: fs.getFirestore, FieldValue: fs.FieldValue, getMessaging: msg.getMessaging,
+  }
+  return fa
+}
 
 const SUPERADMINS = ['jostivtrb@gmail.com'] // espejo de src/config/roles.js
 
-function iniciar() {
+function iniciar({ getApps, initializeApp, cert }) {
   if (getApps().length) return true
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT
   if (!raw) return false
@@ -30,7 +41,17 @@ function iniciar() {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Solo POST' })
-  if (!iniciar()) return res.status(503).json({ error: 'Falta FIREBASE_SERVICE_ACCOUNT en Vercel' })
+  let f
+  try { f = await cargar() } catch (e) {
+    console.error('notificar-listo: no cargó firebase-admin', e)
+    return res.status(500).json({ error: 'No cargó firebase-admin', detalle: String(e?.message || e).slice(0, 300), node: process.version })
+  }
+  const { getAuth, getFirestore, FieldValue, getMessaging } = f
+  try {
+    if (!iniciar(f)) return res.status(503).json({ error: 'Falta FIREBASE_SERVICE_ACCOUNT en Vercel', node: process.version })
+  } catch (e) {
+    return res.status(500).json({ error: 'La llave FIREBASE_SERVICE_ACCOUNT no es válida', detalle: String(e?.message || e).slice(0, 200) })
+  }
 
   try {
     const idToken = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
