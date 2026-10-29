@@ -157,7 +157,7 @@ export function ms(t) {
 // Escucha en vivo que SE RECONECTA sola: si Firestore corta la escucha (internet que se va, índice
 // que todavía se está construyendo), avisa con onError y reintenta a los 3 s, 6 s, 12 s… (tope 30 s).
 // Cuando vuelve a llegar algo, avisa con cb y el error se borra solo en la pantalla.
-function escucharConReintento(q, cb, onError) {
+export function escucharConReintento(q, cb, onError) {
   let unsub = () => {}
   let espera = 3000
   let timer = null

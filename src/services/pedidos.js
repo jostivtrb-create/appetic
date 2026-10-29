@@ -22,6 +22,7 @@ import { db } from '../config/firebase'
 import { registrarPedidoStats } from './stats'
 import { precioItem } from '../utils/price'
 import { resumenSeleccion } from '../utils/selectionSummary'
+import { escucharConReintento } from './comandas'
 
 // Los pedidos se auto-borran a los 2 días (política TTL de Firestore sobre `ttl`).
 const DIAS_VIDA = 2
@@ -129,7 +130,8 @@ function firestoreApi(localId) {
   const col = () => collection(db, 'locales', localId, 'pedidos')
   const pub = id => doc(db, 'locales', localId, 'pedidosPublicos', id)
   const comandaRef = id => doc(db, 'locales', localId, 'comandas', id)
-  const lista = (q, cb, onError) => onSnapshot(q, s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))), onError)
+  // Listas en vivo que se reconectan solas (índice construyéndose, internet que se va).
+  const lista = (q, cb, onError) => escucharConReintento(q, s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))), onError)
 
   // Cambia el pedido y su resumen público juntos.
   async function actualizar(id, cambios, cambiosPublicos = cambios) {
