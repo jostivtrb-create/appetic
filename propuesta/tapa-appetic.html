@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Appetic · Tapa impresa</title>
+<link rel="stylesheet" href="fuentes.css">
+<!--
+  Tapa del FOLDER de la propuesta impresa. propuesta-impresa-appetic.pdf = esta tapa + la propuesta
+  (lo arma generar.sh). El PDF de WhatsApp (propuesta-appetic.pdf) no la lleva.
+  Foto: img/tapa-salon.jpg (prompt 5 en .prompts-imagenes/propuesta-portada.md).
+  Original de Gemini en img/tapa-salon-v1-original.jpg (sin la franja de abajo y x4 con Real-ESRGAN).
+-->
+<style>
+:root{
+  --orange:#ED7D2B; --orange-strong:#E0692A;
+  --ink:#2A211C; --ink-soft:#6B5647; --faint:#9A8B7E;
+  --bg:#FFFBF4; --line:rgba(42,33,28,.16);
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Plus Jakarta Sans',system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+@page{size:A4;margin:0;}
+html,body{background:var(--bg);}
+body{font-family:var(--sans);color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+.tapa{position:relative;width:210mm;height:297mm;overflow:hidden;background:var(--ink);}
+.tapa .foto{position:absolute;inset:0 0 70mm 0;width:100%;height:calc(100% - 70mm);object-fit:cover;object-position:center 40%;}
+/* degradado arriba para que el título se lea sobre la foto */
+.tapa::before{content:"";position:absolute;left:0;right:0;top:0;height:125mm;z-index:1;
+  background:linear-gradient(180deg,rgba(26,20,16,.86) 0%,rgba(26,20,16,.62) 45%,rgba(26,20,16,0) 100%);}
+
+.top{position:absolute;z-index:2;left:18mm;right:18mm;top:20mm;color:#fff;}
+.marca{display:flex;align-items:center;gap:5mm;}
+.marca img{width:20mm;height:20mm;border-radius:5mm;box-shadow:0 6px 20px rgba(0,0,0,.35);}
+.marca span{font-family:var(--serif);font-weight:800;font-size:30pt;letter-spacing:-.01em;}
+.k{margin-top:14mm;display:inline-block;background:var(--orange);color:#fff;font-size:8.4pt;letter-spacing:.24em;
+  font-weight:800;text-transform:uppercase;border-radius:999px;padding:7px 16px;}
+h1{font-family:var(--serif);font-weight:800;font-size:34pt;line-height:1.08;letter-spacing:-.015em;margin-top:6mm;
+  text-shadow:0 2px 14px rgba(0,0,0,.35);}
+.sub{font-size:12pt;line-height:1.5;margin-top:5mm;opacity:.92;max-width:150mm;text-shadow:0 1px 8px rgba(0,0,0,.45);}
+
+/* franja de abajo */
+.pie{position:absolute;z-index:2;left:0;right:0;bottom:0;height:70mm;background:var(--bg);
+  border-top:2.2mm solid var(--orange);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5mm;}
+.pie .de{font-size:8pt;letter-spacing:.24em;font-weight:800;text-transform:uppercase;color:var(--orange-strong);}
+.pie img{width:44mm;height:auto;}
+.pie .meta{font-size:9pt;color:var(--ink-soft);}
+.pie .meta b{color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="tapa">
+  <img class="foto" src="img/tapa-salon.jpg" alt="">
+
+  <div class="top">
+    <div class="marca"><img src="img/logo-appetic.png" alt=""><span>Appetic</span></div>
+    <div class="k">Propuesta · Restaurantes con salón</div>
+    <h1>Tu carta, tus meseros<br>y tu cocina, hablando<br>el mismo idioma.</h1>
+    <p class="sub">Menú con fotos, pedidos desde la mesa y la comanda directo en la pantalla de la cocina.</p>
+  </div>
+
+  <div class="pie">
+    <div class="de">Un producto de</div>
+    <img src="img/swiftfly-lockup.png" alt="Swiftfly Solutions">
+    <div class="meta">Octubre 2026 · Soporte directo <b>320 843 5143</b></div>
+  </div>
+</div>
+</body>
+</html>

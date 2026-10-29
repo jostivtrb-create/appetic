@@ -3,6 +3,10 @@
 #
 #   bash propuesta/generar.sh                  → la propuesta (única pieza vigente)
 #   bash propuesta/generar.sh propuesta-appetic
+#   bash propuesta/generar.sh tapa-appetic propuesta-appetic → también la versión impresa
+#
+# Versión IMPRESA (28-oct-2026): tapa-appetic.html es la tapa del folder. Cada vez que hay
+# tapa y propuesta se une todo en propuesta-impresa-appetic.pdf (tapa + 8 páginas).
 #
 # Las imágenes viven en propuesta/img/ y las fuentes en propuesta/fuentes.css
 # (copiado de cartilla/fuentes.css). El PDF resultante sí es autosuficiente:
@@ -23,3 +27,7 @@ for d in $DOCS; do
   echo "PDF regenerado: $d.pdf"
 done
 rm -rf "$PROF"
+if [ -f "$DIR/tapa-appetic.pdf" ] && [ -f "$DIR/propuesta-appetic.pdf" ]; then
+  pdfunite "$DIR/tapa-appetic.pdf" "$DIR/propuesta-appetic.pdf" "$DIR/propuesta-impresa-appetic.pdf"
+  echo "PDF impreso: propuesta-impresa-appetic.pdf"
+fi

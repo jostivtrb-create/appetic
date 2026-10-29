@@ -82,3 +82,27 @@ sello y el ladrillo despejado bajo el logo. **Además la foto ya cuenta lo que v
 ```
 A warm, lively neighborhood restaurant dining room in Bogotá, seen in a wide horizontal view. In the centre of the frame, clearly inside it and never touching the edges, a waiter in a dark apron and striped shirt stands at a table taking an order on a smartphone: he holds the phone in one hand and taps the screen with his thumb, looking down at it with a small smile. His hands hold nothing else: no notepad, no paper pad, no notebook, no pen and no paper anywhere in the scene, and nobody else in the room is holding a phone. In the foreground, on the right-hand side of the table he is attending, three customers are seated and clearly visible, a man and two women, looking up at the waiter and talking to him as he takes their order; the table in front of them is laid with plates of grilled meat, arepas, rice and fresh fruit juices, seen from a low angle. Behind them, four or five more wooden tables with families and friends eating and talking, softly out of focus. Real documentary photography, shot on a 35mm lens at eye level, shallow depth of field with the waiter and the seated customers sharp and the rest of the room softly blurred. Warm golden late-afternoon light coming through a window on the right, plus warm tungsten lamps overhead. Palette: warm orange #ED7D2B, cream #FFFBF4, deep brown ink #2A211C, with wood and terracotta tones. Keep the lower-left area of the frame calm and simple, a plain stretch of wooden floor with no faces and no important detail, and keep the upper-right corner uncluttered as well: both will be covered by labels. Wide 16:9 horizontal framing. Photorealistic, like a real photograph, not an illustration. No text, no letters, no signage, no written menus, no logos, no watermark, no border.
 ```
+
+
+---
+
+# Tapa impresa (28-oct-2026)
+
+Hoja aparte que va **antes** de la página 1, solo para la versión impresa (`propuesta/tapa-appetic.html`
+→ `tapa-appetic.pdf`). El PDF de WhatsApp no cambia. Foto a sangre en A4 vertical; arriba va encima
+el logo + título en blanco sobre un degradado oscuro, y abajo una franja crema de ~75 mm con
+«Preparado para» y el logo de Swiftfly. La foto solo se ve **entre el 35 % y el 75 %** de la altura.
+
+## 5 · tapa-salon.jpg — tipo B · vertical 3:4 · `propuesta/img/tapa-salon.jpg`
+
+Estado: **lista y PUESTA** (28-oct). Original en `img/tapa-salon-v1-original.jpg` (896×1200); se le cortó la franja plana de abajo (y 985→) y se subió x4 con Real-ESRGAN `realesrgan-x4plus` → 2560 px de ancho. Manos verificadas con zoom. Salieron 2 comensales en vez de 3: no estorba.
+
+Misma escena que la v4 (para que tapa y página 1 sean el mismo restaurante),
+recompuesta en vertical. 3:4 → A4 pierde ~3 % por cada lado: nada importante en los bordes laterales.
+
+```
+A warm, lively neighborhood restaurant dining room in Bogotá, seen in a tall vertical view. The upper third of the frame is calm and dark: an exposed red-brick wall and ceiling with three warm tungsten pendant lamps hanging down, softly out of focus, with no faces, no people's heads and no important detail there, because a title will be placed on top of it. In the middle of the frame, centred and clearly inside it, never touching the side edges, a waiter in a dark apron and striped shirt stands at a wooden table taking an order on a smartphone: he holds the phone in one hand and taps the screen with his thumb, looking down at it with a small smile. His hands hold nothing else: no notepad, no paper pad, no notebook, no pen and no paper anywhere in the scene, and nobody else in the room is holding a phone. On the right-hand side of that table three customers are seated and clearly visible, a man and two women, looking up at the waiter and talking to him; the table in front of them is laid with plates of grilled meat, arepas, rice and fresh fruit juices. Behind them, more wooden tables with families eating, softly blurred. The lower fifth of the frame is calm and simple: the near edge of the wooden table and a plain stretch of wooden floor, with no faces and no important detail, because a label band will cover it. Real documentary photography, shot on a 35mm lens at eye level, shallow depth of field with the waiter and the seated customers sharp and the rest of the room softly blurred. Warm golden late-afternoon light coming through a window on the right, plus the warm glow of the pendant lamps. Palette: warm orange #ED7D2B, cream #FFFBF4, deep brown ink #2A211C, with wood, brick and terracotta tones. Vertical 3:4 portrait framing. Photorealistic, like a real photograph, not an illustration. No text, no letters, no signage, no written menus, no logos, no watermark, no border.
+```
+
+- Al pedir «the lower fifth calm and simple» en vertical, Gemini dibujó una **franja marrón plana** de borde a borde (como un panel vacío). Como la tapa lleva franja crema abajo, se recortó y no hizo falta regenerar. Si la zona de abajo sí se ve, pedir «the wooden floor continues naturally to the bottom edge».
+- Gemini entrega 896×1200 en 3:4: para imprimir A4 **siempre** hay que pasarla por /Mejorar_Calidad_Imagen (x4).

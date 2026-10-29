@@ -335,3 +335,11 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
     `config/domiciliarios` queda en la base sin uso (no estorba).
   - El despliegue a producción lo frenó la protección automática de la sesión: se pide permiso.
 - **29-oct-2026** — Paso 3 PUBLICADO con permiso del usuario (reglas + índices + app `86c6573`). Los índices de pedidos tardan en construirse; las listas de pedidos ahora se reconectan solas (`089cea0`).
+
+## QR por mesa (29-oct-2026)
+Decisiones del usuario: el pedido del QR entra **directo a la cocina** (comanda origen `qr`, sin confirmar);
+al entregarse avisa a **todos los meseros activos** del local + admin; el cliente da **solo su nombre (obligatorio)**.
+- El admin pone cuántas mesas tiene en Difundir → «Imprimir los QR de las mesas» (`?mesa=N`, uno por mesa con logo).
+- La mesa se recuerda 4 h en el celular del cliente (sessionStorage). Reglas: el cliente sin sesión solo crea comandas
+  `qr` a una mesa entre 1 y `local.mesas`, sin `cambios`. Cuenta en métricas como pedido de la app.
+- Probado en vista previa (mesa 4 → cocina «MESA 4 · La tomó Ana (desde la mesa)»).
