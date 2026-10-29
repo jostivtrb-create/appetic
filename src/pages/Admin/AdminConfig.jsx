@@ -40,7 +40,12 @@ function diasIniciales(guardados) {
 
 const fmtPesos = (n) => `$${Number(n || 0).toLocaleString('es-CO')}`
 
-export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
+// `vista`: qué parte de los ajustes se muestra dentro de Configuración (ver AdminAjustes):
+//   'negocio'    → WhatsApp, horario, entrega y domicilio por distancia
+//   'apariencia' → portada (banner) y animación del logo
+// El estado y «Guardar cambios» son los mismos: guarda todo lo del local, se vea o no.
+export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'negocio' }) {
+  const ver = v => vista === v
   const [whatsapp, setWhatsapp] = useState(local.whatsapp || '')
   const [abre, setAbre] = useState(local.horario?.abre || '11:00')
   const [cierra, setCierra] = useState(local.horario?.cierra || '22:00')
@@ -182,8 +187,8 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
 
   return (
     <div className="ac">
-      <section className="ac-sec">
-        <h3>Datos del negocio</h3>
+      {ver('negocio') && <section className="ac-sec">
+        <h3>📱 Datos del negocio</h3>
         <p className="ac-hint">El WhatsApp donde te llegan los pedidos de tus clientes. Va anclado a tu local.</p>
         <label className="ac-maxkm">
           📲 WhatsApp para pedidos
@@ -198,10 +203,10 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
         {!whatsapp.replace(/\D/g, '') && (
           <span className="ac-ubic-warn">⚠️ Sin WhatsApp, los pedidos no pueden enviarse.</span>
         )}
-      </section>
+      </section>}
 
-      <section className="ac-sec">
-        <h3>Portada del local (banner)</h3>
+      {ver('apariencia') && <section className="ac-sec">
+        <h3>🖼️ Portada del local (banner)</h3>
         <p className="ac-hint">La foto grande que representa tu local en el inicio. Sube una tuya o créala con IA (queda a tono con tu marca).</p>
         <div className="ac-banner-preview">
           {bannerPreview ? <img src={bannerPreview} alt="" /> : <span className="ac-banner-ph">🖼️</span>}
@@ -234,10 +239,10 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
             </button>
           </div>
         )}
-      </section>
+      </section>}
 
-      <section className="ac-sec">
-        <h3>Horario de atención</h3>
+      {ver('negocio') && <section className="ac-sec">
+        <h3>🕒 Horario de atención</h3>
         <p className="ac-hint">Fuera del horario, los clientes ven el menú pero no pueden pedir.</p>
 
         <span className="ac-sub">Días que abres</span>
@@ -263,10 +268,10 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
           <label>Abre<input type="time" value={abre} onChange={e => setAbre(e.target.value)} /></label>
           <label>Cierra<input type="time" value={cierra} onChange={e => setCierra(e.target.value)} /></label>
         </div>
-      </section>
+      </section>}
 
-      <section className="ac-sec">
-        <h3>Entrega</h3>
+      {ver('negocio') && <section className="ac-sec">
+        <h3>🛍️ Entrega</h3>
         <label className="ac-switch">
           <span>🛵 Domicilio disponible</span>
           <input type="checkbox" checked={domicilio} onChange={e => setDomicilio(e.target.checked)} />
@@ -275,12 +280,12 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
           <span>🏪 Recoger en el local</span>
           <input type="checkbox" checked={recoger} onChange={e => setRecoger(e.target.checked)} />
         </label>
-      </section>
+      </section>}
 
       {/* Solo tiene sentido cuando el hero es el logo grande. */}
-      {local.tema?.hero === 'logo' && (
+      {ver('apariencia') && local.tema?.hero === 'logo' && (
         <section className="ac-sec">
-          <h3>Animación del logo</h3>
+          <h3>✨ Animación del logo</h3>
           <p className="ac-hint">Cómo aparece tu logo al abrir el menú. Pronto habrá más estilos para elegir.</p>
           <div className="ac-select">
             <button
@@ -315,9 +320,9 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner }) {
       )}
 
       {/* Domicilio por radio: ubicación + tarifas por distancia */}
-      {domicilio && (
+      {ver('negocio') && domicilio && (
         <section className="ac-sec">
-          <h3>Domicilio por distancia</h3>
+          <h3>🛵 Domicilio por distancia</h3>
           <p className="ac-hint">
             Pon la ubicación de tu local y el precio del domicilio según qué tan lejos esté el cliente.
             Se cobra por tramos de 0,5 km.

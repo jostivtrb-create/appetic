@@ -19,6 +19,8 @@ import { useAdmin } from '../../contexts/AdminContext'
 import AdminMesero from './AdminMesero'
 import AdminComandas from './AdminComandas'
 import AdminDomicilios from './AdminDomicilios'
+import AdminAjustes from './AdminAjustes'
+import { EquipoEnLinea } from './AdminEquipo'
 import { useNavUI } from '../../contexts/NavUIContext'
 import PanelMenuBoton, { usePuedePanel } from '../../components/BottomNav/PanelMenuBoton'
 import './Admin.css'
@@ -35,7 +37,7 @@ const SECCIONES = {
 }
 
 export default function AdminPage() {
-  const { slug, panel } = useParams()
+  const { slug, panel, sub } = useParams()
   const { rolesEn } = useAdmin()
   // ¿Tiene la barra del panel (lateral en PC, cajón ☰ en el celular)? Dueños y superadmin sí.
   // Con barra, cada sección es su propia página y NO se repiten pestañas arriba.
@@ -67,7 +69,7 @@ export default function AdminPage() {
   const esAdmin = demo ? rolesSimulados.length === 0 : puedeAdministrarLocal(usuario?.email, local)
   // Mesero / cocina de ESTE local (sin ser admin): solo entran a la sección de su rol.
   const rolesEquipo = esAdmin ? [] : rolesEn(slug)
-  const seccionPorDefecto = esAdmin ? 'catalogo' : rolesEquipo.includes('mesero') ? 'mesero' : rolesEquipo.includes('cocina') ? 'comandas' : 'domicilios'
+  const seccionPorDefecto = esAdmin ? 'mesero' : rolesEquipo.includes('mesero') ? 'mesero' : rolesEquipo.includes('cocina') ? 'comandas' : 'domicilios'
   const seccion = panel || seccionPorDefecto // mesero | comandas | catalogo | difundir | config | metricas
   const puedeVerSeccion = esAdmin
     || (seccion === 'mesero' && rolesEquipo.includes('mesero'))
@@ -272,6 +274,11 @@ export default function AdminPage() {
     )
   }
 
+  // «Catálogo» vive ahora dentro de Configuración: los links viejos (/admin/catalogo#cat-…) se mudan.
+  if (seccion === 'catalogo') {
+    return <Navigate to={`/${slug}/admin/config/catalogo${location.search}${location.hash}`} replace />
+  }
+
   // Del equipo pero en una sección que no es la suya → a la suya.
   if (!esAdmin && rolesEquipo.length && !puedeVerSeccion) {
     return <Navigate to={`/${slug}/admin/${seccionPorDefecto}`} replace />
@@ -290,6 +297,26 @@ export default function AdminPage() {
       </div>
     )
   }
+
+  // El catálogo (se muestra en Configuración → Catálogo).
+  const catalogo = local.menuExterno ? (
+                // El menú vive en la app del negocio: aquí no hay productos que
+                // editar, solo fotos que ponerles.
+                <AdminFotosExternas local={local} onFoto={subirFotoExternaYGuardar} onQuitarFoto={quitarFotoExterna} />
+              ) : (
+                <AdminProductos
+                  local={local}
+                  slug={slug}
+                  productos={productos}
+                  onAdd={addProducto}
+                  onUpdate={updateProducto}
+                  onDelete={deleteProducto}
+                  onFoto={subirFoto}
+                  onFotoOpcion={subirFotoDeOpcion}
+                  onAddCategoria={addCategoria}
+                  onReorderCategorias={reordenarCategorias}
+                />
+              )
 
   // ---------- Panel ----------
   return (
@@ -328,9 +355,8 @@ export default function AdminPage() {
           <button className={seccion === 'mesero' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/mesero${location.search}`)}>🧑‍🍳 Mesero</button>
           <button className={seccion === 'comandas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/comandas${location.search}`)}>🧾 Comandas</button>
           <button className={seccion === 'domicilios' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/domicilios${location.search}`)}>🛵 Domicilios</button>
-          <button className={seccion === 'catalogo' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/catalogo`)}>🍔 Catálogo</button>
           <button className={seccion === 'difundir' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/difundir`)}>📣 Difundir</button>
-          <button className={seccion === 'config' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/config`)}>⚙️ Configuración</button>
+          <button className={seccion === 'config' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/config/catalogo${location.search}`)}>⚙️ Configuración</button>
           <button className={seccion === 'metricas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/metricas`)}>📊 Métricas</button>
         </nav>
       )}
@@ -342,26 +368,21 @@ export default function AdminPage() {
           : seccion === 'comandas' ? <AdminComandas key={local.id} local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
           : seccion === 'domicilios' ? <AdminDomicilios key={local.id} local={local} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} />
-          : seccion === 'config' ? <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} />
+          : seccion === 'config' ? (
+            <AdminAjustes slug={slug} sub={sub}>
+              {vista => vista === 'catalogo' ? catalogo
+                : vista === 'equipo' ? (
+                  <div className="aj-equipo">
+                    <EquipoEnLinea local={local} rol="mesero" demo={demo} />
+                    <EquipoEnLinea local={local} rol="cocina" demo={demo} />
+                    <EquipoEnLinea local={local} rol="domiciliario" demo={demo} />
+                  </div>
+                )
+                : <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} vista={vista} />}
+            </AdminAjustes>
+          )
             : seccion === 'metricas' ? <AdminMetricas local={local} demo={demo} />
-              : local.menuExterno ? (
-                // El menú vive en la app del negocio: aquí no hay productos que
-                // editar, solo fotos que ponerles.
-                <AdminFotosExternas local={local} onFoto={subirFotoExternaYGuardar} onQuitarFoto={quitarFotoExterna} />
-              ) : (
-                <AdminProductos
-                  local={local}
-                  slug={slug}
-                  productos={productos}
-                  onAdd={addProducto}
-                  onUpdate={updateProducto}
-                  onDelete={deleteProducto}
-                  onFoto={subirFoto}
-                  onFotoOpcion={subirFotoDeOpcion}
-                  onAddCategoria={addCategoria}
-                  onReorderCategorias={reordenarCategorias}
-                />
-              )}
+              : catalogo}
       </main>
     </div>
   )

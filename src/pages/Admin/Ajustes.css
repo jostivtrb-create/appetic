@@ -1,0 +1,40 @@
+/* ⚙️ Configuración: menú de secciones + contenido. */
+.aj { display: grid; gap: 14px; }
+.aj-nav {
+  display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+  margin: -4px -2px 0; padding: 4px 2px;
+}
+.aj-nav::-webkit-scrollbar { display: none; }
+.aj-item {
+  flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 14px;
+}
+.aj-item small { display: none; }
+.aj-item strong { font-weight: 800; }
+.aj-item.on { background: var(--brand-orange); border-color: var(--brand-orange); color: #fff; }
+.aj-cab h2 { font-size: 20px; font-weight: 900; }
+.aj-cab p { font-size: 14px; color: var(--text-soft); margin-top: 2px; }
+.aj-cuerpo { display: grid; gap: 16px; min-width: 0; }
+/* Dentro de Configuración los ajustes van en una sola columna de tarjetas ordenadas. */
+.aj .ac, .aj .dif { columns: auto !important; display: grid; gap: 16px; }
+.aj .ac-sec { margin-bottom: 0; }
+
+@media (min-width: 1024px) {
+  .aj { grid-template-columns: 260px minmax(0, 1fr); gap: 28px; align-items: start; }
+  .aj-nav {
+    position: sticky; top: 96px; flex-direction: column; overflow: visible; gap: 4px; margin: 0; padding: 8px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow-sm);
+  }
+  .aj-item { border-radius: 12px; border: 0; background: transparent; padding: 11px 12px; cursor: pointer; transition: background 0.15s ease; }
+  .aj-item:hover:not(.on) { background: var(--brand-orange-tint); }
+  .aj-item.on { background: var(--brand-orange-tint); color: var(--brand-orange-strong); box-shadow: inset 3px 0 0 var(--brand-orange); }
+  .aj-ico { font-size: 20px; width: 28px; text-align: center; }
+  .aj-txt { display: grid; }
+  .aj-item small { display: block; font-size: 12px; color: var(--text-soft); font-weight: 500; }
+  .aj-cab { padding-bottom: 2px; }
+  .aj-cab h2 { font-size: 24px; }
+  /* Cada ajuste como tarjeta de ancho completo: título y explicación arriba, el control abajo. */
+  .aj .ac-sec { padding: 22px 26px; }
+  .aj .ac-guardar { position: sticky; bottom: 18px; justify-self: end; box-shadow: 0 10px 26px rgba(224, 105, 42, 0.32); }
+  .aj .eq-inline { padding: 22px 26px; }
+}

@@ -11,8 +11,8 @@ import './PanelRail.css'
 // administración del dueño y le da al superadmin la que nunca tuvo (antes se
 // movía con pestañas arriba). Muestra SOLO lo que el usuario puede abrir:
 //   • Selector de local: los suyos (dueño) o todos (superadmin).
-//   • "Este local": Ver menú · Catálogo (con sus categorías desplegables) ·
-//     Difundir · Configuración · Métricas.
+//   • "Este local": Ver menú · Mesero · Comandas · Domicilios · Difundir · Métricas ·
+//     Configuración (que adentro tiene Catálogo, Negocio, Apariencia y Equipo).
 //   • "Superadmin" (solo superadmin): Locales y planes.
 //   • "Appetic" (todos): Buscar · el menú que estés viendo · Favoritos ·
 //     Mis pedidos · Mis datos — lo de cliente, para no tener que cambiar de barra.
@@ -47,10 +47,10 @@ const SECCIONES = [
   { id: 'mesero', label: 'Mesero', Icon: IconMesero, ruta: s => `/${s}/admin/mesero`, roles: ['admin', 'mesero'] },
   { id: 'comandas', label: 'Comandas', Icon: IconComandas, ruta: s => `/${s}/admin/comandas`, roles: ['admin', 'cocina'] },
   { id: 'domicilios', label: 'Domicilios', Icon: IconMoto, ruta: s => `/${s}/admin/domicilios`, roles: ['admin', 'domiciliario'] },
-  { id: 'catalogo', label: 'Catálogo', Icon: IconCatalogo, ruta: s => `/${s}/admin/catalogo`, roles: ['admin'] },
   { id: 'difundir', label: 'Difundir', Icon: IconDifundir, ruta: s => `/${s}/admin/difundir`, roles: ['admin'] },
-  { id: 'config', label: 'Configuración', Icon: IconConfig, ruta: s => `/${s}/admin/config`, roles: ['admin'] },
   { id: 'metricas', label: 'Métricas', Icon: IconMetricas, ruta: s => `/${s}/admin/metricas`, roles: ['admin'] },
+  // Configuración reúne Catálogo · Negocio · Apariencia · Equipo (ver AdminAjustes).
+  { id: 'config', label: 'Configuración', Icon: IconConfig, ruta: s => `/${s}/admin/config/catalogo`, roles: ['admin'] },
 ]
 
 // 🧪 DEV: ?super=1 simula al superadmin SOLO para ver la barra sin iniciar
@@ -111,7 +111,7 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
   const secciones = SECCIONES.filter(sec => sec.roles.some(r => misRoles.includes(r)))
   const esSoloEquipo = !misRoles.includes('admin')
   // Adonde lleva el logo: Catálogo para el admin, su única sección para el mesero o la cocina.
-  const inicio = secciones.find(s => s.id === 'catalogo') || secciones.find(s => s.id !== 'menu') || null
+  const inicio = secciones.find(s => s.id !== 'menu') || null
 
   // Categorías bajo "Catálogo": en vivo desde el panel abierto; si no estás en
   // él, las que trae el local (sin conteo).

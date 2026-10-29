@@ -9,6 +9,7 @@ import ProductModal from '../../components/Menu/ProductModal'
 import ProductWizard from '../../components/Menu/ProductWizard'
 import AdminEquipo from './AdminEquipo'
 import ActivarAvisos from './ActivarAvisos'
+import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import { Teclado } from './Teclado'
 import CorregirComanda, { Cuidado } from './CorregirComanda'
 import PorConfirmar from './PorConfirmar'
@@ -98,6 +99,7 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
   const [hoja, setHoja] = useState(false)      // la comanda + destino
   const [enviada, setEnviada] = useState('')   // aviso «enviada a cocina»
   const [info, setInfo] = useState(null)       // producto del que se ve «¿Qué lleva?»
+  const esPC = useEsEscritorio()
 
   const disponibles = useMemo(() => productos.filter(p => p.disponible !== false), [productos])
   const categorias = useMemo(() => (local.categorias || []).filter(c => disponibles.some(p => p.categoria === c.id)), [local.categorias, disponibles])
@@ -151,6 +153,8 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
 
   return (
     <>
+      <div className="ms-pos">
+        <div className="ms-pos-menu">
       <div className="ms-buscar">
         <span aria-hidden="true">🔎</span>
         <input type="search" placeholder="Buscar producto…" value={q} onChange={e => setQ(e.target.value)} />
@@ -181,11 +185,32 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
         </>
       )}
 
+        </div>
+        {/* 🖥️ PC: la comanda siempre a la vista, a la derecha. */}
+        {esPC && (
+          <aside className="ms-pos-comanda">
+            {carrito.length ? (
+              <HojaComanda
+                enLinea local={local} idsMenu={idsMenu}
+                carrito={carrito} setCarrito={setCarrito} total={total} api={api} activas={activas}
+                usuario={usuario} onCerrar={() => {}} onEnviada={listo}
+              />
+            ) : (
+              <div className="ms-pos-vacia">
+                <span aria-hidden="true">🧾</span>
+                <strong>Comanda vacía</strong>
+                <small>Toca un producto de la izquierda para empezar.</small>
+              </div>
+            )}
+          </aside>
+        )}
+      </div>
+
       {enviada && <div className="ms-toast" role="status">✓ Enviada a cocina · {enviada}</div>}
 
       {/* Se esconde mientras haya una ventana encima (opciones, «¿qué lleva?»): si no, tapaba su
           botón «Agregar» al pie. */}
-      {totalItems > 0 && !hoja && !abierto && !info && (
+      {!esPC && totalItems > 0 && !hoja && !abierto && !info && (
         <button className="ms-barra" onClick={() => setHoja(true)}>
           <span className="ms-barra-n">{totalItems}</span>
           <span>Ver comanda</span>
@@ -214,7 +239,7 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
         ? <ProductWizard producto={abierto} onCerrar={() => setAbierto(null)} onAgregar={agregarDesdeModal} />
         : <ProductModal producto={abierto} compacto textoNotas="Comentario para cocina" onCerrar={() => setAbierto(null)} onAgregar={agregarDesdeModal} />)}
 
-      {hoja && (
+      {hoja && !esPC && (
         <HojaComanda
           local={local} idsMenu={idsMenu}
           carrito={carrito} setCarrito={setCarrito} total={total} api={api} activas={activas}
@@ -226,7 +251,9 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
 }
 
 // La comanda armada: ítems con su comentario, y abajo el destino (mesa / nombre / llevar) + Enviar.
-function HojaComanda({ local, idsMenu, carrito, setCarrito, total, api, activas, usuario, onCerrar, onEnviada }) {
+// `enLinea`: en el PC la comanda vive fija a la derecha del menú (como una caja registradora),
+// en vez de abrirse como ventana desde la barra de abajo.
+function HojaComanda({ local, idsMenu, carrito, setCarrito, total, api, activas, usuario, onCerrar, onEnviada, enLinea = false }) {
   const [tipo, setTipo] = useState('mesa')   // mesa | nombre | llevar
   const [mesa, setMesa] = useState('')
   const [nombre, setNombre] = useState('')
@@ -283,12 +310,11 @@ function HojaComanda({ local, idsMenu, carrito, setCarrito, total, api, activas,
     }
   }
 
-  return (
-    <div className="ms-velo" onClick={onCerrar}>
-      <div className="ms-hoja" role="dialog" aria-modal="true" aria-label="Comanda" onClick={e => e.stopPropagation()}>
+  const cuerpo = (
+      <>
         <header className="ms-hoja-cab">
           <h2>Comanda</h2>
-          <button className="ms-x" onClick={onCerrar} aria-label="Seguir agregando">✕</button>
+          {!enLinea && <button className="ms-x" onClick={onCerrar} aria-label="Seguir agregando">✕</button>}
         </header>
 
         <ul className="ms-items">
@@ -358,7 +384,13 @@ function HojaComanda({ local, idsMenu, carrito, setCarrito, total, api, activas,
             {estado === 'enviando' ? 'Enviando…' : estado === 'error' ? '↻ Reintentar envío' : destinoListo ? `Enviar a cocina · ${etiquetaDestino(destino)}` : 'Elige la mesa'}
           </button>
         )}
-      </div>
+      </>
+  )
+
+  if (enLinea) return <section className="ms-hoja ms-hoja--linea" aria-label="Comanda">{cuerpo}</section>
+  return (
+    <div className="ms-velo" onClick={onCerrar}>
+      <div className="ms-hoja" role="dialog" aria-modal="true" aria-label="Comanda" onClick={e => e.stopPropagation()}>{cuerpo}</div>
     </div>
   )
 }

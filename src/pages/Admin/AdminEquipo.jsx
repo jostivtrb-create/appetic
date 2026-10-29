@@ -3,9 +3,9 @@ import { equipoDe, esCorreo } from '../../services/equipo'
 import './Equipo.css'
 
 const TEXTOS = {
-  mesero: { titulo: 'Meseros', uno: 'mesero', boton: '👥 Meseros', ayuda: 'Entran con su correo de Google y solo ven la pantalla de Mesero.' },
-  cocina: { titulo: 'Cocina', uno: 'cocina', boton: '👥 Cocina', ayuda: 'Cada tablet o celular de cocina entra con un correo de Google y solo ve Comandas.' },
-  domiciliario: { titulo: 'Domiciliarios', uno: 'domiciliario', boton: '👥 Domiciliarios', ayuda: 'Entran con su correo de Google y solo ven el panel de Domicilios.' },
+  mesero: { icono: '🧑‍🍳', titulo: 'Meseros', uno: 'mesero', boton: '👥 Meseros', ayuda: 'Entran con su correo de Google y solo ven la pantalla de Mesero.' },
+  cocina: { icono: '🍳', titulo: 'Cocina', uno: 'cocina', boton: '👥 Cocina', ayuda: 'Cada tablet o celular de cocina entra con un correo de Google y solo ve Comandas.' },
+  domiciliario: { icono: '🛵', titulo: 'Domiciliarios', uno: 'domiciliario', boton: '👥 Domiciliarios', ayuda: 'Entran con su correo de Google y solo ven el panel de Domicilios.' },
 }
 
 // 👥 Botón + ventana para que el ADMIN maneje su equipo de un rol (meseros o cocina):
@@ -21,7 +21,12 @@ export default function AdminEquipo({ local, rol, demo }) {
   )
 }
 
-function VentanaEquipo({ local, rol, demo, onCerrar }) {
+// La misma lista, pero dentro de la página (Configuración → Equipo), sin ventana encima.
+export function EquipoEnLinea({ local, rol, demo }) {
+  return <VentanaEquipo local={local} rol={rol} demo={demo} inline />
+}
+
+function VentanaEquipo({ local, rol, demo, onCerrar, inline = false }) {
   const t = TEXTOS[rol]
   const api = useMemo(() => equipoDe(local.id, { demo }), [local.id, demo])
   const [lista, setLista] = useState(null)
@@ -58,14 +63,13 @@ function VentanaEquipo({ local, rol, demo, onCerrar }) {
   const inactivos = (lista || []).filter(p => !p.activo)
 
   return (
-    <div className="eq-velo" onClick={onCerrar}>
-      <div className="eq-ventana" role="dialog" aria-modal="true" aria-label={t.titulo} onClick={e => e.stopPropagation()}>
+    <Marco inline={inline} onCerrar={onCerrar} titulo={t.titulo}>
         <header className="eq-cab">
           <div>
-            <h2>{t.titulo}</h2>
+            <h2>{t.icono} {t.titulo}</h2>
             <p>{t.ayuda}</p>
           </div>
-          <button className="eq-cerrar" onClick={onCerrar} aria-label="Cerrar">✕</button>
+          {!inline && <button className="eq-cerrar" onClick={onCerrar} aria-label="Cerrar">✕</button>}
         </header>
 
         <form className="eq-form" onSubmit={agregar}>
@@ -103,7 +107,17 @@ function VentanaEquipo({ local, rol, demo, onCerrar }) {
             )}
           </>
         )}
-      </div>
+    </Marco>
+  )
+}
+
+// Marco a nivel de módulo (identidad estable): si se definiera dentro del render, React lo
+// recrearía en cada tecla y el campo de correo perdería el foco.
+function Marco({ inline, onCerrar, titulo, children }) {
+  if (inline) return <section className="eq-inline ac-sec">{children}</section>
+  return (
+    <div className="eq-velo" onClick={onCerrar}>
+      <div className="eq-ventana" role="dialog" aria-modal="true" aria-label={titulo} onClick={e => e.stopPropagation()}>{children}</div>
     </div>
   )
 }

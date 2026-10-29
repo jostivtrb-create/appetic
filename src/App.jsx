@@ -60,6 +60,7 @@ export default function App() {
         {/* Panel del local (modo administrador) — por secciones: catalogo/difundir/config */}
         <Route path="/:slug/admin" element={<AdminPage />} />
         <Route path="/:slug/admin/:panel" element={<AdminPage />} />
+        <Route path="/:slug/admin/:panel/:sub" element={<AdminPage />} />
 
         {/* El panel GLOBAL del domiciliario se retiró (29-oct-2026): ahora cada local tiene su
             panel de Domicilios (/:slug/admin/domicilios). Los links viejos van a la cuenta. */}

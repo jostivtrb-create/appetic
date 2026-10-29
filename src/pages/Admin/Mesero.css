@@ -248,3 +248,27 @@
 .pc-txt small { font-size: 13px; color: var(--text-soft); }
 .pc-ver { font-weight: 900; color: var(--brand-orange-strong); }
 .pc-hoja { max-width: 600px; }
+
+/* 🖥️ PC: Mesero como caja registradora (menú + comanda fija a la derecha) */
+@media (min-width: 1024px) {
+  .ms { max-width: 1200px; padding-bottom: 30px; }
+  .ms-pos { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 24px; align-items: start; }
+  .ms-pos-comanda { position: sticky; top: 96px; max-height: calc(100dvh - 120px); overflow-y: auto; border-radius: 22px; }
+  .ms-hoja--linea {
+    max-height: none; border-radius: 22px; border: 1px solid var(--border); box-shadow: var(--shadow);
+    animation: none; padding: 18px;
+  }
+  .ms-pos-vacia {
+    display: grid; justify-items: center; gap: 6px; text-align: center; padding: 48px 20px;
+    border-radius: 22px; border: 2px dashed var(--border); background: var(--surface); color: var(--text-soft);
+  }
+  .ms-pos-vacia span { font-size: 40px; }
+  .ms-pos-vacia strong { color: var(--text); font-size: 17px; }
+  .ms-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ms-prod { cursor: pointer; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+  .ms-prod:hover { border-color: var(--brand-orange-soft, var(--brand-orange)); box-shadow: var(--shadow-sm); }
+  .ms-buscar { top: 84px; }
+  .ms-teclado-grid button { height: 50px; cursor: pointer; }
+  .ms-curso { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .ms-curso > .ms-sub, .ms-curso > .ms-entregadas, .ms-curso > .ms-vacio { grid-column: 1 / -1; }
+}
