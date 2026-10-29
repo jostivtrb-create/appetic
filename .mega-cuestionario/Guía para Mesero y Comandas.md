@@ -6,7 +6,7 @@
 - **Tarea:** dos pantallas nuevas por local — **Mesero** (toma comandas rápido) y **Comandas**
   (cocina) — más el link **«Mi pedido»** en los domicilios que llegan por WhatsApp.
 - **Inicio:** 29 de octubre de 2026
-- **Estado:** 🔵 Pasos 1 y 2 publicados · construyendo el paso 3 («Mi pedido» + Domicilios)
+- **Estado:** ✅ Pasos 1, 2 y 3 publicados · pendiente: QR por mesa (D3) y pruebas reales del usuario
 - **Proyecto:** `Appetic/` (Vite/React + Firebase)
 
 ---
@@ -262,7 +262,7 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
       completo, «Voy en camino» (WhatsApp) y «Entregado»; equipo de domiciliarios; avisos.
 - [x] 3g · **Retirar lo viejo:** domiciliarios globales, `/domiciliario`, búsqueda por código,
       entradas del superadmin, reglas y servicio.
-- [~] 3h · Prueba de punta a punta ✅ · publicar (reglas + índices + app) ⏳ esperando permiso del usuario
+- [x] 3h · Prueba de punta a punta y publicado (reglas + índices + app)
 
 ### Después — QR por mesa (D3)
 
@@ -334,3 +334,4 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
     regla de `config/domiciliarios`. `/domiciliario` redirige a /cuenta. El doc
     `config/domiciliarios` queda en la base sin uso (no estorba).
   - El despliegue a producción lo frenó la protección automática de la sesión: se pide permiso.
+- **29-oct-2026** — Paso 3 PUBLICADO con permiso del usuario (reglas + índices + app `86c6573`). Los índices de pedidos tardan en construirse; las listas de pedidos ahora se reconectan solas (`089cea0`).
