@@ -1,0 +1,43 @@
+/* 🛵 Panel de Domicilios — para el celular del domiciliario: grande y directo. */
+.dm { max-width: 1100px; margin: 0 auto; display: grid; gap: 12px; }
+.dm-admin { display: flex; justify-content: flex-end; }
+.dm-error { background: #FDECEC; color: #8E1B14; padding: 12px 14px; border-radius: 14px; font-weight: 700; }
+.dm-vacio { color: var(--text-soft); padding: 20px 4px; }
+.dm-vacio--grande { text-align: center; padding: 60px 10px; }
+.dm-vacio--grande span { font-size: 54px; }
+.dm-vacio--grande p { font-size: 21px; font-weight: 800; color: var(--text); margin-top: 8px; }
+.dm-sub { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-faint); margin: 8px 4px; }
+.dm-grid { display: grid; gap: 12px; grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 760px) { .dm-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.dm-card { background: var(--surface); border: 2px solid var(--border); border-radius: 20px; padding: 14px; display: grid; gap: 10px; }
+.dm-card.e-listo { border-color: #1B8A4B; box-shadow: 0 0 0 4px rgba(27, 138, 75, 0.18); }
+.dm-card.e-en-camino { border-color: #1E6FD9; }
+.dm-card.e-en-cocina { opacity: 0.85; }
+.dm-card-cab { display: flex; align-items: center; gap: 10px; }
+.dm-cod { font-size: 13px; font-weight: 900; padding: 4px 8px; border-radius: 8px; background: var(--surface-2); }
+.dm-card-cab strong { flex: 1; min-width: 0; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dm-total { font-size: 18px; font-weight: 900; }
+.dm-dir { display: flex; gap: 10px; font-size: 16px; }
+.dm-dir p { font-weight: 700; }
+.dm-dir a { font-size: 14.5px; font-weight: 800; color: #1E6FD9; }
+.dm-warn { font-size: 13.5px; color: #7A5600; font-weight: 700; }
+.dm-contacto { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.dm-btn { text-align: center; padding: 12px; border-radius: 14px; font-weight: 800; background: var(--surface-2); border: 1.5px solid var(--border); color: var(--text); }
+.dm-btn-wa { background: #E7F8EE; border-color: #25D366; color: #11643A; }
+.dm-items { list-style: none; display: grid; gap: 3px; font-size: 15px; padding: 10px 12px; border-radius: 12px; background: var(--surface-2); }
+.dm-items small { color: var(--text-soft); }
+.dm-cobro { display: grid; gap: 2px; font-size: 15px; }
+.dm-cobro b { font-size: 16px; }
+.dm-nota { font-size: 14px; background: #FFF6D8; padding: 8px 10px; border-radius: 10px; }
+.dm-tiempo { font-size: 13px; color: var(--text-faint); }
+.dm-salir, .dm-entregado { width: 100%; padding: 17px; border-radius: 16px; font-size: 18px; font-weight: 900; color: #fff; }
+.dm-salir { background: #1E6FD9; box-shadow: 0 10px 24px rgba(30, 111, 217, 0.3); }
+.dm-entregado { background: #1B8A4B; box-shadow: 0 10px 24px rgba(27, 138, 75, 0.3); }
+.dm-hist { list-style: none; display: grid; gap: 6px; }
+.dm-hist li { display: flex; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); font-size: 14.5px; }
+.dm-hist span { color: var(--text-soft); }
+.dm-confirma { width: min(94vw, 460px); padding: 26px 22px; border-radius: 26px; text-align: center; background: var(--surface); border-top: 10px solid #1B8A4B; box-shadow: var(--shadow-lg); }
+.dm-confirma-cod { font-size: 26px; font-weight: 900; }
+.dm-confirma h2 { font-size: 24px; font-weight: 900; margin: 6px 0; }
+.dm-confirma > p:not(.dm-confirma-cod) { font-size: 17px; color: var(--text-soft); margin-bottom: 18px; }

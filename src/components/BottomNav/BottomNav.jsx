@@ -33,7 +33,7 @@ export default function BottomNav() {
   const [avisoSalir, setAvisoSalir] = useState(false)
 
   const enAdminRoute = /\/admin(\/|$)/.test(pathname)
-  const enPanel = enAdminRoute || pathname.startsWith('/superadmin') || pathname.startsWith('/domiciliario')
+  const enPanel = enAdminRoute || pathname.startsWith('/superadmin')
   const esSuper = esSuperadmin(user?.email) || devSuper()
 
   // /r/… es solo un puente de medio segundo hacia WhatsApp: no es una pantalla de la app.

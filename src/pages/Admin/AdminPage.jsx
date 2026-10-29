@@ -18,6 +18,7 @@ import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
 import { useAdmin } from '../../contexts/AdminContext'
 import AdminMesero from './AdminMesero'
 import AdminComandas from './AdminComandas'
+import AdminDomicilios from './AdminDomicilios'
 import { useNavUI } from '../../contexts/NavUIContext'
 import PanelMenuBoton, { usePuedePanel } from '../../components/BottomNav/PanelMenuBoton'
 import './Admin.css'
@@ -26,6 +27,7 @@ import './Admin.css'
 const SECCIONES = {
   mesero: 'Mesero',
   comandas: 'Comandas',
+  domicilios: 'Domicilios',
   catalogo: 'Catálogo',
   difundir: 'Difundir',
   config: 'Configuración',
@@ -65,11 +67,12 @@ export default function AdminPage() {
   const esAdmin = demo ? rolesSimulados.length === 0 : puedeAdministrarLocal(usuario?.email, local)
   // Mesero / cocina de ESTE local (sin ser admin): solo entran a la sección de su rol.
   const rolesEquipo = esAdmin ? [] : rolesEn(slug)
-  const seccionPorDefecto = esAdmin ? 'catalogo' : rolesEquipo.includes('mesero') ? 'mesero' : 'comandas'
+  const seccionPorDefecto = esAdmin ? 'catalogo' : rolesEquipo.includes('mesero') ? 'mesero' : rolesEquipo.includes('cocina') ? 'comandas' : 'domicilios'
   const seccion = panel || seccionPorDefecto // mesero | comandas | catalogo | difundir | config | metricas
   const puedeVerSeccion = esAdmin
     || (seccion === 'mesero' && rolesEquipo.includes('mesero'))
     || (seccion === 'comandas' && rolesEquipo.includes('cocina'))
+    || (seccion === 'domicilios' && rolesEquipo.includes('domiciliario'))
   const entraComoSuperadmin = !demo && esSuperadmin(usuario?.email) && !local?.admins?.includes(usuario?.email)
 
   useEffect(() => {
@@ -324,6 +327,7 @@ export default function AdminPage() {
         <nav className="admin-tabs">
           <button className={seccion === 'mesero' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/mesero${location.search}`)}>🧑‍🍳 Mesero</button>
           <button className={seccion === 'comandas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/comandas${location.search}`)}>🧾 Comandas</button>
+          <button className={seccion === 'domicilios' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/domicilios${location.search}`)}>🛵 Domicilios</button>
           <button className={seccion === 'catalogo' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/catalogo`)}>🍔 Catálogo</button>
           <button className={seccion === 'difundir' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/difundir`)}>📣 Difundir</button>
           <button className={seccion === 'config' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/config`)}>⚙️ Configuración</button>
@@ -336,6 +340,7 @@ export default function AdminPage() {
             (sin esto el pedido a medio armar de un local se pasaba al otro). */}
         {seccion === 'mesero' ? <AdminMesero key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'comandas' ? <AdminComandas key={local.id} local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
+          : seccion === 'domicilios' ? <AdminDomicilios key={local.id} local={local} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} />
           : seccion === 'config' ? <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} />
             : seccion === 'metricas' ? <AdminMetricas local={local} demo={demo} />

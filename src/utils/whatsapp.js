@@ -34,6 +34,29 @@ export function mensajeRespuestaCliente(local, pedido) {
   return `${saludo} \u{1F9E1} Recibimos tu pedido ${cod}hecho con Appetic y ya lo estamos preparando. Haremos lo posible por tenerlo listo lo más pronto — te pedimos un poquito de paciencia. ¡Gracias por pedir en ${local.nombre}! \u{1F6F5}`
 }
 
+// 🧾 Link «Mi pedido»: /p/<slug>/<id del pedido>.
+export function linkMiPedido(local, pedido) {
+  if (!local?.slug || !pedido?.id) return ''
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  return `${origin}/p/${local.slug}/${pedido.id}`
+}
+
+// Mensajes del LOCAL al CLIENTE (paso 3). Emojis con \u{…} (Regla de emojis).
+const saludoDe = pedido => {
+  const n = (pedido?.cliente?.nombre || pedido?.clienteNombre || '').trim().split(/\s+/)[0]
+  return n ? `¡Hola ${n}!` : '¡Hola!'
+}
+const codDe = pedido => (pedido?.codigo ? `*${pedido.codigo}* ` : '')
+export function mensajeRechazo(local, pedido) {
+  return `${saludoDe(pedido)} Lo sentimos mucho \u{1F64F} En este momento no podemos atender tu pedido ${codDe(pedido)}en ${local.nombre}. Esperamos atenderte muy pronto.`
+}
+export function mensajeEnCamino(local, pedido) {
+  return `${saludoDe(pedido)} \u{1F6F5} Tu pedido ${codDe(pedido)}de ${local.nombre} ya va en camino. ¡Gracias por tu paciencia!`
+}
+export function mensajeTotalCambio(local, pedido, total) {
+  return `${saludoDe(pedido)} Te escribimos de ${local.nombre}: tu pedido ${codDe(pedido)}tuvo un cambio y el total quedó en *$${Math.round(total).toLocaleString('es-CO')}*. Cualquier duda nos dices \u{1F9E1}`
+}
+
 // Endpoint correcto de WhatsApp según el dispositivo (Regla 3), con el texto ya
 // codificado. Lo usan tanto el pedido al local como la respuesta al cliente.
 export function urlWhatsApp(tel, texto) {
@@ -121,9 +144,16 @@ export function textoPedido(local, pedido) {
     L.push(pedido.linkComanda)
   }
 
-  // Link para que el LOCAL responda al cliente de un toque (y confirme su WhatsApp).
-  const linkResp = linkRespuestaCliente(local, pedido)
-  if (linkResp) {
+  // 🧾 «Mi pedido» (D28: reemplaza a «Responder al cliente»). Si lo abre el cliente ve su resumen y
+  // en qué va; si lo abre el mesero o el admin, además «Confirmar pedido» (manda a cocina y le
+  // responde al cliente). Pedidos sin id (sin Firestore) caen al link viejo de responder.
+  const linkMio = linkMiPedido(local, pedido)
+  const linkResp = linkMio ? '' : linkRespuestaCliente(local, pedido)
+  if (linkMio) {
+    L.push('')
+    L.push('\u{1F9FE} *Mi pedido (toca aquí):*')
+    L.push(linkMio)
+  } else if (linkResp) {
     L.push('')
     L.push('\u{1F4AC} *Responder al cliente (toca aquí):*')
     L.push(linkResp)

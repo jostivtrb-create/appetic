@@ -4,7 +4,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { cop } from '../../utils/money'
 import { calcularDomicilio } from '../../utils/delivery'
 import { abrirPedidoWhatsApp } from '../../utils/whatsapp'
-import { crearPedido } from '../../services/pedidos'
+import { crearPedido, pedidosDe } from '../../services/pedidos'
+import { isDevSlug } from '../../dev'
 import { generarCodigoPedido } from '../../utils/codigoPedido'
 import { guardarEnHistorial } from '../../services/historial'
 import { getPerfil, guardarPerfil } from '../../services/usuarios'
@@ -118,10 +119,14 @@ export default function Checkout({ local, onClose, abierto = true }) {
   async function enviar() {
     if (!valido || enviando) return
     setEnviando(true)
-    // Código corto que va en el WhatsApp y sirve para que el domiciliario busque el
-    // pedido en la app (fuente de verdad del precio, anti-manipulación).
+    // Código corto que va en el WhatsApp y en «Mi pedido» (para hablar del pedido por su nombre).
     const codigo = generarCodigoPedido(local)
+    // Vista previa (?preview=1): el pedido va al motor DEMO del navegador, no a la base real.
+    const demo = isDevSlug(local.slug)
+    // El id se genera ANTES de abrir WhatsApp: el link «Mi pedido» del mensaje lo lleva.
+    const id = local.id !== 'demo' ? pedidosDe(local.id, { demo }).nuevoId() : ''
     const pedido = {
+      id,
       codigo,
       items,
       entrega,
@@ -157,7 +162,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
     // red está lenta NO dejamos al cliente trabado en "Enviando…". Best-effort.
     if (local.id !== 'demo') {
       await Promise.race([
-        crearPedido(local, pedido, codigo).catch(() => false),
+        crearPedido(local, pedido, codigo, id, { demo }).catch(() => false),
         new Promise(res => setTimeout(res, 6000)),
       ])
     }

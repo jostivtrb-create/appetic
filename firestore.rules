@@ -1,23 +1,24 @@
 rules_version = '2';
 
-// Última actualización: 2026-10-29
-// Cambios: EQUIPO por local (meseros y cocina en locales/{id}/equipo, privado) y COMANDAS
+// Última actualización: 2026-10-29 (paso 3)
+// Cambios paso 3: pedidos de la app → el personal del local (admin, mesero, cocina, domiciliario)
+//   los lee y mueve (confirmar, rechazar, en camino, entregado); RESUMEN PÚBLICO
+//   (pedidosPublicos) sin teléfono ni dirección, legible solo por su id para «Mi pedido»;
+//   rol DOMICILIARIO por local; se retiran los domiciliarios GLOBALES (config/domiciliarios).
+// Cambios paso 1: EQUIPO por local (meseros y cocina en locales/{id}/equipo, privado) y COMANDAS
 //   (locales/{id}/comandas): las leen y escriben solo el admin, los meseros y la cocina ACTIVOS
 //   de ese local. El mesero crea; la cocina tacha y entrega. Ver «Guía para Mesero y Comandas».
 //   + dispositivos (celulares que reciben el aviso de «pedido listo» con la app cerrada).
-// Antes (2026-07-26): rol DOMICILIARIO GLOBAL.
-// Cambios: rol DOMICILIARIO GLOBAL (config/domiciliarios) que lee TODOS los pedidos a
-//   domicilio (consultas collectionGroup). Los pedidos se guardan completos (con código)
-//   como fuente de verdad del precio y se auto-borran a los 2 días (política TTL sobre `ttl`).
+// Antes (2026-07-26): rol DOMICILIARIO GLOBAL — retirado en el paso 3.
 //
 // 🔒 Reglas de Appetic
 // - Menú (locales/productos): lectura pública (los clientes ven sin login).
 // - Escritura del menú: el admin del local (su correo en local.admins) o el superadmin.
-// - Pedidos: cualquiera puede CREAR (el cliente, con o sin login) — el pedido con su código
-//   es la fuente de verdad del precio. Los leen el SUPERADMIN y los DOMICILIARIOS GLOBALES
-//   (config/domiciliarios), incluidas consultas collectionGroup. Nadie los edita (TTL los borra).
-// - config/domiciliarios: lista global de repartidores. La lee cualquier autenticado (para el
-//   gate del panel); solo el superadmin la escribe.
+// - Pedidos: cualquiera puede CREAR (el cliente, con o sin login) — el pedido completo es la
+//   fuente de verdad del precio y se auto-borra a los 2 días (TTL sobre `ttl`). Lo leen y
+//   mueven el personal del local (admin, mesero, cocina, domiciliario) y el superadmin.
+//   Su resumen público (pedidosPublicos, sin datos personales) se lee solo por su id.
+// - Equipo, comandas y dispositivos: ver cada bloque abajo.
 // - Crear/borrar locales: solo desde la consola/seed (nosotros), no desde el cliente.
 
 service cloud.firestore {
@@ -39,13 +40,6 @@ service cloud.firestore {
       return esAdminDe(localId) || esSuperadmin();
     }
 
-    // 🛵 ¿Es DOMICILIARIO GLOBAL? Su correo está en config/domiciliarios.emails.
-    // Espejo de esDomiciliarioGlobal() en src/config/roles.js.
-    function esDomiciliarioGlobal() {
-      return request.auth != null
-        && exists(/databases/$(database)/documents/config/domiciliarios)
-        && request.auth.token.email in get(/databases/$(database)/documents/config/domiciliarios).data.get('emails', []);
-    }
 
     // 👥 ¿Es mesero / cocina ACTIVO de ESTE local? Doc locales/{id}/equipo/{rol}:{email}.
     // Espejo de getRolesDeEquipo() en src/services/equipo.js.
@@ -55,9 +49,14 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/locales/$(localId)/equipo/$(rol + ':' + request.auth.token.email.lower())).data.activo == true;
     }
 
-    // ¿Trabaja en el salón o la cocina de este local (o lo administra)?
+    // ¿Trabaja en el salón o la cocina de este local (o lo administra)? → comandas.
     function esPersonal(localId) {
       return puedeAdministrar(localId) || equipoActivo(localId, 'mesero') || equipoActivo(localId, 'cocina');
+    }
+
+    // ¿Puede ver y mover los pedidos de la app de este local? El personal + el domiciliario.
+    function puedeVerPedidos(localId) {
+      return esPersonal(localId) || equipoActivo(localId, 'domiciliario');
     }
 
     // Perfil de cada cliente: solo el dueño lo lee/escribe.
@@ -65,8 +64,7 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
-    // Config global (lista de domiciliarios): la lee cualquier autenticado (gate del panel),
-    // solo el superadmin la escribe.
+    // Config global: la lee cualquier autenticado, solo el superadmin la escribe.
     match /config/{docId} {
       allow read: if request.auth != null;
       allow write: if esSuperadmin();
@@ -83,11 +81,27 @@ service cloud.firestore {
       }
 
       match /pedidos/{pedidoId} {
-        // El cliente (con o sin login) CREA su pedido; se exige un total válido.
-        // La LECTURA se define abajo con una regla de grupo (para el feed global del domiciliario).
+        // El cliente (con o sin login) CREA su pedido; se exige un total válido y que nazca «nuevo».
         allow create: if request.resource.data.total is number
-                      && request.resource.data.total >= 0;
-        allow update, delete: if false;
+                      && request.resource.data.total >= 0
+                      && request.resource.data.estado == 'nuevo';
+        // El personal del local lo lee y lo mueve (confirmar, rechazar, en camino, entregado…).
+        allow read, update: if puedeVerPedidos(localId);
+        allow delete: if false;
+      }
+
+      // 🧾 Resumen PÚBLICO del pedido para «Mi pedido» (sin teléfono, dirección ni coordenadas).
+      // Se lee SOLO por su id (imposible de adivinar); nadie puede listarlos. Nace junto con su
+      // pedido (misma escritura) y lo actualiza el personal del local.
+      match /pedidosPublicos/{pedidoId} {
+        allow get: if true;
+        allow list: if false;
+        allow create: if existsAfter(/databases/$(database)/documents/locales/$(localId)/pedidos/$(pedidoId))
+                      && request.resource.data.estado == 'nuevo'
+                      && !('telefono' in request.resource.data)
+                      && !('direccion' in request.resource.data);
+        allow update: if puedeVerPedidos(localId);
+        allow delete: if false;
       }
 
       // 👥 Equipo (meseros y cocina). PRIVADO: el documento del local es público y aquí hay
@@ -96,7 +110,7 @@ service cloud.firestore {
         allow read: if puedeAdministrar(localId)
                     || (request.auth != null && resource.data.email == request.auth.token.email.lower());
         allow create, update: if puedeAdministrar(localId)
-                              && request.resource.data.rol in ['mesero', 'cocina']
+                              && request.resource.data.rol in ['mesero', 'cocina', 'domiciliario']
                               && request.resource.data.email is string
                               && request.resource.data.localId == localId
                               && docId == request.resource.data.rol + ':' + request.resource.data.email;
@@ -121,7 +135,7 @@ service cloud.firestore {
       // Cada persona del local registra SOLO el suyo (con su correo). Los lee y usa el servidor
       // (/api/notificar-listo, con permisos de administrador), no la app.
       match /dispositivos/{token} {
-        allow create, update: if esPersonal(localId)
+        allow create, update: if puedeVerPedidos(localId)
                               && request.resource.data.email == request.auth.token.email.lower()
                               && request.resource.data.token == token;
         allow read, delete: if request.auth != null && resource.data.email == request.auth.token.email.lower();
@@ -135,16 +149,15 @@ service cloud.firestore {
       }
     }
 
-    // 🛵 Lectura de pedidos por GRUPO de colecciones (collectionGroup): el panel global del
-    // domiciliario consulta TODOS los pedidos de todos los locales. Lo permiten el superadmin
-    // y los domiciliarios globales. (Esta regla también cubre la lectura directa por ruta.)
+    // Lectura de pedidos por GRUPO de colecciones (collectionGroup): solo el superadmin
+    // (soporte). Los domiciliarios GLOBALES se retiraron: cada local lee los suyos arriba.
     // 👥 Cada persona descubre en qué locales trabaja (consulta de grupo por su correo).
     match /{path=**}/equipo/{docId} {
       allow read: if request.auth != null && resource.data.email == request.auth.token.email.lower();
     }
 
     match /{path=**}/pedidos/{pedidoId} {
-      allow read: if esSuperadmin() || esDomiciliarioGlobal();
+      allow read: if esSuperadmin();
     }
   }
 }

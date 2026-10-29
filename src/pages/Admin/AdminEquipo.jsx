@@ -5,6 +5,7 @@ import './Equipo.css'
 const TEXTOS = {
   mesero: { titulo: 'Meseros', uno: 'mesero', boton: '👥 Meseros', ayuda: 'Entran con su correo de Google y solo ven la pantalla de Mesero.' },
   cocina: { titulo: 'Cocina', uno: 'cocina', boton: '👥 Cocina', ayuda: 'Cada tablet o celular de cocina entra con un correo de Google y solo ve Comandas.' },
+  domiciliario: { titulo: 'Domiciliarios', uno: 'domiciliario', boton: '👥 Domiciliarios', ayuda: 'Entran con su correo de Google y solo ven el panel de Domicilios.' },
 }
 
 // 👥 Botón + ventana para que el ADMIN maneje su equipo de un rol (meseros o cocina):

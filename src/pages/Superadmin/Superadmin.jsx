@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
 import { listarTodosLocales, setSuscripcion, setAdminEmails, setEtiquetas, setPrioridad } from '../../services/superadmin'
-import { getDomiciliariosGlobal, setDomiciliariosGlobal } from '../../services/domiciliarios'
 import { CATEGORIAS_LOCALES } from '../../config/categoriasLocales'
 import PanelMenuBoton from '../../components/BottomNav/PanelMenuBoton'
 import './Superadmin.css'
@@ -75,84 +74,13 @@ function EtiquetasEditor({ local, onChange }) {
   )
 }
 
-// 🛵 Gestor GLOBAL de domiciliarios (una sola lista para toda Appetic, no por local).
-// Cualquiera de la lista entra a /domiciliario y ve todos los pedidos a domicilio.
-function DomiciliariosGlobal() {
-  const [lista, setLista] = useState([])
-  const [nuevo, setNuevo] = useState('')
-  const [estado, setEstado] = useState('cargando')
-  const [msg, setMsg] = useState(null) // guardando | ok | err
-  const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
-
-  useEffect(() => {
-    let activo = true
-    getDomiciliariosGlobal().then(l => { if (activo) { setLista(l); setEstado('ok') } })
-    return () => { activo = false }
-  }, [])
-
-  async function guardar(next) {
-    setMsg('guardando')
-    try {
-      const saved = await setDomiciliariosGlobal(next)
-      setLista(saved)
-      setMsg('ok'); setTimeout(() => setMsg(null), 1800)
-    } catch {
-      setMsg('err')
-    }
-  }
-  function agregar() {
-    const c = nuevo.trim().toLowerCase()
-    if (!emailValido(c)) { setMsg('err'); return }
-    if (lista.some(x => x.toLowerCase() === c)) { setNuevo(''); return }
-    setNuevo('')
-    guardar([...lista, c])
-  }
-
-  return (
-    <div className="sa-domiglobal" id="domiciliarios">
-      <div className="sa-domiglobal-head">
-        <span className="sa-domiglobal-title">🛵 Domiciliarios</span>
-        <Link to="/domiciliario" className="sa-domiglobal-link">Abrir panel →</Link>
-      </div>
-      <p className="sa-domiglobal-sub">Una sola lista para todos los locales. Ven todos los domicilios y buscan el suyo por código.</p>
-      {estado === 'cargando' ? <div className="sa-skel" /> : (
-        <>
-          {lista.length > 0 && (
-            <ul className="sa-domi-lista">
-              {lista.map(c => (
-                <li key={c}>
-                  <span>{c}</span>
-                  <button onClick={() => guardar(lista.filter(x => x !== c))} aria-label="Quitar">✕</button>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="sa-domi-add">
-            <input
-              className={`sa-admin-input ${msg === 'err' ? 'err' : ''}`}
-              type="email" inputMode="email" autoComplete="off" autoCapitalize="none" spellCheck="false"
-              placeholder="correo del domiciliario (Gmail)"
-              value={nuevo}
-              onChange={e => { setNuevo(e.target.value); if (msg === 'err') setMsg(null) }}
-              onKeyDown={e => { if (e.key === 'Enter') agregar() }}
-            />
-            <button className="sa-admin-save" onClick={agregar} disabled={!nuevo.trim() || msg === 'guardando'}>+ Añadir</button>
-          </div>
-          {msg === 'ok' && <p className="sa-admin-hint ok">Guardado ✓</p>}
-          {msg === 'err' && <p className="sa-admin-hint">Escribe un correo válido (ej. repartidor@gmail.com).</p>}
-        </>
-      )}
-    </div>
-  )
-}
-
 export default function Superadmin() {
   const { user, cargando, entrar } = useAuth()
   const superadmin = esSuperadmin(user?.email)
   const { hash } = useLocation()
 
-  // 🖥️ La barra lateral lleva a /superadmin#domiciliarios: el router no baja
-  // solo a un ancla, así que lo hacemos aquí (y arriba del todo sin ancla).
+  // El router no baja solo a un ancla (#…): lo hacemos aquí (y arriba del todo sin ancla).
+  // (Los domiciliarios globales se retiraron el 29-oct-2026: ahora cada local tiene los suyos.)
   useEffect(() => {
     if (!superadmin) return
     const el = hash ? document.getElementById(hash.slice(1)) : null
@@ -287,9 +215,6 @@ export default function Superadmin() {
       <div className="sa-resumen">
         <strong>{activos}</strong> de <strong>{locales.length}</strong> locales activos en el buscador
       </div>
-
-      {/* 🛵 Domiciliarios globales (una lista para toda Appetic) */}
-      <DomiciliariosGlobal />
 
       {/* La propuesta comercial ya no vive aquí: desde el 27-oct-2026 las propuestas
           de todos los productos se publican en la web de Swiftfly (decisión P9). */}

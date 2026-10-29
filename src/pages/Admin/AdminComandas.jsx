@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { comandasDe, etiquetaDestino, ms, POR_PAGINA, motivoError } from '../../services/comandas'
 import AdminEquipo from './AdminEquipo'
 import { notificarListo } from '../../services/notificaciones'
-import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, UMBRALES_DEFECTO, itemsTxt } from './comandaUtils'
+import { pedidosDe } from '../../services/pedidos'
+import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, UMBRALES_DEFECTO, itemsTxt, claseDestino, palabraDestino } from './comandaUtils'
 import './Comandas.css'
 
 // 🧾 PANTALLA DE COMANDAS (cocina) — guía «Mesero y Comandas», paso 1.
@@ -72,11 +73,24 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
     setAbiertas(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n })
   }
 
+  // Deshacer un «entregado»: la comanda vuelve a la fila y, si es de la app y el domiciliario
+  // todavía no salió, el pedido vuelve a «En cocina».
+  async function deshacer(c) {
+    await api.deshacer(c)
+    if (!c.pedidoId) return
+    const pApi = pedidosDe(local.id, { demo })
+    const p = await pApi.getPedido(c.pedidoId).catch(() => null)
+    if (p?.estado === 'listo') pApi.cambiarEstado(c.pedidoId, 'en-cocina').catch(() => {})
+  }
+
   async function entregar(c) {
     setConfirmar(null)
     try {
       await api.entregar(c)
-      // 🔔 Aviso con la app cerrada al mesero y al admin (no frena a la cocina si falla).
+      // Pedido de la app: pasa a «listo» (el cliente lo ve en «Mi pedido» y el domicilio aparece
+      // como listo para salir en el panel de Domicilios).
+      if (c.pedidoId) pedidosDe(local.id, { demo }).cambiarEstado(c.pedidoId, 'listo').catch(() => {})
+      // 🔔 Aviso con la app cerrada: al mesero y al admin; si es domicilio, a los domiciliarios.
       if (!demo) notificarListo(local.id, c.id)
     } catch { setError('No se pudo marcar como entregada. Intenta de nuevo.') }
   }
@@ -141,12 +155,12 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
             </div>
           )
       ) : (
-        <Entregadas api={api} recientes={recientes} cursor={cursor} ahora={ahora} />
+        <Entregadas api={api} recientes={recientes} cursor={cursor} ahora={ahora} onDeshacer={deshacer} />
       )}
 
       {confirmar && (
         <div className="km-velo" onClick={() => setConfirmar(null)}>
-          <div className={`km-confirma ${confirmar.destino?.tipo === 'llevar' ? 'llevar' : 'mesa'}`} role="alertdialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+          <div className={`km-confirma ${claseDestino(confirmar.destino)}`} role="alertdialog" aria-modal="true" onClick={e => e.stopPropagation()}>
             <p className="km-confirma-dest">{etiquetaDestino(confirmar.destino)}</p>
             <h2>¿Ya se entregó todo?</h2>
             <p className="km-confirma-txt">{itemsTxt(confirmar.cantidadItems)} · lleva {minutosSeg((ahora - (ms(confirmar.creadaEn) || ahora)) / 1000)}</p>
@@ -161,7 +175,8 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
 
 // Una comanda de la fila.
 function Comanda({ c, n, abierta, nueva, ahora, umbrales, onAlternar, onTachar, onTacharTodo, onEntregar, onVisto }) {
-  const llevar = c.destino?.tipo === 'llevar'
+  const clase = claseDestino(c.destino)
+  const llevar = clase !== 'mesa'
   const seg = (ahora - (ms(c.creadaEn) || ahora)) / 1000  // el contador SIGUE desde que llegó (D27)
   const nivel = nivelTiempo(seg, umbrales)
   const vivos = c.items.filter(i => !i.quitado)
@@ -172,9 +187,9 @@ function Comanda({ c, n, abierta, nueva, ahora, umbrales, onAlternar, onTachar, 
   const [verLleva, setVerLleva] = useState(() => new Set()) // ítems con «¿Qué lleva?» abierto
   const alternarLleva = uid => setVerLleva(s => { const n = new Set(s); n.has(uid) ? n.delete(uid) : n.add(uid); return n })
   return (
-    <article className={`km-com ${llevar ? 'llevar' : 'mesa'} ${abierta ? 'abierta' : ''} ${nueva ? 'nueva' : ''} ${pendiente ? 'cambio' : ''} t-${nivel}`}>
+    <article className={`km-com ${clase} ${abierta ? 'abierta' : ''} ${nueva ? 'nueva' : ''} ${pendiente ? 'cambio' : ''} t-${nivel}`}>
       <button className="km-com-cab" onClick={onAlternar} aria-expanded={abierta}>
-        <span className="km-com-tipo">{llevar ? 'PARA LLEVAR' : 'MESA'}</span>
+        <span className="km-com-tipo">{palabraDestino(c.destino)}</span>
         <span className="km-com-dest">{llevar ? (c.destino?.nombre || '') : (c.destino?.mesa || c.destino?.nombre || '')}</span>
         <span className="km-com-orden">#{n}</span>
       </button>
@@ -260,7 +275,7 @@ function Comanda({ c, n, abierta, nueva, ahora, umbrales, onAlternar, onTachar, 
 
 // Entregadas: las últimas en vivo (con Deshacer los primeros minutos) + «Ver más» por partes.
 const MIN_DESHACER = 15
-function Entregadas({ api, recientes, cursor, ahora }) {
+function Entregadas({ api, recientes, cursor, ahora, onDeshacer }) {
   const [mas, setMas] = useState([])
   const [cur, setCur] = useState(undefined) // undefined = aún no se pidió más
   const [hayMas, setHayMas] = useState(null) // null = se deduce de la primera página
@@ -298,7 +313,7 @@ function Entregadas({ api, recientes, cursor, ahora }) {
                   {' · '}{itemsTxt(c.cantidadItems)} · {hora(fin)}
                 </span>
               </div>
-              {puedeDeshacer && <button onClick={() => api.deshacer(c)}>↶ Deshacer</button>}
+              {puedeDeshacer && <button onClick={() => onDeshacer(c)}>↶ Deshacer</button>}
             </li>
           )
         })}

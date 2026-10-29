@@ -90,6 +90,7 @@ export default async function handler(req, res) {
     if (!localSnap.exists || !comandaSnap.exists) return res.status(404).json({ error: 'No existe' })
     const local = localSnap.data()
     const admins = (local.admins || []).map(e => String(e).toLowerCase())
+    // (Solo el personal que mueve comandas puede pedir el aviso: admin, cocina o mesero.)
     const esPersonal = SUPERADMINS.includes(email) || admins.includes(email)
       || (cocinaSnap.exists && cocinaSnap.data().activo) || (meseroSnap.exists && meseroSnap.data().activo)
     if (!esPersonal) return res.status(403).json({ error: 'No autorizado' })
@@ -99,8 +100,15 @@ export default async function handler(req, res) {
     const antes = comanda.notificadaEn?.toMillis?.() || 0
     if (Date.now() - antes < 2 * 60000) return res.status(200).json({ enviadas: 0, motivo: 'ya avisada' })
 
-    // A quién: el mesero que la tomó + los admins del local.
-    const destinatarios = [...new Set([String(comanda.creadaPor?.email || '').toLowerCase(), ...admins].filter(Boolean))].slice(0, 30)
+    // A quién: el mesero que la tomó + los admins del local. Si es un DOMICILIO de la app, además los
+    // domiciliarios activos del local (D39: les suena cuando la cocina lo deja listo para salir).
+    const esDomicilio = comanda.destino?.tipo === 'domicilio'
+    let domiciliarios = []
+    if (esDomicilio) {
+      const eq = await localRef.collection('equipo').where('rol', '==', 'domiciliario').get()
+      domiciliarios = eq.docs.map(d => d.data()).filter(x => x.activo).map(x => String(x.email).toLowerCase())
+    }
+    const destinatarios = [...new Set([...domiciliarios, String(comanda.creadaPor?.email || '').toLowerCase(), ...admins].filter(Boolean))].slice(0, 30)
     if (!destinatarios.length) return res.status(200).json({ enviadas: 0 })
     const dispSnap = await localRef.collection('dispositivos').where('email', 'in', destinatarios).get()
     const tokens = dispSnap.docs.map(d => d.id)
@@ -108,19 +116,22 @@ export default async function handler(req, res) {
     if (!tokens.length) return res.status(200).json({ enviadas: 0 })
 
     const d = comanda.destino || {}
-    const donde = d.tipo === 'llevar' ? `Para llevar${d.nombre ? ` · ${d.nombre}` : ''}` : (d.mesa ? `Mesa ${d.mesa}` : (d.nombre || 'Mesa'))
+    const donde = d.tipo === 'llevar' ? `Para llevar${d.nombre ? ` · ${d.nombre}` : ''}`
+      : d.tipo === 'domicilio' ? `Domicilio${d.nombre ? ` · ${d.nombre}` : ''}`
+        : d.tipo === 'recoger' ? `Recoger${d.nombre ? ` · ${d.nombre}` : ''}`
+          : (d.mesa ? `Mesa ${d.mesa}` : (d.nombre || 'Mesa'))
     const n = comanda.cantidadItems || 0
     const r = await getMessaging().sendEachForMulticast({
       tokens,
       webpush: {
         notification: {
-          title: `🔔 ¡Pedido listo! ${donde}`,
+          title: esDomicilio ? `🛵 Domicilio listo para salir · ${comanda.codigo || ''}` : `🔔 ¡Pedido listo! ${donde}`,
           body: `${n} ${n === 1 ? 'ítem' : 'ítems'} · ${local.nombre || 'Appetic'}`,
           icon: local.icono || local.logo || '/icons/icon-192.png',
           tag: `listo-${comandaId}`,
           renotify: true,
         },
-        fcmOptions: { link: `/${local.slug}/admin/mesero` },
+        fcmOptions: { link: `/${local.slug}/admin/${esDomicilio ? 'domicilios' : 'mesero'}` },
       },
     })
 

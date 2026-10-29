@@ -9,7 +9,7 @@ import { getRolesDeEquipo } from '../services/equipo'
 //  • esDueno: administra ≥1 local → la barra pasa a modo administrador.
 //  • slug: local seleccionado. 1 local → ese (automático). Varios → el elegido
 //    en Cuenta (o null hasta que elija). Entrar a un local propio lo selecciona.
-//  • equipo: locales donde es MESERO o COCINA (sin ser dueño) → también tiene barra,
+//  • equipo: locales donde es MESERO, COCINA o DOMICILIARIO (sin ser dueño) → también tiene barra,
 //    pero solo ve la sección de su rol. rolesEn(slug) dice qué puede hacer en cada local.
 const AdminContext = createContext(null)
 export const useAdmin = () => useContext(AdminContext)
@@ -29,7 +29,7 @@ function devEquipo() {
     const v = sessionStorage.getItem(DEV_EQUIPO_KEY)
     if (!v) return null
     return v.split(',').map(par => { const [slug, rol] = par.split(':'); return { slug: slug?.trim(), rol: rol?.trim() } })
-      .filter(p => p.slug && (p.rol === 'mesero' || p.rol === 'cocina'))
+      .filter(p => p.slug && ['mesero', 'cocina', 'domiciliario'].includes(p.rol))
   } catch { return null }
 }
 

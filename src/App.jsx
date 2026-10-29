@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { useNavUI } from './contexts/NavUIContext.jsx'
 import { appThemeVars } from './utils/theme.js'
 import Home from './pages/Home/Home.jsx'
@@ -11,8 +11,8 @@ import Pedidos from './pages/Pedidos/Pedidos.jsx'
 import Favoritos from './pages/Favoritos/Favoritos.jsx'
 import Datos from './pages/Datos/Datos.jsx'
 import Superadmin from './pages/Superadmin/Superadmin.jsx'
-import Domiciliario from './pages/Domiciliario/Domiciliario.jsx'
 import Responder from './pages/Responder/Responder.jsx'
+import MiPedido from './pages/MiPedido/MiPedido.jsx'
 import InstallPrompt from './components/InstallPrompt/InstallPrompt.jsx'
 import BottomNav from './components/BottomNav/BottomNav.jsx'
 import PanelDrawer from './components/BottomNav/PanelDrawer.jsx'
@@ -26,7 +26,7 @@ export default function App() {
   // 🌎 Toda la app se transforma con el mundo del local activo (fondo incluido).
   // En los paneles internos (admin del local, superadmin) no se aplica: son de
   // gestión, no de cliente. Sin local activo → tokens Appetic de :root.
-  const enPanel = /\/admin(\/|$)/.test(pathname) || /\/domiciliario(\/|$)/.test(pathname) || pathname.startsWith('/superadmin')
+  const enPanel = /\/admin(\/|$)/.test(pathname) || pathname.startsWith('/superadmin')
   useEffect(() => {
     const el = document.documentElement
     const vars = (activeLocal && !enPanel) ? appThemeVars(activeLocal.tema) : {}
@@ -61,12 +61,16 @@ export default function App() {
         <Route path="/:slug/admin" element={<AdminPage />} />
         <Route path="/:slug/admin/:panel" element={<AdminPage />} />
 
-        {/* Panel GLOBAL del domiciliario — ve y busca los domicilios de todos los locales */}
-        <Route path="/domiciliario" element={<Domiciliario />} />
+        {/* El panel GLOBAL del domiciliario se retiró (29-oct-2026): ahora cada local tiene su
+            panel de Domicilios (/:slug/admin/domicilios). Los links viejos van a la cuenta. */}
+        <Route path="/domiciliario" element={<Navigate to="/cuenta" replace />} />
 
         {/* 💬 Puente para que el local responda al cliente de un toque. Existe para
             que el link dentro del WhatsApp del pedido sea corto (ver Responder.jsx). */}
         <Route path="/r/:slug/:tel/:codigo/:nombre" element={<Responder />} />
+
+        {/* 🧾 «Mi pedido»: el cliente ve su pedido y en qué va; el mesero/admin lo confirma */}
+        <Route path="/p/:slug/:pedidoId" element={<MiPedido />} />
 
         {/* Cada local vive en su propio slug: appetic.app/su-negocio */}
         <Route path="/:slug" element={<LocalPage />} />

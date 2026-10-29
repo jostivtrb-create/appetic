@@ -165,6 +165,7 @@
 }
 .ms-mesa-tit.mesa { background: var(--cm-mesa); color: var(--cm-mesa-txt); }
 .ms-mesa-tit.llevar { background: var(--cm-llevar); color: var(--cm-llevar-txt); }
+.ms-mesa-tit.domicilio { background: var(--cm-domi); color: var(--cm-domi-txt); }
 .ms-com { padding: 12px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); margin-bottom: 8px; }
 .ms-com-cab { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 14px; }
 .ms-reloj { font-weight: 900; padding: 3px 9px; border-radius: 999px; font-variant-numeric: tabular-nums; }
@@ -233,3 +234,17 @@
 .cc-ir { width: 100%; padding: 17px; border-radius: 16px; background: #E8A200; color: #2A1A00; font-size: 17px; font-weight: 900; }
 .cc-no { width: 100%; margin-top: 10px; padding: 15px; border-radius: 16px; background: var(--surface-2); font-size: 16px; font-weight: 800; }
 @keyframes kmSacude { 0%, 100% { transform: none; } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+/* 📲 Pedidos de la app por confirmar */
+.pc { margin-bottom: 14px; padding: 12px; border-radius: 18px; background: #FFF6D8; border: 2px solid #E8B21E; }
+.pc-tit { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 900; color: #5A4000; margin-bottom: 8px; }
+.pc-punto { width: 10px; height: 10px; border-radius: 50%; background: #E8A200; animation: msParpadeo 1s ease-in-out infinite; box-shadow: 0 0 0 4px rgba(232, 162, 0, 0.25); }
+.pc ul { list-style: none; display: grid; gap: 6px; }
+.pc-item { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--surface); text-align: left; border: 1px solid #F0D27A; }
+.pc-tipo { flex-shrink: 0; font-size: 12.5px; font-weight: 900; padding: 5px 8px; border-radius: 8px; background: var(--surface-2); }
+.pc-tipo.domicilio { background: color-mix(in srgb, var(--cm-domi, #6A35C9) 16%, #fff); color: var(--cm-domi, #6A35C9); }
+.pc-txt { flex: 1; min-width: 0; display: grid; }
+.pc-txt strong { font-size: 15px; }
+.pc-txt small { font-size: 13px; color: var(--text-soft); }
+.pc-ver { font-weight: 900; color: var(--brand-orange-strong); }
+.pc-hoja { max-width: 600px; }

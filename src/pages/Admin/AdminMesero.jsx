@@ -11,7 +11,10 @@ import AdminEquipo from './AdminEquipo'
 import ActivarAvisos from './ActivarAvisos'
 import { Teclado } from './Teclado'
 import CorregirComanda, { Cuidado } from './CorregirComanda'
-import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, itemsTxt } from './comandaUtils'
+import PorConfirmar from './PorConfirmar'
+import { pedidosDe } from '../../services/pedidos'
+import { urlWhatsApp, normalizarTel, mensajeTotalCambio } from '../../utils/whatsapp'
+import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, itemsTxt, claseDestino } from './comandaUtils'
 import './Mesero.css'
 
 // 🧑‍🍳 PANTALLA DEL MESERO (guía «Mesero y Comandas», paso 1).
@@ -54,6 +57,8 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
         </button>
       )}
 
+      <div style={coloresComanda(local).vars}><PorConfirmar local={local} demo={demo} usuario={usuario} /></div>
+
       <div className="ms-seg" role="tablist">
         <button role="tab" aria-selected={vista === 'tomar'} className={vista === 'tomar' ? 'on' : ''} onClick={() => setVista('tomar')}>
           Nuevo pedido
@@ -67,7 +72,7 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
 
       {vista === 'tomar'
         ? <TomarPedido local={local} productos={productos} api={api} activas={activas} usuario={usuario} />
-        : <EnCurso local={local} productos={productos} api={api} activas={activas} recientes={recientes} usuario={usuario} />}
+        : <EnCurso local={local} productos={productos} api={api} activas={activas} recientes={recientes} usuario={usuario} demo={demo} />}
     </div>
   )
 }
@@ -360,7 +365,7 @@ function HojaComanda({ local, idsMenu, carrito, setCarrito, total, api, activas,
 
 // ─────────────────────────────── En curso ───────────────────────────────
 
-function EnCurso({ local, productos, api, activas, recientes, usuario }) {
+function EnCurso({ local, productos, api, activas, recientes, usuario, demo }) {
   const ahora = useAhora()
   const umbrales = umbralesDe(local)
   const colores = coloresComanda(local)
@@ -368,6 +373,7 @@ function EnCurso({ local, productos, api, activas, recientes, usuario }) {
   const [corrigiendo, setCorrigiendo] = useState(null)   // id de la comanda en corrección
   const [cuidadoCancelar, setCuidadoCancelar] = useState(null)
   const [guardada, setGuardada] = useState(false)
+  const [totalCambio, setTotalCambio] = useState(null) // { pedido, total } tras corregir un pedido de la app (D34)
   const enCorreccion = corrigiendo ? activas.find(c => c.id === corrigiendo) : null
 
   // Agrupadas por mesa / nombre; dentro, por orden de llegada.
@@ -391,6 +397,8 @@ function EnCurso({ local, productos, api, activas, recientes, usuario }) {
 
   async function cancelar(c) {
     await api.cancelar(c, { email: (usuario?.email || '').toLowerCase(), nombre: usuario?.displayName || '' })
+    // Pedido de la app cancelado: el cliente lo ve como no atendido en «Mi pedido».
+    if (c.pedidoId) pedidosDe(local.id, { demo }).cambiarEstado(c.pedidoId, 'rechazado').catch(() => {})
     setCancelando(null)
   }
 
@@ -399,7 +407,7 @@ function EnCurso({ local, productos, api, activas, recientes, usuario }) {
       {grupos.length === 0 && <p className="ms-vacio ms-vacio--grande">No hay pedidos en curso.</p>}
       {grupos.map(lista => (
         <section key={lista[0].id} className="ms-mesa">
-          <h3 className={`ms-mesa-tit ${lista[0].destino?.tipo === 'llevar' ? 'llevar' : 'mesa'}`}>{etiquetaDestino(lista[0].destino)}</h3>
+          <h3 className={`ms-mesa-tit ${claseDestino(lista[0].destino)}`}>{etiquetaDestino(lista[0].destino)}</h3>
           {lista.map(c => {
             const vivos = c.items.filter(i => !i.quitado)
             const hechos = vivos.filter(i => i.hecho).length
@@ -456,11 +464,42 @@ function EnCurso({ local, productos, api, activas, recientes, usuario }) {
       {enCorreccion && (
         <CorregirComanda
           comanda={enCorreccion} productos={productos} api={api} usuario={usuario}
-          onCerrar={ok => { setCorrigiendo(null); if (ok) { setGuardada(true); setTimeout(() => setGuardada(false), 3000) } }}
+          onCerrar={async ok => {
+            const c = enCorreccion
+            setCorrigiendo(null)
+            if (!ok) return
+            setGuardada(true); setTimeout(() => setGuardada(false), 3000)
+            // Pedido de la app: el pedido queda igual que la comanda (el domiciliario cobra lo
+            // correcto) y, si cambió el total, se ofrece avisarle al cliente (D34, S25).
+            if (c?.pedidoId) {
+              try {
+                const fresca = await api.obtener(c.id)
+                if (!fresca) return
+                const r = await pedidosDe(local.id, { demo }).sincronizarConComanda(fresca)
+                if (r && r.antes !== r.ahora) setTotalCambio({ pedido: r.pedido, total: r.ahora })
+              } catch { /* el pedido se puede actualizar a mano; la comanda ya quedó */ }
+            }
+          }}
         />
       )}
       {/* Si la comanda deja de estar en curso mientras se corrige (la entregaron), se cierra sola. */}
       {corrigiendo && !enCorreccion && <CerrarSolo onCerrar={() => setCorrigiendo(null)} />}
+
+      {totalCambio && (
+        <div className="ms-velo" onClick={() => setTotalCambio(null)}>
+          <div className="cc-cuidado" role="alertdialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <p className="cc-cuidado-tit">💲 EL TOTAL CAMBIÓ</p>
+            <h3>Ahora es {'$' + Math.round(totalCambio.total).toLocaleString('es-CO')}</h3>
+            <p>Avísale a {(totalCambio.pedido.cliente?.nombre || 'el cliente').split(' ')[0]} para que no haya sorpresas al pagar.</p>
+            <button className="cc-ir" onClick={() => {
+              const tel = normalizarTel(totalCambio.pedido.cliente?.telefono)
+              if (tel) window.open(urlWhatsApp(tel, mensajeTotalCambio(local, totalCambio.pedido, totalCambio.total)), '_blank')
+              setTotalCambio(null)
+            }}>💬 Avisar por WhatsApp</button>
+            <button className="cc-no" onClick={() => setTotalCambio(null)}>Ahora no</button>
+          </div>
+        </div>
+      )}
 
       {cuidadoCancelar && (
         <Cuidado

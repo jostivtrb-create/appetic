@@ -6,7 +6,7 @@
 - **Tarea:** dos pantallas nuevas por local — **Mesero** (toma comandas rápido) y **Comandas**
   (cocina) — más el link **«Mi pedido»** en los domicilios que llegan por WhatsApp.
 - **Inicio:** 29 de octubre de 2026
-- **Estado:** ✅ Pasos 1 y 2 publicados · siguiente: paso 3 («Mi pedido» de domicilios)
+- **Estado:** 🔵 Pasos 1 y 2 publicados · construyendo el paso 3 («Mi pedido» + Domicilios)
 - **Proyecto:** `Appetic/` (Vite/React + Firebase)
 
 ---
@@ -77,6 +77,36 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
 | D26 | **Rastro visible** en cocina y en el mesero: quién la tomó y quién la cambió y cuándo. | S1 + obs. |
 | D27 | **El contador sigue desde que llegó** y la comanda marca «cambió hace X min». | S2. |
 
+### De la ronda 4 (paso 3 · «Mi pedido»)
+
+| # | Decisión | Por qué |
+|---|----------|---------|
+| D28 | **«Mi pedido» REEMPLAZA a «Responder al cliente»** en el WhatsApp del pedido. Un solo link. | P1. |
+| D29 | **El mesero ve «Pedidos de la app por confirmar»** en su pantalla, con aviso y sonido; cualquier mesero o el admin los confirma desde ahí (además del link). | P2. |
+| D30 | **Cocina: DOMICILIO con su propio color; RECOGER se ve como PARA LLEVAR** (con la palabra RECOGER). | P3. |
+| D31 | **El cliente, al reabrir «Mi pedido», ve el resumen + en qué va:** Recibido → En cocina → Listo / En camino (se actualiza solo). | P4. |
+| D32 | **Rechazar un pedido** («No podemos atenderlo») con WhatsApp listo y mensaje amable; queda marcado rechazado. | S1. |
+| D33 | **Avisar al cliente que su domicilio va en camino** (WhatsApp listo). | S2. Ver ronda 5: quién lo manda. |
+| D34 | **Al corregir un pedido de la app, si cambia el total:** «el total cambió, avísale al cliente» con WhatsApp listo. | S3. |
+
+### Pedido nuevo del usuario (29-oct-2026, con la ronda 4)
+
+| # | Decisión | Por qué |
+|---|----------|---------|
+| D35 | **Panel de DOMICILIOS por local**, igual que meseros: el admin agrega domiciliarios por correo (activar/desactivar/eliminar). **Un solo panel** para todos, **sin asignar** domicilios a uno en particular. | Pedido explícito: «no nos compliquemos». |
+| D36 | **Cada local maneja sus propios domiciliarios.** Se RETIRAN los domiciliarios globales de Appetic (lista del superadmin, `config/domiciliarios`), la página `/domiciliario` con búsqueda por código y la entrada «Repartos/Domiciliarios» del superadmin. | Pedido explícito: «ya no vamos a manejar nosotros los domiciliarios». |
+| D37 | **Al confirmar un domicilio, aparece de una vez con toda su información en el panel de Domicilios** (sin código que buscar). | Pedido explícito. |
+
+### De la ronda 5 (panel de Domicilios)
+
+| # | Decisión | Por qué |
+|---|----------|---------|
+| D38 | **El domiciliario marca «Voy en camino»** (abre WhatsApp: «tu pedido va en camino») **y «Entregado».** El cliente ve el paso en «Mi pedido». | P1. Resuelve D33: el aviso lo manda quien lo lleva. |
+| D39 | **Al domiciliario le suena / le llega aviso cuando la cocina deja el domicilio LISTO** para salir (también con la app cerrada si activó los avisos). | P2. |
+| D40 | **El admin ve el panel de Domicilios completo; el mesero no.** | P3. |
+| D41 | **Sin «Lo llevo yo» por ahora**: cada local tiene un domiciliario por día. Se crea solo si un local lo pide. | S1: marcó «Sí» pero la observación dice «por ahora no» → se tomó la observación. |
+| D42 | **Sin cuadre de efectivo**: va en el plan más caro con contabilidad. | S2. |
+
 ---
 
 ## 3. Suposiciones del agente
@@ -131,6 +161,26 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
   está «Cancelar comanda».
 - **S20** — **Se guarda sin pisar a la cocina:** la corrección se aplica sobre la comanda recién leída
   (transacción). Si mientras el mesero editaba la cocina tachó ese plato, sale el CUIDADO antes de guardar.
+- **S21** — **Privacidad de «Mi pedido»:** hoy los pedidos NO se leen desde la app a propósito
+  (teléfono y dirección del cliente). El link lleva un id imposible de adivinar; el CLIENTE lee un
+  **resumen aparte sin teléfono ni dirección**; el mesero/admin (con sesión) lee el pedido completo
+  (las reglas les abren la lectura de los pedidos de SU local). El pedido se crea con id propio
+  para poder poner el link en el WhatsApp antes de enviarlo.
+- **S22** — **Confirmar es una sola vez:** transacción; si dos lo tocan a la vez, entra una comanda y
+  al otro le dice «ya lo confirmó Ana».
+- **S23** — El detalle del domicilio reutiliza lo que ya mostraba el panel viejo
+  (`Domiciliario.jsx`): dirección + mapa, llamar, WhatsApp al cliente, platos, totales, método de
+  pago y «paga con $X (cambio $Y)».
+- **S24** — **Estados del pedido de la app:** `nuevo` → (confirmar) `en-cocina` → (cocina entrega)
+  `listo` → (domiciliario) `en-camino` → `entregado`; o `rechazado`. «Recoger» termina en `listo`
+  («Listo para recoger»). El resumen público copia el estado para «Mi pedido».
+- **S25** — **La comanda de un pedido de la app usa el MISMO id del pedido** (confirmar dos veces
+  no puede crear dos comandas) y guarda `pedidoId`. Destino `domicilio` / `recoger` con el nombre del
+  cliente. Al corregirla (paso 2) se actualizan también los platos y el total del pedido, para que el
+  domiciliario cobre lo correcto.
+- **S26** — **Tras confirmar**, en vez de abrir WhatsApp solo (los navegadores bloquean ventanas que
+  no salen de un toque), queda un botón grande «💬 Avisar al cliente por WhatsApp». En el celular
+  se intenta abrir directo.
 - **S6** — El WhatsApp del local se arma en `src/utils/whatsapp.js` (`textoPedido`), que ya mete
   links (Maps, «Responder al cliente»). Ahí entra el link «Mi pedido».
 
@@ -145,6 +195,8 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
 - **Ronda 1 — Visión general** ✅ respondida · `Cuestionario-1-Mesero-Comandas.html`
 - **Ronda 2 — Paso 1 por dentro** ✅ respondida · `Cuestionario-2-Mesero-Comandas.html`
 - **Ronda 3 — Paso 2: correcciones con «CUIDADO»** ✅ respondida · sin ronda extra: no queda nada que adivinar.
+- **Ronda 4 — Paso 3: «Mi pedido»** ✅ respondida
+- **Ronda 5 — Panel de Domicilios** ✅ respondida · no hay más rondas para el paso 3.
 
 ---
 
@@ -194,7 +246,24 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
       «cambió hace X min», rastro (quién la tomó · quién la cambió).
 - [x] 2d · Prueba de punta a punta en la vista previa y publicar.
 
-### Paso 3 — Link «Mi pedido» + «Confirmar pedido» *(ronda corta antes)*
+### Paso 3 — «Mi pedido» + confirmar + panel de Domicilios
+
+- [x] 3a · **Datos y reglas:** pedido con id propio (+ productoId y descripción por plato) y su
+      **resumen público** `pedidosPublicos` (sin teléfono ni dirección, con TTL); el personal del
+      local lee y mueve los pedidos de SU local; rol `domiciliario` en el equipo; índices.
+- [x] 3b · **WhatsApp:** «Mi pedido» reemplaza «Responder al cliente».
+- [x] 3c · **Página «Mi pedido»** `/p/:slug/:id`: cliente → resumen + en qué va (en vivo);
+      mesero/admin → todo + «Confirmar pedido» / «No podemos atenderlo» + WhatsApp al cliente.
+- [x] 3d · **Mesero:** «Pedidos de la app por confirmar» con aviso y sonido.
+- [x] 3e · **Cocina:** DOMICILIO con su color, RECOGER como para llevar; al entregar, el pedido
+      pasa a `listo` y se avisa al domiciliario. Correcciones: sincronizan el pedido y avisan si
+      cambió el total.
+- [x] 3f · **Panel de Domicilios** (admin + domiciliario): en cocina / listo / en camino, detalle
+      completo, «Voy en camino» (WhatsApp) y «Entregado»; equipo de domiciliarios; avisos.
+- [x] 3g · **Retirar lo viejo:** domiciliarios globales, `/domiciliario`, búsqueda por código,
+      entradas del superadmin, reglas y servicio.
+- [~] 3h · Prueba de punta a punta ✅ · publicar (reglas + índices + app) ⏳ esperando permiso del usuario
+
 ### Después — QR por mesa (D3)
 
 ---
@@ -248,3 +317,20 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
   entregar en la cocina también van en **transacción** (sin eso un tachado podía pisar una
   corrección guardada en el mismo segundo). Los modales de opciones aceptan `inicial` para abrir
   con lo ya elegido. El teclado de mesa pasó a `Teclado.jsx` (lo comparten tomar y corregir).
+- **29-oct-2026** — Ronda 4 (paso 3) entregada.
+- **29-oct-2026** — Ronda 4 respondida (D28–D34) + pedido nuevo: panel de Domicilios por local que reemplaza a los domiciliarios globales (D35–D37). Ronda 5 corta para el panel.
+- **29-oct-2026** — Ronda 5 respondida (D38–D42). Plan del paso 3 escrito; arranca 3a.
+- **29-oct-2026** — Paso 3 construido y probado en la vista previa: pedido a domicilio de la app →
+  «Pedidos de la app por confirmar» en Mesero (amarillo) → vista completa → Confirmar → «Enviado a
+  cocina» + «Avisar a Juan por WhatsApp» → cocina: DOMICILIO morado → entregado → panel Domicilios:
+  «Listos para salir» con dirección, mapa, llamar, WhatsApp, platos, vueltas → «Voy en camino» (abre
+  «tu pedido va en camino») → «Mi pedido» del cliente muestra «En camino», sin teléfono ni dirección.
+  - Decidido sobre la marcha: la VISTA PREVIA ya no escribe pedidos en la base real (motor demo,
+    antes ensuciaba Firestore); la nota del pedido va pegada al comentario del primer plato en la
+    comanda; deshacer un «entregado» en cocina devuelve el pedido a «En cocina» solo si el
+    domiciliario no ha salido; cancelar la comanda de un pedido de la app lo deja «rechazado».
+  - Retirado: `src/pages/Domiciliario/`, `services/domiciliarios.js`, la sección del superadmin y
+    sus entradas en la barra, `esDomiciliarioGlobal/puedeVerRepartos`, la búsqueda por código y la
+    regla de `config/domiciliarios`. `/domiciliario` redirige a /cuenta. El doc
+    `config/domiciliarios` queda en la base sin uso (no estorba).
+  - El despliegue a producción lo frenó la protección automática de la sesión: se pide permiso.

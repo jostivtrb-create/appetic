@@ -5,7 +5,7 @@
 // Esta subcolección solo la leen el admin del local y la propia persona (firestore.rules).
 //
 //   id del doc:  'mesero:ana@gmail.com' · 'cocina:tablet.cocina@gmail.com'
-//   datos:       { email, rol: 'mesero' | 'cocina', activo: bool, localId, agregadoEn }
+//   datos:       { email, rol: 'mesero' | 'cocina' | 'domiciliario', activo: bool, localId, agregadoEn }
 //
 // «Desactivar» deja a la persona en la lista (en gris, se puede reactivar) y le quita el acceso;
 // «Eliminar» la saca de la lista. Un mismo correo puede ser mesero y cocina a la vez.
@@ -15,7 +15,7 @@ import {
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
-export const ROLES = ['mesero', 'cocina']
+export const ROLES = ['mesero', 'cocina', 'domiciliario']
 
 const normal = email => String(email || '').trim().toLowerCase()
 const idDoc = (rol, email) => `${rol}:${normal(email)}`

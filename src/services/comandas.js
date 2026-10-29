@@ -3,7 +3,8 @@
 // Una comanda = un envío del mesero. Si la mesa 4 pide otra ronda, es OTRA comanda que entra al
 // final de la fila (no se pega a la anterior: es otro pedido a la mitad).
 //
-//   destino:   { tipo: 'mesa' | 'llevar', mesa: '4' | null, nombre: 'Barra' | null }
+//   destino:   { tipo: 'mesa' | 'llevar' | 'domicilio' | 'recoger', mesa: '4' | null, nombre: 'Barra' | null }
+//   origen:    'mesero' | 'app' (pedido de la app confirmado: misma id que el pedido + pedidoId)
 //   items:     [{ uid, productoId, nombre, cantidad, opciones (texto), seleccion, comentario,
 //                 descripcion (¿qué lleva?), precio (total de la línea), hecho: bool }]
 //   estado:    'activa' | 'entregada' | 'cancelada'
@@ -20,7 +21,7 @@
 //     mesero en una pestaña y la cocina en otra se ven en vivo sin tocar Firestore.
 import {
   collection, doc, setDoc, updateDoc, onSnapshot, query, where, orderBy, limit, startAfter,
-  getDocs, serverTimestamp, runTransaction,
+  getDocs, getDoc, serverTimestamp, runTransaction,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { precioItem } from '../utils/price'
@@ -127,6 +128,8 @@ export const estaActiva = c => c?.estado === 'activa'
 export function etiquetaDestino(destino) {
   if (!destino) return ''
   if (destino.tipo === 'llevar') return destino.nombre ? `Para llevar · ${destino.nombre}` : 'Para llevar'
+  if (destino.tipo === 'domicilio') return destino.nombre ? `Domicilio · ${destino.nombre}` : 'Domicilio'
+  if (destino.tipo === 'recoger') return destino.nombre ? `Recoger · ${destino.nombre}` : 'Recoger'
   if (destino.mesa) return `Mesa ${destino.mesa}`
   return destino.nombre || 'Mesa'
 }
@@ -247,6 +250,10 @@ function firestoreApi(localId) {
     async marcarVisto(comanda) {
       await updateDoc(doc(col(), comanda.id), { cambioPendiente: false, vistoEn: Date.now() })
     },
+    async obtener(id) {
+      const s = await getDoc(doc(col(), id))
+      return s.exists() ? { id: s.id, ...s.data() } : null
+    },
     async entregar(comanda) {
       await cambiarItems(comanda.id, items => items.map(it => it.quitado ? it : { ...it, hecho: true }), {
         estado: 'entregada', entregadaEn: serverTimestamp(), cerradaEn: serverTimestamp(),
@@ -349,6 +356,10 @@ function demoApi(localId) {
     },
     async marcarVisto(comanda) {
       cambiar(comanda.id, c => ({ ...c, cambioPendiente: false, vistoEn: Date.now() }))
+    },
+    async obtener(id) {
+      const c = leer().find(x => x.id === id)
+      return c ? hidratar(c) : null
     },
     async entregar(comanda) {
       const ahora = Date.now()

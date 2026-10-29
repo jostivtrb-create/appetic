@@ -13,7 +13,7 @@ import './PanelRail.css'
 //   • Selector de local: los suyos (dueño) o todos (superadmin).
 //   • "Este local": Ver menú · Catálogo (con sus categorías desplegables) ·
 //     Difundir · Configuración · Métricas.
-//   • "Superadmin" (solo superadmin): Locales y planes · Domiciliarios · Repartos.
+//   • "Superadmin" (solo superadmin): Locales y planes.
 //   • "Appetic" (todos): Buscar · el menú que estés viendo · Favoritos ·
 //     Mis pedidos · Mis datos — lo de cliente, para no tener que cambiar de barra.
 //   • Al pie: Cuenta.
@@ -41,11 +41,12 @@ function cargarTodos() {
 }
 
 // `roles`: quién ve cada sección. El admin (dueño o superadmin) ve todas; el mesero solo
-// «Mesero» y la cocina solo «Comandas». Espejo de puedeVerSeccion() en AdminPage.jsx.
+// «Mesero», la cocina solo «Comandas» y el domiciliario solo «Domicilios». Espejo de puedeVerSeccion() en AdminPage.jsx.
 const SECCIONES = [
   { id: 'menu', label: 'Ver menú', Icon: IconMenu, ruta: s => `/${s}`, roles: ['admin', 'mesero'] },
   { id: 'mesero', label: 'Mesero', Icon: IconMesero, ruta: s => `/${s}/admin/mesero`, roles: ['admin', 'mesero'] },
   { id: 'comandas', label: 'Comandas', Icon: IconComandas, ruta: s => `/${s}/admin/comandas`, roles: ['admin', 'cocina'] },
+  { id: 'domicilios', label: 'Domicilios', Icon: IconMoto, ruta: s => `/${s}/admin/domicilios`, roles: ['admin', 'domiciliario'] },
   { id: 'catalogo', label: 'Catálogo', Icon: IconCatalogo, ruta: s => `/${s}/admin/catalogo`, roles: ['admin'] },
   { id: 'difundir', label: 'Difundir', Icon: IconDifundir, ruta: s => `/${s}/admin/difundir`, roles: ['admin'] },
   { id: 'config', label: 'Configuración', Icon: IconConfig, ruta: s => `/${s}/admin/config`, roles: ['admin'] },
@@ -119,8 +120,7 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
 
   const activa = seccionRuta
     || (slugActual && pathname === `/${slugActual}` ? 'menu' : '')
-    || (pathname.startsWith('/superadmin') ? (hash === '#domiciliarios' ? 'sa-domis' : 'sa-locales') : '')
-    || (pathname.startsWith('/domiciliario') ? 'sa-repartos' : '')
+    || (pathname.startsWith('/superadmin') ? 'sa-locales' : '')
     || (pathname.startsWith('/cuenta') ? 'cuenta' : '')
     || (pathname === '/' ? 'cli-buscar' : '')
     || (pathname.startsWith('/favoritos') ? 'cli-favoritos' : '')
@@ -179,7 +179,7 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
           <img className="bnav-brand-logo" src={logoAppetic} alt="" />
           <span className="bnav-brand-texto">
             <span className="bnav-brand-nombre">Appetic</span>
-            <span className="bnav-brand-rol">{esSuper ? '👑 Superadmin' : esSoloEquipo && misRoles.length ? misRoles.map(r => r === 'mesero' ? 'Mesero' : 'Cocina').join(' · ') : 'Panel del local'}</span>
+            <span className="bnav-brand-rol">{esSuper ? '👑 Superadmin' : esSoloEquipo && misRoles.length ? misRoles.map(r => ({ mesero: 'Mesero', cocina: 'Cocina', domiciliario: 'Domiciliario' }[r] || r)).join(' · ') : 'Panel del local'}</span>
           </span>
         </button>
         {enCajon && (
@@ -244,12 +244,6 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
         <Grupo id="super" titulo="Superadmin" abierto={estaAbierto('super')} onAlternar={alternar}>
           <button className={`bnav-item prail-item ${activa === 'sa-locales' ? 'is-active' : ''}`} onClick={() => ir('/superadmin')}>
             <IconTienda /><span>Locales y planes</span>
-          </button>
-          <button className={`bnav-item prail-item ${activa === 'sa-domis' ? 'is-active' : ''}`} onClick={() => ir('/superadmin#domiciliarios')}>
-            <IconEquipo /><span>Domiciliarios</span>
-          </button>
-          <button className={`bnav-item prail-item ${activa === 'sa-repartos' ? 'is-active' : ''}`} onClick={() => ir('/domiciliario')}>
-            <IconMoto /><span>Repartos</span>
           </button>
         </Grupo>
       )}
@@ -399,9 +393,6 @@ function IconMetricas() {
 }
 function IconTienda() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M4 9 5.5 4h13L20 9" /><path {...sw} d="M4 9a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0 2.7 2.7 0 0 0 5.3 0" /><path {...sw} d="M5.5 12v8h13v-8" /><path {...sw} d="M10 20v-4h4v4" /></svg>
-}
-function IconEquipo() {
-  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><circle {...sw} cx="9" cy="8.5" r="3" /><path {...sw} d="M3.5 19a5.5 5.5 0 0 1 11 0" /><path {...sw} d="M15.5 6a3 3 0 0 1 0 5.6" /><path {...sw} d="M17.5 14.2A5.5 5.5 0 0 1 20.5 19" /></svg>
 }
 function IconMoto() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><circle {...sw} cx="6" cy="17" r="3" /><circle {...sw} cx="18" cy="17" r="3" /><path {...sw} d="M9 17h5l2-6h-4" /><path {...sw} d="M14 6h2.5l1.5 5" /><path {...sw} d="M6 14l3-4h3" /></svg>

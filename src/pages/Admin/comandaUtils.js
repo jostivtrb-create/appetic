@@ -36,7 +36,7 @@ export function useAhora(cadaMs = 1000) {
   return ahora
 }
 
-// 🎨 Colores de MESA y PARA LLEVAR con la marca del local (D16 + S12 de la guía):
+// 🎨 Colores de MESA, PARA LLEVAR (y RECOGER) y DOMICILIO (D16, D30 + S12 de la guía):
 // MESA = color principal, PARA LLEVAR = acento. Si se parecen demasiado (p. ej. naranja y rojo),
 // el de llevar cae a un azul fijo para que la cocina no los confunda. Siempre va además la palabra.
 export function coloresComanda(local) {
@@ -44,9 +44,13 @@ export function coloresComanda(local) {
   const mesa = t.primary || '#ED7D2B'
   let llevar = t.accent && t.accent !== mesa ? t.accent : '#1E6FD9'
   if (distancia(mesa, llevar) < 120) llevar = distancia(mesa, '#1E6FD9') >= 120 ? '#1E6FD9' : '#6A1B9A'
+  // DOMICILIO (D30): su propio color, fijo y bien distinto de los otros dos.
+  const domicilio = ['#6A35C9', '#0F7C8C', '#C2185B'].find(c => distancia(c, mesa) >= 120 && distancia(c, llevar) >= 120) || '#6A35C9'
   return {
-    mesa, llevar,
+    mesa, llevar, domicilio,
     vars: {
+      '--cm-domi': domicilio,
+      '--cm-domi-txt': textoSobre(domicilio),
       '--cm-mesa': mesa,
       '--cm-mesa-txt': textoSobre(mesa),
       '--cm-llevar': llevar,
@@ -73,3 +77,7 @@ function textoSobre(hex) {
 
 // «1 ítem» · «3 ítems»
 export const itemsTxt = n => `${n} ${n === 1 ? 'ítem' : 'ítems'}`
+
+// Tipo visual de una comanda en cocina: mesa · llevar (incluye RECOGER) · domicilio.
+export const claseDestino = d => d?.tipo === 'domicilio' ? 'domicilio' : (d?.tipo === 'llevar' || d?.tipo === 'recoger') ? 'llevar' : 'mesa'
+export const palabraDestino = d => ({ domicilio: 'DOMICILIO', recoger: 'RECOGER', llevar: 'PARA LLEVAR' }[d?.tipo] || 'MESA')
