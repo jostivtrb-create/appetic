@@ -9,11 +9,11 @@
 // ✍️ NOMBRE: el local se llama "Bon Appétit". Su carta impresa dice "boon appetit" (mal escrito)
 //    y además trae el wordmark viejo "La Mies"; el dueño confirmó que el nombre es Bon Appétit.
 //
-// 🎨 Estética sacada de SU carta (aún no hay logo): fondo PERGAMINO crema, títulos en NARANJA
-//    vivo, el wordmark en VERDE bosque y el ícono de pizza en rojo tomate. De ahí salen: naranja
-//    de marca (botones, precios), acento verde bosque (nav activo, detalles) y un "mundo" crema
-//    pergamino — cálido, de pizzería de barrio. Distinto a El Monumento (verde de marca + naranja
-//    de acento sobre crema-lima) y a Jasbury (rojo + dorado).
+// 🎨 Estética sacada de SU logo y SU carta: "Bon" NARANJA, "Appétit" VERDE BOSQUE, pizza ROJO
+//    TOMATE; en la carta el precio "SOLA" va en rojo. Piel propia `skin: 'bon'`
+//    (src/pages/Local/LocalSkinBon.css): cabecera muro verde bosque con el logo en su letrero,
+//    fondo salvia claro (no crema), precios en rojo tomate, títulos condensados verdes y el
+//    naranja para la acción (botones, barra inferior). Verde-blanco-rojo de pizzería.
 //
 // 🖼️ LOGO PROVISIONAL (29-oct-2026): el dueño aún no tiene logo. Se generó en Gemini a partir del
 //    wordmark de su carta ("La Mies" naranja+verde con la pizza roja) pero con el nombre correcto,
@@ -55,17 +55,21 @@ export const BONAPPETIT_LOCAL = {
   whatsapp: '573204753619',
 
   logo: '/locales/bon-appetit/logo.webp',     // wordmark horizontal transparente (900px = 2× el hero)
-  icono: '/locales/bon-appetit/icono.webp',   // la pizza del logo, cuadrada 256px (buscador de locales)
+  icono: '/locales/bon-appetit/icono.webp',   // logo APILADO cuadrado (pizza + nombre) sobre crema, 512px:
+                                              //   inicio, Cuenta, barra lateral/inferior. Armado en local con las
+                                              //   mismas piezas del logo ancho (misma letra y misma pizza).
   logoAnim: 'lado',                           // wordmark horizontal: entra de lado
   banner: '',    // el dueño sube el banner desde su panel (prompt en PROMPTS.md)
   tema: {
     primary: '#EC7A0E',        // naranja de los títulos de su carta (botones, precios, chips activos)
     primaryStrong: '#B95A05',  // naranja tostado (variante oscura / degradado)
-    primarySoft: '#FDE3C2',    // durazno claro: degradado del hero (claro para que el naranja del logo resalte)
+    primarySoft: '#F7A94B',    // naranja durazno (degradados de botones)
     onPrimary: '#FFFFFF',      // texto sobre el naranja
     accent: '#2F6B4A',         // verde bosque del wordmark (nav activo, detalles)
-    bg: '#F7EDD8',             // "mundo" crema pergamino (el fondo de su carta)
+    bg: '#EEF3EC',             // "mundo" verde salvia claro (verde-blanco-rojo de pizzería, NO crema)
     hero: 'logo',              // hero protagonizado por el logo (ya trae el nombre)
+    skin: 'bon',               // piel propia: src/pages/Local/LocalSkinBon.css (muro verde, precios rojos)
+    navSolid: true,            // barra inferior naranja sólida (la acción de la marca)
   },
 
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.

@@ -145,7 +145,7 @@ export default function BottomNav() {
     <>
       <nav className={`bnav ${oscuro ? 'bnav--dark' : ''} ${solido ? 'bnav--solid' : ''} ${railBajoCapa ? 'bnav--bajo-capa' : ''}`} aria-label="Navegación">
         <MarcaRail
-          logo={activeLocal?.logo || activeLocal?.icono || logoAppetic}
+          logo={activeLocal?.icono || activeLocal?.logo || logoAppetic}
           nombre={activeLocal?.nombre || 'Appetic'}
           rol={activeLocal ? 'Estás en su menú' : 'El menú de tu barrio'}
           onClick={() => (activeLocal ? irAMenu() : navigate('/'))}

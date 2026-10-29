@@ -157,7 +157,7 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
     ir(sec.ruta(l.slug))
   }
 
-  const brandLogo = localActual?.logo || localActual?.icono || logoAppetic
+  const brandLogo = localActual?.icono || localActual?.logo || logoAppetic
 
   return (
     <nav className={enCajon ? `prail prail--drawer ${className}` : `bnav bnav--admin bnav--panel ${className}`} style={style} aria-label="Panel">
@@ -335,7 +335,7 @@ function SelectorLocal({ locales, actual, slugActual, logo, onElegir }) {
                   role="option"
                   aria-selected={actual?.slug === l.slug}
                 >
-                  <img src={l.logo || l.icono || logoAppetic} alt="" />
+                  <img src={l.icono || l.logo || logoAppetic} alt="" />
                   <span>{l.nombre || l.slug}</span>
                 </button>
               </li>

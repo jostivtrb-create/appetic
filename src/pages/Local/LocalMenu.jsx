@@ -19,6 +19,7 @@ import Checkout from '../Checkout/Checkout'
 import './LocalSkinJet.css'
 import './LocalSkinJuance.css'
 import './LocalSkinFruti.css'
+import './LocalSkinBon.css'
 
 export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   const { addItem, totalItems } = useCart()
