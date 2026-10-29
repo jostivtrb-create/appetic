@@ -34,6 +34,14 @@ export default function DemoTarjeta() {
       setPaso(`⚠️ No se pudo reiniciar (${e?.code || e?.message || 'error'}). Intenta de nuevo.`)
     }
   }
+  async function fijar() {
+    try {
+      setPaso('Fijando las fotos actuales…')
+      const { fijarFotosBase } = await import('../../services/demo')
+      const n = await fijarFotosBase()
+      setPaso(`¡Listo! ${n} fotos fijadas: «Reiniciar» ya no las borra.`)
+    } catch (e) { setPaso(`⚠️ No se pudo (${e?.code || e?.message || 'error'}).`) }
+  }
   async function copiar() {
     try { await navigator.clipboard.writeText(url); setCopiado(true); setTimeout(() => setCopiado(false), 1800) } catch { /* nada */ }
   }
@@ -55,6 +63,7 @@ export default function DemoTarjeta() {
       <div className="sa-demo-acc">
         <a className="sa-demo-btn" href={`/${DEMO_SLUG}`} target="_blank" rel="noreferrer">Abrir</a>
         <button className="sa-demo-btn" onClick={copiar}>{copiado ? '✓ Copiado' : 'Copiar link'}</button>
+        {datos?.existe && <button className="sa-demo-btn" disabled={trabajando} onClick={fijar} title="Después de subir fotos por el panel de la demo">📌 Fijar fotos</button>}
         <button className="sa-demo-btn sa-demo-btn-rojo" disabled={trabajando} onClick={() => setConfirmar(true)}>
           {datos && !datos.existe ? 'Crear demo' : 'Reiniciar demo'}
         </button>

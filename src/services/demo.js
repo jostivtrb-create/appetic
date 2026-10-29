@@ -8,7 +8,7 @@
 //   4. Siembra 4 comandas en la cocina (con tiempos distintos) y un domicilio por confirmar.
 //   5. Siembra métricas de ejemplo de los últimos 7 días.
 import {
-  collection, doc, getDocs, setDoc, writeBatch, Timestamp, serverTimestamp,
+  collection, doc, getDoc, getDocs, setDoc, writeBatch, Timestamp, serverTimestamp,
 } from 'firebase/firestore'
 import { ref, listAll, deleteObject } from 'firebase/storage'
 import { db, storage } from '../config/firebase'
@@ -34,11 +34,31 @@ async function vaciar(nombre) {
   return snap.size
 }
 
-async function borrarCarpeta(r) {
+// Borra lo que subieron los visitantes, MENOS las fotos fijadas como base de la demo.
+async function borrarCarpeta(r, guardar = new Set()) {
   const { items, prefixes } = await listAll(r)
-  await Promise.all(items.map(it => deleteObject(it).catch(() => {})))
-  for (const p of prefixes) await borrarCarpeta(p)
+  await Promise.all(items.filter(it => !guardar.has(it.fullPath)).map(it => deleteObject(it).catch(() => {})))
+  for (const p of prefixes) await borrarCarpeta(p, guardar)
   return items.length
+}
+
+// 📌 FOTOS BASE: las que subimos NOSOTROS por el panel de la demo (platos, portada, logo).
+// «Fijar fotos» las guarda en config/demoBase; «Reiniciar» las vuelve a poner y no las borra.
+const BASE = () => doc(db, 'config', 'demoBase')
+const rutaDe = url => { try { return decodeURIComponent(new URL(url).pathname.split('/o/')[1] || '') } catch { return '' } }
+
+export async function fijarFotosBase() {
+  const [l, prods] = await Promise.all([getDoc(doc(db, 'locales', ID)), getDocs(collection(db, 'locales', ID, 'productos'))])
+  const local = l.data() || {}
+  const fotos = {}
+  prods.docs.forEach(d => { const f = d.data().foto; if (f) fotos[d.id] = f })
+  const base = { fotos, banner: local.banner || '', logo: local.logo || '', icono: local.icono || '', fijadaEn: serverTimestamp() }
+  await setDoc(BASE(), base)
+  return Object.keys(fotos).length
+}
+
+async function leerBase() {
+  try { return (await getDoc(BASE())).data() || null } catch { return null }
 }
 
 const prod = id => DEMO_PRODUCTOS.find(p => p.id === id)
@@ -97,15 +117,25 @@ function metricasDeEjemplo() {
 }
 
 export async function reiniciarDemo(onPaso = () => {}) {
+  const base = await leerBase()
+  const fotosBase = base?.fotos || {}
+  const guardar = new Set([...Object.values(fotosBase), base?.banner, base?.logo, base?.icono].filter(Boolean).map(rutaDe).filter(Boolean))
+
   onPaso('Borrando lo que hicieron los visitantes…')
   for (const s of SUBCOLECCIONES) await vaciar(s)
   onPaso('Borrando fotos subidas…')
-  await borrarCarpeta(ref(storage, `locales/${ID}`)).catch(() => 0)
+  await borrarCarpeta(ref(storage, `locales/${ID}`), guardar).catch(() => 0)
 
   onPaso('Dejando el local y el menú como nuevos…')
-  await setDoc(doc(db, 'locales', ID), { ...DEMO_LOCAL, reiniciadaEn: serverTimestamp() })
+  await setDoc(doc(db, 'locales', ID), {
+    ...DEMO_LOCAL,
+    ...(base?.banner ? { banner: base.banner } : {}),
+    ...(base?.logo ? { logo: base.logo } : {}),
+    ...(base?.icono ? { icono: base.icono } : {}),
+    reiniciadaEn: serverTimestamp(),
+  })
   const b = writeBatch(db)
-  for (const { id, ...p } of DEMO_PRODUCTOS) b.set(doc(db, 'locales', ID, 'productos', id), p)
+  for (const { id, ...p } of DEMO_PRODUCTOS) b.set(doc(db, 'locales', ID, 'productos', id), { ...p, foto: fotosBase[id] || p.foto })
   await b.commit()
 
   onPaso('Poniendo comandas y un domicilio de ejemplo…')
