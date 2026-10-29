@@ -100,7 +100,7 @@ Pregunta abierta: ¿agregamos al panel un editor de colores y logo? (hoy no exis
 - [x] 5. Pedidos de prueba → WhatsApp de ventas; escondida del buscador; medición de visitas y clics
 - [x] 6. Reiniciar demo (botón superadmin) con comandas, domicilio y métricas de ejemplo
 - [x] 7. Tutorial guiado tipo videojuego
-- [ ] 8. Probar todo en vista previa → publicar (con permiso) → sembrar la demo → probar en producción
+- [~] 8. Probar todo en vista previa ✅ → publicar ✅ (29-oct: reglas Firestore+Storage y app) → sembrar la demo («Crear demo», usuario) → probar en producción
 
 ---
 
