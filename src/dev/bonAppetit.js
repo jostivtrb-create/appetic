@@ -76,6 +76,8 @@ export const BONAPPETIT_LOCAL = {
   horario: { abre: '00:00', cierra: '00:00' },
 
   recoger: true,
+  // 🪑 QR por mesa: cuántas mesas tiene (0 = apagado). El dueño lo cambia en Difundir.
+  mesas: 10,
   domicilio: { activo: false, maxKm: 3, tarifas: {} },
 
   pagos: [

@@ -367,7 +367,7 @@ export default function AdminPage() {
         {seccion === 'mesero' ? <AdminMesero key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'comandas' ? <AdminComandas key={local.id} local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
           : seccion === 'domicilios' ? <AdminDomicilios key={local.id} local={local} demo={demo} usuario={usuario} esAdmin={esAdmin} />
-          : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} />
+          : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} onUpdate={updateLocal} />
           : seccion === 'config' ? (
             <AdminAjustes slug={slug} sub={sub}>
               {vista => vista === 'catalogo' ? catalogo

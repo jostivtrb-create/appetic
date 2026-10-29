@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { isMobileBrowser } from '../../utils/whatsapp'
 import { menuUrl, formatTel, mensajeBienvenida, qrDark, abrirAfiche } from '../../utils/compartir'
 import { construirPromptPublicidad, VARIANTES_PUBLICIDAD } from '../../utils/promptIA'
+import { abrirHojaMesas } from '../../utils/mesaQR'
 
 // Dónde se recuerda, POR LOCAL, qué estilo de publicidad tocó la última vez.
 const claveVariante = slug => `appetic_pub_variante_${slug}`
@@ -9,7 +10,7 @@ const claveVariante = slug => `appetic_pub_variante_${slug}`
 // 📣 Difundir: el dueño del local consigue aquí todo lo que necesita para que sus
 // clientes lleguen al menú: el QR (descargable), un afiche de DOMICILIOS listo
 // para imprimir, el link para copiar y un mensaje de bienvenida para WhatsApp.
-export default function AdminDifundir({ local, slug }) {
+export default function AdminDifundir({ local, slug, onUpdate }) {
   const url = menuUrl(slug)
   const [qrPng, setQrPng] = useState('')
   // El mensaje se regenera cada vez que se abre la pestaña (refleja los datos
@@ -25,6 +26,17 @@ export default function AdminDifundir({ local, slug }) {
   })
 
   const sinWhatsapp = !String(local.whatsapp || '').replace(/\D/g, '')
+  // 🪑 QR por mesa: cuántas mesas tiene el local (0 = apagado).
+  const [mesas, setMesas] = useState(Number(local.mesas) || 0)
+  const [mesasMsg, setMesasMsg] = useState('')
+  async function guardarMesas(n) {
+    const v = Math.max(0, Math.min(99, Math.round(Number(n) || 0)))
+    setMesas(v)
+    if (v === (Number(local.mesas) || 0) || !onUpdate) return
+    setMesasMsg('Guardando…')
+    try { await onUpdate({ mesas: v }); setMesasMsg('Guardado ✓') } catch { setMesasMsg('No se pudo guardar') }
+    setTimeout(() => setMesasMsg(''), 1800)
+  }
 
   // Genera el QR en alta resolución (para verlo, descargarlo y meterlo al afiche).
   // La librería se carga de forma diferida: solo pesa cuando el dueño abre esta
@@ -120,6 +132,23 @@ export default function AdminDifundir({ local, slug }) {
       </section>
 
       {/* ---- Afiche de domicilios (PDF imprimible) ---- */}
+      <section className="ac-sec">
+        <h3>🪑 QR por mesa</h3>
+        <p className="ac-hint">Un QR en cada mesa: el cliente escanea, pide y la comanda llega a la cocina como «MESA 4», con su nombre. Cuando sale, les avisa a los meseros para que la lleven.</p>
+        <label className="dif-mesas">
+          ¿Cuántas mesas tienes?
+          <input type="number" min="0" max="99" inputMode="numeric" value={mesas || ''} placeholder="0"
+            onChange={e => setMesas(Number(e.target.value) || 0)} onBlur={e => guardarMesas(e.target.value)} />
+          {mesasMsg && <span className="dif-mesas-msg">{mesasMsg}</span>}
+        </label>
+        <button className="dif-afiche" disabled={!mesas}
+          onClick={async () => { await guardarMesas(mesas); abrirHojaMesas(local, url, mesas, qrDark(local.tema)) }}>
+          <span className="dif-afiche-ic">🪑</span>
+          <span className="dif-afiche-txt"><strong>Imprimir los QR de las mesas</strong><small>{mesas ? `${mesas} QR, uno por mesa, con tu logo y el número` : 'Primero pon cuántas mesas tienes'}</small></span>
+          <span className="dif-afiche-arrow">→</span>
+        </button>
+      </section>
+
       <section className="ac-sec">
         <h3>🖨️ Afiche de domicilios</h3>
         <p className="ac-hint">

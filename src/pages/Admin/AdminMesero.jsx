@@ -570,7 +570,7 @@ function useListos(recientes, yo, localId) {
   const [vistos, setVistos] = useState(() => { try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] } })
   const desde = useRef(Date.now() - 30 * 60000) // solo avisos de la última media hora al abrir
   const pendientes = recientes.filter(c =>
-    c.estado === 'entregada' && c.creadaPor?.email === yo && !vistos.includes(c.id)
+    c.estado === 'entregada' && (c.creadaPor?.email === yo || c.origen === 'qr') && !vistos.includes(c.id)
     && (ms(c.entregadaEn) || Date.now()) >= desde.current)
   function marcarVistos() {
     const n = [...new Set([...vistos, ...pendientes.map(c => c.id)])].slice(-200)

@@ -5,6 +5,7 @@ rules_version = '2';
 //   los lee y mueve (confirmar, rechazar, en camino, entregado); RESUMEN PÚBLICO
 //   (pedidosPublicos) sin teléfono ni dirección, legible solo por su id para «Mi pedido»;
 //   rol DOMICILIARIO por local; se retiran los domiciliarios GLOBALES (config/domiciliarios).
+// + QR por mesa: el cliente crea su comanda (origen 'qr') directo, si el local activó sus mesas.
 // Cambios paso 1: EQUIPO por local (meseros y cocina en locales/{id}/equipo, privado) y COMANDAS
 //   (locales/{id}/comandas): las leen y escriben solo el admin, los meseros y la cocina ACTIVOS
 //   de ese local. El mesero crea; la cocina tacha y entrega. Ver «Guía para Mesero y Comandas».
@@ -122,10 +123,21 @@ service cloud.firestore {
       // (quedan como historial).
       match /comandas/{comandaId} {
         allow read: if esPersonal(localId);
-        allow create: if (puedeAdministrar(localId) || equipoActivo(localId, 'mesero'))
-                      && request.resource.data.estado == 'activa'
+        // También el CLIENTE desde el QR de su mesa (origen 'qr'), sin sesión: solo si el local
+        // activó sus mesas, a una mesa que existe, y nace limpia (sin correcciones ni tachados).
+        allow create: if request.resource.data.estado == 'activa'
                       && request.resource.data.items is list
-                      && request.resource.data.items.size() > 0;
+                      && request.resource.data.items.size() > 0
+                      && request.resource.data.items.size() <= 60
+                      && (
+                        puedeAdministrar(localId) || equipoActivo(localId, 'mesero')
+                        || (request.resource.data.origen == 'qr'
+                            && request.resource.data.destino.tipo == 'mesa'
+                            && get(/databases/$(database)/documents/locales/$(localId)).data.get('mesas', 0) > 0
+                            && int(request.resource.data.destino.mesa) >= 1
+                            && int(request.resource.data.destino.mesa) <= get(/databases/$(database)/documents/locales/$(localId)).data.get('mesas', 0)
+                            && !('cambios' in request.resource.data))
+                      );
         allow update: if esPersonal(localId)
                       && request.resource.data.estado in ['activa', 'entregada', 'cancelada'];
         allow delete: if false;

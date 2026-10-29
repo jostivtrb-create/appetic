@@ -8,7 +8,7 @@ import './AvisoListo.css'
 
 // 🔔 «¡Pedido listo!» en CUALQUIER pantalla de la app (guía «Mesero y Comandas», D5 / paso 1f).
 // Cuando la cocina entrega una comanda, le avisa con un aviso arriba + sonido:
-//   • al MESERO que la mandó,
+//   • al MESERO que la mandó (y a TODOS los meseros si vino del QR de una mesa),
 //   • a los ADMIN del local (todas las del local).
 // En la pantalla Mesero no sale: ahí ya parpadea su propio aviso. Lo «visto» se comparte con esa
 // pantalla (misma clave), así que tocar uno apaga el otro.
@@ -50,7 +50,7 @@ export default function AvisoListo() {
 
   const pendientes = recientes.filter(c =>
     c.estado === 'entregada' && !vistos.includes(c.id)
-    && (vigilado?.admin || c.creadaPor?.email === yo)
+    && (vigilado?.admin || c.creadaPor?.email === yo || c.origen === 'qr')
     && (ms(c.entregadaEn) || Date.now()) >= desde.current)
 
   // Sonido al aparecer uno nuevo.

@@ -16,6 +16,8 @@ import { resolverLogoAnim } from '../../utils/logoAnim'
 import { useBloquearScroll } from '../../utils/useBloquearScroll'
 import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import Checkout from '../Checkout/Checkout'
+import CheckoutMesa from '../Checkout/CheckoutMesa'
+import { mesaActual } from '../../utils/mesaQR'
 import './LocalSkinJet.css'
 import './LocalSkinJuance.css'
 import './LocalSkinFruti.css'
@@ -242,6 +244,8 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   // 🎬 Entrada del logo: 'arriba' (cae en 3 bloques), 'lado' (entran por los
   // costados) o 'ninguna'. El dueño lo elige en el panel (Configuración → Apariencia).
   const logoAnim = resolverLogoAnim(local)
+  // 🪑 ¿Entró por el QR de una mesa? (?mesa=4, se recuerda mientras navega). El pedido va directo a cocina.
+  const mesa = mesaActual(local)
 
   return (
     <div className={`local-page ${skin ? `local-skin-${skin}` : ''}`} style={localThemeVars(local.tema)}>
@@ -275,6 +279,12 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
           </>
         )}
       </header>
+
+      {mesa && (
+        <div className="local-mesa" role="status">
+          🪑 Estás en la <strong>mesa {mesa}</strong> · tu pedido va directo a la cocina
+        </div>
+      )}
 
       {!abierto && (
         <div className="local-cerrado" role="status">
@@ -379,7 +389,9 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
       />
 
       {checkoutAbierto && (
-        <Checkout local={local} abierto={abierto} onClose={() => setCheckoutAbierto(false)} />
+        mesa
+          ? <CheckoutMesa local={local} mesa={mesa} abierto={abierto} onClose={() => setCheckoutAbierto(false)} />
+          : <Checkout local={local} abierto={abierto} onClose={() => setCheckoutAbierto(false)} />
       )}
 
       {toast && <div className="local-toast">{toast}</div>}

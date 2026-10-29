@@ -108,6 +108,11 @@ export default async function handler(req, res) {
       const eq = await localRef.collection('equipo').where('rol', '==', 'domiciliario').get()
       domiciliarios = eq.docs.map(d => d.data()).filter(x => x.activo).map(x => String(x.email).toLowerCase())
     }
+    // Pedido desde el QR de la mesa: nadie lo tomó, así que avisa a TODOS los meseros activos.
+    if (comanda.origen === 'qr') {
+      const eq = await localRef.collection('equipo').where('rol', '==', 'mesero').get()
+      domiciliarios = [...domiciliarios, ...eq.docs.map(d => d.data()).filter(x => x.activo).map(x => String(x.email).toLowerCase())]
+    }
     const destinatarios = [...new Set([...domiciliarios, String(comanda.creadaPor?.email || '').toLowerCase(), ...admins].filter(Boolean))].slice(0, 30)
     if (!destinatarios.length) return res.status(200).json({ enviadas: 0 })
     const dispSnap = await localRef.collection('dispositivos').where('email', 'in', destinatarios).get()

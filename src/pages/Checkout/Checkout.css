@@ -258,3 +258,11 @@
   letter-spacing: 0.06em;
   color: var(--local-primary);
 }
+
+/* 🪑 Pedir desde la mesa (QR por mesa) */
+.com-items { list-style: none; display: grid; gap: 8px; }
+.com-items li { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; }
+.com-items small { color: var(--text-soft); }
+.com-items em { font-style: normal; color: var(--text-soft); font-size: 13.5px; }
+.com-total { text-align: right; margin-top: 10px; font-size: 15px; color: var(--text-soft); }
+.com-total strong { color: var(--text); font-size: 18px; margin-left: 6px; }

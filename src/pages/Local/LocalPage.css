@@ -265,3 +265,11 @@
   padding: 9px 14px;
 }
 .local-cerrado strong { font-weight: 800; }
+
+/* 🪑 Pidiendo desde el QR de una mesa */
+.local-mesa {
+  margin: 12px 16px 0; padding: 12px 14px; border-radius: 14px; text-align: center; font-size: 14.5px;
+  background: color-mix(in srgb, var(--local-primary) 12%, var(--surface, #fff)); color: var(--text);
+  border: 1.5px solid color-mix(in srgb, var(--local-primary) 40%, transparent);
+}
+.local-mesa strong { color: var(--local-primary-strong, var(--local-primary)); }

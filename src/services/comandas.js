@@ -5,6 +5,7 @@
 //
 //   destino:   { tipo: 'mesa' | 'llevar' | 'domicilio' | 'recoger', mesa: '4' | null, nombre: 'Barra' | null }
 //   origen:    'mesero' | 'app' (pedido de la app confirmado: misma id que el pedido + pedidoId)
+//              | 'qr' (el cliente pidió desde el QR de su mesa: entra directo, sin correo de quien la creó)
 //   items:     [{ uid, productoId, nombre, cantidad, opciones (texto), seleccion, comentario,
 //                 descripcion (¿qué lleva?), precio (total de la línea), hecho: bool }]
 //   estado:    'activa' | 'entregada' | 'cancelada'
@@ -209,12 +210,12 @@ function firestoreApi(localId) {
     nuevoId: () => doc(col()).id,
     // Con id propio (setDoc): si el mesero reintenta un envío que en realidad sí había llegado,
     // escribe el MISMO documento y no aparece una comanda repetida en cocina.
-    async crear({ id, destino, items, creadaPor }) {
+    async crear({ id, destino, items, creadaPor, origen = 'mesero' }) {
       const data = {
         destino,
         items,
         estado: 'activa',
-        origen: 'mesero',
+        origen,
         creadaPor,
         total: items.reduce((s, it) => s + (it.precio || 0), 0),
         cantidadItems: items.reduce((s, it) => s + (it.cantidad || 0), 0),
@@ -330,10 +331,10 @@ function demoApi(localId) {
       return { lista: l.map(hidratar), ultimo: l.length ? desde + l.length : null }
     },
     nuevoId: () => 'demo-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    async crear({ id, destino, items, creadaPor }) {
+    async crear({ id, destino, items, creadaPor, origen = 'mesero' }) {
       const ahora = Date.now()
       escribir([...leer().filter(c => c.id !== id), {
-        id, destino, items, estado: 'activa', origen: 'mesero', creadaPor,
+        id, destino, items, estado: 'activa', origen, creadaPor,
         total: items.reduce((s, it) => s + (it.precio || 0), 0),
         cantidadItems: items.reduce((s, it) => s + (it.cantidad || 0), 0),
         creadaEn: ahora, cerradaEn: null,
