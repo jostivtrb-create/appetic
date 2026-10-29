@@ -15,15 +15,24 @@ import AdminDifundir from './AdminDifundir'
 import { isDevSlug, getDevLocal } from '../../dev'
 import { computeDestacadosHome } from '../../utils/destacadosHome'
 import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
-import { useAdmin } from '../../contexts/AdminContext'
 import { useNavUI } from '../../contexts/NavUIContext'
-import PanelMenuBoton from '../../components/BottomNav/PanelMenuBoton'
+import PanelMenuBoton, { usePuedePanel } from '../../components/BottomNav/PanelMenuBoton'
 import './Admin.css'
+
+// Título de cada página del panel (va en el encabezado y en la pestaña del navegador).
+const SECCIONES = {
+  catalogo: 'Catálogo',
+  difundir: 'Difundir',
+  config: 'Configuración',
+  metricas: 'Métricas',
+}
 
 export default function AdminPage() {
   const { slug, panel } = useParams()
   const seccion = panel || 'catalogo' // catalogo | difundir | config | metricas
-  const { esDueno } = useAdmin()
+  // ¿Tiene la barra del panel (lateral en PC, cajón ☰ en el celular)? Dueños y superadmin sí.
+  // Con barra, cada sección es su propia página y NO se repiten pestañas arriba.
+  const { puede: tieneBarra } = usePuedePanel()
   const { setPanelCatalogo } = useNavUI()
   const navigate = useNavigate()
   const { user, cargando: authCargando, entrar, salir } = useAuth()
@@ -86,6 +95,14 @@ export default function AdminPage() {
     })
   }, [estado, local, productos, slug, setPanelCatalogo])
   useEffect(() => () => setPanelCatalogo(null), [setPanelCatalogo])
+
+  // La pestaña del navegador dice en qué página del panel estás.
+  useEffect(() => {
+    if (!local?.nombre) return
+    const antes = document.title
+    document.title = `${SECCIONES[seccion] || SECCIONES.catalogo} · ${local.nombre}`
+    return () => { document.title = antes }
+  }, [seccion, local?.nombre])
 
   // ---- Operaciones (en demo solo tocan el estado; en real, Firestore + estado) ----
   // ⭐ "Nuestro fuerte" es UNO por categoría: al marcar uno, desmarca los demás de
@@ -258,8 +275,8 @@ export default function AdminPage() {
         <div className="admin-top-izq">
           <PanelMenuBoton />
           <div>
-            <span className="admin-top-eyebrow">Panel · Appetic</span>
-            <h1 className="admin-top-nombre">{local.nombre}</h1>
+            <span className="admin-top-eyebrow">{local.nombre} · Panel</span>
+            <h1 className="admin-top-nombre">{SECCIONES[seccion] || SECCIONES.catalogo}</h1>
           </div>
         </div>
         {!demo && (
@@ -281,9 +298,9 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Los dueños navegan con la barra inferior; el superadmin/demo (que no la
-          ven) conservan estas pestañas internas para moverse entre secciones. */}
-      {!esDueno && (
+      {/* Dueños y superadmin navegan con la barra del panel: cada sección es una página.
+          Solo la vista previa DEMO (sin barra) conserva estas pestañas para moverse. */}
+      {!tieneBarra && (
         <nav className="admin-tabs">
           <button className={seccion === 'catalogo' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/catalogo`)}>🍔 Catálogo</button>
           <button className={seccion === 'difundir' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/difundir`)}>📣 Difundir</button>
