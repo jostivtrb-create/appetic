@@ -6,11 +6,11 @@ yo las recorto, las optimizo y las dejo en `public/locales/demo/` (no se suben p
 **Paleta:** rojo parrilla `#D9381E` · amarillo mostaza `#F2A900` · carbón `#1E1B1A`.  
 **Estilo común (ya va en cada prompt):** tabla de pizarra oscura sobre mesa de madera quemada, fondo carbón con brillo de brasas, luz dorada lateral.
 
-Estado: ⏳ pendiente = falta generar · ✅ lista
+Estado: ⏳ pendiente = falta generar · ✅ lista · 📱 = la sube el usuario por el panel y la fija con «📌 Fijar fotos»
 
 ---
 
-## 🏷️ Logo (wordmark ancho) — `logo.webp` · ⏳ pendiente
+## 🏷️ Logo (wordmark ancho) — `logo.webp` · ✅ lista (29-oct: x4 anime → recorte magenta; `icono.webp` cuadrado armado en local con la misma hamburguesa y el nombre)
 
 Fondo magenta para recortarlo transparente (lleva lechuga verde, por eso no va croma verde).
 

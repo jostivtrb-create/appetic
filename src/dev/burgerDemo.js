@@ -23,13 +23,13 @@ export const DEMO_LOCAL = {
   id: SLUG,
   slug: SLUG,
   nombre: 'Burger Demo',
-  descripcion: 'Hamburguesas a la parrilla, perros y salchipapas · Local de demostración',
+  descripcion: 'Perros, salchipapas y combos · Local de demostración',
   whatsapp: WHATSAPP_VENTAS,
   esDemo: true,
 
   logo: '/locales/demo/logo.webp',
   icono: '/locales/demo/icono.webp',
-  logoAnim: 'lado',
+  logoAnim: 'lado',                           // wordmark ancho (logo.webp) · icono.webp = versión cuadrada
   banner: '/locales/demo/banner.webp',
   tema: {
     primary: '#D9381E',        // rojo parrilla (botones, precios)
@@ -37,6 +37,7 @@ export const DEMO_LOCAL = {
     primarySoft: '#F2683F',
     onPrimary: '#FFFFFF',
     accent: '#F2A900',         // amarillo mostaza
+    hero: 'logo',              // el logo ya trae el nombre: protagoniza el encabezado (y se ve su animación)
   },
 
   ubicacion: { lat: 4.6486, lng: -74.0639 },
