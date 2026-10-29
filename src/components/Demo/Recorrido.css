@@ -86,3 +86,10 @@
   .rc-tarjeta, .rc-emoji, .rc-anillo, .rc-confeti i, .rc-esperando i { animation: none !important; }
   .rc-confeti { display: none; }
 }
+
+/* Con una ventana de la app abierta: la tarjeta se encoge arriba y deja ver/tocar la ventana. */
+.rc-tarjeta.compacta { top: 10px; bottom: auto; max-width: 380px; padding: 10px 12px; opacity: .97; }
+.rc-tarjeta.compacta .rc-emoji { width: 34px; height: 34px; font-size: 19px; border-radius: 10px; }
+.rc-tarjeta.compacta h3 { font-size: 14.5px; }
+.rc-tarjeta.compacta p { margin: 6px 0 0; font-size: 13px; }
+.rc-tarjeta.compacta .rc-barra, .rc-tarjeta.compacta .rc-acc, .rc-tarjeta.compacta .rc-paso { display: none; }

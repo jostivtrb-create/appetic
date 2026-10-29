@@ -53,6 +53,12 @@ const PASOS = [
     texto: 'Pediste desde la mesa, cocinaste, atendiste como mesero, confirmaste un domicilio y cambiaste tu carta. Así funcionaría tu restaurante, con tu menú, tu logo y tus colores.' },
 ]
 
+// Ventanas de la app (plato, carrito, pedido, confirmaciones…). Cuando una está abierta, el
+// visitante está HACIENDO el paso: se apaga el foco (no debe oscurecer la ventana) y la tarjeta
+// se encoge arriba para no tapar sus botones.
+const CAPAS = '.pm-overlay, .pw-overlay, .cd-overlay, .co-screen, .km-velo, .eq-velo, .ms-velo, .ac-modal-overlay, .cc-cuidado-velo'
+const hayCapa = () => [...document.querySelectorAll(CAPAS)].some(el => !el.closest('.rc') && el.getClientRects().length > 0)
+
 const CLAVE = 'appetic_demo_recorrido'
 const leer = () => { try { const v = JSON.parse(localStorage.getItem(CLAVE)); return Number.isInteger(v?.paso) ? v.paso : null } catch { return null } }
 const guardar = paso => { try { paso == null ? localStorage.removeItem(CLAVE) : localStorage.setItem(CLAVE, JSON.stringify({ paso })) } catch { /* nada */ } }
@@ -69,6 +75,7 @@ export default function Recorrido() {
   const [logro, setLogro] = useState(false)   // celebración breve entre pasos
   const [rect, setRect] = useState(null)
   const [noAparece, setNoAparece] = useState(false) // el objetivo no está (p. ej. ya lo confirmó otro)
+  const [capa, setCapa] = useState(false)           // hay una ventana de la app abierta encima
   const location = useLocation()
   const navigate = useNavigate()
   const enDemo = location.pathname === D || location.pathname.startsWith(`${D}/`) || location.pathname.startsWith(`/p/${DEMO_SLUG}/`)
@@ -99,8 +106,11 @@ export default function Recorrido() {
 
   // Sigue al objetivo (aparece, se mueve, hace scroll): lo busca cada poco y mide su caja.
   useLayoutEffect(() => {
-    if (!p?.objetivo || !enDemo) { setRect(null); return }
+    if (!p || !enDemo) { setRect(null); setCapa(false); return }
     const buscar = () => {
+      const abierta = hayCapa()
+      setCapa(abierta)
+      if (!p.objetivo || abierta) { setRect(null); return }
       const el = typeof p.objetivo === 'function' ? p.objetivo() : document.querySelector(p.objetivo)
       const r = el?.getBoundingClientRect()
       setRect(r && r.width > 0 && r.bottom > 0 && r.top < window.innerHeight
@@ -109,6 +119,7 @@ export default function Recorrido() {
     buscar()
     setNoAparece(false)
     const tarde = setTimeout(() => {
+      if (!p.objetivo || hayCapa()) return
       const el = typeof p.objetivo === 'function' ? p.objetivo() : document.querySelector(p.objetivo)
       if (!el) setNoAparece(true)
     }, 3000)
@@ -141,7 +152,7 @@ export default function Recorrido() {
 
       {logro && <Celebracion />}
 
-      <div className={`rc-tarjeta ${arriba ? 'arriba' : ''} ${p.final ? 'final' : ''} ${logro ? 'logro' : ''}`} key={paso} role="dialog" aria-label="Recorrido guiado">
+      <div className={`rc-tarjeta ${arriba ? 'arriba' : ''} ${capa && !p.final && !logro ? 'compacta' : ''} ${p.final ? 'final' : ''} ${logro ? 'logro' : ''}`} key={paso} role="dialog" aria-label="Recorrido guiado">
         <button className="rc-x" onClick={salir} aria-label="Salir del recorrido">✕</button>
         {logro ? (
           <div className="rc-logro"><span>✓</span><b>¡Bien hecho!</b></div>
