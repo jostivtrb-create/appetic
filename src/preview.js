@@ -50,6 +50,10 @@ export async function getPreviewLocal(slug) {
     const { MONUMENTO_LOCAL, MONUMENTO_PRODUCTOS } = await import('./dev/elMonumento')
     return { local: MONUMENTO_LOCAL, productos: MONUMENTO_PRODUCTOS }
   }
+  if (slug === 'bon-appetit') {
+    const { BONAPPETIT_LOCAL, BONAPPETIT_PRODUCTOS } = await import('./dev/bonAppetit')
+    return { local: BONAPPETIT_LOCAL, productos: BONAPPETIT_PRODUCTOS }
+  }
   return null
 }
 
@@ -58,7 +62,7 @@ export async function getPreviewLocal(slug) {
 // destacadosHome al vuelo con el mismo helper de los seeds/panel (fuente única).
 const PREVIEW_SLUGS = [
   'perros-criollos', 'sabor-del-dia', 'pilotos', 'juance', 'jasbury',
-  'fruti-tentacion', 'la-comarca', 'el-monumento',
+  'fruti-tentacion', 'la-comarca', 'el-monumento', 'bon-appetit',
 ]
 export async function getPreviewLocales() {
   const { computeDestacadosHome } = await import('./utils/destacadosHome')
