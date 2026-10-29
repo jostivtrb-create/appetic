@@ -176,7 +176,9 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
 
       {enviada && <div className="ms-toast" role="status">✓ Enviada a cocina · {enviada}</div>}
 
-      {totalItems > 0 && !hoja && (
+      {/* Se esconde mientras haya una ventana encima (opciones, «¿qué lleva?»): si no, tapaba su
+          botón «Agregar» al pie. */}
+      {totalItems > 0 && !hoja && !abierto && !info && (
         <button className="ms-barra" onClick={() => setHoja(true)}>
           <span className="ms-barra-n">{totalItems}</span>
           <span>Ver comanda</span>
