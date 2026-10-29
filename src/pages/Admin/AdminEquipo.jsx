@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { equipoDe, esCorreo } from '../../services/equipo'
+import { urlWhatsApp } from '../../utils/whatsapp'
 import './Equipo.css'
 
 const TEXTOS = {
@@ -34,6 +35,7 @@ function VentanaEquipo({ local, rol, demo, onCerrar, inline = false }) {
   const [error, setError] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [borrando, setBorrando] = useState(null)
+  const [recien, setRecien] = useState('')   // correo recién agregado: se le muestra cómo avisarle
 
   const cargar = useCallback(async () => {
     try { setLista(await api.listar(rol)) } catch { setLista([]); setError('No se pudo cargar la lista.') }
@@ -46,7 +48,7 @@ function VentanaEquipo({ local, rol, demo, onCerrar, inline = false }) {
     if (!esCorreo(c)) { setError('Escribe un correo válido (el de Google con el que va a entrar).'); return }
     if (lista?.some(p => p.email === c)) { setError(`Ese correo ya está en ${t.titulo.toLowerCase()}.`); return }
     setOcupado(true); setError('')
-    try { await api.agregar(rol, c); setCorreo(''); await cargar() }
+    try { await api.agregar(rol, c); setCorreo(''); setRecien(c); await cargar() }
     catch { setError('No se pudo agregar. Revisa tu conexión e intenta de nuevo.') }
     finally { setOcupado(false) }
   }
@@ -81,6 +83,7 @@ function VentanaEquipo({ local, rol, demo, onCerrar, inline = false }) {
           <button className="btn btn-primary" disabled={ocupado || !correo.trim()}>+ Agregar</button>
         </form>
         {error && <p className="eq-error">{error}</p>}
+        <ComoEntra local={local} rol={rol} recien={recien} />
 
         {lista === null ? <p className="eq-vacio">Cargando…</p> : (
           <>
@@ -108,6 +111,38 @@ function VentanaEquipo({ local, rol, demo, onCerrar, inline = false }) {
           </>
         )}
     </Marco>
+  )
+}
+
+// 🔗 Cómo entra la persona: el link DIRECTO a su pantalla (no el del menú, que abre la vista de
+// cliente) y que entre con Google usando el MISMO correo que se agregó aquí.
+function ComoEntra({ local, rol, recien }) {
+  const [copiado, setCopiado] = useState(false)
+  const t = TEXTOS[rol]
+  const link = `${window.location.origin}/${local.slug}/admin`
+  const pantalla = rol === 'mesero' ? 'tomar pedidos' : rol === 'cocina' ? 'ver las comandas' : 'ver los domicilios'
+  const mensaje = `¡Hola! Ya quedaste como ${t.uno} de ${local.nombre} en Appetic 🧡\n\n` +
+    `1. Abre este link: ${link}\n2. Toca «Entrar con Google» y elige la cuenta ${recien || 'que te agregamos'}\n` +
+    `3. Listo: te sale tu pantalla para ${pantalla}. Guárdala en el inicio del celular para tenerla a la mano.`
+  async function copiar() {
+    try { await navigator.clipboard.writeText(link); setCopiado(true); setTimeout(() => setCopiado(false), 1800) } catch { /* nada */ }
+  }
+  const enviar = () => {
+    const url = urlWhatsApp('', mensaje).replace('phone=&', '')
+    if (/^whatsapp:/.test(url)) window.location.href = url
+    else window.open(url, '_blank', 'noopener')
+  }
+  return (
+    <div className={`eq-como ${recien ? 'is-nuevo' : ''}`}>
+      {recien
+        ? <p><b>✓ Agregaste a {recien}.</b> Ahora mándale este link. Tiene que entrar con Google usando <b>ese mismo correo</b>.</p>
+        : <p><b>¿Cómo entra?</b> Con este link (no el del menú) y su cuenta de Google del correo que agregaste.</p>}
+      <code className="eq-como-link">{link}</code>
+      <div className="eq-como-acc">
+        <button className="eq-btn" onClick={copiar}>{copiado ? '✓ Copiado' : 'Copiar link'}</button>
+        <button className="eq-btn eq-btn--wa" onClick={enviar}>💬 Enviar por WhatsApp</button>
+      </div>
+    </div>
   )
 }
 

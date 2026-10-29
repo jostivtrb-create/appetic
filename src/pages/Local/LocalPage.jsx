@@ -6,6 +6,7 @@ import { getMenuExterno } from '../../services/menuExterno'
 import { registrarVisita } from '../../services/stats'
 import { CartProvider } from '../../contexts/CartContext'
 import LocalMenu from './LocalMenu'
+import { useAdmin } from '../../contexts/AdminContext'
 import DemoLetrero from '../../components/Demo/DemoLetrero'
 import DemoBienvenida from '../../components/Demo/DemoBienvenida'
 import { yaVioBienvenida } from '../../components/Demo/demoUtils'
@@ -16,6 +17,7 @@ import { atrasEsDelCajon } from '../../utils/cajonPanel'
 export default function LocalPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
+  const { rolesEn } = useAdmin()
   const [estado, setEstado] = useState('cargando') // cargando | ok | no-existe | error
   const [local, setLocal] = useState(null)
   const [productos, setProductos] = useState([])
@@ -154,8 +156,30 @@ export default function LocalPage() {
   return (
     <CartProvider localId={local.id}>
       {local.esDemo && <DemoLetrero local={local} vista="cliente" />}
+      {!local.esDemo && <AvisoEquipo slug={local.slug} nombre={local.nombre} roles={rolesEn(local.slug)} />}
       <LocalMenu local={local} productos={productos} cerrarCapaRef={cerrarCapaRef} />
       {local.esDemo && bienvenida && <DemoBienvenida local={local} onCliente={() => setBienvenida(false)} onRecorrido={() => { setBienvenida(false); iniciarRecorrido() }} />}
     </CartProvider>
+  )
+}
+
+// 🧑‍🍳 Si quien abre el menú es del equipo de ESTE local (o su dueño), un aviso arriba lo lleva a
+// su pantalla. Sin esto, el mesero que entra por el link del menú se queda viendo la vista del
+// cliente y cree que «lo registraron como cliente».
+const TEXTO_ROL = {
+  admin: ['👔', 'Eres el dueño', 'Ir a mi panel'],
+  mesero: ['🧑‍🍳', 'Eres mesero', 'Tomar pedidos'],
+  cocina: ['🍳', 'Eres de la cocina', 'Ver comandas'],
+  domiciliario: ['🛵', 'Eres domiciliario', 'Ver domicilios'],
+}
+function AvisoEquipo({ slug, nombre, roles }) {
+  const rol = ['admin', 'mesero', 'cocina', 'domiciliario'].find(r => roles.includes(r))
+  if (!rol) return null
+  const [ic, quien, accion] = TEXTO_ROL[rol]
+  return (
+    <div className="local-equipo">
+      <span>{ic} <b>{quien}</b> de {nombre}</span>
+      <Link to={`/${slug}/admin`}>{accion} →</Link>
+    </div>
   )
 }

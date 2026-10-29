@@ -51,3 +51,11 @@
 .eq-btn { font-size: 13px; font-weight: 700; padding: 7px 11px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
 .eq-btn--peligro { background: #C62828; border-color: #C62828; color: #fff; }
 .eq-btn--quitar { padding: 7px 9px; }
+
+/* 🔗 Cómo entra la persona del equipo (link directo a su pantalla) */
+.eq-como { margin: 10px 0 4px; padding: 12px 14px; border-radius: 14px; background: var(--surface-2, #f6f2ec); border: 1px solid var(--border, #eadfd2); font-size: 13.5px; line-height: 1.45; }
+.eq-como.is-nuevo { background: #ecf8f0; border-color: #9fd8b3; }
+.eq-como p { margin: 0 0 8px; }
+.eq-como-link { display: block; padding: 8px 10px; border-radius: 10px; background: var(--surface, #fff); font-size: 13px; word-break: break-all; }
+.eq-como-acc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.eq-btn--wa { background: #25D366; border-color: #25D366; color: #fff; }

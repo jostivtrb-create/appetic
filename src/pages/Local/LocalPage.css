@@ -273,3 +273,13 @@
   border: 1.5px solid color-mix(in srgb, var(--local-primary) 40%, transparent);
 }
 .local-mesa strong { color: var(--local-primary-strong, var(--local-primary)); }
+
+/* 🧑‍🍳 Aviso para el equipo del local que abre el menú: lo lleva a su pantalla */
+.local-equipo {
+  position: sticky; top: 0; z-index: 60; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 14px; background: #1E1B1A; color: #FFF4E0; font-size: 13.5px;
+}
+.local-equipo a {
+  flex-shrink: 0; padding: 7px 12px; border-radius: 999px; background: var(--primary, #ED7D2B); color: #fff;
+  font-weight: 800; text-decoration: none;
+}
