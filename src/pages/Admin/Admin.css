@@ -870,3 +870,13 @@
   .afe-btn span { display: none; }
   .afe-btn { padding: 8px 9px; }
 }
+
+/* 👀 Muestra de la animación del logo */
+.ml { margin-top: 14px; }
+.ml-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13.5px; color: var(--text-soft); }
+.ml-cab b { color: var(--text); }
+.ml-cab button { flex-shrink: 0; padding: 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 800; background: var(--brand-orange-tint); color: var(--brand-orange-strong); }
+.ml-pagina { min-height: 0; border-radius: 18px; overflow: hidden; border: 1px solid var(--border); animation: none; }
+/* En PC .local-page reserva a la derecha el hueco del carrito: en la muestra no hay carrito. */
+.local-page.ml-pagina { padding-right: 0; }
+.ml-hero { min-height: 230px; }

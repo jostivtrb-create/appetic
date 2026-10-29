@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { LOGO_ANIMS, resolverLogoAnim } from '../../utils/logoAnim'
+import MuestraLogo from './MuestraLogo'
 import { construirPromptImagenIA } from '../../utils/promptIA'
 
 // 🛵 Cuánto sube el domicilio por cada medio kilómetro cuando el dueño usa el
@@ -286,7 +287,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
       {ver('apariencia') && local.tema?.hero === 'logo' && (
         <section className="ac-sec">
           <h3>✨ Animación del logo</h3>
-          <p className="ac-hint">Cómo aparece tu logo al abrir el menú. Pronto habrá más estilos para elegir.</p>
+          <p className="ac-hint">Cómo aparece tu logo al abrir el menú. Elige una y mírala aquí abajo antes de guardar.</p>
           <div className="ac-select">
             <button
               type="button"
@@ -316,6 +317,8 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
               </div>
             )}
           </div>
+          {/* 👀 Muestra en vivo: la misma cabecera del menú, con la animación elegida. */}
+          <MuestraLogo local={local} anim={logoAnim} />
         </section>
       )}
 
