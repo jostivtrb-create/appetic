@@ -3,7 +3,7 @@ import { cop } from '../../utils/money'
 import { tieneOpciones, precioItem } from '../../utils/price'
 import { resumenSeleccion } from '../../utils/selectionSummary'
 import {
-  comandasDe, itemsDeComanda, etiquetaDestino, claveMesa, ms, nuevoIdComanda,
+  comandasDe, itemsDeComanda, etiquetaDestino, claveMesa, ms, nuevoIdComanda, motivoError,
 } from '../../services/comandas'
 import ProductModal from '../../components/Menu/ProductModal'
 import ProductWizard from '../../components/Menu/ProductWizard'
@@ -26,7 +26,7 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
   const [recientes, setRecientes] = useState([])
   const [errorEscucha, setErrorEscucha] = useState('')
 
-  useEffect(() => api.escucharActivas(setActivas, () => setErrorEscucha('Sin conexión con la cocina.')), [api])
+  useEffect(() => api.escucharActivas(l => { setActivas(l); setErrorEscucha('') }, e => setErrorEscucha(motivoError(e))), [api])
   useEffect(() => api.escucharRecientes(l => setRecientes(l), () => {}), [api])
 
   const yo = (usuario?.email || '').toLowerCase()
@@ -74,8 +74,14 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
 
 function TomarPedido({ local, productos, api, activas, usuario }) {
   const KEY = `appetic_mesero_carrito_${local.id}`
+  // Solo productos de ESTE local: cada línea lleva su localId y además se cruza con el menú actual
+  // (lo que no esté —de otro local o ya borrado del menú— se descarta al abrir).
+  const idsMenu = useMemo(() => new Set(productos.map(p => p.id)), [productos])
   const [carrito, setCarrito] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] }
+    try {
+      const guardado = JSON.parse(localStorage.getItem(KEY) || '[]')
+      return guardado.filter(it => it.localId === local.id && idsMenu.has(it.producto?.id))
+    } catch { return [] }
   })
   // El pedido a medio armar sobrevive si el mesero cambia de pantalla o se le cierra la app.
   useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(carrito)) } catch { /* nada */ } }, [KEY, carrito])
@@ -104,11 +110,11 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
     setCarrito(c => {
       const i = c.findIndex(it => it.producto.id === p.id && !it.comentario)
       if (i >= 0) return c.map((it, j) => j === i ? { ...it, cantidad: it.cantidad + 1 } : it)
-      return [...c, { uid: uid(), producto: p, seleccion: {}, cantidad: 1, comentario: '' }]
+      return [...c, { uid: uid(), localId: local.id, producto: p, seleccion: {}, cantidad: 1, comentario: '' }]
     })
   }
   function agregarDesdeModal({ producto, seleccion, cantidad, notas }) {
-    setCarrito(c => [...c, { uid: uid(), producto, seleccion, cantidad, comentario: notas || '' }])
+    setCarrito(c => [...c, { uid: uid(), localId: local.id, producto, seleccion, cantidad, comentario: notas || '' }])
     setAbierto(null)
   }
 
@@ -201,6 +207,7 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
 
       {hoja && (
         <HojaComanda
+          local={local} idsMenu={idsMenu}
           carrito={carrito} setCarrito={setCarrito} total={total} api={api} activas={activas}
           usuario={usuario} onCerrar={() => setHoja(false)} onEnviada={listo}
         />
@@ -210,7 +217,7 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
 }
 
 // La comanda armada: ítems con su comentario, y abajo el destino (mesa / nombre / llevar) + Enviar.
-function HojaComanda({ carrito, setCarrito, total, api, activas, usuario, onCerrar, onEnviada }) {
+function HojaComanda({ local, idsMenu, carrito, setCarrito, total, api, activas, usuario, onCerrar, onEnviada }) {
   const [tipo, setTipo] = useState('mesa')   // mesa | nombre | llevar
   const [mesa, setMesa] = useState('')
   const [nombre, setNombre] = useState('')
@@ -241,6 +248,13 @@ function HojaComanda({ carrito, setCarrito, total, api, activas, usuario, onCerr
 
   async function enviar() {
     setAvisoMesa(null)
+    // Última barrera: nada que no sea del menú de ESTE local llega a su cocina.
+    const ajenos = carrito.filter(it => it.localId !== local.id || !idsMenu.has(it.producto?.id))
+    if (ajenos.length) {
+      setCarrito(c => c.filter(it => !ajenos.includes(it)))
+      setEstado('ajenos')
+      return
+    }
     setEstado('enviando')
     if (!idRef.current) idRef.current = nuevoIdComanda(api)
     const datos = {
@@ -319,6 +333,11 @@ function HojaComanda({ carrito, setCarrito, total, api, activas, usuario, onCerr
           </div>
         )}
 
+        {estado === 'ajenos' && (
+          <div className="ms-error" role="alert">
+            <strong>⚠️ Quité productos que no son de {local.nombre}.</strong> Revisa la comanda y vuelve a enviar.
+          </div>
+        )}
         {estado === 'error' && (
           <div className="ms-error" role="alert">
             <strong>⚠️ No se envió.</strong> Revisa el internet y vuelve a intentar. La comanda sigue aquí.

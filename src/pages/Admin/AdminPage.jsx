@@ -332,8 +332,10 @@ export default function AdminPage() {
       )}
 
       <main className="admin-body">
-        {seccion === 'mesero' ? <AdminMesero local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
-          : seccion === 'comandas' ? <AdminComandas local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
+        {/* key={local.id}: al cambiar de local desde la barra, Mesero y Comandas arrancan de cero
+            (sin esto el pedido a medio armar de un local se pasaba al otro). */}
+        {seccion === 'mesero' ? <AdminMesero key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
+          : seccion === 'comandas' ? <AdminComandas key={local.id} local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
           : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} />
           : seccion === 'config' ? <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} />
             : seccion === 'metricas' ? <AdminMetricas local={local} demo={demo} />

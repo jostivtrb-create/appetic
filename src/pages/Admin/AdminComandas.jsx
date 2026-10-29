@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { comandasDe, etiquetaDestino, ms, POR_PAGINA } from '../../services/comandas'
+import { comandasDe, etiquetaDestino, ms, POR_PAGINA, motivoError } from '../../services/comandas'
 import AdminEquipo from './AdminEquipo'
 import { notificarListo } from '../../services/notificaciones'
 import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, UMBRALES_DEFECTO, itemsTxt } from './comandaUtils'
@@ -30,7 +30,7 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
   const umbrales = umbralesDe(local)
   const colores = coloresComanda(local)
 
-  useEffect(() => api.escucharActivas(setActivas, () => setError('Se perdió la conexión. Revisa el internet de este equipo.')), [api])
+  useEffect(() => api.escucharActivas(l => { setActivas(l); setError('') }, e => setError(motivoError(e))), [api])
   useEffect(() => api.escucharRecientes((l, ult) => { setRecientes(l); setCursor(ult) }, () => {}), [api])
 
   // 🔔 Comanda nueva → sonido + resaltado unos segundos (no al cargar la pantalla).

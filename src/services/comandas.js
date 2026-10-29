@@ -76,6 +76,27 @@ export function ms(t) {
 
 // ─────────────────────────────── Motor Firestore ───────────────────────────────
 
+// Escucha en vivo que SE RECONECTA sola: si Firestore corta la escucha (internet que se va, índice
+// que todavía se está construyendo), avisa con onError y reintenta a los 3 s, 6 s, 12 s… (tope 30 s).
+// Cuando vuelve a llegar algo, avisa con cb y el error se borra solo en la pantalla.
+function escucharConReintento(q, cb, onError) {
+  let unsub = () => {}
+  let espera = 3000
+  let timer = null
+  let vivo = true
+  const abrir = () => {
+    unsub = onSnapshot(q, snap => { espera = 3000; cb(snap) }, err => {
+      console.warn('Escucha de comandas cortada:', err?.code, err?.message)
+      onError?.(err)
+      if (!vivo) return
+      timer = setTimeout(() => { if (vivo) abrir() }, espera)
+      espera = Math.min(espera * 2, 30000)
+    })
+  }
+  abrir()
+  return () => { vivo = false; clearTimeout(timer); unsub() }
+}
+
 function firestoreApi(localId) {
   const col = () => collection(db, 'locales', localId, 'comandas')
 
@@ -84,12 +105,12 @@ function firestoreApi(localId) {
     // vea «CANCELADA» antes de que se vaya). Orden de llegada.
     escucharActivas(cb, onError) {
       const q = query(col(), where('estado', '==', 'activa'), orderBy('creadaEn', 'asc'))
-      return onSnapshot(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))), onError)
+      return escucharConReintento(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))), onError)
     },
     // Las últimas entregadas/canceladas (para «Entregadas» con Deshacer y para el «listo» del mesero).
     escucharRecientes(cb, onError, n = POR_PAGINA) {
       const q = query(col(), where('estado', 'in', ['entregada', 'cancelada']), orderBy('cerradaEn', 'desc'), limit(n))
-      return onSnapshot(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() })), snap.docs.at(-1) || null), onError)
+      return escucharConReintento(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() })), snap.docs.at(-1) || null), onError)
     },
     // Historial por partes: «ver más» pide las siguientes 20 a partir de la última que ya tiene.
     async historial(despuesDe) {
@@ -247,4 +268,12 @@ export function comandasDe(localId, { demo = false } = {}) {
   const k = `${demo ? 'demo' : 'fs'}:${localId}`
   if (!cache.has(k)) cache.set(k, demo ? demoApi(localId) : firestoreApi(localId))
   return cache.get(k)
+}
+
+// Mensaje claro para la pantalla según por qué se cortó la escucha.
+export function motivoError(err) {
+  const c = err?.code || ''
+  if (c === 'permission-denied') return 'Esta cuenta no tiene permiso para ver las comandas de este local.'
+  if (c === 'failed-precondition') return 'La base de datos se está preparando. Reintentando…'
+  return 'Sin conexión con la cocina. Reintentando…'
 }
