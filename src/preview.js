@@ -50,6 +50,10 @@ export async function getPreviewLocal(slug) {
     const { MONUMENTO_LOCAL, MONUMENTO_PRODUCTOS } = await import('./dev/elMonumento')
     return { local: MONUMENTO_LOCAL, productos: MONUMENTO_PRODUCTOS }
   }
+  if (slug === 'demo') {
+    const { DEMO_LOCAL, DEMO_PRODUCTOS } = await import('./dev/burgerDemo')
+    return { local: DEMO_LOCAL, productos: DEMO_PRODUCTOS }
+  }
   if (slug === 'bon-appetit') {
     const { BONAPPETIT_LOCAL, BONAPPETIT_PRODUCTOS } = await import('./dev/bonAppetit')
     return { local: BONAPPETIT_LOCAL, productos: BONAPPETIT_PRODUCTOS }

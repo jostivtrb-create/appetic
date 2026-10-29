@@ -6,6 +6,10 @@ import { getMenuExterno } from '../../services/menuExterno'
 import { registrarVisita } from '../../services/stats'
 import { CartProvider } from '../../contexts/CartContext'
 import LocalMenu from './LocalMenu'
+import DemoLetrero from '../../components/Demo/DemoLetrero'
+import DemoBienvenida from '../../components/Demo/DemoBienvenida'
+import { yaVioBienvenida } from '../../components/Demo/demoUtils'
+import { iniciarRecorrido } from '../../components/Demo/Recorrido'
 import './LocalPage.css'
 import { atrasEsDelCajon } from '../../utils/cajonPanel'
 
@@ -19,6 +23,8 @@ export default function LocalPage() {
   // almuerzo, o aún no lo suben— y entonces la página quedaba en blanco. Esto
   // es lo que se le dice al cliente en ese caso, con las palabras del negocio.
   const [avisoVacio, setAvisoVacio] = useState(null)
+  // 🍔 Demo para clientes: la bienvenida sale una vez por visita (D12).
+  const [bienvenida, setBienvenida] = useState(() => !yaVioBienvenida())
 
   // 🔙 Botón "atrás" del teléfono. Ponemos una entrada "centinela" encima del
   // menú; cuando el usuario presiona atrás, caemos en ella (popstate) y decidimos:
@@ -147,7 +153,9 @@ export default function LocalPage() {
 
   return (
     <CartProvider localId={local.id}>
+      {local.esDemo && <DemoLetrero local={local} vista="cliente" />}
       <LocalMenu local={local} productos={productos} cerrarCapaRef={cerrarCapaRef} />
+      {local.esDemo && bienvenida && <DemoBienvenida local={local} onCliente={() => setBienvenida(false)} onRecorrido={() => { setBienvenida(false); iniciarRecorrido() }} />}
     </CartProvider>
   )
 }

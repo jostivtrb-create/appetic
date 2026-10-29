@@ -34,7 +34,7 @@ async function sumar(localId, campos) {
 // Usa localStorage con la fecha en la clave: si este dispositivo ya visitó hoy,
 // no vuelve a contar; al día siguiente cuenta una vez más como máximo.
 export async function registrarVisita(localId) {
-  if (!localId || localId === 'demo') return
+  if (!localId) return
   const hoy = fechaKey()
   const prefijo = `appetic_visit_${localId}_`
   const key = `${prefijo}${hoy}`
@@ -52,8 +52,14 @@ export async function registrarVisita(localId) {
 
 // Suma un pedido enviado y su monto estimado.
 export async function registrarPedidoStats(localId, total) {
-  if (!localId || localId === 'demo') return
+  if (!localId) return
   await sumar(localId, { pedidos: increment(1), monto: increment(Number(total) || 0) })
+}
+
+// 🍔 Demo para clientes: alguien tocó «Quiero esto para mi negocio» (D18).
+export async function registrarInteresado(localId) {
+  if (!localId) return
+  await sumar(localId, { interesados: increment(1) })
 }
 
 // Lee las estadísticas para el panel: total (1 lectura) + últimos 7 días (≤7 lecturas).

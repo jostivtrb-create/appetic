@@ -1,0 +1,70 @@
+/* 🍔 Demo para clientes — bienvenida, letrero fijo y recorrido guiado. */
+
+.demo-letrero {
+  position: sticky; top: 0; z-index: 60;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 7px 12px; min-height: 42px;
+  background: #1E1B1A; color: #FFF4E0; font-size: 13px; line-height: 1.25;
+  box-shadow: 0 2px 10px rgba(0,0,0,.18);
+}
+.demo-letrero-txt b { font-weight: 800; }
+.demo-letrero-sub { opacity: .75; }
+.demo-letrero-acc { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.demo-letrero-link {
+  color: #FFF4E0; text-decoration: none; font-weight: 700; padding: 6px 10px; border-radius: 999px;
+  border: 1px solid rgba(255,244,224,.28); white-space: nowrap;
+}
+.demo-letrero-quiero {
+  border: 0; border-radius: 999px; padding: 7px 12px; font: inherit; font-weight: 800; cursor: pointer;
+  background: #F2A900; color: #1E1B1A; white-space: nowrap;
+}
+@media (max-width: 520px) { .demo-letrero-sub { display: none; } }
+
+/* Bienvenida */
+.demo-bienv {
+  position: fixed; inset: 0; z-index: 400; overflow-y: auto;
+  display: grid; place-items: center; padding: 20px 16px;
+  background: radial-gradient(120% 90% at 50% 0%, #3A2A22 0%, #1E1B1A 60%);
+  animation: demoFade .35s ease-out;
+}
+.demo-bienv-caja {
+  width: 100%; max-width: 440px; text-align: center; color: #FFF4E0;
+  animation: demoSube .5s cubic-bezier(.2,.9,.3,1.2);
+}
+.demo-bienv-logo { max-width: 220px; max-height: 96px; object-fit: contain; margin: 0 auto 10px; display: block; }
+.demo-bienv-kicker { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #F2A900; }
+.demo-bienv h1 { margin: 6px 0 8px; font-size: 27px; line-height: 1.15; color: #fff; }
+.demo-bienv-lead { margin: 0 0 18px; font-size: 15px; line-height: 1.5; opacity: .88; }
+.demo-bienv-recorrido {
+  width: 100%; display: flex; align-items: center; gap: 14px; text-align: left; cursor: pointer;
+  padding: 15px 16px; border: 0; border-radius: 18px; font: inherit; color: #fff;
+  background: linear-gradient(135deg, #D9381E, #F2683F); box-shadow: 0 10px 28px rgba(217,56,30,.45);
+  animation: demoLatido 2.4s ease-in-out infinite;
+}
+.demo-bienv-recorrido b { display: block; font-size: 16px; }
+.demo-bienv-recorrido small { display: block; opacity: .9; font-size: 13px; }
+.demo-bienv-play {
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+  background: #fff; color: #D9381E; font-size: 17px; padding-left: 3px;
+}
+.demo-bienv-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.demo-bienv-opciones button {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 10px; cursor: pointer;
+  border-radius: 16px; border: 1px solid rgba(255,244,224,.18); background: rgba(255,255,255,.06);
+  color: #FFF4E0; font: inherit; transition: transform .15s, background .15s;
+}
+.demo-bienv-opciones button:hover { background: rgba(255,255,255,.12); transform: translateY(-2px); }
+.demo-bienv-opciones b { font-size: 15px; }
+.demo-bienv-opciones small { font-size: 12.5px; opacity: .75; line-height: 1.35; }
+.demo-bienv-ic { font-size: 28px; }
+.demo-bienv-quiero {
+  margin-top: 16px; border: 0; background: none; color: #F2A900; font: inherit; font-weight: 800;
+  font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+
+@keyframes demoFade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes demoSube { from { opacity: 0; transform: translateY(18px) scale(.97) } to { opacity: 1; transform: none } }
+@keyframes demoLatido { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.025) } }
+@media (prefers-reduced-motion: reduce) {
+  .demo-bienv, .demo-bienv-caja, .demo-bienv-recorrido { animation: none; }
+}

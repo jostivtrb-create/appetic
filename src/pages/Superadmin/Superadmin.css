@@ -340,3 +340,24 @@
 }
 .sa-prio-ctrl button:disabled { opacity: 0.4; cursor: default; }
 .sa-prio-ctrl strong { min-width: 20px; text-align: center; font-size: 14px; color: var(--text); }
+
+/* 🍔 Demo para clientes */
+.sa-demo { margin: 12px 0; padding: 14px 16px; border-radius: 16px; background: #1E1B1A; color: #FFF4E0; }
+.sa-demo-cab { display: flex; gap: 12px; align-items: center; }
+.sa-demo-ico { font-size: 28px; }
+.sa-demo-cab strong { display: block; font-size: 15px; }
+.sa-demo-cab small { display: block; opacity: .75; font-size: 12.5px; line-height: 1.35; }
+.sa-demo-acc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.sa-demo-btn {
+  border: 1px solid rgba(255,244,224,.3); background: transparent; color: inherit; font: inherit; font-weight: 700;
+  font-size: 13.5px; padding: 8px 14px; border-radius: 999px; cursor: pointer; text-decoration: none;
+}
+.sa-demo-btn-rojo { background: #D9381E; border-color: #D9381E; color: #fff; }
+.sa-demo-btn:disabled { opacity: .5; cursor: wait; }
+.sa-demo-paso { margin: 10px 0 0; font-size: 13px; color: #F2A900; }
+.sa-demo-velo { position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,.55); display: grid; place-items: center; padding: 16px; }
+.sa-demo-confirma { width: 100%; max-width: 380px; background: var(--surface, #fff); color: var(--text, #222); border-radius: 18px; padding: 20px; display: grid; gap: 10px; }
+.sa-demo-confirma h3 { margin: 0; }
+.sa-demo-confirma p { margin: 0 0 4px; font-size: 14px; line-height: 1.45; }
+.sa-demo-confirma .sa-demo-btn { color: var(--text, #222); border-color: var(--border, #ddd); }
+.sa-demo-confirma .sa-demo-btn-rojo { color: #fff; border-color: #D9381E; }

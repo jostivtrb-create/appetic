@@ -5,6 +5,7 @@ import { esSuperadmin } from '../../config/roles'
 import { listarTodosLocales, setSuscripcion, setAdminEmails, setEtiquetas, setPrioridad } from '../../services/superadmin'
 import { CATEGORIAS_LOCALES } from '../../config/categoriasLocales'
 import PanelMenuBoton from '../../components/BottomNav/PanelMenuBoton'
+import DemoTarjeta from './DemoTarjeta'
 import './Superadmin.css'
 
 // 🗂️ Editor de ETIQUETAS (chips del inicio) + ⭐ prioridad de un local.
@@ -230,6 +231,8 @@ export default function Superadmin() {
           <small>Está en la web de Swiftfly Solutions, en la sección de proyectos.</small>
         </span>
       </a>
+
+      <DemoTarjeta />
 
       <div className="sa-search">
         <span>🔎</span>

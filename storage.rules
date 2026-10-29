@@ -14,9 +14,16 @@ service firebase.storage {
     //     restringido al admin del local (firestore.rules), así que en la práctica
     //     solo el admin sube fotos. Evitamos la lectura cruzada a Firestore aquí
     //     porque es frágil y bloqueaba las subidas.
+    //   - La sesión ANÓNIMA (visitantes de la demo para clientes) solo sube a la carpeta de la
+    //     demo, y solo imágenes de hasta 5 MB. Sin esto, cualquiera podría subir a cualquier local.
     match /locales/{localId}/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if request.auth != null
+                   && (request.auth.token.firebase.sign_in_provider != 'anonymous'
+                       || (localId == 'demo'
+                           && (request.resource == null
+                               || (request.resource.size < 5 * 1024 * 1024
+                                   && request.resource.contentType.matches('image/.*')))));
     }
   }
 }

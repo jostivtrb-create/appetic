@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import {
   onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut,
+  signInAnonymously,
 } from 'firebase/auth'
 import { auth, googleProvider } from '../config/firebase'
 
@@ -33,13 +34,17 @@ function mensajeError(err) {
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  // `sesion`: quien sea que esté conectado (también la sesión ANÓNIMA de la demo para clientes).
+  // `user`: solo una cuenta de verdad (Google). El resto de la app usa `user`, así el visitante
+  // de la demo no aparece como «con sesión» en Cuenta, Mis datos, etc.
+  const [sesion, setSesion] = useState(null)
+  const user = sesion && !sesion.isAnonymous ? sesion : null
   const [cargando, setCargando] = useState(true)
   const [errorLogin, setErrorLogin] = useState(null)
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u)
+      setSesion(u)
       setCargando(false)
     })
     // Al volver de un login por redirect (respaldo del popup), consumimos el
@@ -78,8 +83,20 @@ export function AuthProvider({ children }) {
     await signOut(auth)
   }
 
+  // 🍔 Demo para clientes: entra sin cuenta (sesión anónima, invisible). Si ya hay alguien
+  // conectado (anónimo o con Google), no hace nada.
+  async function entrarDemo() {
+    if (auth.currentUser) return
+    try { await signInAnonymously(auth) } catch (err) {
+      console.error('[demo] no se pudo abrir la sesión anónima:', err?.code, err)
+      setErrorLogin(err?.code === 'auth/operation-not-allowed'
+        ? 'La demo no está disponible en este momento (falta activar el acceso anónimo).'
+        : mensajeError(err))
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, cargando, entrar, salir, errorLogin }}>
+    <AuthContext.Provider value={{ user, sesion, cargando, entrar, entrarDemo, salir, errorLogin }}>
       {children}
     </AuthContext.Provider>
   )

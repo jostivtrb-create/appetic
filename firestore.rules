@@ -6,6 +6,8 @@ rules_version = '2';
 //   (pedidosPublicos) sin teléfono ni dirección, legible solo por su id para «Mi pedido»;
 //   rol DOMICILIARIO por local; se retiran los domiciliarios GLOBALES (config/domiciliarios).
 // + QR por mesa: el cliente crea su comanda (origen 'qr') directo, si el local activó sus mesas.
+// + DEMO para clientes (esDemo): cualquier sesión (también anónima) la administra, sin tocar
+//   WhatsApp/link/horario; el superadmin la reinicia (borra comandas, pedidos y stats).
 // Cambios paso 1: EQUIPO por local (meseros y cocina en locales/{id}/equipo, privado) y COMANDAS
 //   (locales/{id}/comandas): las leen y escriben solo el admin, los meseros y la cocina ACTIVOS
 //   de ese local. El mesero crea; la cocina tacha y entrega. Ver «Guía para Mesero y Comandas».
@@ -35,10 +37,22 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email == 'jostivtrb@gmail.com';
     }
 
-    // ¿Puede administrar ESTE local? El dueño o el superadmin.
+    // 🍔 ¿Es el local de DEMOSTRACIÓN para clientes (Burger Demo, esDemo: true)?
+    function esLocalDemo(localId) {
+      return get(/databases/$(database)/documents/locales/$(localId)).data.get('esDemo', false) == true;
+    }
+
+    // Visitante de la demo: cualquiera con sesión (también la ANÓNIMA, sin correo) administra la
+    // demo como si fuera el dueño. Solo ese local. Guía «Demo de clientes» D3/D8.
+    function esVisitanteDemo(localId) {
+      return request.auth != null && esLocalDemo(localId);
+    }
+
+    // ¿Puede administrar ESTE local? El dueño, el superadmin o un visitante de la demo.
+    // Va primero la demo: a la sesión anónima le falta el correo y las otras dos darían error.
     // Espejo de puedeAdministrarLocal() en src/config/roles.js: si cambias uno, cambia el otro.
     function puedeAdministrar(localId) {
-      return esAdminDe(localId) || esSuperadmin();
+      return esVisitanteDemo(localId) || esAdminDe(localId) || esSuperadmin();
     }
 
 
@@ -73,8 +87,17 @@ service cloud.firestore {
 
     match /locales/{localId} {
       allow read: if true;
-      allow update: if puedeAdministrar(localId);
-      allow create, delete: if false;
+      // En la demo, el visitante NO toca lo que la rompería para el siguiente (D16): WhatsApp,
+      // link, horario, ni las marcas de demo, dueños o suscripción. El superadmin sí (reiniciar).
+      allow update: if esSuperadmin()
+                    || (puedeAdministrar(localId)
+                        && !(esLocalDemo(localId)
+                             && request.resource.data.diff(resource.data).affectedKeys()
+                                  .hasAny(['whatsapp', 'slug', 'horario', 'esDemo', 'admins', 'suscripcion'])));
+      // Los locales se crean desde la consola/seed; la única excepción es la demo, que el
+      // superadmin puede volver a crear desde «Reiniciar demo».
+      allow create: if esSuperadmin() && request.resource.data.esDemo == true;
+      allow delete: if false;
 
       match /productos/{productoId} {
         allow read: if true;
@@ -88,7 +111,7 @@ service cloud.firestore {
                       && request.resource.data.estado == 'nuevo';
         // El personal del local lo lee y lo mueve (confirmar, rechazar, en camino, entregado…).
         allow read, update: if puedeVerPedidos(localId);
-        allow delete: if false;
+        allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
 
       // 🧾 Resumen PÚBLICO del pedido para «Mi pedido» (sin teléfono, dirección ni coordenadas).
@@ -102,7 +125,7 @@ service cloud.firestore {
                       && !('telefono' in request.resource.data)
                       && !('direccion' in request.resource.data);
         allow update: if puedeVerPedidos(localId);
-        allow delete: if false;
+        allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
 
       // 👥 Equipo (meseros y cocina). PRIVADO: el documento del local es público y aquí hay
@@ -140,7 +163,7 @@ service cloud.firestore {
                       );
         allow update: if esPersonal(localId)
                       && request.resource.data.estado in ['activa', 'entregada', 'cancelada'];
-        allow delete: if false;
+        allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
 
       // 🔔 Celulares que reciben el aviso de «pedido listo» (doc id = token de notificaciones).
@@ -157,7 +180,8 @@ service cloud.firestore {
         // Contadores (visitas/pedidos/monto). El cliente los incrementa anónimo;
         // solo el admin del local (o el superadmin) los lee. Escritura acotada a esos campos.
         allow read: if puedeAdministrar(localId);
-        allow write: if request.resource.data.keys().hasOnly(['fecha', 'visitas', 'pedidos', 'monto']);
+        allow write: if request.resource.data.keys().hasOnly(['fecha', 'visitas', 'pedidos', 'monto', 'interesados']);
+        allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
     }
 

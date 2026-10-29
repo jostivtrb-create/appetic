@@ -58,7 +58,7 @@ export default function AdminDomicilios({ local, demo, usuario, esAdmin }) {
 
   return (
     <div className="dm">
-      {!demo && <ActivarAvisos local={local} usuario={usuario} />}
+      {!demo && !local.esDemo && <ActivarAvisos local={local} usuario={usuario} />}
       {esAdmin && <div className="dm-admin"><AdminEquipo local={local} rol="domiciliario" demo={demo} /></div>}
       {error && <p className="dm-error" role="alert">{error}</p>}
 

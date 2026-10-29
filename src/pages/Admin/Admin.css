@@ -885,3 +885,7 @@
 .dif-mesas { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0; font-size: 15px; font-weight: 700; }
 .dif-mesas input { width: 90px; font-size: 18px; font-weight: 800; text-align: center; padding: 10px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface-2); color: var(--text); }
 .dif-mesas-msg { font-size: 13px; color: var(--text-soft); font-weight: 600; }
+
+/* 🍔 Demo para clientes: campos bloqueados (WhatsApp, horario) */
+.ac-bloqueo { border: 0; padding: 0; margin: 0; min-width: 0; }
+.ac-bloqueo:disabled { opacity: .55; }

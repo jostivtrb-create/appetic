@@ -17,6 +17,7 @@ import { pedidosDe } from '../../services/pedidos'
 import { urlWhatsApp, normalizarTel, mensajeTotalCambio } from '../../utils/whatsapp'
 import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, itemsTxt, claseDestino } from './comandaUtils'
 import './Mesero.css'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 // 🧑‍🍳 PANTALLA DEL MESERO (guía «Mesero y Comandas», paso 1).
 //   • «Nuevo pedido»: el mismo catálogo del cliente pero compacto (sin fotos, con buscador). Los
@@ -40,7 +41,7 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
 
   return (
     <div className="ms">
-      {!demo && <ActivarAvisos local={local} usuario={usuario} />}
+      {!demo && !local.esDemo && <ActivarAvisos local={local} usuario={usuario} />}
       {esAdmin && (
         <div className="ms-admin">
           <AdminEquipo local={local} rol="mesero" demo={demo} />
@@ -305,6 +306,7 @@ function HojaComanda({ local, idsMenu, carrito, setCarrito, total, api, activas,
       await conTiempo(api.crear(datos), 10000)
       idRef.current = null
       onEnviada(etiquetaDestino(destino))
+      avisarDemo('comanda-mesero')
     } catch {
       setEstado('error')
     }

@@ -11,6 +11,7 @@ import { cop } from '../../utils/money'
 import { mapsUrl } from '../../utils/geo'
 import { urlWhatsApp, normalizarTel, mensajeRespuestaCliente, mensajeRechazo } from '../../utils/whatsapp'
 import './MiPedido.css'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 // 🧾 «MI PEDIDO» — /p/:slug/:pedidoId (guía «Mesero y Comandas», paso 3 · D28–D32).
 //
@@ -21,7 +22,7 @@ import './MiPedido.css'
 //     cocina) o «No podemos atenderlo». Después, un botón para avisarle al cliente por WhatsApp.
 export default function MiPedido() {
   const { slug, pedidoId } = useParams()
-  const { user, cargando: authCargando, entrar } = useAuth()
+  const { user, sesion, cargando: authCargando, entrar, entrarDemo } = useAuth()
   const { rolesEn } = useAdmin()
   const demo = isDevSlug(slug)
   const [local, setLocal] = useState(undefined)
@@ -33,11 +34,18 @@ export default function MiPedido() {
     return () => { activo = false }
   }, [slug, demo])
 
+  // 🍔 Demo para clientes: todos son «el dueño»; se abre la sesión anónima para poder confirmar.
+  const vitrina = !demo && !!local?.esDemo
+  useEffect(() => {
+    if (vitrina && !authCargando && !sesion) entrarDemo()
+  }, [vitrina, authCargando, sesion]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const email = (user?.email || '').toLowerCase()
   const esPersonal = !!local && (puedeAdministrarLocal(email, local) || rolesEn(slug).includes('mesero') || (demo && devSuper()))
 
   if (local === undefined || (!demo && authCargando)) return <Centro>Cargando pedido…</Centro>
   if (!local) return <Centro>Este pedido no existe.</Centro>
+  if (vitrina && !sesion) return <Centro>Preparando la demo…</Centro>
 
   return (
     <div className="mp" style={{ '--mp-primary': local.tema?.primary || '#ED7D2B' }}>
@@ -49,7 +57,7 @@ export default function MiPedido() {
         </div>
       </header>
       {esPersonal
-        ? <VistaPersonal local={local} pedidoId={pedidoId} demo={demo} usuario={user} />
+        ? <VistaPersonal local={local} pedidoId={pedidoId} demo={demo} usuario={user || (vitrina ? { email: '', displayName: 'Visitante' } : null)} />
         : <VistaCliente local={local} pedidoId={pedidoId} demo={demo} user={user} entrar={entrar} />}
     </div>
   )
@@ -145,6 +153,7 @@ export function VistaPersonal({ local, pedidoId, demo, usuario, compacta = false
     try {
       const pedido = await api.confirmar(pedidoId, por)
       setHecho({ tipo: 'confirmado', pedido })
+      avisarDemo('pedido-confirmado')
       setEstado('')
       abrirWhatsApp(pedido, mensajeRespuestaCliente(local, pedido), true)
       onListo?.()

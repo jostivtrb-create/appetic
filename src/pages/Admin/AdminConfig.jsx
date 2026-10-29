@@ -144,8 +144,11 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
     const tarifasLimpias = {}
     for (const k of keys) tarifasLimpias[k] = Number(tarifas[k]) || 0
     const cambios = {
-      whatsapp: whatsapp.replace(/\D/g, ''),
-      horario: { ...(local.horario || {}), abre, cierra, dias },
+      // 🍔 En la demo para clientes, WhatsApp y horario están bloqueados (no se envían).
+      ...(local.esDemo ? {} : {
+        whatsapp: whatsapp.replace(/\D/g, ''),
+        horario: { ...(local.horario || {}), abre, cierra, dias },
+      }),
       domicilio: {
         ...(local.domicilio || {}),
         activo: domicilio,
@@ -199,8 +202,10 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
             placeholder="Ej: 3208435143"
             value={whatsapp}
             onChange={e => setWhatsapp(e.target.value)}
+            disabled={local.esDemo}
           />
         </label>
+        {local.esDemo && <span className="ac-hint">🔒 En la demo, los pedidos llegan a Appetic. En tu local, aquí va tu WhatsApp.</span>}
         {!whatsapp.replace(/\D/g, '') && (
           <span className="ac-ubic-warn">⚠️ Sin WhatsApp, los pedidos no pueden enviarse.</span>
         )}
@@ -245,6 +250,8 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
       {ver('negocio') && <section className="ac-sec">
         <h3>🕒 Horario de atención</h3>
         <p className="ac-hint">Fuera del horario, los clientes ven el menú pero no pueden pedir.</p>
+        {local.esDemo && <p className="ac-hint">🔒 En la demo está abierta las 24 horas para que la puedas probar cuando quieras.</p>}
+        <fieldset className="ac-bloqueo" disabled={local.esDemo}>
 
         <span className="ac-sub">Días que abres</span>
         <div className="ac-dias">
@@ -269,6 +276,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
           <label>Abre<input type="time" value={abre} onChange={e => setAbre(e.target.value)} /></label>
           <label>Cierra<input type="time" value={cierra} onChange={e => setCierra(e.target.value)} /></label>
         </div>
+        </fieldset>
       </section>}
 
       {ver('negocio') && <section className="ac-sec">

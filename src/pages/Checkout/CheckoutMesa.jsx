@@ -7,6 +7,7 @@ import { comandasDe, itemsDeComanda } from '../../services/comandas'
 import { registrarPedidoStats } from '../../services/stats'
 import { isDevSlug } from '../../dev'
 import './Checkout.css'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 // 🪑 Pedir DESDE LA MESA (QR por mesa). Reemplaza al checkout normal cuando el cliente entró por
 // el QR de su mesa: solo pide su NOMBRE (obligatorio) y manda la comanda «MESA 4 · Ana» directo
@@ -42,6 +43,7 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
       idRef.current = null
       clear()
       setListo(quien)
+      avisarDemo('pedido-mesa')
       setEstado('')
     } catch {
       setEstado('error')

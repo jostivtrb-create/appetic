@@ -4,8 +4,9 @@
 //
 // Producción: estos locales se crean de verdad con sus scripts seed-*.mjs.
 // Perros Criiollos ya está sembrado en Firebase, así que se administra como local
-// real (sin modo DEMO ni métricas de ejemplo); solo queda 'demo' como plantilla.
-const DEV_SLUGS = ['demo']
+// real (sin modo DEMO ni métricas de ejemplo). El local `demo` (Burger Demo) ahora es la demo
+// para clientes y vive en src/dev/burgerDemo.js (se abre con ?preview=1 como los demás).
+const DEV_SLUGS = []
 
 // ¿Este slug es un local de previsualización en DEV? (síncrono, para decidir modo)
 // El ?preview=1 —el mismo que ya abre el MENÚ desde el código— también vale aquí:
@@ -20,11 +21,6 @@ export function isDevSlug(slug) {
 
 export async function getDevLocal(slug) {
   if (!import.meta.env.DEV) return null
-
-  if (slug === 'demo') {
-    const { MOCK_LOCAL, MOCK_PRODUCTOS } = await import('./mockLocal')
-    return { local: MOCK_LOCAL, productos: MOCK_PRODUCTOS }
-  }
 
   // Los demás locales de src/dev los arma la vista previa (fuente única).
   const { getPreviewLocal } = await import('../preview')

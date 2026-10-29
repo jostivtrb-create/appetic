@@ -18,6 +18,7 @@ import BottomNav from './components/BottomNav/BottomNav.jsx'
 import PanelDrawer from './components/BottomNav/PanelDrawer.jsx'
 import ConfirmCambioLocal from './components/ConfirmCambioLocal/ConfirmCambioLocal.jsx'
 import AvisoListo from './components/AvisoListo/AvisoListo.jsx'
+import Recorrido from './components/Demo/Recorrido'
 
 export default function App() {
   const { activeLocal } = useNavUI()
@@ -38,6 +39,8 @@ export default function App() {
   return (
     <div className="app-shell">
       <InstallPrompt />
+      {/* 🎮 Recorrido guiado de la demo para clientes (solo se pinta dentro de /demo). */}
+      <Recorrido />
       <Routes>
         {/* Inicio = buscador del barrio (Capa 2) */}
         <Route path="/" element={<Home />} />

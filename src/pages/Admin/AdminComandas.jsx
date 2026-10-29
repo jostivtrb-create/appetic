@@ -5,6 +5,7 @@ import { notificarListo } from '../../services/notificaciones'
 import { pedidosDe } from '../../services/pedidos'
 import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, UMBRALES_DEFECTO, itemsTxt, claseDestino, palabraDestino } from './comandaUtils'
 import './Comandas.css'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 // 🧾 PANTALLA DE COMANDAS (cocina) — guía «Mesero y Comandas», paso 1.
 // Pensada para un celular o una tablet en la cocina: grande, clara y con pocos toques.
@@ -87,6 +88,7 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
     setConfirmar(null)
     try {
       await api.entregar(c)
+      avisarDemo('comanda-entregada')
       // Pedido de la app: pasa a «listo» (el cliente lo ve en «Mi pedido» y el domicilio aparece
       // como listo para salir en el panel de Domicilios).
       if (c.pedidoId) pedidosDe(local.id, { demo }).cambiarEstado(c.pedidoId, 'listo').catch(() => {})

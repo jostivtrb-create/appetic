@@ -19,6 +19,9 @@ export function esSuperadmin(email) {
 // que concede los mismos permisos al superadmin (`esSuperadmin()`). Si cambias uno,
 // cambia el otro o el panel abrirá pero los guardados fallarán con "permiso denegado".
 export function puedeAdministrarLocal(email, local) {
+  // 🍔 La demo para clientes (esDemo) la administra cualquiera que entre, también sin cuenta
+  // (sesión anónima, sin correo). Guía «Demo de clientes» D3/D8.
+  if (local?.esDemo) return true
   if (!email) return false
   if (esSuperadmin(email)) return true
   return !!local?.admins?.includes(email)

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { precioItem } from '../utils/price'
+import { avisarDemo } from '../components/Demo/eventosDemo'
 
 const CartContext = createContext(null)
 export const useCart = () => useContext(CartContext)
@@ -25,6 +26,7 @@ export function CartProvider({ localId, children }) {
   function addItem({ producto, seleccion = {}, cantidad = 1, notas = '' }) {
     const uid = `${Date.now()}-${Math.round(performance.now() * 1000) % 100000}`
     setItems(prev => [...prev, { uid, producto, seleccion, cantidad, notas }])
+    avisarDemo('carrito')
   }
 
   function setCantidad(uid, cantidad) {

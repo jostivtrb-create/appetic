@@ -12,6 +12,7 @@ import AdminFotosExternas from './AdminFotosExternas'
 import AdminConfig from './AdminConfig'
 import AdminMetricas from './AdminMetricas'
 import AdminDifundir from './AdminDifundir'
+import DemoLetrero from '../../components/Demo/DemoLetrero'
 import { isDevSlug, getDevLocal } from '../../dev'
 import { computeDestacadosHome } from '../../utils/destacadosHome'
 import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
@@ -24,6 +25,7 @@ import { EquipoEnLinea } from './AdminEquipo'
 import { useNavUI } from '../../contexts/NavUIContext'
 import PanelMenuBoton, { usePuedePanel } from '../../components/BottomNav/PanelMenuBoton'
 import './Admin.css'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 // Título de cada página del panel (va en el encabezado y en la pestaña del navegador).
 const SECCIONES = {
@@ -44,7 +46,7 @@ export default function AdminPage() {
   const { puede: tieneBarra } = usePuedePanel()
   const { setPanelCatalogo } = useNavUI()
   const navigate = useNavigate()
-  const { user, cargando: authCargando, entrar, salir } = useAuth()
+  const { user, sesion, cargando: authCargando, entrar, entrarDemo, salir, errorLogin } = useAuth()
   const demo = isDevSlug(slug) // previsualización de local en DEV (no escribe en Firestore)
 
   // Al cerrar sesión en el panel, volver al inicio (no quedar en la pantalla
@@ -60,7 +62,10 @@ export default function AdminPage() {
   const [avatarFallo, setAvatarFallo] = useState(false)
 
   // Usuario efectivo (en demo, admin falso)
-  const usuario = demo ? { email: 'demo@appetic.app', displayName: 'Admin Demo' } : user
+  // 🍔 Demo para clientes (local real con esDemo): el visitante entra sin cuenta, como dueño.
+  const vitrina = !demo && !!local?.esDemo
+  const usuario = demo ? { email: 'demo@appetic.app', displayName: 'Admin Demo' }
+    : user || (vitrina && sesion ? { uid: sesion.uid, email: '', displayName: 'Visitante' } : null)
   // Entra el dueño (su correo en local.admins) y también el superadmin, que administra
   // cualquier local como si fuera suyo (mismos permisos en firestore.rules).
   // En la vista previa demo, si se simula ser del equipo (?equipo=slug:mesero), se entra como ese
@@ -159,6 +164,7 @@ export default function AdminPage() {
     return id
   }
   async function updateProducto(id, cambios) {
+    avisarDemo('producto')
     let nuevos = productos.map(x => x.id === id ? { ...x, ...cambios } : x)
     if (cambios.destacado === true) {
       const cat = nuevos.find(x => x.id === id)?.categoria
@@ -247,6 +253,11 @@ export default function AdminPage() {
     return url
   }
 
+  // 🍔 Demo para clientes: abre la sesión anónima sola (nada de «Entrar con Google»).
+  useEffect(() => {
+    if (vitrina && !authCargando && !sesion) entrarDemo()
+  }, [vitrina, authCargando, sesion]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // ---------- Estados de carga / acceso ----------
   if (estado === 'cargando' || (!demo && authCargando)) {
     return <div className="local-loading"><div className="local-spinner" /><p>Cargando panel…</p></div>
@@ -256,6 +267,14 @@ export default function AdminPage() {
   }
   if (estado === 'error') {
     return <div className="local-msg"><div className="local-msg-emoji">📡</div><h2>Error al cargar</h2><button className="btn btn-primary" onClick={() => location.reload()}>Reintentar</button></div>
+  }
+
+  if (vitrina && !usuario) {
+    return (
+      <div className="local-loading">
+        {errorLogin ? <p>{errorLogin}</p> : <><div className="local-spinner" /><p>Preparando la demo…</p></>}
+      </div>
+    )
   }
 
   // No logueado → pantalla de login
@@ -321,6 +340,7 @@ export default function AdminPage() {
   // ---------- Panel ----------
   return (
     <div className="admin">
+      {local.esDemo && <DemoLetrero local={local} vista="duenio" />}
       <header className="admin-top">
         <div className="admin-top-izq">
           <PanelMenuBoton />
@@ -329,7 +349,7 @@ export default function AdminPage() {
             <h1 className="admin-top-nombre">{SECCIONES[seccion] || SECCIONES.catalogo}</h1>
           </div>
         </div>
-        {!demo && (
+        {!demo && !vitrina && (
           <Link to="/cuenta" className="admin-perfil" title="Mi perfil y locales" aria-label="Mi perfil y locales">
             {usuario?.photoURL && !avatarFallo
               ? <img className="admin-perfil-avatar" src={usuario.photoURL} alt="" referrerPolicy="no-referrer" onError={() => setAvatarFallo(true)} />
@@ -337,7 +357,7 @@ export default function AdminPage() {
             <span className="admin-perfil-g" aria-hidden="true"><GoogleG /></span>
           </Link>
         )}
-        {demo && <span className="admin-demo-badge">DEMO</span>}
+        {(demo || vitrina) && <span className="admin-demo-badge">DEMO</span>}
       </header>
 
       {/* Soporte: dejar claro que NO eres el dueño de este local, para no editar el equivocado. */}

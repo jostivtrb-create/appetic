@@ -124,7 +124,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
     // Vista previa (?preview=1): el pedido va al motor DEMO del navegador, no a la base real.
     const demo = isDevSlug(local.slug)
     // El id se genera ANTES de abrir WhatsApp: el link «Mi pedido» del mensaje lo lleva.
-    const id = local.id !== 'demo' ? pedidosDe(local.id, { demo }).nuevoId() : ''
+    const id = pedidosDe(local.id, { demo }).nuevoId()
     const pedido = {
       id,
       codigo,
@@ -160,12 +160,10 @@ export default function Checkout({ local, onClose, abierto = true }) {
     // Le damos hasta 6s: así el pedido alcanza a guardarse antes de navegar a WhatsApp
     // (importante en móvil, donde la navegación corta las peticiones en curso), pero si la
     // red está lenta NO dejamos al cliente trabado en "Enviando…". Best-effort.
-    if (local.id !== 'demo') {
-      await Promise.race([
-        crearPedido(local, pedido, codigo, id, { demo }).catch(() => false),
-        new Promise(res => setTimeout(res, 6000)),
-      ])
-    }
+    await Promise.race([
+      crearPedido(local, pedido, codigo, id, { demo }).catch(() => false),
+      new Promise(res => setTimeout(res, 6000)),
+    ])
 
     // Guarda el pedido en el historial de ESTE dispositivo (para "Mis pedidos").
     guardarEnHistorial(local, pedido)
