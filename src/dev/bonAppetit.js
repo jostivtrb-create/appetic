@@ -54,7 +54,7 @@ export const BONAPPETIT_LOCAL = {
   //    Calle 70 # 50-15 Sur, Sierra Morena (la ubicación en el mapa la fija el dueño en su panel).
   whatsapp: '573204753619',
 
-  logo: '/locales/bon-appetit/logo.webp',     // wordmark horizontal transparente (900px = 2× el hero)
+  logo: '/locales/bon-appetit/logo.webp',     // wordmark horizontal en su placa crema (900px = 2× el hero)
   icono: '/locales/bon-appetit/icono.webp',   // logo APILADO cuadrado (pizza + nombre) sobre crema, 512px:
                                               //   inicio, Cuenta, barra lateral/inferior. Armado en local con las
                                               //   mismas piezas del logo ancho (misma letra y misma pizza).

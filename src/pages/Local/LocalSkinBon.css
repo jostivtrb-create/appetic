@@ -45,15 +45,12 @@
   border-bottom: 5px solid var(--bon-rojo);
   box-shadow: inset 0 -5px 0 var(--bon-naranja);
 }
-/* El letrero: placa crema con canto naranja, sombra de fachada */
+/* El letrero: la placa crema con canto naranja viene DENTRO de logo.webp (así entra junto con el
+   logo en la animación, sin quedar una caja vacía mientras llega). Aquí solo la sombra de fachada. */
 .local-skin-bon .local-logo-full,
 .local-skin-bon .logo-epico {
   max-width: 400px;
-  background: var(--bon-crema);
-  border-radius: 18px;
-  border: 2px solid rgba(236, 122, 14, 0.55);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
-  padding: 4px 6px;
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.32));
 }
 .local-skin-bon .local-desc--ink {
   color: #FFE3BF;
