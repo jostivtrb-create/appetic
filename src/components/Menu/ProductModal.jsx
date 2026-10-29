@@ -3,7 +3,9 @@ import { cop } from '../../utils/money'
 import { maxDelGrupo, precioUnitario, recortarPorVariante, validarSeleccion } from '../../utils/price'
 import './ProductModal.css'
 
-export default function ProductModal({ producto, onCerrar, onAgregar }) {
+// `compacto`: versión del MESERO — sin la foto grande ni la descripción, para elegir rápido.
+// Las opciones, validaciones y precios son EXACTAMENTE las mismas del cliente.
+export default function ProductModal({ producto, onCerrar, onAgregar, compacto = false, textoNotas }) {
   const [varianteId, setVarianteId] = useState(producto.variantes?.length ? producto.variantes[0].id : null)
   const [grupos, setGrupos] = useState({}) // { grupoId: [opcionId, ...] }
   const [cantidad, setCantidad] = useState(1)
@@ -63,7 +65,7 @@ export default function ProductModal({ producto, onCerrar, onAgregar }) {
       <div className="pm-sheet" onClick={e => e.stopPropagation()}>
         <button className="pm-close" onClick={onCerrar} aria-label="Cerrar">✕</button>
 
-        {producto.foto && (
+        {producto.foto && !compacto && (
           <div className="pm-hero">
             <img src={producto.foto} alt={producto.nombre} />
           </div>
@@ -71,7 +73,14 @@ export default function ProductModal({ producto, onCerrar, onAgregar }) {
 
         <div className="pm-body">
           <h2 className="pm-nombre">{producto.nombre}</h2>
-          {producto.descripcion && <p className="pm-desc">{producto.descripcion}</p>}
+          {producto.descripcion && !compacto && <p className="pm-desc">{producto.descripcion}</p>}
+          {/* Mesero: la descripción va plegada, por si tiene que explicarle el plato al cliente. */}
+          {producto.descripcion && compacto && (
+            <details className="pm-quelleva">
+              <summary>¿Qué lleva?</summary>
+              <p>{producto.descripcion}</p>
+            </details>
+          )}
 
           {/* Variantes / tamaños */}
           {producto.variantes?.length > 0 && (
@@ -139,7 +148,7 @@ export default function ProductModal({ producto, onCerrar, onAgregar }) {
 
           {/* Indicaciones */}
           <section className="pm-group">
-            <div className="pm-group-head"><h3>Indicaciones</h3><span className="pm-opt-hint">Opcional</span></div>
+            <div className="pm-group-head"><h3>{textoNotas || 'Indicaciones'}</h3><span className="pm-opt-hint">Opcional</span></div>
             <textarea
               className="pm-notas"
               placeholder="Ej: sin cebolla, salsa aparte…"

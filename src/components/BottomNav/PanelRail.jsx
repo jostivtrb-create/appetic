@@ -40,12 +40,16 @@ function cargarTodos() {
   return todosPromise
 }
 
+// `roles`: quién ve cada sección. El admin (dueño o superadmin) ve todas; el mesero solo
+// «Mesero» y la cocina solo «Comandas». Espejo de puedeVerSeccion() en AdminPage.jsx.
 const SECCIONES = [
-  { id: 'menu', label: 'Ver menú', Icon: IconMenu, ruta: s => `/${s}` },
-  { id: 'catalogo', label: 'Catálogo', Icon: IconCatalogo, ruta: s => `/${s}/admin/catalogo` },
-  { id: 'difundir', label: 'Difundir', Icon: IconDifundir, ruta: s => `/${s}/admin/difundir` },
-  { id: 'config', label: 'Configuración', Icon: IconConfig, ruta: s => `/${s}/admin/config` },
-  { id: 'metricas', label: 'Métricas', Icon: IconMetricas, ruta: s => `/${s}/admin/metricas` },
+  { id: 'menu', label: 'Ver menú', Icon: IconMenu, ruta: s => `/${s}`, roles: ['admin', 'mesero'] },
+  { id: 'mesero', label: 'Mesero', Icon: IconMesero, ruta: s => `/${s}/admin/mesero`, roles: ['admin', 'mesero'] },
+  { id: 'comandas', label: 'Comandas', Icon: IconComandas, ruta: s => `/${s}/admin/comandas`, roles: ['admin', 'cocina'] },
+  { id: 'catalogo', label: 'Catálogo', Icon: IconCatalogo, ruta: s => `/${s}/admin/catalogo`, roles: ['admin'] },
+  { id: 'difundir', label: 'Difundir', Icon: IconDifundir, ruta: s => `/${s}/admin/difundir`, roles: ['admin'] },
+  { id: 'config', label: 'Configuración', Icon: IconConfig, ruta: s => `/${s}/admin/config`, roles: ['admin'] },
+  { id: 'metricas', label: 'Métricas', Icon: IconMetricas, ruta: s => `/${s}/admin/metricas`, roles: ['admin'] },
 ]
 
 // 🧪 DEV: ?super=1 simula al superadmin SOLO para ver la barra sin iniciar
@@ -62,7 +66,7 @@ export function devSuper() {
 
 export default function PanelRail({ esSuper, className = '', style, modo = 'rail', onCerrar }) {
   const enCajon = modo === 'drawer'
-  const { locales: misLocales, esDueno, slug: adminSlug, setSlug } = useAdmin()
+  const { locales: misLocales, esDueno, slug: adminSlug, setSlug, localesEquipo, rolesEn } = useAdmin()
   const { user } = useAuth()
   const { panelCatalogo, activeLocal } = useNavUI()
   const navigate = useNavigate()
@@ -80,9 +84,9 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
   // Locales que puede elegir: los suyos + (si es superadmin) todos, sin repetir.
   const elegibles = useMemo(() => {
     const porSlug = new Map()
-    for (const l of [...misLocales, ...(esSuper ? todos : [])]) if (l?.slug && !porSlug.has(l.slug)) porSlug.set(l.slug, l)
+    for (const l of [...misLocales, ...localesEquipo, ...(esSuper ? todos : [])]) if (l?.slug && !porSlug.has(l.slug)) porSlug.set(l.slug, l)
     return [...porSlug.values()].sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))
-  }, [misLocales, todos, esSuper])
+  }, [misLocales, localesEquipo, todos, esSuper])
 
   // ¿Qué local está "en curso"? El de la URL si estás en su panel; si no, el
   // seleccionado del dueño o el último que abrió el superadmin.
@@ -99,7 +103,14 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
   // Superadmin sin local elegido todavía: el primero de la lista, para que el
   // grupo del local nunca salga vacío.
   const slugActual = slugRuta || (esDueno ? adminSlug : null) || (esSuper ? (superSlug || todos.map(l => l.slug).sort()[0] || null) : null)
+    || localesEquipo[0]?.slug || null
   const localActual = elegibles.find(l => l.slug === slugActual) || null
+  // Lo que este usuario puede abrir en el local en curso (admin · mesero · cocina).
+  const misRoles = rolesEn(slugActual, { esSuper })
+  const secciones = SECCIONES.filter(sec => sec.roles.some(r => misRoles.includes(r)))
+  const esSoloEquipo = !misRoles.includes('admin')
+  // Adonde lleva el logo: Catálogo para el admin, su única sección para el mesero o la cocina.
+  const inicio = secciones.find(s => s.id === 'catalogo') || secciones.find(s => s.id !== 'menu') || null
 
   // Categorías bajo "Catálogo": en vivo desde el panel abierto; si no estás en
   // él, las que trae el local (sin conteo).
@@ -133,7 +144,7 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
     })
   }
   // El grupo de la pantalla en la que estás siempre se ve abierto.
-  const grupoActivo = activa.startsWith('sa-') ? 'super' : activa.startsWith('cli-') ? 'cli' : SECCIONES.some(s => s.id === activa) ? 'local' : null
+  const grupoActivo = activa.startsWith('sa-') ? 'super' : activa.startsWith('cli-') ? 'cli' : secciones.some(s => s.id === activa) ? 'local' : null
   const estaAbierto = id => abiertos[id] || grupoActivo === id
   // Las categorías arrancan abiertas estando en Catálogo, pero se pueden plegar.
   const catsAbiertas = abiertos.cats ?? (activa === 'catalogo')
@@ -152,8 +163,10 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
       setSuperSlug(l.slug)
       try { localStorage.setItem(SUPER_SLUG_KEY, l.slug) } catch { /* nada */ }
     }
-    // Te quedas en la misma sección, pero del otro local.
-    const sec = SECCIONES.find(s => s.id === activa) || SECCIONES[1]
+    // Te quedas en la misma sección, pero del otro local (si ahí también la puedes abrir).
+    const rolesAlla = rolesEn(l.slug, { esSuper })
+    const posibles = SECCIONES.filter(sec => sec.roles.some(r => rolesAlla.includes(r)) && sec.id !== 'menu')
+    const sec = posibles.find(s => s.id === activa) || posibles[0] || SECCIONES[0]
     ir(sec.ruta(l.slug))
   }
 
@@ -162,11 +175,11 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
   return (
     <nav className={enCajon ? `prail prail--drawer ${className}` : `bnav bnav--admin bnav--panel ${className}`} style={style} aria-label="Panel">
       <div className="prail-brand-row">
-        <button className="bnav-brand" onClick={() => ir(esSuper ? '/superadmin' : (slugActual ? `/${slugActual}/admin/catalogo` : '/cuenta'))} tabIndex={-1} aria-hidden="true">
+        <button className="bnav-brand" onClick={() => ir(esSuper ? '/superadmin' : (slugActual && inicio ? inicio.ruta(slugActual) : '/cuenta'))} tabIndex={-1} aria-hidden="true">
           <img className="bnav-brand-logo" src={logoAppetic} alt="" />
           <span className="bnav-brand-texto">
             <span className="bnav-brand-nombre">Appetic</span>
-            <span className="bnav-brand-rol">{esSuper ? '👑 Superadmin' : 'Panel del local'}</span>
+            <span className="bnav-brand-rol">{esSuper ? '👑 Superadmin' : esSoloEquipo && misRoles.length ? misRoles.map(r => r === 'mesero' ? 'Mesero' : 'Cocina').join(' · ') : 'Panel del local'}</span>
           </span>
         </button>
         {enCajon && (
@@ -187,7 +200,7 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
       )}
 
       <Grupo id="local" titulo={localActual ? localActual.nombre : 'Este local'} abierto={estaAbierto('local')} onAlternar={alternar}>
-        {slugActual ? SECCIONES.map(({ id, label, Icon, ruta }) => (id === 'catalogo' && categorias.length > 0) ? (
+        {slugActual ? secciones.map(({ id, label, Icon, ruta }) => (id === 'catalogo' && categorias.length > 0) ? (
           <div key={id} className={`prail-sub ${catsAbiertas ? 'is-open' : ''}`}>
             <div className="prail-sub-row">
               <button className={`bnav-item prail-item ${activa === id && !catActiva ? 'is-active' : ''}`} onClick={() => ir(ruta(slugActual))}>
@@ -355,6 +368,12 @@ function IconChevron() {
 }
 function IconMenu() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M4 6h16" /><path {...sw} d="M4 12h16" /><path {...sw} d="M4 18h10" /></svg>
+}
+function IconMesero() {
+  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M4 17h16" /><path {...sw} d="M5.5 17a6.5 6.5 0 0 1 13 0" /><path {...sw} d="M12 8.5V7" /><path {...sw} d="M10.5 7h3" /><path {...sw} d="M3 20h18" /></svg>
+}
+function IconComandas() {
+  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M7 3h10v18l-2.5-1.6L12 21l-2.5-1.6L7 21z" /><path {...sw} d="M10 8h4" /><path {...sw} d="M10 12h4" /><path {...sw} d="m9.6 15.6 1.2 1.2 2.6-2.6" /></svg>
 }
 function IconCatalogo() {
   return (

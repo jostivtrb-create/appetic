@@ -1,0 +1,16 @@
+/* 🔔 Aviso global de «pedido listo» (arriba, encima de todo). */
+.al {
+  position: fixed; z-index: 900; top: calc(10px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+  width: min(94vw, 460px); display: flex; align-items: stretch;
+  border-radius: 18px; overflow: hidden; background: #1B8A4B; color: #fff;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28); animation: alEntra 0.3s cubic-bezier(0.16, 1, 0.3, 1) both, alLate 1.2s ease-in-out 0.3s infinite;
+}
+.al-cuerpo { flex: 1; display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 16px; text-align: left; color: inherit; }
+.al-campana { font-size: 26px; }
+.al-txt { display: grid; min-width: 0; }
+.al-txt strong { font-size: 16.5px; }
+.al-txt span { font-size: 14px; opacity: 0.92; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.al-x { width: 50px; flex-shrink: 0; font-size: 18px; font-weight: 800; color: #fff; background: rgba(0, 0, 0, 0.14); }
+@keyframes alEntra { from { opacity: 0; transform: translate(-50%, -16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+@keyframes alLate { 0%, 100% { box-shadow: 0 14px 34px rgba(0,0,0,0.28); } 50% { box-shadow: 0 0 0 6px rgba(27, 138, 75, 0.35), 0 14px 34px rgba(0,0,0,0.28); } }
+@media (prefers-reduced-motion: reduce) { .al { animation: none; } }

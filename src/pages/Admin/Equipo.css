@@ -1,0 +1,53 @@
+/* 👥 Ventana del equipo (meseros / cocina) */
+.eq-abrir {
+  font-size: 13.5px; font-weight: 700; padding: 9px 14px; border-radius: var(--radius-pill);
+  background: var(--surface); border: 1px solid var(--border); color: var(--text);
+}
+.eq-abrir:active { transform: scale(0.97); }
+
+.eq-velo {
+  position: fixed; inset: 0; z-index: 400; background: rgba(20, 14, 10, 0.45);
+  display: flex; align-items: flex-end; justify-content: center; animation: eqVelo 0.18s ease both;
+}
+@keyframes eqVelo { from { opacity: 0; } to { opacity: 1; } }
+.eq-ventana {
+  width: 100%; max-width: 520px; max-height: 88dvh; overflow-y: auto;
+  background: var(--surface); border-radius: 22px 22px 0 0; padding: 20px 18px calc(22px + env(safe-area-inset-bottom));
+  box-shadow: var(--shadow-lg); animation: eqSube 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes eqSube { from { transform: translateY(24px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+@media (min-width: 768px) {
+  .eq-velo { align-items: center; }
+  .eq-ventana { border-radius: 22px; }
+}
+.eq-cab { display: flex; gap: 12px; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.eq-cab h2 { font-size: 20px; font-weight: 800; }
+.eq-cab p { font-size: 13.5px; color: var(--text-soft); margin-top: 4px; }
+.eq-cerrar { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2); flex-shrink: 0; font-size: 15px; }
+
+.eq-form { display: flex; gap: 8px; }
+.eq-form input {
+  flex: 1; min-width: 0; font-size: 16px; padding: 12px 14px; border-radius: 14px;
+  border: 1.5px solid var(--border); background: var(--surface-2); color: var(--text);
+}
+.eq-form input:focus { outline: none; border-color: var(--brand-orange); background: var(--surface); }
+.eq-form .btn { flex-shrink: 0; padding-inline: 16px; }
+.eq-error { color: #C62828; font-size: 13.5px; margin-top: 8px; }
+.eq-sub { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-faint); margin: 20px 0 8px; }
+.eq-vacio { font-size: 14px; color: var(--text-soft); padding: 6px 0; }
+.eq-lista { list-style: none; display: grid; gap: 8px; }
+.eq-fila {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.eq-fila.is-off { opacity: 0.6; }
+.eq-avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center;
+  font-weight: 800; background: var(--brand-orange-tint); color: var(--brand-orange-strong);
+}
+.eq-correo { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eq-acciones { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.eq-seguro { font-size: 13px; font-weight: 700; color: #C62828; }
+.eq-btn { font-size: 13px; font-weight: 700; padding: 7px 11px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); }
+.eq-btn--peligro { background: #C62828; border-color: #C62828; color: #fff; }
+.eq-btn--quitar { padding: 7px 9px; }

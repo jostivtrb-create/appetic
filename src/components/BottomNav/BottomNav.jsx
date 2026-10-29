@@ -24,7 +24,7 @@ import './BottomNav.css'
 // rail y que en PC la barra no se esconda al abrir una capa encima—.
 export default function BottomNav() {
   const { activeLocal, cartCount, live } = useNavUI()
-  const { esDueno, localSel, cargando: adminCargando } = useAdmin()
+  const { esDueno, tienePanel, localSel, cargando: adminCargando } = useAdmin()
   const { user } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -41,12 +41,12 @@ export default function BottomNav() {
   // Mientras se sabe si es dueño (usuario con sesión), no parpadeamos la barra.
   if (user && adminCargando) return null
 
-  // ---------- CON PANEL (dueño de algún local o superadmin) ----------
+  // ---------- CON PANEL (dueño, mesero/cocina de algún local, o superadmin) ----------
   // UNA sola barra que no cambia de pantalla a pantalla (como la de Registro
   // Infiniity): PanelRail, con lo de administrar Y lo de cliente, mostrando
   // solo lo que su rol permite. Antes había dos barras —la de cliente y la del
   // panel— y saltaban según la pantalla, lo que enredaba para entrar.
-  if (esDueno || esSuper) {
+  if (tienePanel || esSuper) {
     // Si abre una capa en un menú (detalle del plato, armador, carrito), en el
     // celular la barra se aparta —la hoja llega hasta abajo y le tapaba el
     // botón "Siguiente"— y en PC se queda pero cede la capa.

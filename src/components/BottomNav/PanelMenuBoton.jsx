@@ -5,12 +5,12 @@ import { esSuperadmin } from '../../config/roles'
 import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import { devSuper } from './PanelRail'
 
-// ¿Este usuario tiene panel? Dueño de algún local o superadmin.
+// ¿Este usuario tiene panel? Dueño de algún local, mesero/cocina de alguno, o superadmin.
 export function usePuedePanel() {
   const { user } = useAuth()
-  const { esDueno } = useAdmin()
+  const { tienePanel } = useAdmin()
   const esSuper = esSuperadmin(user?.email) || devSuper()
-  return { puede: esSuper || esDueno, esSuper }
+  return { puede: esSuper || tienePanel, esSuper }
 }
 
 // 📱 Botón ☰ de las cabeceras del panel: abre el cajón (PanelDrawer). Solo se

@@ -208,3 +208,15 @@
   0% { transform: translateX(-120%); }
   100% { transform: translateX(320%); }
 }
+
+/* «¿Qué lleva?» plegable (modo compacto del mesero) */
+.pm-quelleva { margin: 4px 0 6px; }
+.pm-quelleva summary {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none;
+  font-size: 14px; font-weight: 800; color: var(--brand-orange-strong);
+  padding: 7px 12px; border-radius: 999px; background: var(--brand-orange-tint);
+}
+.pm-quelleva summary::-webkit-details-marker { display: none; }
+.pm-quelleva summary::before { content: 'ⓘ'; }
+.pm-quelleva[open] summary { margin-bottom: 8px; }
+.pm-quelleva p { font-size: 15px; line-height: 1.5; color: var(--text-soft); }

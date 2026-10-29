@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getLocalBySlug } from '../../services/locales'
 import { getProductos } from '../../services/productos'
@@ -15,12 +15,17 @@ import AdminDifundir from './AdminDifundir'
 import { isDevSlug, getDevLocal } from '../../dev'
 import { computeDestacadosHome } from '../../utils/destacadosHome'
 import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
+import { useAdmin } from '../../contexts/AdminContext'
+import AdminMesero from './AdminMesero'
+import AdminComandas from './AdminComandas'
 import { useNavUI } from '../../contexts/NavUIContext'
 import PanelMenuBoton, { usePuedePanel } from '../../components/BottomNav/PanelMenuBoton'
 import './Admin.css'
 
 // Título de cada página del panel (va en el encabezado y en la pestaña del navegador).
 const SECCIONES = {
+  mesero: 'Mesero',
+  comandas: 'Comandas',
   catalogo: 'Catálogo',
   difundir: 'Difundir',
   config: 'Configuración',
@@ -29,7 +34,7 @@ const SECCIONES = {
 
 export default function AdminPage() {
   const { slug, panel } = useParams()
-  const seccion = panel || 'catalogo' // catalogo | difundir | config | metricas
+  const { rolesEn } = useAdmin()
   // ¿Tiene la barra del panel (lateral en PC, cajón ☰ en el celular)? Dueños y superadmin sí.
   // Con barra, cada sección es su propia página y NO se repiten pestañas arriba.
   const { puede: tieneBarra } = usePuedePanel()
@@ -54,7 +59,17 @@ export default function AdminPage() {
   const usuario = demo ? { email: 'demo@appetic.app', displayName: 'Admin Demo' } : user
   // Entra el dueño (su correo en local.admins) y también el superadmin, que administra
   // cualquier local como si fuera suyo (mismos permisos en firestore.rules).
-  const esAdmin = demo || puedeAdministrarLocal(usuario?.email, local)
+  // En la vista previa demo, si se simula ser del equipo (?equipo=slug:mesero), se entra como ese
+  // rol y no como admin, para revisar exactamente lo que ve el mesero o la cocina.
+  const rolesSimulados = demo ? rolesEn(slug).filter(r => r !== 'admin') : []
+  const esAdmin = demo ? rolesSimulados.length === 0 : puedeAdministrarLocal(usuario?.email, local)
+  // Mesero / cocina de ESTE local (sin ser admin): solo entran a la sección de su rol.
+  const rolesEquipo = esAdmin ? [] : rolesEn(slug)
+  const seccionPorDefecto = esAdmin ? 'catalogo' : rolesEquipo.includes('mesero') ? 'mesero' : 'comandas'
+  const seccion = panel || seccionPorDefecto // mesero | comandas | catalogo | difundir | config | metricas
+  const puedeVerSeccion = esAdmin
+    || (seccion === 'mesero' && rolesEquipo.includes('mesero'))
+    || (seccion === 'comandas' && rolesEquipo.includes('cocina'))
   const entraComoSuperadmin = !demo && esSuperadmin(usuario?.email) && !local?.admins?.includes(usuario?.email)
 
   useEffect(() => {
@@ -254,8 +269,13 @@ export default function AdminPage() {
     )
   }
 
+  // Del equipo pero en una sección que no es la suya → a la suya.
+  if (!esAdmin && rolesEquipo.length && !puedeVerSeccion) {
+    return <Navigate to={`/${slug}/admin/${seccionPorDefecto}`} replace />
+  }
+
   // Logueado pero no autorizado para ESTE local
-  if (!esAdmin) {
+  if (!puedeVerSeccion) {
     return (
       <div className="admin-login">
         <div className="admin-login-card">
@@ -302,6 +322,8 @@ export default function AdminPage() {
           Solo la vista previa DEMO (sin barra) conserva estas pestañas para moverse. */}
       {!tieneBarra && (
         <nav className="admin-tabs">
+          <button className={seccion === 'mesero' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/mesero${location.search}`)}>🧑‍🍳 Mesero</button>
+          <button className={seccion === 'comandas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/comandas${location.search}`)}>🧾 Comandas</button>
           <button className={seccion === 'catalogo' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/catalogo`)}>🍔 Catálogo</button>
           <button className={seccion === 'difundir' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/difundir`)}>📣 Difundir</button>
           <button className={seccion === 'config' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/config`)}>⚙️ Configuración</button>
@@ -310,7 +332,9 @@ export default function AdminPage() {
       )}
 
       <main className="admin-body">
-        {seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} />
+        {seccion === 'mesero' ? <AdminMesero local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
+          : seccion === 'comandas' ? <AdminComandas local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
+          : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} />
           : seccion === 'config' ? <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} />
             : seccion === 'metricas' ? <AdminMetricas local={local} demo={demo} />
               : local.menuExterno ? (

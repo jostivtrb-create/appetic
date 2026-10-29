@@ -17,6 +17,7 @@ import InstallPrompt from './components/InstallPrompt/InstallPrompt.jsx'
 import BottomNav from './components/BottomNav/BottomNav.jsx'
 import PanelDrawer from './components/BottomNav/PanelDrawer.jsx'
 import ConfirmCambioLocal from './components/ConfirmCambioLocal/ConfirmCambioLocal.jsx'
+import AvisoListo from './components/AvisoListo/AvisoListo.jsx'
 
 export default function App() {
   const { activeLocal } = useNavUI()
@@ -78,6 +79,9 @@ export default function App() {
 
       {/* 📱 Cajón lateral del panel en el celular (dueños y superadmin) */}
       <PanelDrawer />
+
+      {/* 🔔 «¡Pedido listo!» para el mesero y el admin, en cualquier pantalla */}
+      <AvisoListo />
 
       {/* Modal bonito al cambiar de local con carrito (reemplaza window.confirm) */}
       <ConfirmCambioLocal />

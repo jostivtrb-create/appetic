@@ -1,7 +1,7 @@
 // 📦 Acceso a datos de los locales en Firestore
 // Estructura (ver PLANEACION D30):
 //   locales/{localId} -> { nombre, slug, whatsapp, tema, horario, ... , suscripcion }
-import { collection, query, where, limit, getDocs } from 'firebase/firestore'
+import { collection, query, where, limit, getDocs, doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
 /**
@@ -41,4 +41,13 @@ export async function getLocalesDeAdmin(email) {
   const q = query(collection(db, 'locales'), where('admins', 'array-contains', email))
   const snap = await getDocs(q)
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+}
+
+/**
+ * Un local por su id de documento (para el personal: el equipo guarda el localId).
+ */
+export async function getLocalById(localId) {
+  if (!localId) return null
+  const snap = await getDoc(doc(db, 'locales', localId))
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null
 }
