@@ -24,13 +24,14 @@ Photorealistic wide horizontal banner food photography of the real menu of a nei
 
 ---
 
-## 🏷️ Logo (opcional — solo si el dueño no tiene uno propio)
+## 🏷️ Logo provisional (wordmark) — estado: ✅ hecho y montado (logo.webp + icono.webp)
 
-Sale con el nombre escrito. Revisar que diga exactamente **Bon Appétit** (con tilde en la é).
-Después se le quita el fondo verde y queda transparente para la app.
+Basado en el de su carta («La Mies» naranja + verde con la pizza roja en rodajas), con el nombre
+correcto **Bon Appétit**. Fondo magenta plano para recortarlo transparente (el logo lleva verde,
+por eso no va croma verde). El ícono cuadrado del buscador se saca de la misma pizza, en local.
 
 ```
-A flat vector logo emblem for a neighborhood pizza and grill restaurant: a round badge with a stylized pizza with one slice pulled out and two crossed grill forks behind it, and the name "Bon Appétit" in bold friendly rounded lettering across the middle, with the small subtitle "PIZZA Y PARRILLA" underneath in clean uppercase sans-serif. Palette: warm orange #EC7A0E, deep forest green #2F6B4A, tomato red #D33A2C and cream #F7EDD8. Clean crisp edges, no gradients, no shadows, no 3D. Fully visible and centered with about 12% empty margin on every side. On a perfectly flat, solid pure green (#00FF00) background, uniform edge to edge. Square 1:1. Render only the quoted text, exactly as written, with correct spelling including the accent on the é. Do not draw any of these instructions as text. No watermark.
+A flat vector restaurant wordmark logo, wide horizontal layout. On the left, the name "Bon Appétit" in a very bold, heavy, rounded geometric sans-serif typeface with tight letter spacing: the word "Bon" in warm orange #F2860B and the word "Appétit" in deep forest green #2F6B4A, both on the same line. The word is spelled A-P-P-É-T-I-T, with an acute accent on the É and a single letter T at the end: do not write "Appetit" without the accent and do not write "Appetic". Directly under the name, aligned to its right edge, the tagline "pizza y parrilla" in a lighter rounded lowercase sans-serif in warm orange #F2860B. On the right of the name, a round flat pizza icon in tomato red #D33A2C, seen from above, cut into eight slices by thin cream #F7EDD8 lines, with small cream dots like cheese, and one slice slightly pulled out. Clean solid flat colors, crisp edges, no gradients, no shading, no 3D, no outline around the letters. Fully visible and centered with about 12% empty margin on every side, nothing cropped, and keep the bottom-right corner empty. On a perfectly flat, solid pure magenta (#FF00FF) background, uniform edge to edge, with no gradient, no texture, no vignette. No drop shadow, no glow, no reflection, no white sticker border. Wide 16:9. Render only the quoted text, exactly as written, with correct spelling. Do not draw any of these instructions as text. No watermark.
 ```
 
 ---

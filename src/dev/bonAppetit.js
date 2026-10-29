@@ -15,8 +15,10 @@
 //    pergamino — cálido, de pizzería de barrio. Distinto a El Monumento (verde de marca + naranja
 //    de acento sobre crema-lima) y a Jasbury (rojo + dorado).
 //
-// 🖼️ LOGO PENDIENTE: el dueño aún no lo tiene. Con `logo: ''` el hero muestra la inicial y el
-//    degradado del tema. Cuando llegue: public/locales/bon-appetit/logo.webp (transparente).
+// 🖼️ LOGO PROVISIONAL (29-oct-2026): el dueño aún no tiene logo. Se generó en Gemini a partir del
+//    wordmark de su carta ("La Mies" naranja+verde con la pizza roja) pero con el nombre correcto,
+//    se recortó a transparente y se le abrió el espacio entre "Bon" y "Appétit". El ícono del
+//    buscador es la pizza del mismo logo. Prompt en public/locales/bon-appetit/PROMPTS.md.
 //
 // 📷 IMÁGENES: NO se generan aquí. Todos los `foto: ''` van vacíos; los prompts están en
 //    public/locales/bon-appetit/PROMPTS.md y el dueño sube cada foto desde su panel.
@@ -46,21 +48,24 @@ export const BONAPPETIT_LOCAL = {
   id: SLUG,
   slug: SLUG,
   nombre: 'Bon Appétit',
-  descripcion: 'Pizza y parrilla · Sierra Morena 🍕🔥',
+  descripcion: 'Pizzas, hamburguesas y parrilla · Sierra Morena 🍕🔥',
   // 📱 El número de SU carta (320 475 3619): los pedidos llegan directo al local. Es también el
   //    número del afiche de domicilios de la pestaña 📣 Difundir. Dirección de la carta:
   //    Calle 70 # 50-15 Sur, Sierra Morena (la ubicación en el mapa la fija el dueño en su panel).
   whatsapp: '573204753619',
 
-  logo: '',      // ⏳ pendiente: el dueño aún no tiene logo (muestra la inicial)
+  logo: '/locales/bon-appetit/logo.webp',     // wordmark horizontal transparente (900px = 2× el hero)
+  icono: '/locales/bon-appetit/icono.webp',   // la pizza del logo, cuadrada 256px (buscador de locales)
+  logoAnim: 'lado',                           // wordmark horizontal: entra de lado
   banner: '',    // el dueño sube el banner desde su panel (prompt en PROMPTS.md)
   tema: {
     primary: '#EC7A0E',        // naranja de los títulos de su carta (botones, precios, chips activos)
     primaryStrong: '#B95A05',  // naranja tostado (variante oscura / degradado)
-    primarySoft: '#F7A94B',    // naranja durazno para el degradado del hero
+    primarySoft: '#FDE3C2',    // durazno claro: degradado del hero (claro para que el naranja del logo resalte)
     onPrimary: '#FFFFFF',      // texto sobre el naranja
     accent: '#2F6B4A',         // verde bosque del wordmark (nav activo, detalles)
     bg: '#F7EDD8',             // "mundo" crema pergamino (el fondo de su carta)
+    hero: 'logo',              // hero protagonizado por el logo (ya trae el nombre)
   },
 
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.
