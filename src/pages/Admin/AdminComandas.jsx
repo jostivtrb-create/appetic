@@ -49,6 +49,15 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
     vistas.current = ids
   }, [activas, turno])
 
+  // 🔔 Comanda CORREGIDA por el mesero → también suena (D23).
+  const cambiosOidos = useRef(null)
+  useEffect(() => {
+    if (!activas) return
+    const actual = new Map(activas.filter(c => c.cambioPendiente).map(c => [c.id, ms(c.cambiadaEn)]))
+    if (cambiosOidos.current && [...actual].some(([id, t]) => cambiosOidos.current.get(id) !== t)) turno.sonar()
+    cambiosOidos.current = actual
+  }, [activas, turno])
+
   // Canceladas recientes que la cocina todavía no ha visto.
   const [entendidas, setEntendidas] = useState(() => leerLista(`appetic_cocina_entendidas_${local.id}`))
   const canceladas = recientes.filter(c => c.estado === 'cancelada' && !entendidas.includes(c.id)
@@ -123,9 +132,10 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
                   key={c.id} c={c} n={i + 1} abierta={abiertas.has(c.id)} nueva={nuevas.has(c.id)}
                   ahora={ahora} umbrales={umbrales}
                   onAlternar={() => alternar(c.id)}
-                  onTachar={(uid, hecho) => api.marcarItem(c, uid, hecho)}
-                  onTacharTodo={hecho => api.marcarTodo(c, hecho)}
+                  onTachar={(uid, hecho) => api.marcarItem(c, uid, hecho).catch(() => setError('No se pudo tachar. Revisa el internet e intenta de nuevo.'))}
+                  onTacharTodo={hecho => api.marcarTodo(c, hecho).catch(() => setError('No se pudo tachar. Revisa el internet e intenta de nuevo.'))}
                   onEntregar={() => setConfirmar(c)}
+                  onVisto={() => api.marcarVisto(c).catch(() => setError('No se pudo marcar como visto. Intenta de nuevo.'))}
                 />
               ))}
             </div>
@@ -150,39 +160,71 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
 }
 
 // Una comanda de la fila.
-function Comanda({ c, n, abierta, nueva, ahora, umbrales, onAlternar, onTachar, onTacharTodo, onEntregar }) {
+function Comanda({ c, n, abierta, nueva, ahora, umbrales, onAlternar, onTachar, onTacharTodo, onEntregar, onVisto }) {
   const llevar = c.destino?.tipo === 'llevar'
-  const seg = (ahora - (ms(c.creadaEn) || ahora)) / 1000
+  const seg = (ahora - (ms(c.creadaEn) || ahora)) / 1000  // el contador SIGUE desde que llegó (D27)
   const nivel = nivelTiempo(seg, umbrales)
-  const hechos = c.items.filter(i => i.hecho).length
-  const todo = hechos === c.items.length
+  const vivos = c.items.filter(i => !i.quitado)
+  const hechos = vivos.filter(i => i.hecho).length
+  const todo = hechos === vivos.length
+  const pendiente = !!c.cambioPendiente
+  const segCambio = c.cambiadaEn ? (ahora - ms(c.cambiadaEn)) / 1000 : 0
   const [verLleva, setVerLleva] = useState(() => new Set()) // ítems con «¿Qué lleva?» abierto
   const alternarLleva = uid => setVerLleva(s => { const n = new Set(s); n.has(uid) ? n.delete(uid) : n.add(uid); return n })
   return (
-    <article className={`km-com ${llevar ? 'llevar' : 'mesa'} ${abierta ? 'abierta' : ''} ${nueva ? 'nueva' : ''} t-${nivel}`}>
+    <article className={`km-com ${llevar ? 'llevar' : 'mesa'} ${abierta ? 'abierta' : ''} ${nueva ? 'nueva' : ''} ${pendiente ? 'cambio' : ''} t-${nivel}`}>
       <button className="km-com-cab" onClick={onAlternar} aria-expanded={abierta}>
         <span className="km-com-tipo">{llevar ? 'PARA LLEVAR' : 'MESA'}</span>
         <span className="km-com-dest">{llevar ? (c.destino?.nombre || '') : (c.destino?.mesa || c.destino?.nombre || '')}</span>
         <span className="km-com-orden">#{n}</span>
       </button>
+      {/* ⚠️ La franja de CAMBIO se ve aunque la comanda esté cerrada, y se quita con «Visto». */}
+      {pendiente && (
+        <div className="km-cambio" role="alert">
+          <span>
+            <strong>⚠️ CAMBIÓ</strong>
+            <small>hace {minutosSeg(segCambio)}{c.cambios?.at(-1)?.por?.nombre ? ` · ${c.cambios.at(-1).por.nombre.split(' ')[0]}` : ''}{c.destinoAntes ? ` · antes ${etiquetaDestino(c.destinoAntes)}` : ''}</small>
+          </span>
+          <button onClick={onVisto}>Visto</button>
+        </div>
+      )}
       <button className="km-com-resumen" onClick={onAlternar} tabIndex={-1}>
         <span className={`km-reloj ${nivel}`}>⏱ {minutosSeg(seg)}</span>
         <span className="km-com-cuenta">{itemsTxt(c.cantidadItems)}</span>
-        {hechos > 0 && <span className="km-com-prog">{hechos}/{c.items.length} ✓</span>}
+        {hechos > 0 && <span className="km-com-prog">{hechos}/{vivos.length} ✓</span>}
         <span className="km-com-flecha" aria-hidden="true">{abierta ? '▲' : '▼'}</span>
       </button>
 
       {abierta && (
         <div className="km-com-cuerpo">
           <ul className="km-items">
-            {c.items.map(it => (
+            {c.items.map(it => it.quitado ? (
+              // Quitado por el mesero: se ve en gris (mientras el cambio no se haya visto) y no se tacha.
+              pendiente && (
+                <li key={it.uid} className="km-item-li">
+                  <div className="km-item quitado">
+                    <span className="km-item-check" aria-hidden="true">✕</span>
+                    <span className="km-item-txt">
+                      <span className="km-item-nombre"><b>{it.cantidad}×</b> {it.nombre}</span>
+                      <span className="km-quitado">QUITADO</span>
+                    </span>
+                  </div>
+                </li>
+              )
+            ) : (
               <li key={it.uid} className="km-item-li">
-                <button className={`km-item ${it.hecho ? 'hecho' : ''}`} onClick={() => onTachar(it.uid, !it.hecho)} aria-pressed={it.hecho}>
+                <button className={`km-item ${it.hecho ? 'hecho' : ''} ${pendiente && it.cambio && ms(it.cambio.en) >= ms(c.cambiadaEn) ? 'cambiado' : ''}`} onClick={() => onTachar(it.uid, !it.hecho)} aria-pressed={it.hecho}>
                   <span className="km-item-check" aria-hidden="true">{it.hecho ? '✓' : ''}</span>
                   <span className="km-item-txt">
                     <span className="km-item-nombre"><b>{it.cantidad}×</b> {it.nombre}</span>
                     {it.opciones && <span className="km-item-op">{it.opciones}</span>}
                     {it.comentario && <span className="km-item-com">💬 {it.comentario}</span>}
+                    {/* Antes / después mientras la cocina no haya dado «Visto» (D23). */}
+                    {pendiente && it.cambio && ms(it.cambio.en) >= ms(c.cambiadaEn) && (
+                      <span className="km-antes">
+                        Antes: {[it.cambio.antes.opciones, it.cambio.antes.comentario && `💬 ${it.cambio.antes.comentario}`].filter(Boolean).join(' · ') || 'sin opciones ni comentario'}
+                      </span>
+                    )}
                   </span>
                 </button>
                 {/* «¿Qué lleva?» va APARTE del botón de tachar: consultarlo nunca tacha nada. */}
@@ -203,7 +245,13 @@ function Comanda({ c, n, abierta, nueva, ahora, umbrales, onAlternar, onTachar, 
             <button className="km-tachar-todo" onClick={() => onTacharTodo(true)}>Tachar todo</button>
           )}
           {todo && <button className="km-destachar" onClick={() => onTacharTodo(false)}>Destachar todo</button>}
-          {c.creadaPor?.nombre && <p className="km-quien">La tomó {c.creadaPor.nombre}</p>}
+          {/* Rastro (D26): quién la tomó y quién la cambió. */}
+          <div className="km-quien">
+            {c.creadaPor?.nombre && <p>La tomó <b>{c.creadaPor.nombre}</b></p>}
+            {(c.cambios || []).map((x, i) => (
+              <p key={i}>{hora(x.en)} · <b>{x.por?.nombre || x.por?.email || 'Alguien'}</b> {x.resumen}</p>
+            ))}
+          </div>
         </div>
       )}
     </article>

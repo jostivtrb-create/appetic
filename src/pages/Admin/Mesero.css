@@ -199,3 +199,37 @@
 .av .av-error { color: #B3261E; }
 .av button { flex-shrink: 0; padding: 10px 16px; border-radius: 12px; font-weight: 800; background: var(--brand-orange); color: #fff; }
 .av-nota { font-size: 13.5px; color: var(--text-soft); background: var(--surface-2); padding: 10px 12px; border-radius: 12px; margin-bottom: 12px; }
+
+/* ✏️ Corrección (paso 2) */
+.ms-com-acc { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; }
+.ms-corregir { padding: 9px 14px; border-radius: 12px; font-size: 14px; font-weight: 800; background: var(--surface-2); border: 1.5px solid var(--border); color: var(--text); }
+.ms-com-acc .ms-cancelar { margin-top: 0; }
+.ms-cambio { margin: 4px 0 8px; padding: 7px 10px; border-radius: 10px; font-size: 13.5px; font-weight: 700; background: #FFF1C9; color: #6B4A00; }
+.ms-cambio.urgente { background: #FDE2E0; color: #A3231A; animation: msParpadeo 1.2s ease-in-out infinite; }
+.ms-cambio.visto { background: #E3F4EA; color: #17663A; font-weight: 600; }
+
+.cc-tomo { font-size: 13px; color: var(--text-soft); margin-top: 2px; }
+.cc-item.cc-cambiado { border-color: #E8B21E; background: #FFFAEB; }
+.cc-item.cc-quitado { opacity: 0.65; }
+.cc-item.cc-quitado .ms-item-nombre { text-decoration: line-through; }
+.cc-hecho { flex-shrink: 0; font-size: 12.5px; font-weight: 800; color: #17663A; background: #E3F4EA; padding: 4px 9px; border-radius: 999px; }
+.cc-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.cc-acciones button { padding: 8px 12px; border-radius: 10px; font-size: 13.5px; font-weight: 800; background: var(--surface); border: 1.5px solid var(--border); }
+.cc-acciones .cc-quitar { color: #B3261E; }
+.cc-se-quita { font-size: 13.5px; font-weight: 700; color: #B3261E; }
+.cc-mesa { width: 100%; text-align: left; padding: 14px; border-radius: 13px; font-size: 17px; font-weight: 900; background: var(--surface-2); border: 1.5px solid var(--border); }
+.cc-mesa span { font-size: 14px; font-weight: 700; color: var(--brand-orange-strong); }
+
+/* ⚠️ CUIDADO */
+.cc-cuidado-velo { position: fixed; inset: 0; z-index: 600; background: rgba(20, 14, 10, 0.6); display: grid; place-items: center; padding: 16px; }
+.cc-cuidado {
+  width: min(94vw, 440px); padding: 24px 20px; border-radius: 24px; text-align: center;
+  background: var(--surface); border-top: 10px solid #E8A200; box-shadow: var(--shadow-lg);
+  animation: kmSacude 0.45s ease 1;
+}
+.cc-cuidado-tit { font-size: 15px; font-weight: 900; letter-spacing: 0.14em; color: #A36A00; }
+.cc-cuidado h3 { font-size: 21px; font-weight: 900; margin: 8px 0 6px; }
+.cc-cuidado p { font-size: 15.5px; color: var(--text-soft); margin-bottom: 18px; }
+.cc-ir { width: 100%; padding: 17px; border-radius: 16px; background: #E8A200; color: #2A1A00; font-size: 17px; font-weight: 900; }
+.cc-no { width: 100%; margin-top: 10px; padding: 15px; border-radius: 16px; background: var(--surface-2); font-size: 16px; font-weight: 800; }
+@keyframes kmSacude { 0%, 100% { transform: none; } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }

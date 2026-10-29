@@ -20,7 +20,7 @@
 //     mesero en una pestaña y la cocina en otra se ven en vivo sin tocar Firestore.
 import {
   collection, doc, setDoc, updateDoc, onSnapshot, query, where, orderBy, limit, startAfter,
-  getDocs, serverTimestamp,
+  getDocs, serverTimestamp, runTransaction,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { precioItem } from '../utils/price'
@@ -43,6 +43,81 @@ export function itemsDeComanda(carrito) {
     precio: precioItem(it),
     hecho: false,
   }))
+}
+
+// ─────────────────────────────── Correcciones (paso 2) ───────────────────────────────
+//
+// El mesero corrige una comanda ya enviada (D21–D27 de la guía). La corrección se aplica SIEMPRE
+// sobre la comanda recién leída (transacción): si mientras editaba la cocina tachó ese plato, no se
+// pisa — sale el CUIDADO.
+//
+//   correccion = {
+//     items: { [uid]: { quitar?: true, seleccion?, opciones?, precio?, comentario? } },
+//     destino?: { tipo, mesa, nombre },
+//     confirmados?: [uid, …],      // ítems tachados para los que el mesero dijo «Ya voy a cocina»
+//     confirmaDestino?: bool,      // ídem para cambiar la mesa con algo ya tachado
+//   }
+//
+// Qué deja en la comanda:
+//   ítem cambiado → sus campos nuevos + cambio: { antes: {opciones, comentario}, en, por },
+//                   y si estaba tachado (con «Ya voy a cocina») vuelve a la fila (hecho: false).
+//   ítem quitado  → quitado: true + cambio (la cocina lo ve «QUITADO» en gris).
+//   comanda       → destinoAntes (si cambió la mesa) · cambios[] (rastro: en, por, resumen) ·
+//                   cambioPendiente: true (hasta que la cocina toca «Visto») · cambiadaEn ·
+//                   total y cantidadItems sin lo quitado.
+export class CuidadoError extends Error {
+  constructor(uids, destino) { super('cuidado'); this.uids = uids; this.destino = destino }
+}
+
+export const itemsVivos = c => (c?.items || []).filter(it => !it.quitado)
+
+export function aplicarCorreccion(comanda, correccion, por, en = Date.now()) {
+  if (comanda.estado !== 'activa') throw new Error('cerrada')
+  const cambiosItems = correccion.items || {}
+  const confirmados = new Set(correccion.confirmados || [])
+  const resumen = []
+
+  // 1) ¿Toca algo ya tachado sin haber confirmado «Ya voy a cocina»?
+  const sinConfirmar = comanda.items
+    .filter(it => cambiosItems[it.uid] && it.hecho && !it.quitado && !confirmados.has(it.uid))
+    .map(it => it.uid)
+  const cambiaDestino = !!correccion.destino && etiquetaDestino(correccion.destino) !== etiquetaDestino(comanda.destino)
+  const destinoSinConfirmar = cambiaDestino && itemsVivos(comanda).some(it => it.hecho) && !correccion.confirmaDestino
+  if (sinConfirmar.length || destinoSinConfirmar) throw new CuidadoError(sinConfirmar, destinoSinConfirmar)
+
+  // 2) Aplicar.
+  const items = comanda.items.map(it => {
+    const c = cambiosItems[it.uid]
+    if (!c || it.quitado) return it
+    const antes = { opciones: it.opciones || '', comentario: it.comentario || '' }
+    if (c.quitar) {
+      resumen.push(`quitó ${it.cantidad}× ${it.nombre}`)
+      return { ...it, quitado: true, cambio: { antes, en, por } }
+    }
+    const nuevo = { ...it }
+    if ('seleccion' in c) { nuevo.seleccion = c.seleccion; nuevo.opciones = c.opciones || ''; if (typeof c.precio === 'number') nuevo.precio = c.precio }
+    if ('comentario' in c) nuevo.comentario = String(c.comentario || '').trim()
+    const cambio = nuevo.opciones !== antes.opciones || nuevo.comentario !== antes.comentario
+    if (!cambio) return it
+    resumen.push(`cambió ${it.nombre}`)
+    return { ...nuevo, hecho: false, cambio: { antes, en, por } }
+  })
+
+  const vivos = items.filter(it => !it.quitado)
+  if (!vivos.length) throw new Error('ultimo')
+  if (cambiaDestino) resumen.push(`${etiquetaDestino(comanda.destino)} → ${etiquetaDestino(correccion.destino)}`)
+  if (!resumen.length) return null // nada cambió de verdad
+
+  const upd = {
+    items,
+    total: vivos.reduce((s, it) => s + (it.precio || 0), 0),
+    cantidadItems: vivos.reduce((s, it) => s + (it.cantidad || 0), 0),
+    cambios: [...(comanda.cambios || []), { en, por, resumen: resumen.join(' · ') }],
+    cambioPendiente: true,
+    cambiadaEn: en,
+  }
+  if (cambiaDestino) { upd.destino = correccion.destino; upd.destinoAntes = comanda.destino }
+  return upd
 }
 
 // ¿Es una comanda viva (la cocina todavía la tiene en la fila)?
@@ -99,6 +174,13 @@ function escucharConReintento(q, cb, onError) {
 
 function firestoreApi(localId) {
   const col = () => collection(db, 'locales', localId, 'comandas')
+  // Lee la comanda fresca, le cambia los ítems y escribe — todo en una transacción.
+  const cambiarItems = (id, fn, extra = {}) => runTransaction(db, async tx => {
+    const ref = doc(col(), id)
+    const snap = await tx.get(ref)
+    if (!snap.exists()) return
+    tx.update(ref, { items: fn(snap.data().items || []), ...extra })
+  })
 
   return {
     // Fila de la cocina y vista del mesero: activas + canceladas recientes (para que la cocina
@@ -141,18 +223,33 @@ function firestoreApi(localId) {
     },
     // Tachar / destachar una línea. Se reescribe la lista entera (Firestore no edita un elemento
     // de un array por índice) a partir de la comanda que tiene la pantalla.
+    // Tachar / destachar SIEMPRE sobre la comanda recién leída (transacción): si el mesero acaba de
+    // guardar una corrección, el tachado de la cocina no la pisa con la lista vieja de su pantalla.
     async marcarItem(comanda, uid, hecho) {
-      const items = comanda.items.map(it => it.uid === uid ? { ...it, hecho } : it)
-      await updateDoc(doc(col(), comanda.id), { items })
+      await cambiarItems(comanda.id, items => items.map(it => it.uid === uid && !it.quitado ? { ...it, hecho } : it))
     },
     async marcarTodo(comanda, hecho) {
-      const items = comanda.items.map(it => ({ ...it, hecho }))
-      await updateDoc(doc(col(), comanda.id), { items })
+      await cambiarItems(comanda.id, items => items.map(it => it.quitado ? it : { ...it, hecho }))
+    },
+    // Corrección del mesero, en transacción (ver aplicarCorreccion). Devuelve false si no cambió nada.
+    async corregir(comandaId, correccion, por) {
+      const ref = doc(col(), comandaId)
+      return runTransaction(db, async tx => {
+        const snap = await tx.get(ref)
+        if (!snap.exists()) throw new Error('cerrada')
+        const upd = aplicarCorreccion({ id: snap.id, ...snap.data() }, correccion, por, Date.now())
+        if (!upd) return false
+        tx.update(ref, upd)
+        return true
+      })
+    },
+    // La cocina vio el cambio: se quita la franja «CAMBIÓ».
+    async marcarVisto(comanda) {
+      await updateDoc(doc(col(), comanda.id), { cambioPendiente: false, vistoEn: Date.now() })
     },
     async entregar(comanda) {
-      const items = comanda.items.map(it => ({ ...it, hecho: true }))
-      await updateDoc(doc(col(), comanda.id), {
-        items, estado: 'entregada', entregadaEn: serverTimestamp(), cerradaEn: serverTimestamp(),
+      await cambiarItems(comanda.id, items => items.map(it => it.quitado ? it : { ...it, hecho: true }), {
+        estado: 'entregada', entregadaEn: serverTimestamp(), cerradaEn: serverTimestamp(),
       })
     },
     // Deshacer un «entregado» por error de dedo: vuelve a la fila en su lugar (por creadaEn).
@@ -240,12 +337,23 @@ function demoApi(localId) {
       cambiar(comanda.id, c => ({ ...c, items: c.items.map(it => it.uid === uid ? { ...it, hecho } : it) }))
     },
     async marcarTodo(comanda, hecho) {
-      cambiar(comanda.id, c => ({ ...c, items: c.items.map(it => ({ ...it, hecho })) }))
+      cambiar(comanda.id, c => ({ ...c, items: c.items.map(it => it.quitado ? it : { ...it, hecho }) }))
+    },
+    async corregir(comandaId, correccion, por) {
+      const c = leer().find(x => x.id === comandaId)
+      if (!c) throw new Error('cerrada')
+      const upd = aplicarCorreccion(c, correccion, por, Date.now())
+      if (!upd) return false
+      cambiar(comandaId, x => ({ ...x, ...upd }))
+      return true
+    },
+    async marcarVisto(comanda) {
+      cambiar(comanda.id, c => ({ ...c, cambioPendiente: false, vistoEn: Date.now() }))
     },
     async entregar(comanda) {
       const ahora = Date.now()
       cambiar(comanda.id, c => ({
-        ...c, items: c.items.map(it => ({ ...it, hecho: true })),
+        ...c, items: c.items.map(it => it.quitado ? it : { ...it, hecho: true }),
         estado: 'entregada', entregadaEn: ahora, cerradaEn: ahora,
       }))
     },

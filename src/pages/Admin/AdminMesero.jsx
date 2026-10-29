@@ -9,6 +9,8 @@ import ProductModal from '../../components/Menu/ProductModal'
 import ProductWizard from '../../components/Menu/ProductWizard'
 import AdminEquipo from './AdminEquipo'
 import ActivarAvisos from './ActivarAvisos'
+import { Teclado } from './Teclado'
+import CorregirComanda, { Cuidado } from './CorregirComanda'
 import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, itemsTxt } from './comandaUtils'
 import './Mesero.css'
 
@@ -65,7 +67,7 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
 
       {vista === 'tomar'
         ? <TomarPedido local={local} productos={productos} api={api} activas={activas} usuario={usuario} />
-        : <EnCurso local={local} api={api} activas={activas} recientes={recientes} usuario={usuario} />}
+        : <EnCurso local={local} productos={productos} api={api} activas={activas} recientes={recientes} usuario={usuario} />}
     </div>
   )
 }
@@ -356,32 +358,17 @@ function HojaComanda({ local, idsMenu, carrito, setCarrito, total, api, activas,
   )
 }
 
-// Teclado grande para el número de mesa.
-function Teclado({ valor, onCambio }) {
-  const tecla = t => {
-    if (t === '⌫') onCambio(valor.slice(0, -1))
-    else if (t === 'C') onCambio('')
-    else if (valor.length < 3) onCambio((valor + t).replace(/^0+/, ''))
-  }
-  return (
-    <div className="ms-teclado">
-      <div className={`ms-teclado-pantalla ${valor ? '' : 'vacia'}`}>{valor ? `Mesa ${valor}` : 'Número de mesa'}</div>
-      <div className="ms-teclado-grid">
-        {['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map(t => (
-          <button key={t} onClick={() => tecla(t)} className={t === 'C' || t === '⌫' ? 'aux' : ''} aria-label={t === '⌫' ? 'Borrar' : t === 'C' ? 'Limpiar' : t}>{t}</button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
 // ─────────────────────────────── En curso ───────────────────────────────
 
-function EnCurso({ local, api, activas, recientes, usuario }) {
+function EnCurso({ local, productos, api, activas, recientes, usuario }) {
   const ahora = useAhora()
   const umbrales = umbralesDe(local)
   const colores = coloresComanda(local)
   const [cancelando, setCancelando] = useState(null)
+  const [corrigiendo, setCorrigiendo] = useState(null)   // id de la comanda en corrección
+  const [cuidadoCancelar, setCuidadoCancelar] = useState(null)
+  const [guardada, setGuardada] = useState(false)
+  const enCorreccion = corrigiendo ? activas.find(c => c.id === corrigiendo) : null
 
   // Agrupadas por mesa / nombre; dentro, por orden de llegada.
   const grupos = useMemo(() => {
@@ -396,6 +383,12 @@ function EnCurso({ local, api, activas, recientes, usuario }) {
 
   const entregadasHoy = recientes.filter(c => c.estado === 'entregada').slice(0, 8)
 
+  // Cancelar una comanda que ya tiene algo hecho pasa por el CUIDADO (igual que corregir).
+  function pedirCancelar(c) {
+    if (c.items.some(it => it.hecho && !it.quitado)) setCuidadoCancelar(c)
+    else setCancelando(c.id)
+  }
+
   async function cancelar(c) {
     await api.cancelar(c, { email: (usuario?.email || '').toLowerCase(), nombre: usuario?.displayName || '' })
     setCancelando(null)
@@ -408,17 +401,29 @@ function EnCurso({ local, api, activas, recientes, usuario }) {
         <section key={lista[0].id} className="ms-mesa">
           <h3 className={`ms-mesa-tit ${lista[0].destino?.tipo === 'llevar' ? 'llevar' : 'mesa'}`}>{etiquetaDestino(lista[0].destino)}</h3>
           {lista.map(c => {
-            const hechos = c.items.filter(i => i.hecho).length
+            const vivos = c.items.filter(i => !i.quitado)
+            const hechos = vivos.filter(i => i.hecho).length
             const seg = (ahora - (ms(c.creadaEn) || ahora)) / 1000
+            const ultimo = c.cambios?.at(-1)
+            const segCambio = c.cambiadaEn ? (ahora - ms(c.cambiadaEn)) / 1000 : 0
             return (
               <article key={c.id} className="ms-com">
                 <div className="ms-com-cab">
                   <span className={`ms-reloj ${nivelTiempo(seg, umbrales)}`}>⏱ {minutosSeg(seg)}</span>
-                  <span className="ms-com-prog">{hechos}/{c.items.length} listos</span>
-                  {c.creadaPor?.nombre && <span className="ms-com-quien">{c.creadaPor.nombre.split(' ')[0]}</span>}
+                  <span className="ms-com-prog">{hechos}/{vivos.length} listos</span>
+                  {c.creadaPor?.nombre && <span className="ms-com-quien">La tomó {c.creadaPor.nombre.split(' ')[0]}</span>}
                 </div>
+                {/* ¿La cocina ya vio la corrección? (S18: lo que se está cocinando sin tachar no lo sabe el sistema) */}
+                {c.cambioPendiente && (
+                  <p className={`ms-cambio ${segCambio > 60 ? 'urgente' : ''}`}>
+                    {segCambio > 60 ? '⚠️ La cocina no ha visto el cambio · ve a avisarle' : '⏳ Cocina aún no ha visto el cambio'}
+                  </p>
+                )}
+                {!c.cambioPendiente && ultimo && (
+                  <p className="ms-cambio visto">✓ Cocina vio el cambio · {ultimo.por?.nombre?.split(' ')[0] || 'alguien'} {ultimo.resumen}</p>
+                )}
                 <ul className="ms-com-items">
-                  {c.items.map(it => (
+                  {vivos.map(it => (
                     <li key={it.uid} className={it.hecho ? 'hecho' : ''}>
                       <span>{it.hecho ? '✓' : '•'} {it.cantidad}× {it.nombre}</span>
                       {it.opciones && <small>{it.opciones}</small>}
@@ -435,13 +440,35 @@ function EnCurso({ local, api, activas, recientes, usuario }) {
                     </div>
                   </div>
                 ) : (
-                  <button className="ms-cancelar" onClick={() => setCancelando(c.id)}>Cancelar comanda</button>
+                  <div className="ms-com-acc">
+                    <button className="ms-corregir" onClick={() => setCorrigiendo(c.id)}>✏️ Corregir</button>
+                    <button className="ms-cancelar" onClick={() => pedirCancelar(c)}>Cancelar comanda</button>
+                  </div>
                 )}
               </article>
             )
           })}
         </section>
       ))}
+
+      {guardada && <div className="ms-toast" role="status">✓ Corrección enviada a cocina</div>}
+
+      {enCorreccion && (
+        <CorregirComanda
+          comanda={enCorreccion} productos={productos} api={api} usuario={usuario}
+          onCerrar={ok => { setCorrigiendo(null); if (ok) { setGuardada(true); setTimeout(() => setGuardada(false), 3000) } }}
+        />
+      )}
+      {/* Si la comanda deja de estar en curso mientras se corrige (la entregaron), se cierra sola. */}
+      {corrigiendo && !enCorreccion && <CerrarSolo onCerrar={() => setCorrigiendo(null)} />}
+
+      {cuidadoCancelar && (
+        <Cuidado
+          titulo={`${etiquetaDestino(cuidadoCancelar.destino)} ya tiene platos hechos`}
+          onIr={() => { setCancelando(cuidadoCancelar.id); setCuidadoCancelar(null) }}
+          onCancelar={() => setCuidadoCancelar(null)}
+        />
+      )}
 
       {entregadasHoy.length > 0 && (
         <>
@@ -458,6 +485,11 @@ function EnCurso({ local, api, activas, recientes, usuario }) {
       )}
     </div>
   )
+}
+
+function CerrarSolo({ onCerrar }) {
+  useEffect(() => { onCerrar() }, [onCerrar])
+  return null
 }
 
 // 🔔 Comandas de ESTE mesero que la cocina entregó y él todavía no ha visto.

@@ -8,9 +8,11 @@ import './ProductWizard.css'
 // Cada grupo de opciones es un paso a pantalla completa con tarjetas de foto;
 // el último paso es el resumen. Devuelve la misma forma `seleccion` que el modal
 // normal, así que el carrito y el checkout no cambian.
-export default function ProductWizard({ producto, onCerrar, onAgregar }) {
-  const [varianteId, setVarianteId] = useState(producto.variantes?.length ? producto.variantes[0].id : null)
-  const [grupos, setGrupos] = useState({}) // { grupoId: [opcionId, ...] }
+// `inicial` ({ seleccion, notas }) abre con lo ya elegido (corrección del mesero); `textoBoton` cambia
+// el texto del botón final.
+export default function ProductWizard({ producto, onCerrar, onAgregar, inicial, textoBoton }) {
+  const [varianteId, setVarianteId] = useState(inicial?.seleccion?.varianteId ?? (producto.variantes?.length ? producto.variantes[0].id : null))
+  const [grupos, setGrupos] = useState(() => ({ ...(inicial?.seleccion?.grupos || {}) })) // { grupoId: [opcionId, ...] }
   // ⊘ Los pasos que el cliente dijo que NO le pongan: { grupoId: true }.
   //
   // Esto pedía dos toques: marcar "no lo lleva" y después decir cuál era. La
@@ -26,7 +28,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   // Se marca y no se calla porque del otro lado la cocinera lee "no lleva" en
   // vez de adivinar: si el renglón simplemente faltara, en la duda lo prepara.
   // Y el inventario no le baja el stock a algo que sigue en la olla.
-  const [noLleva, setNoLleva] = useState({})
+  const [noLleva, setNoLleva] = useState(() => ({ ...(inicial?.seleccion?.noLleva || {}) }))
   const [paso, setPaso] = useState(0)
   // Indicaciones sí; cantidad NO.
   //
@@ -41,7 +43,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
   //
   // Quien quiera otro lo arma otra vez. Son treinta segundos y sale como él lo
   // quiere, que es de lo que se trata.
-  const [notas, setNotas] = useState('')
+  const [notas, setNotas] = useState(inicial?.notas || '')
 
   const seleccion = useMemo(() => ({ varianteId, grupos, noLleva }), [varianteId, grupos, noLleva])
 
@@ -312,7 +314,7 @@ export default function ProductWizard({ producto, onCerrar, onAgregar }) {
             </button>
           ) : (
             <button className="btn btn-primary pw-next" onClick={agregar} disabled={!!errorFinal}>
-              {errorFinal || <>Agregar a mi orden · {cop(unitario)}</>}
+              {errorFinal || <>{textoBoton || 'Agregar a mi orden'} · {cop(unitario)}</>}
             </button>
           )}
         </div>

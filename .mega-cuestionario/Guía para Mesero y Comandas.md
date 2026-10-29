@@ -6,7 +6,7 @@
 - **Tarea:** dos pantallas nuevas por local — **Mesero** (toma comandas rápido) y **Comandas**
   (cocina) — más el link **«Mi pedido»** en los domicilios que llegan por WhatsApp.
 - **Inicio:** 29 de octubre de 2026
-- **Estado:** 🔵 Construyendo el paso 1 (Mesero + Comandas)
+- **Estado:** ✅ Pasos 1 y 2 publicados · siguiente: paso 3 («Mi pedido» de domicilios)
 - **Proyecto:** `Appetic/` (Vite/React + Firebase)
 
 ---
@@ -65,6 +65,18 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
 | D10 | **Una sola pantalla de cocina** (comida y bebidas juntas) por ahora. | S3. |
 | D11 | **Sin internet:** aviso claro «no se envió» + botón reintentar. No se envía sola después. | S4. Que el mesero nunca crea que llegó algo que no llegó. |
 
+### De la ronda 3 (paso 2 · correcciones)
+
+| # | Decisión | Por qué |
+|---|----------|---------|
+| D21 | **El «CUIDADO» sale solo al tocar un ítem YA tachado** (quitarlo o cambiarlo). Lo no tachado se corrige directo. | P1. |
+| D22 | **El mesero puede:** quitar un plato · cambiar las opciones de un plato · cambiar o agregar el comentario · cambiar la mesa / nombre / para llevar. **No** cambia cantidades ni agrega platos a una comanda enviada (lo nuevo va como comanda nueva, D12). | P2 (lo que marcó). |
+| D23 | **Cocina ve el cambio:** franja «CAMBIÓ» + sonido + lo cambiado resaltado y lo de antes tachado en gris («~~Res~~ → Pollo»). La franja se quita al tocar «Visto». | P3. |
+| D24 | **«Ya voy a cocina» destacha solo los ítems que cambiaron.** | P4. |
+| D25 | **Cualquier mesero del local y el admin pueden corregir, con registro** de quién y cuándo. | P6 + obs. |
+| D26 | **Rastro visible** en cocina y en el mesero: quién la tomó y quién la cambió y cuándo. | S1 + obs. |
+| D27 | **El contador sigue desde que llegó** y la comanda marca «cambió hace X min». | S2. |
+
 ---
 
 ## 3. Suposiciones del agente
@@ -109,6 +121,16 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
   automático** por ahora (son livianas). El historial pide 20 a la vez.
 - **S16** — **Los minutos del contador** se configuran en la página Comandas (solo admin).
   Por defecto: amarillo a los 10 min, rojo a los 20.
+- **S17** — **Una comanda ENTREGADA no se corrige** (P5 «decide tú»): lo que haya que rehacer entra
+  como comanda nueva; el historial queda limpio.
+- **S18** — **La duda de P1 (van a la mitad y no han tachado):** el sistema solo sabe lo tachado. Por
+  eso todo cambio exige que la cocina toque **«Visto»**; el mesero ve «⏳ Cocina aún no ha visto el
+  cambio» → «✓ Cocina vio el cambio», y si pasa 1 minuto sin verlo, «Ve a avisarle a cocina».
+- **S19** — **Cambiar la mesa** de una comanda que ya tiene algo tachado también pide el CUIDADO (lo
+  ya hecho pudo salir para la mesa equivocada). **Quitar el último plato no se permite**: para eso
+  está «Cancelar comanda».
+- **S20** — **Se guarda sin pisar a la cocina:** la corrección se aplica sobre la comanda recién leída
+  (transacción). Si mientras el mesero editaba la cocina tachó ese plato, sale el CUIDADO antes de guardar.
 - **S6** — El WhatsApp del local se arma en `src/utils/whatsapp.js` (`textoPedido`), que ya mete
   links (Maps, «Responder al cliente»). Ahí entra el link «Mi pedido».
 
@@ -122,7 +144,7 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
 
 - **Ronda 1 — Visión general** ✅ respondida · `Cuestionario-1-Mesero-Comandas.html`
 - **Ronda 2 — Paso 1 por dentro** ✅ respondida · `Cuestionario-2-Mesero-Comandas.html`
-- **Ronda 3** ❌ no se hace para el paso 1: ya no queda nada que adivinar. Los pasos 2 y 3 tendrán su ronda corta al llegar.
+- **Ronda 3 — Paso 2: correcciones con «CUIDADO»** ✅ respondida · sin ronda extra: no queda nada que adivinar.
 
 ---
 
@@ -155,11 +177,23 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
       pantalla siempre encendida, colores del local con MESA/LLEVAR en grande.
 - [x] 1f · **Aviso «listo» dentro de la app** en cualquier pantalla (aviso arriba + sonido) para el
       mesero que la mandó y los admins.
-- [~] 1g · **Notificación con la app cerrada** (código listo y publicado; falta la llave en Vercel) (FCM + función de Vercel). Necesita la llave en
+- [x] 1g · **Notificación con la app cerrada** (llave en Vercel en base64; falta solo la prueba en un celular real del usuario) (FCM + función de Vercel). Necesita la llave en
       Vercel (acción del usuario).
 - [x] 1h · Prueba completa en la vista previa (mesero → cocina → listo), desplegar reglas y app.
 
-### Paso 2 — Correcciones con «CUIDADO» *(ronda corta antes)*
+### Paso 2 — Correcciones con «CUIDADO»
+
+- [x] 2a · **Datos:** `api.corregir()` en transacción (Firestore y demo). Por ítem: `cambio`
+      { antes, en, por } y `quitado`. Por comanda: `destinoAntes`, `cambios[]` (rastro),
+      `cambioPendiente` + `cambiadaEn`, totales recalculados sin lo quitado.
+- [x] 2b · **Mesero:** «Corregir» en cada comanda de «En curso»: quitar / cambiar opciones (mismo
+      modal, con lo elegido) / comentario / mesa. CUIDADO al tocar lo tachado (o la mesa con algo
+      tachado) con «Ya voy a cocina» o «Cancelar el cambio». Estado «⏳ / ✓ cocina vio el cambio»
+      y «Ve a avisarle» al minuto. Cancelar comanda con algo tachado también pasa por el CUIDADO.
+- [x] 2c · **Cocina:** franja «CAMBIÓ» + sonido, antes/después, «QUITADO» en gris, «Visto»,
+      «cambió hace X min», rastro (quién la tomó · quién la cambió).
+- [x] 2d · Prueba de punta a punta en la vista previa y publicar.
+
 ### Paso 3 — Link «Mi pedido» + «Confirmar pedido» *(ronda corta antes)*
 ### Después — QR por mesa (D3)
 
@@ -204,3 +238,13 @@ Se vendieron así; siguen vigentes salvo que esta tarea las cambie (la ronda 1 c
   que es ESM, y Vercel no lo permite) → se fijó **firebase-admin 12.7.0** (+ `engines.node 22.x`);
   se diagnosticó haciendo que la función cargue firebase-admin dentro de la petición y devuelva el
   motivo. **Falta:** que el usuario ponga `FIREBASE_SERVICE_ACCOUNT` en Vercel y redespliegue.
+- **29-oct-2026** — La primera llave pegada en Vercel llegó alterada (JSON multilínea); la función ahora acepta la llave en base64 de una línea (`scripts/serviceAccount.base64.txt`, ignorado por git). Verificado: la función arranca y rechaza sin sesión. Arranca la ronda 3 (paso 2).
+- **29-oct-2026** — Ronda 3 respondida (D21–D27, S17–S20). Arranca el paso 2.
+- **29-oct-2026** — Paso 2 construido y probado en la vista previa (mesa 5: cambiar opciones de un
+  plato sin tachar → directo; quitar la pizza ya tachada → CUIDADO → «Ya voy a cocina» → guardar →
+  cocina ve «CAMBIÓ» + antes/después + QUITADO → «Visto» → el mesero ve «✓ Cocina vio el cambio»).
+  `aplicarCorreccion()` probada con 9 casos (incluye mesa con algo tachado, quitar el último plato,
+  comanda ya entregada, sin cambios reales). Decidido sobre la marcha: tachar, tachar todo y
+  entregar en la cocina también van en **transacción** (sin eso un tachado podía pisar una
+  corrección guardada en el mismo segundo). Los modales de opciones aceptan `inicial` para abrir
+  con lo ya elegido. El teclado de mesa pasó a `Teclado.jsx` (lo comparten tomar y corregir).

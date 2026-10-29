@@ -113,7 +113,8 @@
 .km-tachar-todo { background: var(--surface); border: 2px solid var(--text); color: var(--text); }
 .km-entregar { background: #1B8A4B; color: #fff; box-shadow: 0 10px 24px rgba(27, 138, 75, 0.35); }
 .km-destachar { width: 100%; margin-top: 8px; padding: 8px; font-size: 14px; font-weight: 700; color: var(--text-soft); }
-.km-quien { margin-top: 8px; font-size: 13px; color: var(--text-faint); text-align: center; }
+.km-quien { margin-top: 10px; font-size: 13px; color: var(--text-soft); text-align: center; display: grid; gap: 2px; }
+.km-quien b { color: var(--text); }
 
 /* Confirmación grande de «entregado» */
 .km-velo { position: fixed; inset: 0; z-index: 500; background: rgba(20, 14, 10, 0.55); display: grid; place-items: center; padding: 16px; }
@@ -146,3 +147,22 @@
 .km-tiempos .km-reloj { font-size: 15px; min-width: 96px; text-align: center; }
 .km-tiempos input { width: 72px; font-size: 18px; font-weight: 800; padding: 8px; border-radius: 10px; border: 1.5px solid var(--border); text-align: center; background: var(--surface-2); color: var(--text); }
 .km-tiempos-acc { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
+
+/* ⚠️ Comanda CORREGIDA por el mesero (paso 2) */
+.km-com.cambio { box-shadow: 0 0 0 4px rgba(232, 162, 0, 0.45), 0 4px 16px rgba(30, 20, 10, 0.07); }
+.km-cambio {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px 10px 16px; background: #FFE08A; color: #3D2A00;
+  animation: kmCambio 1.1s ease-in-out infinite;
+}
+.km-cambio strong { display: block; font-size: 19px; font-weight: 900; letter-spacing: 0.05em; }
+.km-cambio small { font-size: 14px; font-weight: 700; }
+.km-cambio button { flex-shrink: 0; padding: 12px 18px; border-radius: 12px; background: #3D2A00; color: #FFE08A; font-size: 16px; font-weight: 900; }
+@keyframes kmCambio { 0%, 100% { background: #FFE08A; } 50% { background: #FFD15C; } }
+@media (prefers-reduced-motion: reduce) { .km-cambio { animation: none; } }
+.km-item.cambiado { background: #FFF6D8; border-color: #E8B21E; border-width: 2px; }
+.km-antes { font-size: 14px; color: var(--text-faint); text-decoration: line-through; }
+.km-item.quitado { opacity: 0.6; border-style: dashed; }
+.km-item.quitado .km-item-nombre { text-decoration: line-through; }
+.km-item.quitado .km-item-check { border-color: #B3261E; color: #B3261E; background: transparent; }
+.km-quitado { font-size: 13px; font-weight: 900; color: #B3261E; letter-spacing: 0.06em; }

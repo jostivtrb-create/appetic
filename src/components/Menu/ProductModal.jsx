@@ -5,11 +5,13 @@ import './ProductModal.css'
 
 // `compacto`: versión del MESERO — sin la foto grande ni la descripción, para elegir rápido.
 // Las opciones, validaciones y precios son EXACTAMENTE las mismas del cliente.
-export default function ProductModal({ producto, onCerrar, onAgregar, compacto = false, textoNotas }) {
-  const [varianteId, setVarianteId] = useState(producto.variantes?.length ? producto.variantes[0].id : null)
-  const [grupos, setGrupos] = useState({}) // { grupoId: [opcionId, ...] }
+// `inicial` ({ seleccion, notas }): abre con lo ya elegido (el mesero CORRIGIENDO una comanda).
+// `textoBoton` cambia «Agregar» y `sinCantidad` oculta el selector de cantidad (al corregir no se toca).
+export default function ProductModal({ producto, onCerrar, onAgregar, compacto = false, textoNotas, inicial, textoBoton, sinCantidad = false }) {
+  const [varianteId, setVarianteId] = useState(inicial?.seleccion?.varianteId ?? (producto.variantes?.length ? producto.variantes[0].id : null))
+  const [grupos, setGrupos] = useState(() => ({ ...(inicial?.seleccion?.grupos || {}) })) // { grupoId: [opcionId, ...] }
   const [cantidad, setCantidad] = useState(1)
-  const [notas, setNotas] = useState('')
+  const [notas, setNotas] = useState(inicial?.notas || '')
   const [intentado, setIntentado] = useState(false)
   const [avisoRecorte, setAvisoRecorte] = useState('')
 
@@ -164,13 +166,15 @@ export default function ProductModal({ producto, onCerrar, onAgregar, compacto =
 
         {/* Barra inferior: cantidad + agregar */}
         <div className="pm-footer">
-          <div className="pm-qty">
-            <button onClick={() => setCantidad(c => Math.max(1, c - 1))} aria-label="Menos">−</button>
-            <span>{cantidad}</span>
-            <button onClick={() => setCantidad(c => c + 1)} aria-label="Más">+</button>
-          </div>
+          {!sinCantidad && (
+            <div className="pm-qty">
+              <button onClick={() => setCantidad(c => Math.max(1, c - 1))} aria-label="Menos">−</button>
+              <span>{cantidad}</span>
+              <button onClick={() => setCantidad(c => c + 1)} aria-label="Más">+</button>
+            </div>
+          )}
           <button className="btn btn-primary pm-add" onClick={handleAgregar}>
-            Agregar · {cop(unitario * cantidad)}
+            {textoBoton || 'Agregar'} · {cop(unitario * cantidad)}
           </button>
         </div>
       </div>
