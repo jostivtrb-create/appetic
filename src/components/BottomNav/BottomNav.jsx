@@ -11,6 +11,7 @@ import PanelRail, { devSuper } from './PanelRail'
 import { PanelMenuFlotante } from './PanelMenuBoton'
 import { esSuperadmin } from '../../config/roles'
 import './BottomNav.css'
+import { DEMO_SLUG } from '../../config/demo'
 
 // 🧭 Barra de navegación FIJA. Tiene DOS modos:
 //   • Cliente:  Menú · Cuenta · [🛒 Pedido] · Favoritos · Buscar
@@ -35,6 +36,9 @@ export default function BottomNav() {
   const enAdminRoute = /\/admin(\/|$)/.test(pathname)
   const enPanel = enAdminRoute || pathname.startsWith('/superadmin')
   const esSuper = esSuperadmin(user?.email) || devSuper()
+  // 🍔 Menú de la DEMO para clientes: se ve EXACTO como lo ve un cliente (su barra de abajo), aunque
+  // el visitante cuente como dueño de la demo. Al panel se pasa con «Ver como dueño» del letrero.
+  const menuDemo = !enPanel && (pathname === `/${DEMO_SLUG}` || pathname.startsWith(`/p/${DEMO_SLUG}/`))
 
   // /r/… es solo un puente de medio segundo hacia WhatsApp: no es una pantalla de la app.
   if (pathname.startsWith('/r/')) return null
@@ -46,7 +50,7 @@ export default function BottomNav() {
   // Infiniity): PanelRail, con lo de administrar Y lo de cliente, mostrando
   // solo lo que su rol permite. Antes había dos barras —la de cliente y la del
   // panel— y saltaban según la pantalla, lo que enredaba para entrar.
-  if (tienePanel || esSuper) {
+  if ((tienePanel || esSuper) && !menuDemo) {
     // Si abre una capa en un menú (detalle del plato, armador, carrito), en el
     // celular la barra se aparta —la hoja llega hasta abajo y le tapaba el
     // botón "Siguiente"— y en PC se queda pero cede la capa.

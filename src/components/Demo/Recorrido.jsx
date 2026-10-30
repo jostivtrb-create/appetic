@@ -36,7 +36,7 @@ export const RECORRIDOS = {
         objetivo: '.pcard', espera: 'carrito', ruta: D },
       { emoji: '🛵', titulo: 'Pídelo a domicilio',
         texto: 'Toca «Pedido» (o «Continuar el pedido»), elige domicilio, pon tu dirección y cómo pagas: el envío se calcula solo, por distancia. Al enviar se abre WhatsApp con el pedido listo (en la demo, llega a Appetic).',
-        objetivo: '.cd-checkout, .bnav-cart', espera: 'pedido-app', ruta: D },
+        objetivo: '.cd-checkout, .bnav-cart, .prail-fab--pedido', espera: 'pedido-app', ruta: D },
       { emoji: '📍', titulo: 'Sigue tu pedido',
         texto: 'El cliente no tiene que preguntar «¿ya viene?»: en «Mi pedido» ve si está por confirmar, en cocina, en camino o entregado. Toca «Ver en qué va mi pedido».',
         objetivo: '.co-exito-seguir', espera: 'mi-pedido',
