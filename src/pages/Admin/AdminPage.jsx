@@ -19,6 +19,7 @@ import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
 import { useAdmin } from '../../contexts/AdminContext'
 import AdminMesero from './AdminMesero'
 import AdminComandas from './AdminComandas'
+import AdminCaja from './AdminCaja'
 import AdminDomicilios from './AdminDomicilios'
 import AdminAjustes from './AdminAjustes'
 import { EquipoEnLinea } from './AdminEquipo'
@@ -32,6 +33,7 @@ const SECCIONES = {
   mesero: 'Mesero',
   comandas: 'Comandas',
   domicilios: 'Domicilios',
+  caja: 'Caja',
   catalogo: 'Catálogo',
   difundir: 'Difundir',
   config: 'Configuración',
@@ -375,6 +377,7 @@ export default function AdminPage() {
           <button className={seccion === 'mesero' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/mesero${location.search}`)}>🧑‍🍳 Mesero</button>
           <button className={seccion === 'comandas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/comandas${location.search}`)}>🧾 Comandas</button>
           <button className={seccion === 'domicilios' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/domicilios${location.search}`)}>🛵 Domicilios</button>
+          <button className={seccion === 'caja' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/caja${location.search}`)}>💵 Caja</button>
           <button className={seccion === 'difundir' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/difundir`)}>📣 Difundir</button>
           <button className={seccion === 'config' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/config/catalogo${location.search}`)}>⚙️ Configuración</button>
           <button className={seccion === 'metricas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/metricas`)}>📊 Métricas</button>
@@ -386,6 +389,7 @@ export default function AdminPage() {
             (sin esto el pedido a medio armar de un local se pasaba al otro). */}
         {seccion === 'mesero' ? <AdminMesero key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'comandas' ? <AdminComandas key={local.id} local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
+          : seccion === 'caja' ? <AdminCaja key={local.id} local={local} demo={demo} usuario={usuario} />
           : seccion === 'domicilios' ? <AdminDomicilios key={local.id} local={local} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} onUpdate={updateLocal} />
           : seccion === 'config' ? (

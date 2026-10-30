@@ -1,0 +1,58 @@
+/* 💵 Caja — el recorrido de cada comanda y el «Ya se cobró» al final. */
+.cj { max-width: 1100px; margin: 0 auto; display: grid; gap: 12px; }
+.cj-tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 16px; background: var(--surface-2); border: 1px solid var(--border); justify-self: start; }
+.cj-tabs button { border: 0; background: transparent; font: inherit; font-weight: 800; font-size: 15px; padding: 9px 16px; border-radius: 12px; color: var(--text-soft); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+.cj-tabs button.on { background: var(--surface); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.cj-n { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--text); color: var(--surface); font-size: 12.5px; display: inline-grid; place-items: center; }
+.cj-error { background: #FDECEC; color: #8E1B14; padding: 12px 14px; border-radius: 14px; font-weight: 700; }
+.cj-viejas { background: #FFF4D6; color: #6B4A00; padding: 12px 14px; border-radius: 14px; font-size: 14.5px; }
+.cj-vacio { color: var(--text-soft); padding: 20px 4px; }
+.cj-vacio--grande { text-align: center; padding: 60px 10px; display: grid; gap: 6px; justify-items: center; }
+.cj-vacio--grande span { font-size: 54px; }
+.cj-vacio--grande p { font-size: 21px; font-weight: 800; color: var(--text); }
+.cj-vacio--grande small { max-width: 420px; line-height: 1.45; }
+.cj-sub { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); margin: 8px 4px; }
+.cj-grid { display: grid; gap: 12px; grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 760px) { .cj-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1180px) { .cj-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.cj-card { background: var(--surface); border: 2px solid var(--border); border-radius: 18px; overflow: hidden; }
+.cj-card.is-fin { border-color: #1B8A4B; box-shadow: 0 0 0 4px rgba(27,138,75,.14); }
+.cj-card.is-vieja { border-style: dashed; }
+.cj-card-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 14px; font-weight: 900; letter-spacing: .04em; }
+.cj-card.t-mesa .cj-card-cab { background: var(--cm-mesa); color: var(--cm-mesa-txt); }
+.cj-card.t-llevar .cj-card-cab { background: var(--cm-llevar); color: var(--cm-llevar-txt); }
+.cj-card.t-domicilio .cj-card-cab { background: var(--cm-domi); color: var(--cm-domi-txt); }
+.cj-dest { font-size: 14px; display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.cj-dest b { font-size: 21px; letter-spacing: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cj-cod { font-size: 12.5px; opacity: .85; }
+.cj-card-cuerpo { padding: 12px 14px 14px; display: grid; gap: 8px; }
+.cj-etapa { font-weight: 800; font-size: 15px; }
+.cj-card.is-fin .cj-etapa { color: #1B7A43; }
+.cj-items { list-style: none; display: grid; gap: 2px; font-size: 14.5px; padding: 8px 10px; border-radius: 12px; background: var(--surface-2); }
+.cj-items small { color: var(--text-soft); }
+.cj-envio { font-size: 13.5px; color: var(--text-soft); }
+.cj-pie { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.cj-total { font-size: 21px; font-weight: 900; }
+.cj-pie small { color: var(--text-soft); font-size: 12.5px; text-align: right; }
+.cj-cobrar { border: 0; border-radius: 14px; padding: 13px; font: inherit; font-weight: 900; font-size: 16px; cursor: pointer; background: #1B8A4B; color: #fff; }
+.cj-cobrar:active { transform: scale(.98); }
+.cj-espera { font-size: 13px; color: var(--text-faint); text-align: center; padding: 6px 0 2px; }
+
+.cj-hist { list-style: none; display: grid; gap: 8px; }
+.cj-hist li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); }
+.cj-chip { font-size: 11px; font-weight: 900; letter-spacing: .05em; padding: 4px 7px; border-radius: 8px; flex-shrink: 0; }
+.cj-chip.t-mesa { background: var(--cm-mesa); color: var(--cm-mesa-txt); }
+.cj-chip.t-llevar { background: var(--cm-llevar); color: var(--cm-llevar-txt); }
+.cj-chip.t-domicilio { background: var(--cm-domi); color: var(--cm-domi-txt); }
+.cj-hist-txt { flex: 1; min-width: 0; display: grid; }
+.cj-hist-txt small { color: var(--text-soft); font-size: 12.5px; }
+.cj-hist-total { font-weight: 900; }
+.cj-btn-txt { border: 0; background: none; font: inherit; font-size: 13px; font-weight: 700; color: var(--text-soft); text-decoration: underline; cursor: pointer; }
+
+.cj-toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 80;
+  display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-radius: 16px;
+  background: #1E1B1A; color: #fff; font-weight: 700; box-shadow: 0 12px 30px rgba(0,0,0,.3); max-width: calc(100% - 32px);
+}
+.cj-toast button { border: 0; background: none; color: #F2A900; font: inherit; font-weight: 900; cursor: pointer; }

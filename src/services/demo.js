@@ -77,7 +77,7 @@ function comandasDeEjemplo() {
       destino, items, estado: 'activa', origen: 'mesero', creadaPor: mesero,
       total: items.reduce((s, it) => s + (it.precio || 0), 0),
       cantidadItems: items.reduce((s, it) => s + (it.cantidad || 0), 0),
-      creadaEn: hace(minutos), cerradaEn: null, ...extra,
+      creadaEn: hace(minutos), cerradaEn: null, porCobrar: true, ...extra,
     }]
   }
   const c = [

@@ -115,6 +115,9 @@ function comandaDe(p, por) {
     pedidoId: p.id,
     codigo: p.codigo || '',
     creadaPor: por,
+    // 💵 Caja: el domicilio se cobra con el envío incluido.
+    envio: p.entrega === 'domicilio' ? (Number(p.domicilio) || 0) : 0,
+    porCobrar: true,
     total: items.reduce((s, it) => s + it.precio, 0),
     cantidadItems: items.reduce((s, it) => s + it.cantidad, 0),
   }

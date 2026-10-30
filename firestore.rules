@@ -6,6 +6,7 @@ rules_version = '2';
 //   (pedidosPublicos) sin teléfono ni dirección, legible solo por su id para «Mi pedido»;
 //   rol DOMICILIARIO por local; se retiran los domiciliarios GLOBALES (config/domiciliarios).
 // + QR por mesa: el cliente crea su comanda (origen 'qr') directo, si el local activó sus mesas.
+// + CAJA: el admin marca cada comanda «cobrada» (porCobrar → false); solo él toca esos campos.
 // + DEMO para clientes (esDemo): cualquier sesión (también anónima) la administra, sin tocar
 //   WhatsApp/link/horario; el superadmin la reinicia (borra comandas, pedidos y stats).
 // Cambios paso 1: EQUIPO por local (meseros y cocina en locales/{id}/equipo, privado) y COMANDAS
@@ -161,8 +162,14 @@ service cloud.firestore {
                             && int(request.resource.data.destino.mesa) <= get(/databases/$(database)/documents/locales/$(localId)).data.get('mesas', 0)
                             && !('cambios' in request.resource.data))
                       );
+        // 💵 Lo de COBRO (porCobrar · cobradaEn · cobradaPor) solo lo toca el admin (la caja). Una
+        // cancelación del mesero sí la saca de «por cobrar». Guía «Cuenta por mesa» D6.
         allow update: if esPersonal(localId)
-                      && request.resource.data.estado in ['activa', 'entregada', 'cancelada'];
+                      && request.resource.data.estado in ['activa', 'entregada', 'cancelada']
+                      && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['porCobrar', 'cobradaEn', 'cobradaPor'])
+                          || puedeAdministrar(localId)
+                          || (request.resource.data.estado == 'cancelada' && request.resource.data.get('porCobrar', false) == false
+                              && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['cobradaEn', 'cobradaPor'])));
         allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
 

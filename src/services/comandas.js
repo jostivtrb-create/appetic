@@ -12,6 +12,9 @@
 //   creadaEn · entregadaEn · canceladaEn   (Timestamp)
 //   creadaPor: { email, nombre }
 //   total · cantidadItems · origen: 'mesero'
+//   porCobrar: true al nacer → false cuando la caja la marca cobrada (cobradaEn · cobradaPor) o se
+//              cancela. Guía «Cuenta por mesa»: la Caja lista las porCobrar y su historial son las cobradas.
+//   envio:     (pedidos de la app a domicilio) costo del envío, para cobrar el total completo.
 //
 // Tachar es por LÍNEA (las 4 hamburguesas son una línea): la cocina tacha la pizza que ya salió
 // y deja las hamburguesas. «Entregada» = la cocina confirmó todo (un solo paso, D5 de la guía).
@@ -22,7 +25,7 @@
 //     mesero en una pestaña y la cocina en otra se ven en vivo sin tocar Firestore.
 import {
   collection, doc, setDoc, updateDoc, onSnapshot, query, where, orderBy, limit, startAfter,
-  getDocs, getDoc, serverTimestamp, runTransaction,
+  getDocs, getDoc, serverTimestamp, runTransaction, deleteField,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { precioItem } from '../utils/price'
@@ -221,6 +224,7 @@ function firestoreApi(localId) {
         cantidadItems: items.reduce((s, it) => s + (it.cantidad || 0), 0),
         creadaEn: serverTimestamp(),
         cerradaEn: null,
+        porCobrar: true,
       }
       await setDoc(doc(col(), id), data)
       return id
@@ -267,8 +271,24 @@ function firestoreApi(localId) {
     async cancelar(comanda, porQuien) {
       await updateDoc(doc(col(), comanda.id), {
         estado: 'cancelada', canceladaEn: serverTimestamp(), cerradaEn: serverTimestamp(),
-        canceladaPor: porQuien || null,
+        canceladaPor: porQuien || null, porCobrar: false,
       })
+    },
+    // 💵 CAJA (guía «Cuenta por mesa»): lo que falta cobrar, en orden de llegada…
+    escucharPorCobrar(cb, onError) {
+      const q = query(col(), where('porCobrar', '==', true), orderBy('creadaEn', 'asc'))
+      return escucharConReintento(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))), onError)
+    },
+    // …y el historial: las cobradas, la más reciente primero.
+    escucharCobradas(cb, onError, n = POR_PAGINA) {
+      const q = query(col(), orderBy('cobradaEn', 'desc'), limit(n))
+      return escucharConReintento(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))), onError)
+    },
+    async cobrar(comanda, por) {
+      await updateDoc(doc(col(), comanda.id), { porCobrar: false, cobradaEn: serverTimestamp(), cobradaPor: por || null })
+    },
+    async descobrar(comanda) {
+      await updateDoc(doc(col(), comanda.id), { porCobrar: true, cobradaEn: deleteField(), cobradaPor: deleteField() })
     },
   }
 }
@@ -300,6 +320,7 @@ function demoApi(localId) {
     entregadaEn: c.entregadaEn ? ts(c.entregadaEn) : null,
     canceladaEn: c.canceladaEn ? ts(c.canceladaEn) : null,
     cerradaEn: c.cerradaEn ? ts(c.cerradaEn) : null,
+    cobradaEn: c.cobradaEn ? ts(c.cobradaEn) : null,
   })
   const cambiar = (id, fn) => escribir(leer().map(c => c.id === id ? fn(c) : c))
   const suscribir = (calcular, cb) => {
@@ -337,7 +358,7 @@ function demoApi(localId) {
         id, destino, items, estado: 'activa', origen, creadaPor,
         total: items.reduce((s, it) => s + (it.precio || 0), 0),
         cantidadItems: items.reduce((s, it) => s + (it.cantidad || 0), 0),
-        creadaEn: ahora, cerradaEn: null,
+        creadaEn: ahora, cerradaEn: null, porCobrar: true,
       }])
       return id
     },
@@ -374,7 +395,19 @@ function demoApi(localId) {
     },
     async cancelar(comanda, porQuien) {
       const ahora = Date.now()
-      cambiar(comanda.id, c => ({ ...c, estado: 'cancelada', canceladaEn: ahora, cerradaEn: ahora, canceladaPor: porQuien || null }))
+      cambiar(comanda.id, c => ({ ...c, estado: 'cancelada', canceladaEn: ahora, cerradaEn: ahora, canceladaPor: porQuien || null, porCobrar: false }))
+    },
+    escucharPorCobrar(cb) {
+      return suscribir(() => [leer().filter(c => c.porCobrar).sort((a, b) => a.creadaEn - b.creadaEn).map(hidratar)], cb)
+    },
+    escucharCobradas(cb, _onError, n = POR_PAGINA) {
+      return suscribir(() => [leer().filter(c => c.cobradaEn).sort((a, b) => b.cobradaEn - a.cobradaEn).slice(0, n).map(hidratar)], cb)
+    },
+    async cobrar(comanda, por) {
+      cambiar(comanda.id, c => ({ ...c, porCobrar: false, cobradaEn: Date.now(), cobradaPor: por || null }))
+    },
+    async descobrar(comanda) {
+      cambiar(comanda.id, c => { const { cobradaEn, cobradaPor, ...resto } = c; return { ...resto, porCobrar: true } })
     },
   }
 }
