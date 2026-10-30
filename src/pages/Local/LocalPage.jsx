@@ -10,7 +10,7 @@ import { useAdmin } from '../../contexts/AdminContext'
 import DemoLetrero from '../../components/Demo/DemoLetrero'
 import DemoBienvenida from '../../components/Demo/DemoBienvenida'
 import { yaVioBienvenida } from '../../components/Demo/demoUtils'
-import { iniciarRecorrido } from '../../components/Demo/Recorrido'
+import { AVISO_BIENVENIDA } from '../../components/Demo/Recorrido'
 import './LocalPage.css'
 import { atrasEsDelCajon } from '../../utils/cajonPanel'
 
@@ -27,6 +27,12 @@ export default function LocalPage() {
   const [avisoVacio, setAvisoVacio] = useState(null)
   // 🍔 Demo para clientes: la bienvenida sale una vez por visita (D12).
   const [bienvenida, setBienvenida] = useState(() => !yaVioBienvenida())
+  // «Elegir otro proceso» al terminar un recorrido vuelve a abrir la bienvenida.
+  useEffect(() => {
+    const abrir = () => setBienvenida(true)
+    window.addEventListener(AVISO_BIENVENIDA, abrir)
+    return () => window.removeEventListener(AVISO_BIENVENIDA, abrir)
+  }, [])
 
   // 🔙 Botón "atrás" del teléfono. Ponemos una entrada "centinela" encima del
   // menú; cuando el usuario presiona atrás, caemos en ella (popstate) y decidimos:
@@ -158,7 +164,7 @@ export default function LocalPage() {
       {local.esDemo && <DemoLetrero local={local} vista="cliente" />}
       {!local.esDemo && <AvisoEquipo slug={local.slug} nombre={local.nombre} roles={rolesEn(local.slug)} />}
       <LocalMenu local={local} productos={productos} cerrarCapaRef={cerrarCapaRef} />
-      {local.esDemo && bienvenida && <DemoBienvenida local={local} onCliente={() => setBienvenida(false)} onRecorrido={() => { setBienvenida(false); iniciarRecorrido() }} />}
+      {local.esDemo && bienvenida && <DemoBienvenida local={local} onCerrar={() => setBienvenida(false)} />}
     </CartProvider>
   )
 }

@@ -11,6 +11,8 @@ import { guardarEnHistorial } from '../../services/historial'
 import { getPerfil, guardarPerfil } from '../../services/usuarios'
 import './Checkout.css'
 import { crearPedidoLaGranEsquina } from '../../services/pedidoLaGranEsquina'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
+import { Link } from 'react-router-dom'
 
 // Dónde vive la app de La Gran Esquina, para armar el link de la comanda.
 const LA_GRAN_ESQUINA_WEB = 'https://la-gran-esquina-lyart.vercel.app'
@@ -181,7 +183,8 @@ export default function Checkout({ local, onClose, abierto = true }) {
     // Abre WhatsApp con el endpoint correcto según dispositivo (móvil/PC).
     const url = abrirPedidoWhatsApp(local, pedido)
     clear()
-    setExito({ url, codigo })
+    setExito({ url, codigo, miPedido: id ? `/p/${local.slug}/${id}` : '' })
+    avisarDemo('pedido-app')
     setEnviando(false)
   }
 
@@ -195,7 +198,10 @@ export default function Checkout({ local, onClose, abierto = true }) {
           <p className="co-exito-codigo">Tu código de pedido: <strong>{exito.codigo}</strong></p>
         )}
         <p>Abrimos WhatsApp con tu pedido listo. Solo dale enviar al chat de <strong>{local.nombre}</strong> para confirmar.</p>
-        <a className="btn btn-primary" href={exito.url} target="_blank" rel="noreferrer">Abrir WhatsApp otra vez</a>
+        {exito.miPedido && (
+          <Link className="btn btn-primary co-exito-seguir" to={exito.miPedido} onClick={() => avisarDemo('mi-pedido')}>📍 Ver en qué va mi pedido</Link>
+        )}
+        <a className={`btn ${exito.miPedido ? 'btn-ghost' : 'btn-primary'}`} href={exito.url} target="_blank" rel="noreferrer">Abrir WhatsApp otra vez</a>
         <button className="btn btn-ghost" onClick={onClose}>Volver al menú</button>
       </div>
     )

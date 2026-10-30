@@ -106,6 +106,16 @@ Pregunta abierta: ¿agregamos al panel un editor de colores y logo? (hoy no exis
 
 ## 7. Bitácora
 
+- **30-oct · Recorrido por PROCESOS (pedido del usuario):** la bienvenida ya no ofrece «ver como cliente / dueño»
+  sino 5 procesos, cada uno con su recorrido guiado: **Cliente** (pide a domicilio desde su casa y sigue su
+  pedido en «Mi pedido»), **Mesero** (comanda en la mesa + confirmar pedido de la app), **Cocina** (tachar y
+  despachar), **Domiciliario** (en camino → entregado) y **Administrador** (Comandas: seguir y cobrar; carta;
+  Difundir). El 5.º lo sumé yo (es quien cierra todo); se puede quitar. Al terminar uno ofrece el siguiente,
+  «Quiero esto» o «Elegir otro proceso». Se repiten cosas a propósito.
+- **Bug arreglado:** un recorrido guardado de antes se pintaba encima de la bienvenida (foco suelto). Ahora el
+  recorrido espera mientras la bienvenida está abierta, y el estado viejo (sin proceso) se ignora.
+- El pedido enviado ahora muestra **«📍 Ver en qué va mi pedido»** (link a «Mi pedido»), para todos los locales.
+
 - **29-oct · Hallazgo (preguntar al usuario):** el panel NO tiene editor de **colores ni de logo**
   (Apariencia = portada + animación del logo; los colores y el logo los ponemos nosotros). D4 pedía
   «colores, logo». En la demo se puede cambiar la portada; el paso «ponle tus colores» se quitó del recorrido.

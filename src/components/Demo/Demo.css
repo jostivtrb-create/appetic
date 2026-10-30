@@ -68,3 +68,26 @@
 @media (prefers-reduced-motion: reduce) {
   .demo-bienv, .demo-bienv-caja, .demo-bienv-recorrido { animation: none; }
 }
+
+/* Procesos de la bienvenida (uno por persona del restaurante) */
+.demo-bienv-procesos { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; text-align: left; }
+.demo-bienv-procesos button {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer;
+  border-radius: 16px; border: 1px solid rgba(255,244,224,.16); background: rgba(255,255,255,.06);
+  color: #FFF4E0; font: inherit; text-align: left; transition: transform .15s, background .15s;
+}
+.demo-bienv-procesos button:hover { background: rgba(255,255,255,.12); transform: translateX(3px); }
+.demo-bienv-procesos button.primero { border: 0; background: linear-gradient(135deg, #D9381E, #F2683F); box-shadow: 0 10px 26px rgba(217,56,30,.4); }
+.demo-bienv-num {
+  width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center;
+  font-size: 12.5px; font-weight: 900; background: rgba(255,255,255,.14);
+}
+.demo-bienv-procesos .demo-bienv-ic { font-size: 24px; }
+.demo-bienv-txt { flex: 1; min-width: 0; display: grid; }
+.demo-bienv-txt b { font-size: 15px; }
+.demo-bienv-txt small { font-size: 12.5px; opacity: .8; line-height: 1.35; }
+.demo-bienv-ir { font-size: 12px; opacity: .8; }
+.demo-bienv-pie { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 10px; }
+.demo-bienv-mirar { border: 0; background: none; color: #FFF4E0; opacity: .75; font: inherit; font-size: 14px; cursor: pointer; padding: 6px; }
+/* El logo lleva letras oscuras: va sobre una placa crema para que se lea en el fondo oscuro. */
+.demo-bienv-logo { background: #FFF4E0; padding: 8px 14px; border-radius: 16px; box-sizing: content-box; }
