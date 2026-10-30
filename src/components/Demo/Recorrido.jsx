@@ -69,7 +69,7 @@ export const RECORRIDOS = {
       { emoji: '📥', titulo: 'Confirma un pedido de la app',
         texto: 'Arriba salen los pedidos de la app «por confirmar». Toca uno y confírmalo: pasa a la cocina y el cliente lo ve en «Mi pedido».',
         objetivo: '.pc', espera: 'pedido-confirmado', ruta: `${D}/admin/mesero`,
-        siNoHay: 'No hay pedidos de la app por confirmar ahora. Haz el «Proceso del Cliente» y verás llegar el tuyo aquí.' },
+        siNoHay: 'Otra persona que está probando la demo acaba de atenderlo. Igual puedes seguir: así funciona.' },
       { emoji: '🔔', titulo: 'La cocina te avisa',
         texto: 'Cuando la cocina termina un pedido de tus mesas, te llega el aviso (aunque tengas la app cerrada). En «En curso» ves lo que va saliendo y puedes corregir una comanda: si la cocina ya lo hizo, la app te advierte antes.',
         boton: 'Entendido' },
@@ -86,7 +86,7 @@ export const RECORRIDOS = {
       { emoji: '✅', titulo: 'Prepara y despacha',
         texto: 'Toca una comanda, tacha cada plato a medida que sale («¿Qué lleva?» te muestra los ingredientes) y dale «Confirmar entregado». Al mesero o al domiciliario le llega el aviso.',
         objetivo: '.km-com', espera: 'comanda-entregada', ruta: `${D}/admin/comandas`,
-        siNoHay: 'No hay comandas en la fila ahora. Haz el «Proceso del Mesero» o del «Cliente» y verás llegar la suya.' },
+        siNoHay: 'Otra persona que está probando la demo acaba de despacharla. Igual puedes seguir: así funciona.' },
       { emoji: '🏆', titulo: '¡Así trabaja tu cocina!', final: true,
         texto: 'Lee la comanda en vez de escucharla, sabe el orden exacto y avisa que salió sin buscar a nadie. Si era domicilio, ahora le toca al domiciliario.' },
     ],
@@ -100,7 +100,7 @@ export const RECORRIDOS = {
       { emoji: '🏍️', titulo: 'Sal a entregarlo',
         texto: 'Cuando la cocina lo despacha, sale en «Listos para salir». Toca «Voy en camino»: el cliente recibe el aviso y lo ve en «Mi pedido».',
         objetivo: '.dm-salir', espera: 'en-camino', ruta: `${D}/admin/domicilios`,
-        siNoHay: 'No hay domicilios listos para salir. Haz el «Proceso del Cliente» y que la «Cocina» lo despache.' },
+        siNoHay: 'Otra persona que está probando la demo acaba de sacarlo. Igual puedes seguir: así funciona.' },
       { emoji: '🏁', titulo: 'Entrégalo',
         texto: 'Cuando lo entregues, toca «Entregado».',
         objetivo: '.dm-entregado', espera: 'domicilio-entregado', ruta: `${D}/admin/domicilios`,
@@ -160,6 +160,8 @@ export function terminarRecorrido() {
 export function iniciarRecorrido(id) {
   guardar({ id, paso: 0 })
   window.dispatchEvent(new Event(AVISO))
+  // Cada proceso se vale solo: crea lo que esa persona necesita ver (si no lo hay ya).
+  import('./prepararProceso').then(m => m.prepararProceso(id)).catch(() => {})
 }
 
 export default function Recorrido() {
