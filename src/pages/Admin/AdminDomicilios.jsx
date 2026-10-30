@@ -5,8 +5,9 @@ import { mapsUrl } from '../../utils/geo'
 import { urlWhatsApp, normalizarTel, mensajeEnCamino } from '../../utils/whatsapp'
 import AdminEquipo from './AdminEquipo'
 import ActivarAvisos from './ActivarAvisos'
-import { useAhora, minutosSeg } from './comandaUtils'
+import { useAhora, minutosSeg, coloresComanda } from './comandaUtils'
 import { ms } from '../../services/comandas'
+import PorConfirmar from './PorConfirmar'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 import './Domicilios.css'
 
@@ -63,13 +64,16 @@ export default function AdminDomicilios({ local, demo, usuario, esAdmin }) {
       {!demo && !local.esDemo && <ActivarAvisos local={local} usuario={usuario} />}
       {esAdmin && <div className="dm-admin"><AdminEquipo local={local} rol="domiciliario" demo={demo} /></div>}
       {error && <p className="dm-error" role="alert">{error}</p>}
+      {/* El admin ve TODOS los domicilios, también los que aún no confirma (el domiciliario no:
+          a él le aparecen apenas se confirman). */}
+      {esAdmin && <div style={coloresComanda(local).vars}><PorConfirmar local={local} demo={demo} usuario={usuario} soloDomicilio /></div>}
 
       {vivos === null ? <p className="dm-vacio">Cargando domicilios…</p>
         : vivos.length === 0 ? (
           <div className="dm-vacio dm-vacio--grande">
             <span aria-hidden="true">🛵</span>
             <p>No hay domicilios en curso.</p>
-            <small>Aparecen aquí apenas se confirma un pedido a domicilio.</small>
+            <small>{esAdmin ? 'Los que confirmes pasan aquí: en cocina, listos para salir y en camino.' : 'Aparecen aquí apenas se confirma un pedido a domicilio.'}</small>
           </div>
         ) : (
           <>

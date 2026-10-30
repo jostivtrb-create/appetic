@@ -9,9 +9,11 @@ import '../MiPedido/MiPedido.css'
 // 📲 PEDIDOS DE LA APP POR CONFIRMAR (D29): en la pantalla del Mesero, para que cualquier mesero o
 // el admin los confirme sin depender de quién tiene el WhatsApp del local. Suena al llegar uno.
 // Tocar uno abre la MISMA vista de «Mi pedido» del personal (Confirmar / No podemos atenderlo).
-export default function PorConfirmar({ local, demo, usuario }) {
+// soloDomicilio: en el panel de Domicilios el admin ve también los domicilios aún sin confirmar.
+export default function PorConfirmar({ local, demo, usuario, soloDomicilio = false }) {
   const api = useMemo(() => pedidosDe(local.id, { demo }), [local.id, demo])
-  const [lista, setLista] = useState([])
+  const [todos, setLista] = useState([])
+  const lista = useMemo(() => soloDomicilio ? todos.filter(p => p.entrega === 'domicilio') : todos, [todos, soloDomicilio])
   const [abierto, setAbierto] = useState(null)
   const ahora = useAhora(15000)
   useEffect(() => api.escucharPorConfirmar(setLista, () => {}), [api])
@@ -28,7 +30,7 @@ export default function PorConfirmar({ local, demo, usuario }) {
     <>
       {lista.length > 0 && (
         <section className="pc">
-          <h3 className="pc-tit"><span className="pc-punto" aria-hidden="true" /> Pedidos de la app por confirmar · {lista.length}</h3>
+          <h3 className="pc-tit"><span className="pc-punto" aria-hidden="true" /> {soloDomicilio ? 'Domicilios por confirmar' : 'Pedidos de la app por confirmar'} · {lista.length}</h3>
           <ul>
             {lista.map(p => (
               <li key={p.id}>
