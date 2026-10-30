@@ -21,3 +21,4 @@ export function conPreview(url) {
 const CLAVE_BIENVENIDA = 'appetic_demo_bienvenida'
 export const yaVioBienvenida = () => { try { return sessionStorage.getItem(CLAVE_BIENVENIDA) === '1' } catch { return false } }
 export const marcarBienvenida = () => { try { sessionStorage.setItem(CLAVE_BIENVENIDA, '1') } catch { /* nada */ } }
+export const olvidarBienvenida = () => { try { sessionStorage.removeItem(CLAVE_BIENVENIDA) } catch { /* nada */ } }

@@ -91,3 +91,15 @@
 .demo-bienv-mirar { border: 0; background: none; color: #FFF4E0; opacity: .75; font: inherit; font-size: 14px; cursor: pointer; padding: 6px; }
 /* El logo lleva letras oscuras: va sobre una placa crema para que se lea en el fondo oscuro. */
 .demo-bienv-logo { background: #FFF4E0; padding: 8px 14px; border-radius: 16px; box-sizing: content-box; }
+
+/* ▶ Volver a los recorridos guiados desde cualquier pantalla de la demo */
+.demo-letrero-guia {
+  border: 0; border-radius: 999px; padding: 7px 12px; font: inherit; font-weight: 800; cursor: pointer;
+  background: #D9381E; color: #fff; white-space: nowrap;
+}
+/* En el celular los botones quedan en ícono para que quepan los tres */
+@media (max-width: 520px) {
+  .demo-letrero-txt b { font-size: 12px; }
+  .demo-letrero-link span, .demo-letrero-guia span { display: none; }
+  .demo-letrero-acc { gap: 6px; }
+}
