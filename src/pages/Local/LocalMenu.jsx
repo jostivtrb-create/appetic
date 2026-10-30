@@ -22,6 +22,7 @@ import './LocalSkinJet.css'
 import './LocalSkinJuance.css'
 import './LocalSkinFruti.css'
 import './LocalSkinBon.css'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   const { addItem, totalItems } = useCart()
@@ -233,6 +234,7 @@ export default function LocalMenu({ local, productos, cerrarCapaRef }) {
   function irACheckout() {
     setDrawerAbierto(false)
     setCheckoutAbierto(true)
+    avisarDemo('checkout-abierto')
   }
 
   // Hero protagonizado por el logo (sobre crema, sin foto): para marcas cuyo

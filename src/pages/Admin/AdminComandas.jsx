@@ -71,6 +71,7 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
   }
 
   function alternar(id) {
+    if (!abiertas.has(id)) avisarDemo('comanda-abierta')
     setAbiertas(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n })
   }
 
@@ -148,8 +149,8 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
                   key={c.id} c={c} n={i + 1} abierta={abiertas.has(c.id)} nueva={nuevas.has(c.id)}
                   ahora={ahora} umbrales={umbrales}
                   onAlternar={() => alternar(c.id)}
-                  onTachar={(uid, hecho) => api.marcarItem(c, uid, hecho).catch(() => setError('No se pudo tachar. Revisa el internet e intenta de nuevo.'))}
-                  onTacharTodo={hecho => api.marcarTodo(c, hecho).catch(() => setError('No se pudo tachar. Revisa el internet e intenta de nuevo.'))}
+                  onTachar={(uid, hecho) => (hecho && avisarDemo('tachar'), api.marcarItem(c, uid, hecho)).catch(() => setError('No se pudo tachar. Revisa el internet e intenta de nuevo.'))}
+                  onTacharTodo={hecho => (hecho && avisarDemo('tachar'), api.marcarTodo(c, hecho)).catch(() => setError('No se pudo tachar. Revisa el internet e intenta de nuevo.'))}
                   onEntregar={() => setConfirmar(c)}
                   onVisto={() => api.marcarVisto(c).catch(() => setError('No se pudo marcar como visto. Intenta de nuevo.'))}
                 />

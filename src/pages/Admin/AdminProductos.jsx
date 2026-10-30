@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { copRango, rangoPrecio } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
 import { construirPromptImagenIA } from '../../utils/promptIA'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 export default function AdminProductos({ local, slug, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
@@ -163,7 +164,7 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
                   >
                     {p.disponible === false ? 'Agotado' : 'Disponible'}
                   </button>
-                  <button className="ap-edit" onClick={() => setEditando(p)}>Editar</button>
+                  <button className="ap-edit" onClick={() => { setEditando(p); avisarDemo('editar-producto') }}>Editar</button>
                 </div>
               </div>
             ))}

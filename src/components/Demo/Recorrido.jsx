@@ -46,9 +46,12 @@ export const RECORRIDOS = {
       { emoji: '🍔', titulo: 'Elige lo que quieres',
         texto: 'Toca un plato, elige cómo lo quieres (sin cebolla, con papas…) y agrégalo.',
         objetivo: '.pcard', espera: 'carrito', ruta: D },
+      { emoji: '🧾', titulo: 'Abre tu pedido',
+        texto: 'Toca «Pedido» y luego «Continuar el pedido».',
+        objetivo: '.cd-checkout, .bnav-cart, .prail-fab--pedido', espera: 'checkout-abierto', ruta: D },
       { emoji: '🛵', titulo: 'Pídelo a domicilio',
-        texto: 'Toca «Pedido» (o «Continuar el pedido»), elige domicilio, pon tu dirección y cómo pagas: el envío se calcula solo, por distancia. Al enviarlo verás cómo le llega al WhatsApp del restaurante, completo y ordenado.',
-        objetivo: '.cd-checkout, .bnav-cart, .prail-fab--pedido', espera: 'pedido-app', ruta: D },
+        texto: 'Elige «Domicilio», escribe tu dirección, tu nombre y tu WhatsApp, y cómo pagas: el envío se calcula solo, por distancia. Toca «Enviar» y verás cómo le llega al WhatsApp del restaurante.',
+        espera: 'pedido-app', ruta: D, libre: true },
       { emoji: '📍', titulo: 'Sigue tu pedido',
         texto: 'El cliente no tiene que preguntar «¿ya viene?»: en «Mi pedido» ve si está por confirmar, en cocina, en camino o entregado. Toca «Ver en qué va mi pedido».',
         objetivo: '.co-exito-seguir', espera: 'mi-pedido',
@@ -63,9 +66,13 @@ export const RECORRIDOS = {
       { emoji: '🧑‍🍳', titulo: 'Eres el mesero',
         texto: 'Tienes la app en tu celular. Te llegan dos clases de pedido: los que tomas en la mesa y los que entran por la app.',
         boton: 'Abrir mi pantalla →', ir: `${D}/admin/mesero` },
-      { emoji: '📱', titulo: 'Toma una comanda en la mesa',
-        texto: 'Toca un par de platos (puedes poner un comentario: «sin cebolla»), marca la mesa en el teclado y envíala. Llega a la cocina al instante, sin libreta y sin caminar.',
-        objetivo: '.ms-pos-menu, .ms-lista', espera: 'comanda-mesero', ruta: `${D}/admin/mesero` },
+      { emoji: '📱', titulo: 'Toma el pedido de la mesa',
+        texto: 'El cliente te dice qué quiere: toca un plato. Si tiene opciones (sin cebolla, con papas…), elígelas y agrégalo.',
+        objetivo: '.ms-pos-menu, .ms-lista', espera: 'mesero-plato', ruta: `${D}/admin/mesero` },
+      { emoji: '➕', titulo: '¿Algo más?',
+        texto: 'Agrega otro plato si quieres. Cuando esté todo, toca «Ver comanda», marca la mesa en el teclado y toca «Enviar a cocina». Llega al instante, sin libreta y sin caminar.',
+        objetivo: '.ms-barra, .ms-pos-comanda', espera: 'comanda-mesero', ruta: `${D}/admin/mesero`,
+        libre: true },
       { emoji: '📥', titulo: 'Confirma un pedido de la app',
         texto: 'Arriba salen los pedidos de la app «por confirmar». Toca uno y confírmalo: pasa a la cocina y el cliente lo ve en «Mi pedido».',
         objetivo: '.pc', espera: 'pedido-confirmado', ruta: `${D}/admin/mesero`,
@@ -83,10 +90,16 @@ export const RECORRIDOS = {
       { emoji: '🍳', titulo: 'Eres el cocinero',
         texto: 'En tu tablet las comandas entran solas, en orden de llegada y con colores: mesa, para llevar o domicilio. Nadie grita y nada se pierde.',
         boton: 'Abrir la cocina →', ir: `${D}/admin/comandas` },
-      { emoji: '✅', titulo: 'Prepara y despacha',
-        texto: 'Toca una comanda, tacha cada plato a medida que sale («¿Qué lleva?» te muestra los ingredientes) y dale «Confirmar entregado». Al mesero o al domiciliario le llega el aviso.',
-        objetivo: '.km-com', espera: 'comanda-entregada', ruta: `${D}/admin/comandas`,
+      { emoji: '👆', titulo: 'Abre una comanda',
+        texto: 'Tócala para ver qué lleva: cada plato, sus opciones y los comentarios del mesero.',
+        objetivo: '.km-com', espera: 'comanda-abierta', ruta: `${D}/admin/comandas`,
         siNoHay: 'Otra persona que está probando la demo acaba de despacharla. Igual puedes seguir: así funciona.' },
+      { emoji: '✔️', titulo: 'Tacha lo que va saliendo',
+        texto: 'Toca la casilla de un plato cuando esté listo (o «Tachar todo»). «¿Qué lleva?» te muestra los ingredientes.',
+        objetivo: '.km-com.abierta', espera: 'tachar', ruta: `${D}/admin/comandas` },
+      { emoji: '✅', titulo: 'Despáchala',
+        texto: 'Toca «Confirmar entregado». Al mesero o al domiciliario le llega el aviso de que ya salió.',
+        objetivo: '.km-entregar', espera: 'comanda-entregada', ruta: `${D}/admin/comandas` },
       { emoji: '🏆', titulo: '¡Así trabaja tu cocina!', final: true,
         texto: 'Lee la comanda en vez de escucharla, sabe el orden exacto y avisa que salió sin buscar a nadie. Si era domicilio, ahora le toca al domiciliario.' },
     ],
@@ -122,9 +135,12 @@ export const RECORRIDOS = {
       { emoji: '✏️', titulo: 'Tu carta la manejas tú',
         texto: 'En Configuración → Catálogo cambias precios, fotos, platos y agotados.',
         boton: 'Ver mi carta →', ir: `${D}/admin/config/catalogo` },
-      { emoji: '💲', titulo: 'Cambia un precio',
-        texto: 'Toca «Editar» en un plato, cámbiale el precio y guarda. Se ve en el menú al instante.',
-        objetivo: '.ap-grupo-cat', espera: 'producto', ruta: `${D}/admin/config/catalogo` },
+      { emoji: '💲', titulo: 'Edita un plato',
+        texto: 'Abre una categoría y toca «Editar» en cualquier plato.',
+        objetivo: '.ap-grupo-cat', espera: 'editar-producto', ruta: `${D}/admin/config/catalogo` },
+      { emoji: '✏️', titulo: 'Cambia el precio y guarda',
+        texto: 'Ponle otro precio (o márcalo agotado) y toca «Guardar». Se ve en el menú al instante.',
+        espera: 'producto', ruta: `${D}/admin/config/catalogo`, libre: true },
       { emoji: '📣', titulo: 'Así te encuentran',
         texto: 'En «Difundir» tienes tu link, tu QR, un QR para cada mesa y un afiche de domicilios listo para imprimir.',
         boton: 'Ver Difundir →', ir: `${D}/admin/difundir` },
@@ -174,7 +190,8 @@ export default function Recorrido() {
   const [rect, setRect] = useState(null)
   const [noAparece, setNoAparece] = useState(false) // el objetivo no está (p. ej. ya lo confirmó otro)
   const [capa, setCapa] = useState(false)           // hay una ventana de la app abierta encima
-  const [verMini, setVerMini] = useState(false)     // con ventana abierta: la burbuja desplegada
+  const [verMini, setVerMini] = useState(true)      // con ventana abierta: la burbuja desplegada
+  useEffect(() => { setVerMini(true) }, [estado?.id, paso])
   const [sacude, setSacude] = useState(0)           // tocó fuera de lo resaltado: la tarjeta avisa
   const location = useLocation()
   const navigate = useNavigate()
@@ -225,7 +242,7 @@ export default function Recorrido() {
       if (!p.objetivo || abierta) { setRect(null); return }
       const r = cajaVisible(el)
       setRect(r && r.width > 0 && r.bottom > 0 && r.top < window.innerHeight
-        ? { top: r.top, left: r.left, width: r.width, height: Math.min(r.height, window.innerHeight * 0.6) } : null)
+        ? { top: Math.max(r.top, 0), left: r.left, width: r.width, height: Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0) } : null)
     }
     buscar()
     setNoAparece(false)
@@ -284,6 +301,8 @@ export default function Recorrido() {
     { top: Math.max(0, h.t), left: 0, width: Math.max(0, h.l), height: h.b - Math.max(0, h.t) },
     { top: Math.max(0, h.t), left: h.r, right: 0, height: h.b - Math.max(0, h.t) },
   ] : [{ inset: 0 }]
+  // `libre`: el paso deja tocar todo (p. ej. seguir agregando platos antes de «Ver comanda»).
+  if (p.libre) bloqueos.length = 0
 
   return createPortal(
     <div className="rc" aria-live="polite">

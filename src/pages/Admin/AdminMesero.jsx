@@ -116,6 +116,7 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
 
   function tocar(p) {
     if (tieneOpciones(p)) { setAbierto(p); return }
+    avisarDemo('mesero-plato')
     // Sin opciones: un toque = uno más (se suma a la línea que ya exista sin comentario).
     setCarrito(c => {
       const i = c.findIndex(it => it.producto.id === p.id && !it.comentario)
@@ -126,6 +127,7 @@ function TomarPedido({ local, productos, api, activas, usuario }) {
   function agregarDesdeModal({ producto, seleccion, cantidad, notas }) {
     setCarrito(c => [...c, { uid: uid(), localId: local.id, producto, seleccion, cantidad, comentario: notas || '' }])
     setAbierto(null)
+    avisarDemo('mesero-plato')
   }
 
   function listo(etiqueta) {
