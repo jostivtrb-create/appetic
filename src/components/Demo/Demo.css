@@ -106,3 +106,11 @@
 /* Con una ventana del menú abierta (plato, carrito, formulario del pedido) el letrero se aparta:
    esas ventanas viven dentro del menú y el letrero les tapaba el encabezado («‹ Finalizar pedido»). */
 body:has(.co-screen, .pm-overlay, .pw-overlay, .cd-overlay) .demo-letrero { display: none; }
+
+/* Un solo botón: volver al inicio del demo. Va por encima del bloqueo del recorrido (z 450). */
+.demo-letrero { z-index: 470; }
+body:has(.demo-bienv) .demo-letrero { display: none; }
+.demo-letrero-volver {
+  border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 800; cursor: pointer;
+  background: #F2A900; color: #1E1B1A; white-space: nowrap;
+}

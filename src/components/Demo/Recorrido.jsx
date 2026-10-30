@@ -150,6 +150,12 @@ const guardar = v => { try { v == null ? localStorage.removeItem(CLAVE) : localS
 const AVISO = 'appetic-recorrido'
 export const AVISO_BIENVENIDA = 'appetic-demo-bienvenida'
 
+// «Volver al inicio del demo»: corta el recorrido en curso.
+export function terminarRecorrido() {
+  guardar(null)
+  window.dispatchEvent(new Event(AVISO))
+}
+
 // Lo llama la bienvenida: arranca el recorrido de ese proceso desde el principio.
 export function iniciarRecorrido(id) {
   guardar({ id, paso: 0 })
@@ -167,6 +173,7 @@ export default function Recorrido() {
   const [noAparece, setNoAparece] = useState(false) // el objetivo no está (p. ej. ya lo confirmó otro)
   const [capa, setCapa] = useState(false)           // hay una ventana de la app abierta encima
   const [verMini, setVerMini] = useState(false)     // con ventana abierta: la burbuja desplegada
+  const [sacude, setSacude] = useState(0)           // tocó fuera de lo resaltado: la tarjeta avisa
   const location = useLocation()
   const navigate = useNavigate()
   const enDemo = location.pathname === D || location.pathname.startsWith(`${D}/`) || location.pathname.startsWith(`/p/${DEMO_SLUG}/`)
@@ -263,9 +270,22 @@ export default function Recorrido() {
   const arriba = !rect || rect.top + rect.height / 2 > window.innerHeight * 0.45
   const total = PASOS.length - 1
   const pad = 8
+  // 🚧 Durante el recorrido solo se toca lo resaltado (y la tarjeta): el resto de la pantalla queda
+  // bloqueado con cuatro paneles transparentes alrededor del hueco. Tocar fuera sacude la tarjeta.
+  const fueraToque = e => { e.preventDefault(); e.stopPropagation(); setSacude(n => n + 1) }
+  const h = rect && !logro ? {
+    t: rect.top - pad, l: rect.left - pad, r: rect.left + rect.width + pad, b: rect.top + rect.height + pad,
+  } : null
+  const bloqueos = h ? [
+    { top: 0, left: 0, right: 0, height: Math.max(0, h.t) },
+    { top: h.b, left: 0, right: 0, bottom: 0 },
+    { top: Math.max(0, h.t), left: 0, width: Math.max(0, h.l), height: h.b - Math.max(0, h.t) },
+    { top: Math.max(0, h.t), left: h.r, right: 0, height: h.b - Math.max(0, h.t) },
+  ] : [{ inset: 0 }]
 
   return createPortal(
     <div className="rc" aria-live="polite">
+      {bloqueos.map((st, i) => <div key={i} className="rc-bloqueo" style={st} onPointerDown={fueraToque} onClick={fueraToque} />)}
       {rect && !logro && (
         <div className="rc-foco" style={{
           top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2,
@@ -279,7 +299,7 @@ export default function Recorrido() {
 
       {logro && <Celebracion />}
 
-      <div className={`rc-tarjeta ${arriba ? 'arriba' : ''} ${capa && !p.final && !logro ? 'compacta' : ''} ${p.final ? 'final' : ''} ${logro ? 'logro' : ''}`} key={paso} role="dialog" aria-label="Recorrido guiado">
+      <div data-sacude={sacude} className={`rc-tarjeta ${sacude ? 'sacude' : ''} ${arriba ? 'arriba' : ''} ${capa && !p.final && !logro ? 'compacta' : ''} ${p.final ? 'final' : ''} ${logro ? 'logro' : ''}`} key={paso} role="dialog" aria-label="Recorrido guiado" onAnimationEnd={e => { if (e.animationName === 'rcSacude') setSacude(0) }}>
         <button className="rc-x" onClick={salir} aria-label="Salir del recorrido">✕</button>
         {logro ? (
           <div className="rc-logro"><span>✓</span><b>¡Bien hecho!</b></div>

@@ -115,3 +115,12 @@
 .rc-mini b { display: block; color: #fff; font-size: 14.5px; margin-bottom: 4px; }
 .rc-mini p { margin: 0; opacity: .9; }
 @media (prefers-reduced-motion: reduce) { .rc-burbuja { animation: none; } }
+
+/* 🚧 Bloqueo: durante el recorrido solo se puede tocar lo resaltado */
+.rc-bloqueo { position: fixed; pointer-events: auto; background: transparent; }
+.rc-tarjeta.sacude { animation: rcSacude .42s ease-in-out; }
+@keyframes rcSacude {
+  0%, 100% { transform: translateX(-50%) } 20% { transform: translateX(calc(-50% - 9px)) }
+  40% { transform: translateX(calc(-50% + 9px)) } 60% { transform: translateX(calc(-50% - 5px)) } 80% { transform: translateX(calc(-50% + 5px)) }
+}
+.rc-tarjeta.final.sacude { animation: none; }

@@ -106,6 +106,13 @@ Pregunta abierta: ¿agregamos al panel un editor de colores y logo? (hoy no exis
 
 ## 7. Bitácora
 
+- **30-oct · Pedidos del usuario al probarla:** durante un recorrido **solo se toca lo resaltado** (paneles
+  transparentes alrededor del hueco; tocar fuera sacude la tarjeta); con una ventana abierta el guía es una
+  burbuja al borde. El letrero quedó con **un solo botón: «↩ Volver al inicio del demo»** (corta el recorrido y
+  abre la bienvenida); «Quiero esto» sigue en la bienvenida y al final de cada proceso. El menú de la demo se ve
+  como lo ve un cliente (sin «Pedido de prueba» ni ☰). En la demo el domicilio no exige ubicación (usa una de
+  ejemplo a ~1,5 km). «Agregar» lleva y resalta lo que falta elegir (para todos los locales).
+
 - **30-oct · Recorrido por PROCESOS (pedido del usuario):** la bienvenida ya no ofrece «ver como cliente / dueño»
   sino 5 procesos, cada uno con su recorrido guiado: **Cliente** (pide a domicilio desde su casa y sigue su
   pedido en «Mi pedido»), **Mesero** (comanda en la mesa + confirmar pedido de la app), **Cocina** (tachar y
