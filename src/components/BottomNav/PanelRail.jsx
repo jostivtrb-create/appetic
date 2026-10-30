@@ -42,12 +42,14 @@ function cargarTodos() {
 
 // `roles`: quién ve cada sección. El admin (dueño o superadmin) ve todas; el mesero solo
 // «Mesero», la cocina solo «Comandas» y el domiciliario solo «Domicilios». Espejo de puedeVerSeccion() en AdminPage.jsx.
+// El admin sigue TODO desde «Comandas» (ruta /caja): va de primera. «Cocina» es la pantalla del
+// cocinero (ruta /comandas, se conserva para no romper las tablets ya instaladas).
 const SECCIONES = [
+  { id: 'caja', label: 'Comandas', Icon: IconComandas, ruta: s => `/${s}/admin/caja`, roles: ['admin'] },
   { id: 'menu', label: 'Ver menú', Icon: IconMenu, ruta: s => `/${s}`, roles: ['admin', 'mesero'] },
   { id: 'mesero', label: 'Mesero', Icon: IconMesero, ruta: s => `/${s}/admin/mesero`, roles: ['admin', 'mesero'] },
-  { id: 'comandas', label: 'Comandas', Icon: IconComandas, ruta: s => `/${s}/admin/comandas`, roles: ['admin', 'cocina'] },
+  { id: 'comandas', label: 'Cocina', Icon: IconCocina, ruta: s => `/${s}/admin/comandas`, roles: ['admin', 'cocina'] },
   { id: 'domicilios', label: 'Domicilios', Icon: IconMoto, ruta: s => `/${s}/admin/domicilios`, roles: ['admin', 'domiciliario'] },
-  { id: 'caja', label: 'Caja', Icon: IconCaja, ruta: s => `/${s}/admin/caja`, roles: ['admin'] },
   { id: 'difundir', label: 'Difundir', Icon: IconDifundir, ruta: s => `/${s}/admin/difundir`, roles: ['admin'] },
   { id: 'metricas', label: 'Métricas', Icon: IconMetricas, ruta: s => `/${s}/admin/metricas`, roles: ['admin'] },
   // Configuración reúne Catálogo · Negocio · Apariencia · Equipo (ver AdminAjustes).
@@ -398,8 +400,8 @@ function IconTienda() {
 function IconMoto() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><circle {...sw} cx="6" cy="17" r="3" /><circle {...sw} cx="18" cy="17" r="3" /><path {...sw} d="M9 17h5l2-6h-4" /><path {...sw} d="M14 6h2.5l1.5 5" /><path {...sw} d="M6 14l3-4h3" /></svg>
 }
-function IconCaja() {
-  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><rect {...sw} x="3" y="7" width="18" height="11" rx="2" /><circle {...sw} cx="12" cy="12.5" r="2.5" /><path {...sw} d="M6 10v.01M18 15v.01M7 7l2-3h6l2 3" /></svg>
+function IconCocina() {
+  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M4 11h16v3a6 6 0 0 1-6 6h-4a6 6 0 0 1-6-6z" /><path {...sw} d="M2 11h2M20 11h2" /><path {...sw} d="M9 7c0-1.2 1-1.6 1-3M14 7c0-1.2 1-1.6 1-3" /></svg>
 }
 function IconSearch() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><circle {...sw} cx="11" cy="11" r="7" /><path {...sw} d="M16.5 16.5 21 21" /></svg>

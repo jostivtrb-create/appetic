@@ -73,6 +73,15 @@ const PASOS = [
     objetivo: '.dm-entregado', espera: 'domicilio-entregado', ruta: `${D}/admin/domicilios`,
     siNoHay: 'No hay domicilios en camino ahora. Sigamos con tu panel de dueño.' },
 
+  // 🧾 El admin lo sigue todo desde «Comandas» y lo cierra cuando pagan
+  { emoji: '🧾', titulo: 'Tú lo sigues todo desde Comandas',
+    texto: 'Cada pedido, de la mesa, para llevar o a domicilio, aparece aquí con el paso en el que va. Cuando termina su recorrido, lo cierras al cobrarlo.',
+    boton: 'Ver Comandas →', ir: `${D}/admin/caja` },
+  { emoji: '💵', titulo: 'Cóbralo',
+    texto: 'En «Listas para cobrar», toca «Ya se cobró». Pasa al historial; si fue sin querer, lo deshaces.',
+    objetivo: '.cj-cobrar', espera: 'cobrada', ruta: `${D}/admin/caja`,
+    siNoHay: 'Ahora no hay nada listo para cobrar. Así se ve: lo que está en proceso, con el paso en el que va.' },
+
   // 👔 El dueño
   { emoji: '💲', titulo: 'Ahora eres el dueño',
     texto: 'Tu carta la manejas tú: precios, fotos, platos nuevos y agotados, desde el celular.',
@@ -87,7 +96,7 @@ const PASOS = [
     texto: 'Aquí está el link para tu Instagram y WhatsApp, el QR del local, un QR para cada mesa y un afiche de domicilios listo para imprimir.',
     boton: 'Terminar', ruta: `${D}/admin/difundir` },
   { emoji: '🏆', titulo: '¡Lo hiciste todo!', final: true,
-    texto: 'Pediste desde la mesa, cocinaste, atendiste como mesero, despachaste un domicilio de punta a punta y cambiaste tu carta. Así funcionaría tu restaurante, con tu menú, tu logo y tus colores.' },
+    texto: 'Pediste desde la mesa, cocinaste, atendiste como mesero, despachaste un domicilio de punta a punta, lo cobraste y cambiaste tu carta. Así funcionaría tu restaurante, con tu menú, tu logo y tus colores.' },
 ]
 
 // Ventanas de la app (plato, carrito, pedido, confirmaciones…). Cuando una está abierta, el

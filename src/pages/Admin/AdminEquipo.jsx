@@ -5,7 +5,7 @@ import './Equipo.css'
 
 const TEXTOS = {
   mesero: { icono: '🧑‍🍳', titulo: 'Meseros', uno: 'mesero', boton: '👥 Meseros', ayuda: 'Entran con su correo de Google y solo ven la pantalla de Mesero.' },
-  cocina: { icono: '🍳', titulo: 'Cocina', uno: 'cocina', boton: '👥 Cocina', ayuda: 'Cada tablet o celular de cocina entra con un correo de Google y solo ve Comandas.' },
+  cocina: { icono: '🍳', titulo: 'Cocina', uno: 'cocina', boton: '👥 Cocina', ayuda: 'Cada tablet o celular de cocina entra con un correo de Google y solo ve la pantalla de Cocina.' },
   domiciliario: { icono: '🛵', titulo: 'Domiciliarios', uno: 'domiciliario', boton: '👥 Domiciliarios', ayuda: 'Entran con su correo de Google y solo ven el panel de Domicilios.' },
 }
 

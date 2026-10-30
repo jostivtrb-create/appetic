@@ -31,9 +31,9 @@ import { avisarDemo } from '../../components/Demo/eventosDemo'
 // Título de cada página del panel (va en el encabezado y en la pestaña del navegador).
 const SECCIONES = {
   mesero: 'Mesero',
-  comandas: 'Comandas',
+  comandas: 'Cocina',
   domicilios: 'Domicilios',
-  caja: 'Caja',
+  caja: 'Comandas',
   catalogo: 'Catálogo',
   difundir: 'Difundir',
   config: 'Configuración',
@@ -76,7 +76,7 @@ export default function AdminPage() {
   const esAdmin = demo ? rolesSimulados.length === 0 : puedeAdministrarLocal(usuario?.email, local)
   // Mesero / cocina de ESTE local (sin ser admin): solo entran a la sección de su rol.
   const rolesEquipo = esAdmin ? [] : rolesEn(slug)
-  const seccionPorDefecto = esAdmin ? 'mesero' : rolesEquipo.includes('mesero') ? 'mesero' : rolesEquipo.includes('cocina') ? 'comandas' : 'domicilios'
+  const seccionPorDefecto = esAdmin ? 'caja' : rolesEquipo.includes('mesero') ? 'mesero' : rolesEquipo.includes('cocina') ? 'comandas' : 'domicilios'
   const seccion = panel || seccionPorDefecto // mesero | comandas | catalogo | difundir | config | metricas
   const puedeVerSeccion = esAdmin
     || (seccion === 'mesero' && rolesEquipo.includes('mesero'))
@@ -374,10 +374,10 @@ export default function AdminPage() {
           Solo la vista previa DEMO (sin barra) conserva estas pestañas para moverse. */}
       {!tieneBarra && (
         <nav className="admin-tabs">
+          <button className={seccion === 'caja' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/caja${location.search}`)}>🧾 Comandas</button>
           <button className={seccion === 'mesero' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/mesero${location.search}`)}>🧑‍🍳 Mesero</button>
-          <button className={seccion === 'comandas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/comandas${location.search}`)}>🧾 Comandas</button>
+          <button className={seccion === 'comandas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/comandas${location.search}`)}>🍳 Cocina</button>
           <button className={seccion === 'domicilios' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/domicilios${location.search}`)}>🛵 Domicilios</button>
-          <button className={seccion === 'caja' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/caja${location.search}`)}>💵 Caja</button>
           <button className={seccion === 'difundir' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/difundir`)}>📣 Difundir</button>
           <button className={seccion === 'config' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/config/catalogo${location.search}`)}>⚙️ Configuración</button>
           <button className={seccion === 'metricas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/metricas`)}>📊 Métricas</button>

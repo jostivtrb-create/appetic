@@ -3,9 +3,10 @@ import { comandasDe, etiquetaDestino, ms, motivoError } from '../../services/com
 import { pedidosDe } from '../../services/pedidos'
 import { cop } from '../../utils/money'
 import { useAhora, minutosSeg, coloresComanda, claseDestino, palabraDestino } from './comandaUtils'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 import './Caja.css'
 
-// 💵 CAJA (guía «Cuenta por mesa»): el admin sigue el RECORRIDO de cada comanda —mesero o cliente →
+// 🧾 COMANDAS del admin (antes «Caja»; guía «Cuenta por mesa»): desde aquí el admin sigue todo. el admin sigue el RECORRIDO de cada comanda —mesero o cliente →
 // cocina → entregada (y en domicilio: → domiciliario → entregado)— y, cuando termina, la marca
 // «Ya se cobró». Una por una (D15), sin medios de pago ni cuentas (D7). Las cobradas pasan al
 // historial (D14) y se pueden deshacer por si fue un toque de más.
@@ -54,7 +55,7 @@ export default function AdminCaja({ local, demo, usuario }) {
   const viejas = lista.filter(c => (ms(c.creadaEn) || ahora) < hoy.getTime()).length
 
   async function cobrar(c) {
-    try { await api.cobrar(c, por); setDeshacer(c) } catch { setError('No se pudo marcar. Revisa el internet e intenta de nuevo.') }
+    try { await api.cobrar(c, por); setDeshacer(c); avisarDemo('cobrada') } catch { setError('No se pudo marcar. Revisa el internet e intenta de nuevo.') }
   }
   async function descobrar(c) {
     setDeshacer(null)

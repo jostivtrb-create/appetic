@@ -118,3 +118,8 @@ Ninguna. Sin más rondas.
 - Reinicio de la demo: sus comandas de ejemplo nacen con `porCobrar: true`.
 - Propuesta: pág. 4 (nota de cobro), pág. 6 («No es una caja registradora» reescrito) y Plan Emprendedor (+ Caja). Regenerados los PDF.
 - Probado en vista previa (PC y celular 375 px): etapas, cobrar, historial, deshacer, aviso de días anteriores.
+- **30-oct · Renombre (pedido del usuario):** «Caja» pasa a llamarse **Comandas** y va **de primera** en la barra
+  (y es donde abre el panel del admin): ahí el admin sigue todo el proceso y lo cierra cuando pagan. La pantalla
+  del cocinero pasa a llamarse **Cocina**. Las rutas no cambian (`/admin/caja` = Comandas del admin,
+  `/admin/comandas` = Cocina) para no romper las tablets ya instaladas. El recorrido de la demo suma dos pasos:
+  «Tú lo sigues todo desde Comandas» y «Cóbralo». Propuesta al día.
