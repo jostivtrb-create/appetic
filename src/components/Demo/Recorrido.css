@@ -124,3 +124,8 @@
   40% { transform: translateX(calc(-50% + 9px)) } 60% { transform: translateX(calc(-50% - 5px)) } 80% { transform: translateX(calc(-50% + 5px)) }
 }
 .rc-tarjeta.final.sacude { animation: none; }
+/* Instrucción desplegada cuando lo resaltado es muy alto: arriba, a lo ancho, sin tapar el centro */
+.rc-mini--arriba { top: 52px; left: 10px; right: 68px; width: auto; }
+.rc-mini-acc { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+.rc-mini-acc button { border: 0; border-radius: 10px; padding: 6px 12px; font: inherit; font-weight: 800; font-size: 13px; cursor: pointer; background: #F2A900; color: #1E1B1A; }
+.rc-mini-acc .rc-mini-saltar { background: none; color: #FFF4E0; opacity: .7; text-decoration: underline; padding: 6px 2px; }

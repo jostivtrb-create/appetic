@@ -192,7 +192,8 @@ export default function Recorrido() {
   const [capa, setCapa] = useState(false)           // hay una ventana de la app abierta encima
   const [verMini, setVerMini] = useState(true)      // con ventana abierta: la burbuja desplegada
   useEffect(() => { setVerMini(true) }, [estado?.id, paso])
-  const [sacude, setSacude] = useState(0)           // tocó fuera de lo resaltado: la tarjeta avisa
+  const [sacude, setSacude] = useState(0)
+  const enfocado = useRef('')                       // paso al que ya se le llevó la pantalla           // tocó fuera de lo resaltado: la tarjeta avisa
   const location = useLocation()
   const navigate = useNavigate()
   const enDemo = location.pathname === D || location.pathname.startsWith(`${D}/`) || location.pathname.startsWith(`/p/${DEMO_SLUG}/`)
@@ -240,6 +241,12 @@ export default function Recorrido() {
       const abierta = hayCapa() && !dentro
       setCapa(abierta)
       if (!p.objetivo || abierta) { setRect(null); return }
+      // Al empezar el paso, si lo que hay que tocar no se ve entero, la pantalla va hasta allá sola.
+      if (el && enfocado.current !== `${estado?.id}:${paso}`) {
+        enfocado.current = `${estado?.id}:${paso}`
+        const b = el.getBoundingClientRect()
+        if (b.top < 60 || b.bottom > window.innerHeight - 10) el.scrollIntoView({ block: b.height > window.innerHeight * 0.6 ? 'start' : 'center' })
+      }
       const r = cajaVisible(el)
       setRect(r && r.width > 0 && r.bottom > 0 && r.top < window.innerHeight
         ? { top: Math.max(r.top, 0), left: r.left, width: r.width, height: Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0) } : null)
@@ -259,17 +266,56 @@ export default function Recorrido() {
 
   // 🫧 Con una ventana de la app abierta (plato, carrito, formulario del pedido) el guía no se
   // atraviesa: queda una burbuja al borde derecho; tocarla muestra la instrucción del paso.
-  if (capa && !p.final && !logro) {
+  // ¿Cabe la tarjeta (≈190 px) arriba o abajo de lo resaltado sin taparlo? Si lo resaltado es muy
+  // alto (una comanda abierta, una lista), no cabe en ningún lado: va como burbuja al borde.
+  const ALTO_TARJETA = 190
+  const libreArriba = rect ? rect.top - 54 : Infinity
+  const libreAbajo = rect ? window.innerHeight - (rect.top + rect.height) : Infinity
+  const sinLugar = !!rect && Math.max(libreArriba, libreAbajo) < ALTO_TARJETA
+
+  // Bloqueo del resto de la pantalla (ver más abajo): solo se toca lo resaltado.
+  const pad = 8
+  const fueraToque = e => { e.preventDefault(); e.stopPropagation(); setSacude(n => n + 1); setVerMini(true) }
+  const h = rect && !logro ? {
+    t: rect.top - pad, l: rect.left - pad, r: rect.left + rect.width + pad, b: rect.top + rect.height + pad,
+  } : null
+  const bloqueos = h ? [
+    { top: 0, left: 0, right: 0, height: Math.max(0, h.t) },
+    { top: h.b, left: 0, right: 0, bottom: 0 },
+    { top: Math.max(0, h.t), left: 0, width: Math.max(0, h.l), height: h.b - Math.max(0, h.t) },
+    { top: Math.max(0, h.t), left: h.r, right: 0, height: h.b - Math.max(0, h.t) },
+  ] : [{ inset: 0 }]
+  // `libre`: el paso deja tocar todo (p. ej. seguir agregando platos antes de «Ver comanda»).
+  if (p.libre) bloqueos.length = 0
+  const foco = rect && !logro && (
+    <div className="rc-foco" style={{
+      top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2,
+      // Lo pequeño (un botón) va en cápsula; lo grande (una tarjeta), con esquinas suaves.
+      borderRadius: Math.max(rect.width, rect.height) < 140 ? Math.min(rect.width, rect.height) / 2 + pad : 16,
+    }}>
+      <span className="rc-anillo" />
+    </div>
+  )
+
+  // 🫧 Burbuja al borde: con una ventana de la app abierta (ahí se hace el paso, no se bloquea nada)
+  // o cuando lo resaltado es tan alto que la tarjeta lo taparía (ahí sí sigue el bloqueo).
+  if ((capa || sinLugar) && !p.final && !logro) {
     return createPortal(
       <div className="rc" aria-live="polite">
+        {!capa && bloqueos.map((st, i) => <div key={i} className="rc-bloqueo" style={st} onPointerDown={fueraToque} onClick={fueraToque} />)}
+        {!capa && foco}
         <button className={`rc-burbuja ${verMini ? 'on' : ''}`} onClick={() => setVerMini(v => !v)}
           aria-label={verMini ? 'Ocultar la instrucción' : `Ver la instrucción: ${p.titulo}`}>
           <span aria-hidden="true">{verMini ? '✕' : p.emoji}</span>
         </button>
         {verMini && (
-          <div className="rc-mini" role="dialog" aria-label="Instrucción del paso" onClick={() => setVerMini(false)}>
+          <div className={`rc-mini ${capa ? '' : 'rc-mini--arriba'}`} role="dialog" aria-label="Instrucción del paso">
             <b>{p.titulo}</b>
-            <p>{p.texto}</p>
+            <p>{noAparece && p.siNoHay ? p.siNoHay : p.texto}</p>
+            <div className="rc-mini-acc">
+              <button onClick={() => setVerMini(false)}>Entendido</button>
+              {p.espera && <button className="rc-mini-saltar" onClick={() => ir(paso + 1)}>Saltar paso</button>}
+            </div>
           </div>
         )}
       </div>,
@@ -286,36 +332,14 @@ export default function Recorrido() {
   const fuera = p.ruta && location.pathname !== p.ruta
   // La tarjeta va ARRIBA por defecto: los botones de la app («Agregar», «Continuar», «Enviar»)
   // viven abajo. Solo baja si lo que brilla está arriba.
-  const arriba = !rect || rect.top + rect.height / 2 > window.innerHeight * 0.45
+  const arriba = !rect || libreArriba >= ALTO_TARJETA || libreArriba >= libreAbajo
   const total = PASOS.length - 1
-  const pad = 8
-  // 🚧 Durante el recorrido solo se toca lo resaltado (y la tarjeta): el resto de la pantalla queda
-  // bloqueado con cuatro paneles transparentes alrededor del hueco. Tocar fuera sacude la tarjeta.
-  const fueraToque = e => { e.preventDefault(); e.stopPropagation(); setSacude(n => n + 1) }
-  const h = rect && !logro ? {
-    t: rect.top - pad, l: rect.left - pad, r: rect.left + rect.width + pad, b: rect.top + rect.height + pad,
-  } : null
-  const bloqueos = h ? [
-    { top: 0, left: 0, right: 0, height: Math.max(0, h.t) },
-    { top: h.b, left: 0, right: 0, bottom: 0 },
-    { top: Math.max(0, h.t), left: 0, width: Math.max(0, h.l), height: h.b - Math.max(0, h.t) },
-    { top: Math.max(0, h.t), left: h.r, right: 0, height: h.b - Math.max(0, h.t) },
-  ] : [{ inset: 0 }]
-  // `libre`: el paso deja tocar todo (p. ej. seguir agregando platos antes de «Ver comanda»).
-  if (p.libre) bloqueos.length = 0
+  // 🚧 Durante el recorrido solo se toca lo resaltado (paneles transparentes alrededor del hueco).
 
   return createPortal(
     <div className="rc" aria-live="polite">
       {bloqueos.map((st, i) => <div key={i} className="rc-bloqueo" style={st} onPointerDown={fueraToque} onClick={fueraToque} />)}
-      {rect && !logro && (
-        <div className="rc-foco" style={{
-          top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2,
-          // Lo pequeño (un botón) va en cápsula; lo grande (una tarjeta), con esquinas suaves.
-          borderRadius: Math.max(rect.width, rect.height) < 140 ? Math.min(rect.width, rect.height) / 2 + pad : 16,
-        }}>
-          <span className="rc-anillo" />
-        </div>
-      )}
+      {foco}
       {!rect && p.final && <div className="rc-velo" />}
 
       {logro && <Celebracion />}
