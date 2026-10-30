@@ -19,6 +19,18 @@ const D = `/${DEMO_SLUG}`
 const visible = el => !!el && el.getClientRects().length > 0 && el.getBoundingClientRect().width > 0
 // El primero VISIBLE que cumpla (en PC y en celular el mismo botón vive en sitios distintos).
 const buscarEl = obj => typeof obj === 'function' ? obj() : [...document.querySelectorAll(obj)].find(visible) || null
+// La caja de lo que SE VE del objetivo: también lo que sobresale de él (el círculo del botón
+// «Pedido» sale por encima de la barra; con solo su caja, el foco lo cortaba).
+function cajaVisible(el) {
+  if (!el) return null
+  let { top, left, right, bottom } = el.getBoundingClientRect()
+  for (const h of el.querySelectorAll('*')) {
+    const r = h.getBoundingClientRect()
+    if (!r.width || !r.height) continue
+    top = Math.min(top, r.top); left = Math.min(left, r.left); right = Math.max(right, r.right); bottom = Math.max(bottom, r.bottom)
+  }
+  return { top, left, width: right - left, height: bottom - top, bottom }
+}
 const ultimo = sel => () => [...document.querySelectorAll(sel)].filter(visible).pop() || null
 const conTexto = (sel, re) => () => [...document.querySelectorAll(sel)].filter(visible).find(e => re.test(e.textContent)) || null
 
@@ -201,7 +213,7 @@ export default function Recorrido() {
       const abierta = hayCapa() && !dentro
       setCapa(abierta)
       if (!p.objetivo || abierta) { setRect(null); return }
-      const r = el?.getBoundingClientRect()
+      const r = cajaVisible(el)
       setRect(r && r.width > 0 && r.bottom > 0 && r.top < window.innerHeight
         ? { top: r.top, left: r.left, width: r.width, height: Math.min(r.height, window.innerHeight * 0.6) } : null)
     }
@@ -234,7 +246,11 @@ export default function Recorrido() {
   return createPortal(
     <div className="rc" aria-live="polite">
       {rect && !logro && (
-        <div className="rc-foco" style={{ top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2 }}>
+        <div className="rc-foco" style={{
+          top: rect.top - pad, left: rect.left - pad, width: rect.width + pad * 2, height: rect.height + pad * 2,
+          // Lo pequeño (un botón) va en cápsula; lo grande (una tarjeta), con esquinas suaves.
+          borderRadius: Math.max(rect.width, rect.height) < 140 ? Math.min(rect.width, rect.height) / 2 + pad : 16,
+        }}>
           <span className="rc-anillo" />
         </div>
       )}
