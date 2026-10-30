@@ -1,8 +1,9 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from './AuthContext'
 import { getLocalesDeAdmin, getLocalById } from '../services/locales'
 import { getRolesDeEquipo } from '../services/equipo'
+import { DEMO_SLUG } from '../config/demo'
 
 // 🏪 Estado de administración: qué locales administra el usuario (dueño) y cuál
 // está "seleccionado" para administrar. Alimenta la barra de admin.
@@ -36,7 +37,25 @@ function devEquipo() {
 export function AdminProvider({ children }) {
   const { user } = useAuth()
   const { pathname } = useLocation()
-  const [locales, setLocales] = useState([])
+  const [propios, setLocales] = useState([])
+  // 🍔 Demo para clientes: dentro de /demo, el visitante (con o sin cuenta) es su dueño, así que
+  // ve la MISMA barra del panel que un dueño de verdad (no las pestañas de respaldo).
+  const [demoLocal, setDemoLocal] = useState(null)
+  const enDemo = pathname.split('/')[1] === DEMO_SLUG || pathname.startsWith(`/p/${DEMO_SLUG}/`)
+  useEffect(() => {
+    if (!enDemo || demoLocal) return
+    let activo = true
+    const enPreview = import.meta.env.DEV && new URLSearchParams(window.location.search).has('preview')
+    const cargar = enPreview
+      ? import('../dev').then(m => m.getDevLocal(DEMO_SLUG)).then(d => d?.local || null)
+      : getLocalById(DEMO_SLUG)
+    cargar.then(l => { if (activo && l?.esDemo) setDemoLocal(l) }).catch(() => {})
+    return () => { activo = false }
+  }, [enDemo, demoLocal])
+  const locales = useMemo(
+    () => (enDemo && demoLocal && !propios.some(l => l.slug === DEMO_SLUG) ? [...propios, demoLocal] : propios),
+    [enDemo, demoLocal, propios],
+  )
   const [cargando, setCargando] = useState(true)
   const [slug, setSlugState] = useState(null)
   const [equipo, setEquipo] = useState([]) // [{ local, rol }]
