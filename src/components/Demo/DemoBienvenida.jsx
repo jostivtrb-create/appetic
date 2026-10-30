@@ -33,7 +33,7 @@ export default function DemoBienvenida({ local, onCliente, onRecorrido }) {
         {onRecorrido && (
           <button className="demo-bienv-recorrido" onClick={recorrido}>
             <span className="demo-bienv-play" aria-hidden="true">▶</span>
-            <span><b>Hacer el recorrido guiado</b><small>3 minutos · te muestro todo, paso a paso</small></span>
+            <span><b>Hacer el recorrido guiado</b><small>5 minutos · el salón, la cocina, los domicilios y tu panel</small></span>
           </button>
         )}
 

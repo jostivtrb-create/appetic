@@ -118,6 +118,11 @@ Pregunta abierta: ¿agregamos al panel un editor de colores y logo? (hoy no exis
 - Retirado `src/dev/mockLocal.js` (el Burger Demo viejo de DEV): ahora `demo` es la demo real, con vista previa `?preview=1`.
 - Checkout y stats tenían la excepción `local.id === 'demo'` (no guardaban): se quitó, la demo guarda de verdad.
 - Probado en vista previa (móvil): bienvenida, letrero, recorrido completo de punta a punta.
+- **29-oct · Arreglos tras probarla el usuario:** el foco ya no oscurece las ventanas abiertas (plato,
+  carrito, pedido); la tarjeta va ARRIBA por defecto (los botones de la app viven abajo; en PC «Continuar
+  el pedido» está en la columna del carrito); «Ver como dueño» usa la barra del panel (el visitante cuenta
+  como dueño de la demo en AdminContext); el recorrido creció a 19 pasos con **domicilios de punta a punta**
+  (cómo pide el cliente → confirmar → cocina → panel del domiciliario: en camino y entregado) y **Difundir**.
 
 ---
 

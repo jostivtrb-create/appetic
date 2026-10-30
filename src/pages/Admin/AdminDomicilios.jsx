@@ -7,6 +7,7 @@ import AdminEquipo from './AdminEquipo'
 import ActivarAvisos from './ActivarAvisos'
 import { useAhora, minutosSeg } from './comandaUtils'
 import { ms } from '../../services/comandas'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 import './Domicilios.css'
 
 // 🛵 PANEL DE DOMICILIOS del local (guía «Mesero y Comandas», paso 3 · D35–D41).
@@ -40,6 +41,7 @@ export default function AdminDomicilios({ local, demo, usuario, esAdmin }) {
   async function enCamino(p) {
     try {
       await api.cambiarEstado(p.id, 'en-camino')
+      avisarDemo('en-camino')
       const tel = normalizarTel(p.cliente?.telefono)
       if (tel) {
         const url = urlWhatsApp(tel, mensajeEnCamino(local, p))
@@ -51,7 +53,7 @@ export default function AdminDomicilios({ local, demo, usuario, esAdmin }) {
   async function confirmarEntrega() {
     const p = entregar
     setEntregar(null)
-    try { await api.cambiarEstado(p.id, 'entregado') } catch { setError('No se pudo marcar como entregado.') }
+    try { await api.cambiarEstado(p.id, 'entregado'); avisarDemo('domicilio-entregado') } catch { setError('No se pudo marcar como entregado.') }
   }
 
   const grupo = e => (vivos || []).filter(p => p.estado === e)

@@ -15,18 +15,24 @@ import './Recorrido.css'
 //   espera → avanza cuando la app avisa ese evento · boton → avanza al tocarlo (y navega a `ir`)
 
 const D = `/${DEMO_SLUG}`
-const ultimo = sel => () => { const l = document.querySelectorAll(sel); return l[l.length - 1] || null }
+const visible = el => !!el && el.getClientRects().length > 0 && el.getBoundingClientRect().width > 0
+// El primero VISIBLE que cumpla (en PC y en celular el mismo botón vive en sitios distintos).
+const buscarEl = obj => typeof obj === 'function' ? obj() : [...document.querySelectorAll(obj)].find(visible) || null
+const ultimo = sel => () => [...document.querySelectorAll(sel)].filter(visible).pop() || null
+const conTexto = (sel, re) => () => [...document.querySelectorAll(sel)].filter(visible).find(e => re.test(e.textContent)) || null
 
 const PASOS = [
-  { emoji: '👋', titulo: '¡Hola! Te muestro Appetic en 3 minutos',
-    texto: 'Vas a vivir un pedido de punta a punta: lo pides como cliente, lo ves llegar a la cocina y después manejas el local como dueño.',
+  { emoji: '👋', titulo: '¡Hola! Te muestro Appetic en 5 minutos',
+    texto: 'Vas a vivir tu restaurante por dentro: un pedido desde la mesa, la cocina, el mesero, un domicilio de punta a punta y tu panel de dueño.',
     boton: 'Empezar', ir: `${D}?mesa=4` },
+
+  // 🪑 El salón
   { emoji: '🍔', titulo: 'Eres un cliente en la mesa 4',
     texto: 'Escaneaste el QR de tu mesa. Toca una hamburguesa, elige cómo la quieres y agrégala.',
     objetivo: '.pcard', espera: 'carrito', ruta: D },
   { emoji: '🧾', titulo: 'Ahora pídela',
-    texto: 'Toca «Pedido», escribe tu nombre y envíala a la cocina. Sin esperar al mesero.',
-    objetivo: '.bnav-cart', espera: 'pedido-mesa', ruta: D },
+    texto: 'Toca «Pedido» (o «Continuar el pedido»), escribe tu nombre y envíala a la cocina. Sin esperar al mesero.',
+    objetivo: '.cd-checkout, .bnav-cart', espera: 'pedido-mesa', ruta: D },
   { emoji: '🍳', titulo: '¡Tu pedido ya está en la cocina!',
     texto: 'Mira lo que ve el cocinero en su tablet, en este mismo momento.',
     boton: 'Ir a la cocina →', ir: `${D}/admin/comandas` },
@@ -39,18 +45,49 @@ const PASOS = [
   { emoji: '📱', titulo: 'Toma una comanda',
     texto: 'Toca un par de platos, marca la mesa en el teclado y envíala. Llega a la cocina al instante.',
     objetivo: '.ms-pos-menu, .ms-lista', espera: 'comanda-mesero', ruta: `${D}/admin/mesero` },
-  { emoji: '🛵', titulo: 'Llegó un domicilio por la app',
-    texto: 'Arriba está «por confirmar». Tócalo y confírmalo: pasa a la cocina y, cuando sale, al panel de tu domiciliario.',
+
+  // 🛵 Domicilios, de punta a punta
+  { emoji: '🛵', titulo: 'Así te piden a domicilio',
+    texto: 'Tu cliente abre tu link desde Instagram, WhatsApp o tu afiche, arma su pedido y pone su dirección: el envío se calcula solo, por distancia. El pedido te llega al WhatsApp del local y aquí, «por confirmar». Sin comisiones.',
+    boton: 'Ver el pedido que llegó →', ir: `${D}/admin/mesero` },
+  { emoji: '📥', titulo: 'Confirma el domicilio',
+    texto: 'Arriba está el pedido de Juan, «por confirmar». Tócalo y confírmalo: pasa a la cocina y Juan lo ve en «Mi pedido».',
     objetivo: '.pc', espera: 'pedido-confirmado', ruta: `${D}/admin/mesero`,
-    siNoHay: 'Otra persona que probó la demo ya lo confirmó. Lo verás en el panel de Domicilios.' },
+    siNoHay: 'Otra persona que probó la demo ya lo confirmó. Igual puedes seguir: así funciona.' },
+  { emoji: '🔥', titulo: 'El domicilio ya está en la cocina',
+    texto: 'Sale en morado para que la cocina sepa que va para la calle.',
+    boton: 'Ir a la cocina →', ir: `${D}/admin/comandas` },
+  { emoji: '✅', titulo: 'Despáchalo',
+    texto: 'Abre la comanda de DOMICILIO, tacha y dale «Confirmar entregado». Al domiciliario le llega el aviso: ya puede salir.',
+    objetivo: conTexto('.km-com', /domicilio/i), espera: 'comanda-entregada', ruta: `${D}/admin/comandas`,
+    siNoHay: 'No hay domicilios en la cocina ahora. Sigamos al panel del domiciliario.' },
+  { emoji: '🏍️', titulo: 'Ahora eres el domiciliario',
+    texto: 'Tiene su propio panel: dirección, mapa, a quién llamar, cuánto cobrar y las vueltas.',
+    boton: 'Ver Domicilios →', ir: `${D}/admin/domicilios` },
+  { emoji: '🛵', titulo: 'Sal a entregarlo',
+    texto: 'Toca «Voy en camino»: el cliente recibe el aviso y lo ve en «Mi pedido».',
+    objetivo: '.dm-salir', espera: 'en-camino', ruta: `${D}/admin/domicilios`,
+    siNoHay: 'Ahora no hay domicilios listos para salir. Así se ve el panel del domiciliario.' },
+  { emoji: '🏁', titulo: 'Entrégalo',
+    texto: 'Cuando lo entregues, toca «Entregado». Queda en el historial del día.',
+    objetivo: '.dm-entregado', espera: 'domicilio-entregado', ruta: `${D}/admin/domicilios`,
+    siNoHay: 'No hay domicilios en camino ahora. Sigamos con tu panel de dueño.' },
+
+  // 👔 El dueño
   { emoji: '💲', titulo: 'Ahora eres el dueño',
-    texto: 'Cambia un precio o marca un plato agotado: toca «Editar» en cualquiera y guarda. Se ve en el menú al instante.',
+    texto: 'Tu carta la manejas tú: precios, fotos, platos nuevos y agotados, desde el celular.',
     boton: 'Ver mi carta →', ir: `${D}/admin/config/catalogo` },
   { emoji: '✏️', titulo: 'Cambia lo que quieras',
-    texto: 'Toca «Editar» en un plato, cámbiale el precio y guarda.',
+    texto: 'Toca «Editar» en un plato, cámbiale el precio y guarda. Se ve en el menú al instante.',
     objetivo: '.ap-grupo-cat', espera: 'producto', ruta: `${D}/admin/config/catalogo` },
+  { emoji: '📣', titulo: '¿Y cómo te encuentran?',
+    texto: 'Con tu link y tus QR. Te los damos listos.',
+    boton: 'Ver Difundir →', ir: `${D}/admin/difundir` },
+  { emoji: '🔗', titulo: 'Tu link, tus QR y tu afiche',
+    texto: 'Aquí está el link para tu Instagram y WhatsApp, el QR del local, un QR para cada mesa y un afiche de domicilios listo para imprimir.',
+    boton: 'Terminar', ruta: `${D}/admin/difundir` },
   { emoji: '🏆', titulo: '¡Lo hiciste todo!', final: true,
-    texto: 'Pediste desde la mesa, cocinaste, atendiste como mesero, confirmaste un domicilio y cambiaste tu carta. Así funcionaría tu restaurante, con tu menú, tu logo y tus colores.' },
+    texto: 'Pediste desde la mesa, cocinaste, atendiste como mesero, despachaste un domicilio de punta a punta y cambiaste tu carta. Así funcionaría tu restaurante, con tu menú, tu logo y tus colores.' },
 ]
 
 // Ventanas de la app (plato, carrito, pedido, confirmaciones…). Cuando una está abierta, el
@@ -111,7 +148,7 @@ export default function Recorrido() {
       const abierta = hayCapa()
       setCapa(abierta)
       if (!p.objetivo || abierta) { setRect(null); return }
-      const el = typeof p.objetivo === 'function' ? p.objetivo() : document.querySelector(p.objetivo)
+      const el = buscarEl(p.objetivo)
       const r = el?.getBoundingClientRect()
       setRect(r && r.width > 0 && r.bottom > 0 && r.top < window.innerHeight
         ? { top: r.top, left: r.left, width: r.width, height: Math.min(r.height, window.innerHeight * 0.6) } : null)
@@ -120,8 +157,7 @@ export default function Recorrido() {
     setNoAparece(false)
     const tarde = setTimeout(() => {
       if (!p.objetivo || hayCapa()) return
-      const el = typeof p.objetivo === 'function' ? p.objetivo() : document.querySelector(p.objetivo)
-      if (!el) setNoAparece(true)
+      if (!buscarEl(p.objetivo)) setNoAparece(true)
     }, 3000)
     const t = setInterval(buscar, 350)
     window.addEventListener('scroll', buscar, true)
@@ -136,8 +172,9 @@ export default function Recorrido() {
   }
   // ¿Está en la pantalla de este paso? Si se fue a otra, se le ofrece volver.
   const fuera = p.ruta && location.pathname !== p.ruta
-  // La tarjeta va arriba si lo que brilla está en la mitad de abajo.
-  const arriba = rect && rect.top + rect.height / 2 > window.innerHeight * 0.55
+  // La tarjeta va ARRIBA por defecto: los botones de la app («Agregar», «Continuar», «Enviar»)
+  // viven abajo. Solo baja si lo que brilla está arriba.
+  const arriba = !rect || rect.top + rect.height / 2 > window.innerHeight * 0.45
   const total = PASOS.length - 1
   const pad = 8
 
