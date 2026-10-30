@@ -5,7 +5,7 @@
 
 - **Tarea:** que el admin lleve la cuenta de cada mesa (todo lo que pidió, en qué va) y la cobre; hoy, cuando la cocina entrega una comanda, se pierde y no se sabe cuánto cobrar.
 - **Inicio:** 29 de octubre de 2026
-- **Estado:** 🔵 Construyendo
+- **Estado:** ✅ Terminada — 29 de octubre de 2026 · publicada (reglas, índice listo y app)
 - **Proyecto:** Appetic/
 
 ---
@@ -104,7 +104,7 @@ Ninguna. Sin más rondas.
       (en cocina X/Y · lista · en camino / entregada) y «Ya se cobró» al finalizar; «Cobradas» = historial; deshacer.
       Finalizada = la cocina la entregó (y en domicilio, además, el domiciliario la entregó).
 - [x] 4. Aviso si quedan comandas sin cobrar de otro día (D12).
-- [ ] 5. Probar en vista previa → publicar (con permiso) → índice listo.
+- [x] 5. Probar en vista previa → publicar (con permiso) → índice listo.
 - [x] 6. Propuesta: quitar «No es una caja registradora…» y contar el paso «cobrada» (D2).
 
 ## 7. Bitácora
