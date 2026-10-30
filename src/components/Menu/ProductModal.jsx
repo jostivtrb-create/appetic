@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { cop } from '../../utils/money'
 import { maxDelGrupo, precioUnitario, recortarPorVariante, validarSeleccion } from '../../utils/price'
 import './ProductModal.css'
@@ -18,6 +18,12 @@ export default function ProductModal({ producto, onCerrar, onAgregar, compacto =
   const seleccion = useMemo(() => ({ varianteId, grupos }), [varianteId, grupos])
   const unitario = precioUnitario(producto, seleccion)
   const error = validarSeleccion(producto, seleccion)
+  // ¿Qué grupo es el que falta? (el mensaje lo nombra entre comillas; el tamaño no tiene nombre)
+  const grupoFalta = !error ? null
+    : error === 'Elige una opción' ? '__variante'
+      : (producto.gruposOpciones || []).find(g => error.includes(`"${g.nombre}"`))?.id || null
+  const refs = useRef({})
+  const [sacudir, setSacudir] = useState(0)
 
   function toggleOpcion(grupo, opcId) {
     const max = maxDelGrupo(grupo, varianteId)
@@ -58,7 +64,13 @@ export default function ProductModal({ producto, onCerrar, onAgregar, compacto =
 
   function handleAgregar() {
     setIntentado(true)
-    if (error) return
+    if (error) {
+      // 👆 Llevarlo a lo que falta: se desplaza hasta ese grupo y lo resalta (en vez de dejar
+      // el aviso abajo, con el grupo fuera de la vista).
+      refs.current[grupoFalta]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setSacudir(n => n + 1)
+      return
+    }
     onAgregar({ producto, seleccion, cantidad, notas: notas.trim() })
   }
 
@@ -86,7 +98,8 @@ export default function ProductModal({ producto, onCerrar, onAgregar, compacto =
 
           {/* Variantes / tamaños */}
           {producto.variantes?.length > 0 && (
-            <section className="pm-group">
+            <section className={`pm-group ${intentado && grupoFalta === '__variante' ? 'pm-group-falta' : ''}`} ref={el => { refs.current.__variante = el }} key={intentado && grupoFalta === '__variante' ? `v${sacudir}` : 'v'}>
+              {intentado && grupoFalta === '__variante' && <p className="pm-falta-aviso">👇 Falta elegir aquí</p>}
               <div className="pm-group-head">
                 <h3>Elige una opción</h3>
                 <span className="pm-req">Obligatorio</span>
@@ -111,7 +124,10 @@ export default function ProductModal({ producto, onCerrar, onAgregar, compacto =
             const max = maxDelGrupo(grupo, varianteId)
             const lleno = elegidas.length >= max
             return (
-              <section key={grupo.id} className="pm-group">
+              <section key={intentado && grupoFalta === grupo.id ? `${grupo.id}-${sacudir}` : grupo.id}
+                className={`pm-group ${intentado && grupoFalta === grupo.id ? 'pm-group-falta' : ''}`}
+                ref={el => { refs.current[grupo.id] = el }}>
+                {intentado && grupoFalta === grupo.id && <p className="pm-falta-aviso">👇 Falta elegir aquí</p>}
                 <div className="pm-group-head">
                   <h3>{grupo.nombre}</h3>
                   {(grupo.min ?? 0) > 0

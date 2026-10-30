@@ -220,3 +220,16 @@
 .pm-quelleva summary::before { content: 'ⓘ'; }
 .pm-quelleva[open] summary { margin-bottom: 8px; }
 .pm-quelleva p { font-size: 15px; line-height: 1.5; color: var(--text-soft); }
+
+/* 👆 Lo que falta para poder agregar: la ventana se desplaza hasta aquí y lo resalta. */
+.pm-group-falta {
+  border-radius: 16px; padding: 10px; margin-left: -10px; margin-right: -10px;
+  background: rgba(217, 56, 30, .07); box-shadow: 0 0 0 2px #E5484D;
+  animation: pmSacude .45s ease-in-out .25s;
+}
+.pm-falta-aviso { margin: 0 0 6px; font-size: 13.5px; font-weight: 800; color: #C62828; }
+@keyframes pmSacude {
+  0%, 100% { transform: translateX(0) } 20% { transform: translateX(-6px) } 40% { transform: translateX(6px) }
+  60% { transform: translateX(-4px) } 80% { transform: translateX(4px) }
+}
+@media (prefers-reduced-motion: reduce) { .pm-group-falta { animation: none; } }
