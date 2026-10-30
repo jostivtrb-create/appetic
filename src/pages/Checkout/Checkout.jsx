@@ -3,7 +3,8 @@ import { useCart } from '../../contexts/CartContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { cop } from '../../utils/money'
 import { calcularDomicilio } from '../../utils/delivery'
-import { abrirPedidoWhatsApp } from '../../utils/whatsapp'
+import { abrirPedidoWhatsApp, textoPedido } from '../../utils/whatsapp'
+import ChatWhatsApp from '../../components/Demo/ChatWhatsApp'
 import { crearPedido, pedidosDe } from '../../services/pedidos'
 import { isDevSlug } from '../../dev'
 import { generarCodigoPedido } from '../../utils/codigoPedido'
@@ -186,14 +187,28 @@ export default function Checkout({ local, onClose, abierto = true }) {
     if (user) guardarPerfil(user.uid, datosCliente)
 
     // Abre WhatsApp con el endpoint correcto según dispositivo (móvil/PC).
-    const url = abrirPedidoWhatsApp(local, pedido)
+    // 🍔 En la demo NO se abre WhatsApp: se muestra cómo le llega el mensaje al restaurante.
+    const url = local.esDemo ? '' : abrirPedidoWhatsApp(local, pedido)
     clear()
-    setExito({ url, codigo, miPedido: id ? `/p/${local.slug}/${id}` : '' })
+    setExito({ url, codigo, miPedido: id ? `/p/${local.slug}/${id}` : '', chat: local.esDemo ? textoPedido(local, pedido) : '' })
     avisarDemo('pedido-app')
     setEnviando(false)
   }
 
   // ---------- Pantalla de éxito ----------
+  if (exito && exito.chat) {
+    return (
+      <div className="co-screen co-exito co-exito-chat">
+        <h2>¡Pedido enviado!</h2>
+        <p>Así le llega tu pedido al WhatsApp del restaurante, completo y ordenado:</p>
+        <ChatWhatsApp nombre={local.nombre} foto={local.icono || local.logo} texto={exito.chat} />
+        {exito.miPedido && (
+          <Link className="btn btn-primary co-exito-seguir" to={exito.miPedido} onClick={() => avisarDemo('mi-pedido')}>📍 Ver en qué va mi pedido</Link>
+        )}
+        <button className="btn btn-ghost" onClick={onClose}>Volver al menú</button>
+      </div>
+    )
+  }
   if (exito) {
     return (
       <div className="co-screen co-exito">

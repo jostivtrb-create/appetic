@@ -1,0 +1,21 @@
+/* 💬 Chat de WhatsApp simulado (demo) */
+.co-exito-chat { overflow-y: auto; }
+.wa-sim { width: 100%; max-width: 420px; margin: 6px auto 14px; border-radius: 18px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,.18); text-align: left; }
+.wa-sim-cab { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #075E54; color: #fff; }
+.wa-sim-atras { font-size: 22px; opacity: .85; }
+.wa-sim-cab img, .wa-sim-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #fff; display: grid; place-items: center; }
+.wa-sim-nombre { display: grid; line-height: 1.2; }
+.wa-sim-nombre small { opacity: .8; font-size: 12px; }
+.wa-sim-fondo {
+  padding: 14px 10px 16px; background-color: #ECE5DD;
+  background-image: radial-gradient(rgba(0,0,0,.035) 1px, transparent 1px); background-size: 14px 14px;
+  max-height: 52vh; overflow-y: auto;
+}
+.wa-sim-burbuja {
+  position: relative; margin-left: auto; max-width: 92%; padding: 8px 10px 20px; border-radius: 10px 0 10px 10px;
+  background: #DCF8C6; color: #111B21; font-size: 14px; line-height: 1.4; box-shadow: 0 1px 1px rgba(0,0,0,.12);
+  font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; word-break: break-word;
+}
+.wa-sim-link { color: #027EB5; text-decoration: underline; }
+.wa-sim-hora { position: absolute; right: 8px; bottom: 4px; font-size: 11px; color: #667781; }
+.wa-sim-checks { color: #53BDEB; letter-spacing: -3px; margin-left: 2px; }
