@@ -166,6 +166,7 @@ export default function Recorrido() {
   const [rect, setRect] = useState(null)
   const [noAparece, setNoAparece] = useState(false) // el objetivo no está (p. ej. ya lo confirmó otro)
   const [capa, setCapa] = useState(false)           // hay una ventana de la app abierta encima
+  const [verMini, setVerMini] = useState(false)     // con ventana abierta: la burbuja desplegada
   const location = useLocation()
   const navigate = useNavigate()
   const enDemo = location.pathname === D || location.pathname.startsWith(`${D}/`) || location.pathname.startsWith(`/p/${DEMO_SLUG}/`)
@@ -229,6 +230,26 @@ export default function Recorrido() {
   }, [estado?.id, paso, enDemo, location.pathname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!p || !enDemo || bienvenida) return null
+
+  // 🫧 Con una ventana de la app abierta (plato, carrito, formulario del pedido) el guía no se
+  // atraviesa: queda una burbuja al borde derecho; tocarla muestra la instrucción del paso.
+  if (capa && !p.final && !logro) {
+    return createPortal(
+      <div className="rc" aria-live="polite">
+        <button className={`rc-burbuja ${verMini ? 'on' : ''}`} onClick={() => setVerMini(v => !v)}
+          aria-label={verMini ? 'Ocultar la instrucción' : `Ver la instrucción: ${p.titulo}`}>
+          <span aria-hidden="true">{verMini ? '✕' : p.emoji}</span>
+        </button>
+        {verMini && (
+          <div className="rc-mini" role="dialog" aria-label="Instrucción del paso" onClick={() => setVerMini(false)}>
+            <b>{p.titulo}</b>
+            <p>{p.texto}</p>
+          </div>
+        )}
+      </div>,
+      document.body,
+    )
+  }
 
   const alBoton = () => {
     if (p.sinMesa) olvidarMesa(DEMO_SLUG)

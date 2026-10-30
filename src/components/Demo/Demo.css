@@ -103,3 +103,6 @@
   .demo-letrero-link span, .demo-letrero-guia span { display: none; }
   .demo-letrero-acc { gap: 6px; }
 }
+/* Con una ventana del menú abierta (plato, carrito, formulario del pedido) el letrero se aparta:
+   esas ventanas viven dentro del menú y el letrero les tapaba el encabezado («‹ Finalizar pedido»). */
+body:has(.co-screen, .pm-overlay, .pw-overlay, .cd-overlay) .demo-letrero { display: none; }

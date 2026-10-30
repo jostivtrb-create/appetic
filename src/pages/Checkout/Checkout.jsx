@@ -73,9 +73,14 @@ export default function Checkout({ local, onClose, abierto = true }) {
     return () => { activo = false }
   }, [user])
 
+  // 🍔 Demo para clientes: la ubicación no es obligatoria (es de prueba). Sin ella se usa una de
+  // ejemplo a ~1,5 km del local, para que igual se vea el envío calculado por distancia.
+  const coordDemo = local.esDemo && !coord && local.ubicacion?.lat != null
+    ? { lat: local.ubicacion.lat + 0.0135, lng: local.ubicacion.lng } : null
+  const coordUsada = coord || coordDemo
   const domicilio = useMemo(
-    () => (entrega === 'domicilio' ? calcularDomicilio(local, coord) : null),
-    [entrega, local, coord]
+    () => (entrega === 'domicilio' ? calcularDomicilio(local, coordUsada) : null),
+    [entrega, local, coordUsada?.lat, coordUsada?.lng] // eslint-disable-line react-hooks/exhaustive-deps
   )
   const costoEnvio = entrega === 'domicilio' && domicilio?.ok ? domicilio.costo : 0
   const total = subtotal + costoEnvio
@@ -132,7 +137,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
       codigo,
       items,
       entrega,
-      cliente: { nombre: nombre.trim(), telefono: telefono.trim(), direccion: direccion.trim(), coord },
+      cliente: { nombre: nombre.trim(), telefono: telefono.trim(), direccion: direccion.trim(), coord: coordUsada },
       pago: { ...pago, cashAmount: pago?.tipo === 'efectivo' ? cashNum : 0 },
       domicilio,
       domicilioAConvenir,
@@ -244,6 +249,11 @@ export default function Checkout({ local, onClose, abierto = true }) {
               📍 {ubic === 'cargando' ? 'Obteniendo…' : ubic === 'ok' ? 'Ubicación lista ✓' : 'Usar mi ubicación'}
             </button>
 
+            {coordDemo && domicilio?.ok && (
+              <div className="co-ubic-ok">
+                🧪 En la demo no hace falta: usamos una ubicación de ejemplo a {domicilio.distancia.toFixed(1)} km · Domicilio <strong>{cop(domicilio.costo)}</strong>
+              </div>
+            )}
             {ubic === 'ok' && domicilio?.ok && (
               <div className="co-ubic-ok">
                 A {domicilio.distancia.toFixed(1)} km · Domicilio <strong>{cop(domicilio.costo)}</strong>

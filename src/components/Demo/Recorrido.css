@@ -93,3 +93,25 @@
 .rc-tarjeta.compacta h3 { font-size: 14.5px; }
 .rc-tarjeta.compacta p { margin: 6px 0 0; font-size: 13px; }
 .rc-tarjeta.compacta .rc-barra, .rc-tarjeta.compacta .rc-acc, .rc-tarjeta.compacta .rc-paso { display: none; }
+
+/* 🫧 Con una ventana abierta: burbuja al borde derecho (no tapa el formulario) */
+.rc-burbuja {
+  pointer-events: auto; position: fixed; right: 10px; top: 42%; width: 48px; height: 48px; border-radius: 50%;
+  border: 0; cursor: pointer; font-size: 24px; display: grid; place-items: center;
+  background: linear-gradient(135deg, #D9381E, #F2A900); color: #fff;
+  box-shadow: 0 8px 22px rgba(0,0,0,.3), 0 0 0 3px rgba(255,255,255,.85);
+  animation: rcPulso 2.2s ease-in-out infinite;
+}
+@keyframes rcPulso {
+  0%, 100% { box-shadow: 0 8px 22px rgba(0,0,0,.3), 0 0 0 3px rgba(255,255,255,.85), 0 0 0 0 rgba(242,169,0,.55); }
+  50% { box-shadow: 0 8px 22px rgba(0,0,0,.3), 0 0 0 3px rgba(255,255,255,.85), 0 0 0 10px rgba(242,169,0,0); }
+}
+.rc-burbuja.on { animation: none; background: #1E1B1A; font-size: 18px; }
+.rc-mini {
+  pointer-events: auto; position: fixed; right: 68px; top: calc(42% - 20px); width: min(280px, calc(100vw - 90px));
+  padding: 12px 14px; border-radius: 16px; background: #1E1B1A; color: #FFF4E0; font-size: 13.5px; line-height: 1.45;
+  box-shadow: 0 14px 34px rgba(0,0,0,.4); animation: rcFade .2s ease-out;
+}
+.rc-mini b { display: block; color: #fff; font-size: 14.5px; margin-bottom: 4px; }
+.rc-mini p { margin: 0; opacity: .9; }
+@media (prefers-reduced-motion: reduce) { .rc-burbuja { animation: none; } }
