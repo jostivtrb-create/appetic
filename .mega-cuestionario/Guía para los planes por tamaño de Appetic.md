@@ -205,3 +205,16 @@ propuesta de venta, que sea muy llamativa y a la vez muy bien distribuida."*
   viendo los pedidos"*): `img/pro-mesero-pide.jpg` y `img/pro-tablet-pedidos.jpg` (prompts 6 y 7).
   Se borran los recortes de capturas que ya no se usan. Las capturas de Pilotos de la página 3
   se quedan.
+- **2 de noviembre de 2026** — **Cambio de orden pedido por el usuario:** *"primero que diga qué es
+  Appetic… un sistema que vamos a instalar en tu negocio… y que vaya mostrando cada cosa que se
+  puede hacer… y al final ya ahí sí los planes: si no necesitas esto, te acomodas a este plan"*.
+  Esto **reemplaza R19** («abre con los tres negocios / ¿cuál es tu plan?» en la página 2): ahora
+  la propuesta guía al cliente y los planes van al final. Siguen siendo 5 páginas (R16):
+  1. Portada (sin cambios).
+  2. **Qué es Appetic** («un sistema que instalamos en tu negocio») + índice de las 5 cosas que
+     hace + **1 · Menú digital** (capturas de Pilotos y fotos de los platos).
+  3. **2 · Menú en vivo en tu TV** + **3 · Domicilios y todo lo demás** (íconos).
+  4. **4 · Meseros y cocina** (fotos de Gemini) + **5 · Tus cuentas**, ya **sin precios** + demo.
+  5. **Los planes**: «Tómalo completo, o solo lo que necesitas». Cada plan lleva la foto de su
+     negocio y dice qué números incluye: Básico = 1, 2 y 3 · Pro = del 1 al 4 · Total = del 1 al 5.
+  La página «¿Cuál es tu Appetic?» desaparece: sus fotos pasaron a las tarjetas de los planes.
