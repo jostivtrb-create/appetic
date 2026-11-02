@@ -70,3 +70,31 @@ A friendly young waiter in a dark apron standing at a wooden table in a cozy Col
 ```
 A waiter in a dark apron standing at the kitchen pass of a busy Colombian neighborhood restaurant in Bogotá, holding a tablet and checking the incoming orders, while behind him a cook plates food on the steel counter under warm lamps. The tablet screen shows colorful order cards in orange, purple and green, glowing and clearly visible as shapes, but nothing on it is readable. Steam, stainless steel, warm kitchen light mixed with the golden dining room light. Real documentary photography, 35mm lens at eye level, shallow depth of field with the waiter and tablet sharp. Palette: warm orange #ED7D2B, cream #FFFBF4, deep brown #2A211C. Horizontal 4:3 framing. Photorealistic, not an illustration. No text, no letters, no signage, no logos, no watermark, no border.
 ```
+
+---
+
+## 8 · `domicilios.jpg` — página 3, sección «3 · Domicilios» · horizontal 16:9 · ⏳ generada, falta montarla
+
+Va a todo lo ancho bajo el título «3 · Domicilios, y todo lo demás» (como la TV de la sección 2),
+encima de la cuadrícula de íconos. Llena el hueco de abajo de esa página.
+
+```
+A delivery rider in a jacket and helmet on a motorbike parked in front of a small fast-food corner shop in a working-class neighborhood of Bogotá, Colombia, at dusk. The shop owner, smiling, hands him a sealed brown paper bag over the counter while the rider checks the order on a smartphone mounted on the handlebar; the phone screen glows warm orange but nothing on it is readable. An orange insulated delivery box on the back of the bike, string lights, warm light spilling from the shop against a deep blue evening sky. Real documentary photography, 35mm lens at eye level, shallow depth of field with the rider, bag and phone sharp. Palette: warm orange #ED7D2B, cream #FFFBF4, deep brown #2A211C, wood and terracotta. Keep the left third calm and simple. Wide 16:9 horizontal framing. Photorealistic, not an illustration. No text, no letters, no signage, no logos, no watermark, no border.
+```
+
+## 9 · `mockups-dispositivos.png` — portada, bloque «Qué es Appetic» · tipo A (recortable) · 16:9 · ⏳ generada, falta procesarla
+
+Reemplaza las 4 tarjetas (Lo instalamos nosotros · Sin descargar nada · Sin comisión · Te
+acompañamos). Cómo se procesa con `/Generar_Imagen`:
+1. `recortar_croma.py mockups-dispositivos.png img/mockup.png --separar` → 3 piezas (celular,
+   tablet, TV). **Mirar cada `p_NN` antes de nombrarla**: `--separar` no siempre ordena de izquierda
+   a derecha.
+2. En cada pieza, detectar el rectángulo magenta `#FF00FF` de la pantalla y pegar encima la captura
+   real: celular → `img/menu-pilotos.jpg` · tablet → `img/cocina-comandas.jpg` · TV → el menú en vivo
+   (captura de la TV dibujada en HTML de la página 3, o `img/plato-bandeja-paisa.jpg` con su precio).
+3. En la portada: los 3 aparatos en fila con su pie («En el celular de tu cliente» · «En la tablet
+   de tu cocina» · «En el TV de tu local») y los 4 puntos quedan en una sola línea de texto.
+
+```
+A clean product mockup set of three modern devices standing side by side in a row, all seen perfectly straight from the front at eye level, with no perspective and no tilt: on the left a smartphone standing upright in portrait orientation, in the middle a tablet in landscape orientation on a slim stand, and on the right a flat-screen TV on a small center stand. All three have thin matte black bezels, slightly rounded corners and the same realistic, minimal premium style, with sizes in realistic proportion to each other. Each screen is completely filled edge to edge with a perfectly flat, solid pure magenta (#FF00FF), with no reflections, no glare, no icons and no interface. Soft even studio lighting. Generous equal spacing between the devices, none touching each other, all fully visible and centered as a group, with about 12% empty margin on every side and the bottom-right corner left empty, nothing cropped. Crisp clean edges, no motion blur, no depth of field. On a perfectly flat, solid pure green (#00FF00) background, uniform edge to edge, with no gradient, no texture, no vignette, no floor, no horizon. No drop shadow, no cast shadow, no glow, no reflection, no white outline or sticker border. Wide 16:9. No text, no logos, no watermark.
+```

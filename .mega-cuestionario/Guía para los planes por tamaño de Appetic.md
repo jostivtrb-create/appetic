@@ -224,3 +224,8 @@ propuesta de venta, que sea muy llamativa y a la vez muy bien distribuida."*
   cómo se instala, y 4 puntos (lo instalamos nosotros · sin descargar nada · sin comisión · te
   acompañamos). Para no repetirlo, la página 2 abre con «Cinco cosas que cambian en tu negocio».
   La TV ya no es gancho de portada (ajusta R12): vive en su sección 2.
+- **2 de noviembre de 2026** — **Pendiente para la sesión local** (se pasa a trabajar en el PC):
+  montar `domicilios.jpg` en la sección 3 y los mockups de la portada (prompts 8 y 9 en
+  `.prompts-imagenes/propuesta-planes.md`, con el paso a paso). Las dos imágenes ya están
+  generadas en `~/Descargas` del PC. Todo lo anterior quedó publicado en `main`. Los PDF no se
+  versionan: regenerar con `bash propuesta/generar.sh tapa-appetic propuesta-appetic`.
