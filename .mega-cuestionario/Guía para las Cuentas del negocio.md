@@ -77,6 +77,7 @@ día y del mes, con comparación contra el mes anterior y una gráfica de los ú
 | # | Decisión | Por qué |
 |---|----------|---------|
 | **D29** | **La Caja y el Mesero copian el ORDEN y la ESTÉTICA del POS de La Catrina** (Registro Infiniity), con los colores de Appetic y del local, no el café y dorado: cabecera con fichas de plata · pestañas (Vender · Ventas · Gastos; abajo en el celular, segmentadas arriba en PC) · fila de cuentas abiertas (⚡ Rápida, una ficha por mesa o pedido por cobrar con su color y total, ＋ Mesa) · cuadrícula de fichas de producto con contador y «−», ⭐ Frecuentes primero · ticket fijo a la derecha en PC con el gran «Cobrar $X» · barra abajo y hoja en el celular · historial con encabezados de día pegajosos. | Sus palabras: *"la estética de meseros y caja también sacarla de Catrina, me gusta mucho; obviamente los colores no, pero sí el orden y la estética"*. |
+| **D30** | **Se quita la lista de «pedidos por confirmar» del panel** (Caja, Mesero y Domicilios). Cada local atiende sus pedidos en su WhatsApp. Si quiere, todavía puede confirmar uno desde el link que trae el mensaje (así el cliente lo sigue en «Mi pedido» y el domiciliario lo ve). | Sus palabras: *"no me gusta que esa lista salga ahí, quitemos lo de pedidos por confirmar de la app, que cada local esté pendiente de su WhatsApp y listo"*. Pilotos tenía 157 pedidos sin confirmar desde julio llenando la Caja. Refuerza D14: lo que no se registra en la Caja no cuenta como venta. |
 
 ---
 
@@ -243,4 +244,15 @@ día y del mes, con comparación contra el mes anterior y una gráfica de los ú
   Quedan estilos viejos sin uso en `Mesero.css` (`.ms-pos*`, `.ms-hoja*` de la comanda) y `.am-*`
   de Métricas en `Admin.css`: se pueden limpiar.
 - **Lo siguiente (D2):** la pantalla del menú en el TV y después los planes en la app.
+- **2-nov-2026 · Después de publicar.**
+  - Caja: una comanda de otro día atascada «en cocina» no se podía cobrar ni quitar → en el ticket
+    de cada mesa ahora salen «Ya salió de cocina» y «Cancelar comanda». Colores de mesa sin café, ícono
+    «i» dibujado (el «ⓘ» salía como cuadrito en Windows).
+  - D30: se borró `PorConfirmar.jsx` y su uso en Caja, Mesero y Domicilios; el recorrido de la demo
+    pierde el paso «Confirma un pedido de la app».
+  - Problema encontrado y resuelto: el recorrido del mesero apuntaba a la pantalla vieja
+    (`.ms-pos-menu`, `.ms-barra`) desde el cambio a La Catrina → ahora `.pv-grid` / `.pv-ticket`.
+  - ⚠️ **Pendiente (decisión del usuario):** la limpieza automática (TTL) de `pedidos` nunca se activó
+    en Firebase: Pilotos tiene 149 pedidos con más de 2 días que ya debían haberse borrado (con
+    teléfonos y direcciones). Activarla borra esos pedidos para siempre; no se hizo sin su OK.
 

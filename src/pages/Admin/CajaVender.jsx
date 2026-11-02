@@ -10,7 +10,6 @@ import ProductModal from '../../components/Menu/ProductModal'
 import ProductWizard from '../../components/Menu/ProductWizard'
 import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import { Teclado } from './Teclado'
-import PorConfirmar from './PorConfirmar'
 import Cobro from './Cobro'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 
@@ -71,7 +70,7 @@ function useFrecuentes(localId) {
   return [cuenta, sumar]
 }
 
-export default function CajaVender({ local, productos, api, cuentasApi, demo, usuario, porCobrar, onVenta, modo = 'caja', conPorConfirmar = true }) {
+export default function CajaVender({ local, productos, api, cuentasApi, demo, usuario, porCobrar, onVenta, modo = 'caja' }) {
   const esMesero = modo === 'mesero'
   const conCocina = usaCocina(local)
   const esPC = useEsEscritorio()
@@ -170,6 +169,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
   const cantidadDe = id => lineas.filter(it => it.producto.id === id).reduce((s, it) => s + it.cantidad, 0)
   function tocar(p) {
     if (tieneOpciones(p)) { setAbierto(p); return }
+    if (esMesero) avisarDemo('mesero-plato')
     setLineas(c => {
       const i = c.findIndex(it => it.producto.id === p.id && !it.comentario && !Object.keys(it.seleccion || {}).length)
       if (i >= 0) return c.map((it, j) => j === i ? { ...it, cantidad: it.cantidad + 1 } : it)
@@ -193,6 +193,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
       return [...c, { uid: uid(), producto, seleccion, cantidad, comentario: notas || '' }]
     })
     setAbierto(null)
+    if (esMesero) avisarDemo('mesero-plato')
   }
 
   // ── Avisos ──
@@ -472,7 +473,6 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
 
   return (
     <div className="pv-vender" style={{ '--sel': selColor }}>
-      {conPorConfirmar && <PorConfirmar local={local} demo={demo} usuario={usuario} />}
 
       <nav className="pv-cuentas" aria-label="Cuentas abiertas">
         <button type="button" className={`pv-cuenta${sel === 'rapida' ? ' on' : ''}`} onClick={() => setSel('rapida')}>

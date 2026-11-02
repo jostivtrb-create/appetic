@@ -5,9 +5,8 @@ import { mapsUrl } from '../../utils/geo'
 import { urlWhatsApp, normalizarTel, mensajeEnCamino } from '../../utils/whatsapp'
 import AdminEquipo from './AdminEquipo'
 import ActivarAvisos from './ActivarAvisos'
-import { useAhora, minutosSeg, coloresComanda } from './comandaUtils'
+import { useAhora, minutosSeg } from './comandaUtils'
 import { ms } from '../../services/comandas'
-import PorConfirmar from './PorConfirmar'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 import './Domicilios.css'
 
@@ -66,7 +65,6 @@ export default function AdminDomicilios({ local, demo, usuario, esAdmin }) {
       {error && <p className="dm-error" role="alert">{error}</p>}
       {/* El admin ve TODOS los domicilios, también los que aún no confirma (el domiciliario no:
           a él le aparecen apenas se confirman). */}
-      {esAdmin && <div style={coloresComanda(local).vars}><PorConfirmar local={local} demo={demo} usuario={usuario} soloDomicilio /></div>}
 
       {vivos === null ? <p className="dm-vacio">Cargando domicilios…</p>
         : vivos.length === 0 ? (

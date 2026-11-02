@@ -5,7 +5,6 @@ import {
 import AdminEquipo from './AdminEquipo'
 import ActivarAvisos from './ActivarAvisos'
 import CorregirComanda, { Cuidado } from './CorregirComanda'
-import PorConfirmar from './PorConfirmar'
 import { pedidosDe } from '../../services/pedidos'
 import { urlWhatsApp, normalizarTel, mensajeTotalCambio } from '../../utils/whatsapp'
 import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, itemsTxt, claseDestino } from './comandaUtils'
@@ -59,8 +58,6 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
         </button>
       )}
 
-      <PorConfirmar local={local} demo={demo} usuario={usuario} />
-
       {/* Guía «Cuentas del negocio» D29: el orden del POS de La Catrina (pestañas abajo en el
           celular, arriba en el PC) y la misma pantalla de pedir que la Caja, sin cobrar. */}
       <nav className="pv-vistas" aria-label="Secciones del mesero">
@@ -75,7 +72,7 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
       {errorEscucha && <p className="ms-aviso-red">{errorEscucha}</p>}
 
       {vista === 'tomar'
-        ? <CajaVender modo="mesero" conPorConfirmar={false} local={local} productos={productos} api={api} demo={demo} usuario={usuario} porCobrar={porCobrar} />
+        ? <CajaVender modo="mesero" local={local} productos={productos} api={api} demo={demo} usuario={usuario} porCobrar={porCobrar} />
         : <div className="ms ms-curso"><EnCurso local={local} productos={productos} api={api} activas={activas} recientes={recientes} usuario={usuario} demo={demo} /></div>}
     </div>
   )

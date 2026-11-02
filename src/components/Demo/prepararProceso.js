@@ -64,10 +64,6 @@ export async function prepararProceso(proceso) {
   const com = comandasDe(DEMO_SLUG, { demo })
   const ped = pedidosDe(DEMO_SLUG, { demo })
   try {
-    if (proceso === 'mesero') {
-      const porConfirmar = await unaVez(cb => ped.escucharPorConfirmar(cb))
-      if (!porConfirmar.length) await pedidoDomicilio(ped, 'Juan Pérez')
-    }
     if (proceso === 'cocina') {
       const activas = await unaVez(cb => com.escucharActivas(cb))
       if (!activas.filter(c => c.estado === 'activa').length) {
