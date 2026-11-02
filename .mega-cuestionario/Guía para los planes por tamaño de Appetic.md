@@ -200,3 +200,8 @@ propuesta de venta, que sea muy llamativa y a la vez muy bien distribuida."*
   Página 4: el mesero y la cocina **dibujados** se cambian por **capturas reales** recortadas
   (`img/mesero-recorte.jpg`, `img/cocina-recorte.jpg`). Esto corrige D23/S4 solo para el Pro; la
   TV y la contabilidad siguen dibujadas porque no existen en la app.
+- **2 de noviembre de 2026** — En el Pro, las capturas del mesero y la cocina se cambian por dos
+  fotos de Gemini (*"prefiero fotos del mesero pidiendo con la app y el mesero con una tablet
+  viendo los pedidos"*): `img/pro-mesero-pide.jpg` y `img/pro-tablet-pedidos.jpg` (prompts 6 y 7).
+  Se borran los recortes de capturas que ya no se usan. Las capturas de Pilotos de la página 3
+  se quedan.

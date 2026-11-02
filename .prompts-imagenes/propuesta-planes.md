@@ -56,3 +56,17 @@ A busy Colombian family restaurant dining room in Bogotá at lunchtime: full woo
 - **La pantalla de TV con el menú**, la cocina, el mesero y la contabilidad se **dibujan en HTML**
   dentro del documento con la cara de Appetic (S4). Los platos de la TV son las fotos que ya están
   en `propuesta/img/plato-*.jpg`.
+
+---
+
+## 6 · `pro-mesero-pide.jpg` — página 4, plan Pro · horizontal 4:3 · ✅ puesta
+
+```
+A friendly young waiter in a dark apron standing at a wooden table in a cozy Colombian neighborhood restaurant in Bogotá, taking an order on his smartphone while two smiling customers point at the menu; plates of bandeja paisa and fresh juices on nearby tables. The phone screen is turned slightly toward the camera and glows warm orange, but nothing on it is readable. Warm golden evening light, wood and terracotta tones, softly blurred dining room in the background. Real documentary photography, 35mm lens at eye level, shallow depth of field with the waiter and phone sharp. Palette: warm orange #ED7D2B, cream #FFFBF4, deep brown #2A211C. Horizontal 4:3 framing. Photorealistic, not an illustration. No text, no letters, no signage, no logos, no watermark, no border.
+```
+
+## 7 · `pro-tablet-pedidos.jpg` — página 4, plan Pro · horizontal 4:3 · ✅ puesta
+
+```
+A waiter in a dark apron standing at the kitchen pass of a busy Colombian neighborhood restaurant in Bogotá, holding a tablet and checking the incoming orders, while behind him a cook plates food on the steel counter under warm lamps. The tablet screen shows colorful order cards in orange, purple and green, glowing and clearly visible as shapes, but nothing on it is readable. Steam, stainless steel, warm kitchen light mixed with the golden dining room light. Real documentary photography, 35mm lens at eye level, shallow depth of field with the waiter and tablet sharp. Palette: warm orange #ED7D2B, cream #FFFBF4, deep brown #2A211C. Horizontal 4:3 framing. Photorealistic, not an illustration. No text, no letters, no signage, no logos, no watermark, no border.
+```
