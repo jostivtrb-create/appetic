@@ -6,7 +6,7 @@ import { getProductos } from '../../services/productos'
 import {
   agregarProducto, actualizarProducto, borrarProducto, actualizarLocal, guardarFotoExterna,
 } from '../../services/adminLocal'
-import { subirFotoProducto, subirFotoOpcion, subirBanner, subirFotoExterna } from '../../services/storage'
+import { subirFotoProducto, subirFotoOpcion, subirBanner, subirFotoExterna, subirImagenAnuncio } from '../../services/storage'
 import AdminProductos from './AdminProductos'
 import AdminFotosExternas from './AdminFotosExternas'
 import AdminConfig from './AdminConfig'
@@ -21,6 +21,7 @@ import AdminComandas from './AdminComandas'
 import AdminCaja from './AdminCaja'
 import AdminCuentas from './AdminCuentas'
 import ConfigPagos from './ConfigPagos'
+import ConfigPantalla from './ConfigPantalla'
 import AdminDomicilios from './AdminDomicilios'
 import AdminAjustes from './AdminAjustes'
 import { EquipoEnLinea } from './AdminEquipo'
@@ -265,6 +266,12 @@ export default function AdminPage() {
     return url
   }
 
+  // 📺 Imagen de un anuncio de la pantalla de TV (el editor la guarda al pulsar «Guardar anuncio»).
+  async function subirImagenDeAnuncio(anuncioId, file) {
+    if (demo) return URL.createObjectURL(file)
+    return await subirImagenAnuncio(local.id, anuncioId, file)
+  }
+
   // 🍔 Demo para clientes: abre la sesión anónima sola (nada de «Entrar con Google»).
   useEffect(() => {
     if (vitrina && !authCargando && !sesion) entrarDemo()
@@ -419,6 +426,7 @@ export default function AdminPage() {
                   </div>
                 )
                 : vista === 'pagos' ? <ConfigPagos local={local} onUpdate={updateLocal} />
+                : vista === 'pantalla' ? <ConfigPantalla local={local} productos={productos} slug={slug} onUpdate={updateLocal} onSubirImagen={subirImagenDeAnuncio} />
                 : <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} vista={vista} />}
             </AdminAjustes>
           )

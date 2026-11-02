@@ -889,3 +889,13 @@
 /* 🍔 Demo para clientes: campos bloqueados (WhatsApp, horario) */
 .ac-bloqueo { border: 0; padding: 0; margin: 0; min-width: 0; }
 .ac-bloqueo:disabled { opacity: .55; }
+
+/* 📺 Difundir → Tu menú en el TV: pasos por aparato */
+.dif-tv-pasos { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+.dif-tv-pasos details { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 14px; }
+.dif-tv-pasos summary { padding: 12px 0; font-size: 14.5px; font-weight: 700; cursor: pointer; list-style: none; }
+.dif-tv-pasos summary::-webkit-details-marker { display: none; }
+.dif-tv-pasos summary::after { content: '＋'; float: right; color: var(--text-faint); }
+.dif-tv-pasos details[open] summary::after { content: '−'; }
+.dif-tv-pasos p { margin: 0 0 12px; font-size: 13.5px; line-height: 1.5; color: var(--text-soft); }
+a.dif-afiche { text-decoration: none; }

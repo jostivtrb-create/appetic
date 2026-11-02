@@ -40,3 +40,12 @@ export async function subirFotoExterna(localId, clave, file) {
   await uploadBytes(r, blob, { contentType: tipo })
   return await getDownloadURL(r)
 }
+
+// 📺 Imagen de un ANUNCIO de la pantalla de TV (se ve a pantalla completa: más ancha).
+export async function subirImagenAnuncio(localId, anuncioId, file) {
+  const { blob, tipo, ext } = await comprimirImagen(file, { maxLado: 1600 })
+  const ruta = `locales/${localId}/anuncios/${anuncioId}-${Date.now()}.${ext}`
+  const r = ref(storage, ruta)
+  await uploadBytes(r, blob, { contentType: tipo })
+  return await getDownloadURL(r)
+}

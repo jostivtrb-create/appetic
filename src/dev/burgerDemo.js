@@ -71,6 +71,15 @@ export const DEMO_LOCAL = {
   admins: [],
   suscripcion: { activa: false, plan: 'demo' },
   menuVersion: 1,
+  // 📺 Pantalla de TV (Guía para la Pantalla de TV.md): /demo/tv
+  pantalla: {
+    transicion: 'zoom',
+    categoriasOcultas: [],
+    anuncios: [
+      { id: 'an-combo', titulo: 'Combo Clásica', texto: 'Hamburguesa, papas y gaseosa por $24.000', imagen: '', activo: true, dias: [], desde: '', hasta: '' },
+      { id: 'an-martes', titulo: '2×1 en perros', texto: 'Todos los martes, en el local y para llevar', imagen: '', activo: true, dias: ['mar'], desde: '', hasta: '' },
+    ],
+  },
 }
 
 // ─────────────────────────── Grupos reutilizables ───────────────────────────

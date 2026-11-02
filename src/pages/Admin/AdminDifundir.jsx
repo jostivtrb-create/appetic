@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { isMobileBrowser } from '../../utils/whatsapp'
 import { menuUrl, formatTel, mensajeBienvenida, qrDark, abrirAfiche } from '../../utils/compartir'
 import { construirPromptPublicidad, VARIANTES_PUBLICIDAD } from '../../utils/promptIA'
@@ -12,6 +13,7 @@ const claveVariante = slug => `appetic_pub_variante_${slug}`
 // para imprimir, el link para copiar y un mensaje de bienvenida para WhatsApp.
 export default function AdminDifundir({ local, slug, onUpdate }) {
   const url = menuUrl(slug)
+  const urlTV = `${url.replace(/\/$/, '')}/tv`
   const [qrPng, setQrPng] = useState('')
   // El mensaje se regenera cada vez que se abre la pestaña (refleja los datos
   // actuales del local); el dueño puede editarlo antes de enviarlo.
@@ -129,6 +131,41 @@ export default function AdminDifundir({ local, slug, onUpdate }) {
         <button className="btn btn-primary dif-full" onClick={descargarQR} disabled={!qrPng}>
           ⬇️ Descargar QR (PNG)
         </button>
+      </section>
+
+      {/* ---- Pantalla de TV (Guía para la Pantalla de TV.md, S8) ---- */}
+      <section className="ac-sec">
+        <h3>📺 Tu menú en el TV</h3>
+        <p className="ac-hint">Tu menú en vivo en el televisor del local: cambia solo cuando cambias un precio o agotas un plato. Es un link fijo, sin activar nada.</p>
+        <div className="dif-link">
+          <span className="dif-link-url">{urlTV.replace(/^https?:\/\//, '')}</span>
+          <button className="dif-copybtn" onClick={() => copiar(urlTV, 'tv')}>
+            {copiado === 'tv' ? '¡Copiado! ✓' : 'Copiar'}
+          </button>
+        </div>
+        <div className="dif-tv-pasos">
+          <details>
+            <summary>📺 En un Smart TV</summary>
+            <p>Abre el <b>navegador</b> del TV («Internet» en Samsung, «Navegador web» en LG), escribe el link con el control y guárdalo en <b>favoritos</b> o como <b>página de inicio</b>. La próxima vez es abrir el navegador y listo.</p>
+          </details>
+          <details>
+            <summary>🔌 Con Chromecast, Fire TV Stick o TV Box</summary>
+            <p>Abre el navegador del aparato (Chrome en Android TV, <b>Silk</b> en Fire TV), escribe el link y déjalo en favoritos. También puedes abrirlo en Chrome de un computador y usar «Enviar» (transmitir pestaña) al Chromecast.</p>
+          </details>
+          <details>
+            <summary>💻 Con un computador por HDMI</summary>
+            <p>Abre el link en Chrome y pulsa <b>F11</b> para verlo en pantalla completa. El puntero del mouse se esconde solo.</p>
+          </details>
+          <details>
+            <summary>📱 En una tablet o un celular en la pared</summary>
+            <p>Abre el link y gira el aparato como lo vayas a dejar: la pantalla se acomoda sola en horizontal o vertical. Mientras esté abierta, no se apaga.</p>
+          </details>
+        </div>
+        <Link className="dif-afiche" to={`/${slug}/admin/config/pantalla${window.location.search}`}>
+          <span className="dif-afiche-ic">⚙️</span>
+          <span className="dif-afiche-txt"><strong>Configurar la pantalla</strong><small>Transición, categorías y anuncios</small></span>
+          <span className="dif-afiche-arrow">→</span>
+        </Link>
       </section>
 
       {/* ---- Afiche de domicilios (PDF imprimible) ---- */}

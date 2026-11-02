@@ -205,6 +205,7 @@ function EditorProducto({ producto, local, categorias, onAddCategoria, onCerrar,
   const [descripcion, setDescripcion] = useState(producto.descripcion || '')
   const [categoria, setCategoria] = useState(producto.categoria || categorias[0]?.id || '')
   const [destacado, setDestacado] = useState(!!producto.destacado)
+  const [enTV, setEnTV] = useState(!producto.ocultoTV)
   const [nuevaCat, setNuevaCat] = useState('')          // nombre de categoría nueva
   const [nuevaCatEmoji, setNuevaCatEmoji] = useState('')
   const creandoCat = categoria === '__nueva__'
@@ -347,6 +348,7 @@ function EditorProducto({ producto, local, categorias, onAddCategoria, onCerrar,
       descripcion: descripcion.trim(),
       categoria: categoriaFinal,
       destacado,
+      ocultoTV: !enTV,
     }
     if (tieneVariantes) {
       // Descarta tamaños sin nombre; guarda el resto con precio numérico.
@@ -478,6 +480,11 @@ function EditorProducto({ producto, local, categorias, onAddCategoria, onCerrar,
             <input type="checkbox" checked={destacado} onChange={e => setDestacado(e.target.checked)} />
           </label>
           <p className="ac-hint">Resáltalo como el plato estrella de su categoría. Solo uno por categoría: al marcar este, se quita el de los demás.</p>
+
+          <label className="ac-switch">
+            <span>📺 Mostrar en la pantalla de TV</span>
+            <input type="checkbox" checked={enTV} onChange={e => setEnTV(e.target.checked)} />
+          </label>
 
           {tieneVariantes ? (
             <>

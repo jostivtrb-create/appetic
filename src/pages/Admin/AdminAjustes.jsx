@@ -4,13 +4,14 @@ import './Ajustes.css'
 
 // ⚙️ CONFIGURACIÓN como panel de ajustes de verdad: un menú de secciones (a la izquierda en el PC,
 // arriba como pestañas en el celular) y el contenido de la sección a la derecha.
-//   Catálogo · Negocio y horario · Cuentas y pagos · Apariencia · Equipo
+//   Catálogo · Negocio y horario · Cuentas y pagos · Apariencia · Pantalla de TV · Equipo
 // Cada sección es su propia página (/:slug/admin/config/<sección>).
 export const SECCIONES_AJUSTES = [
   { id: 'catalogo', icono: '🍔', titulo: 'Catálogo', desc: 'Productos, precios, fotos y categorías' },
   { id: 'negocio', icono: '🏪', titulo: 'Negocio y horario', desc: 'WhatsApp, horario y entrega' },
   { id: 'pagos', icono: '💳', titulo: 'Cuentas y pagos', desc: 'Efectivo, Nequi, Bold… y si hay cocina' },
   { id: 'apariencia', icono: '🎨', titulo: 'Apariencia', desc: 'Portada y animación del logo' },
+  { id: 'pantalla', icono: '📺', titulo: 'Pantalla de TV', desc: 'Tu menú en vivo en el TV, y tus anuncios' },
   { id: 'equipo', icono: '👥', titulo: 'Equipo', desc: 'Cajeros, meseros, cocina y domiciliarios' },
 ]
 

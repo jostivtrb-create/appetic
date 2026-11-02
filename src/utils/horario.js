@@ -2,7 +2,7 @@
 // dentro del horario Y los días de atención. Todo se evalúa en hora de Bogotá.
 
 // Minutos transcurridos desde medianoche, ahora mismo, en Bogotá.
-function minutosAhoraBogota() {
+export function minutosAhoraBogota() {
   const partes = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Bogota',
     hour: '2-digit',
@@ -14,7 +14,7 @@ function minutosAhoraBogota() {
   return h * 60 + m
 }
 
-function aMinutos(hhmm) {
+export function aMinutos(hhmm) {
   const [h, m] = String(hhmm).split(':').map(Number)
   return (h || 0) * 60 + (m || 0)
 }
@@ -28,7 +28,7 @@ const NOMBRE_DIA = {
 const MAP_WD = { Sun: 'dom', Mon: 'lun', Tue: 'mar', Wed: 'mie', Thu: 'jue', Fri: 'vie', Sat: 'sab' }
 
 // Clave del día en Bogotá, con un desfase opcional en días (para cruces de medianoche).
-function diaBogota(offsetDias = 0) {
+export function diaBogota(offsetDias = 0) {
   const base = new Date(Date.now() + offsetDias * 86400000)
   const wd = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Bogota', weekday: 'short' }).format(base)
   return MAP_WD[wd] || 'lun'

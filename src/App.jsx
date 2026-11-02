@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { useNavUI } from './contexts/NavUIContext.jsx'
 import { appThemeVars } from './utils/theme.js'
@@ -21,6 +21,11 @@ import AvisoListo from './components/AvisoListo/AvisoListo.jsx'
 import Recorrido from './components/Demo/Recorrido'
 import InicioEquipo from './components/InicioEquipo.jsx'
 
+// 📺 La pantalla de TV va aparte: sin barra, sin avisos ni instalar, y en su propio archivo
+// para que el menú del cliente no cargue su código.
+const PantallaTV = lazy(() => import('./pages/TV/PantallaTV.jsx'))
+const RUTA_TV = /^\/[^/]+\/tv\/?$/
+
 export default function App() {
   const { activeLocal } = useNavUI()
   const { pathname } = useLocation()
@@ -36,6 +41,16 @@ export default function App() {
     keys.forEach(k => el.style.setProperty(k, vars[k]))
     return () => keys.forEach(k => el.style.removeProperty(k))
   }, [activeLocal, enPanel])
+
+  if (RUTA_TV.test(pathname)) {
+    return (
+      <Suspense fallback={null}>
+        <Routes>
+          <Route path="/:slug/tv" element={<PantallaTV />} />
+        </Routes>
+      </Suspense>
+    )
+  }
 
   return (
     <div className="app-shell">

@@ -142,5 +142,40 @@ eq('la proteína que cuesta más sigue sumando',
 eq('y las adiciones también',
    precioUnitario(almuerzo, sel({'g-soup':['s1'],'g-protein':['p1'],'g-adiciones':['a1']})), 16000)
 
+
+// ── 📺 Pantalla de TV (Guía para la Pantalla de TV.md) ──
+const tv = await import('./src/utils/pantallaTV.js')
+console.log('\n── Pantalla de TV ──')
+const localTV = {
+  categorias: [{id:'a',nombre:'A'},{id:'b',nombre:'B'},{id:'c',nombre:'C'}],
+  pantalla: { categoriasOcultas: ['c'] },
+}
+const prods = [
+  {id:'1',categoria:'a',foto:'x.webp',destacado:true},
+  {id:'2',categoria:'a',foto:''},
+  {id:'3',categoria:'a',foto:'y.webp',disponible:false},
+  {id:'4',categoria:'b',foto:'z.webp',ocultoTV:true},
+  {id:'5',categoria:'c',foto:'w.webp'},
+  {id:'6',categoria:'borrada',foto:'v.webp'},
+]
+const vis = tv.platosDelTV(localTV, prods)
+eq('sin agotados, ocultos ni categorías escondidas', vis.map(p=>p.id), ['1','2','6'])
+const cats = tv.categoriasDelTV(localTV, vis)
+eq('categorías vacías fuera; la borrada va a Otros', cats.map(c=>c.id), ['a','_otros'])
+const once = {id:'x', platos: Array.from({length:11},(_,i)=>i)}
+eq('11 platos en páginas de 9 → 6 + 5', tv.paginarTablero([once], 9).map(p=>p.platos.length), [6,5])
+eq('y sabe cuántas páginas son', tv.paginarTablero([once], 9).map(p=>`${p.pagina}/${p.de}`), ['1/2','2/2'])
+eq('un solo fuerte se completa con la categoría', tv.colaGrande(vis, cats[0]).map(p=>p.id), ['1'])
+eq('la foto que no cargó sale de la cola', tv.colaGrande(vis, cats[1], new Set(['1'])).map(p=>p.id), ['6'])
+eq('anuncio sin días ni horas: siempre', tv.anuncioVigente({titulo:'2x1'}, 'mar', 600), true)
+eq('anuncio de martes, un lunes: no', tv.anuncioVigente({titulo:'2x1',dias:['mar']}, 'lun', 600), false)
+eq('franja 11:00–15:00 a las 10:59: no', tv.anuncioVigente({titulo:'x',desde:'11:00',hasta:'15:00'}, 'lun', 659), false)
+eq('franja que cruza medianoche, a la 1 a. m.: sí', tv.anuncioVigente({titulo:'x',desde:'20:00',hasta:'02:00'}, 'lun', 60), true)
+eq('anuncio apagado: no', tv.anuncioVigente({titulo:'x',activo:false}, 'lun', 60), false)
+eq('dos tamaños se dicen los dos',
+   tv.preciosDelPlato({variantes:[{nombre:'P',precio:19000},{nombre:'F',precio:65000}]}).tipo, 'tamanos')
+eq('precio fijo', tv.preciosDelPlato({precio:12000}), {tipo:'fijo',precio:12000})
+eq('transición desconocida cae al zoom', tv.transicionDe({pantalla:{transicion:'rara'}}), 'zoom')
+
 console.log(f===0 ? '\n✅ TODO PASA — los dos lados cuadran\n' : `\n❌ ${f} FALLO(S)\n`)
 process.exit(f===0?0:1)
