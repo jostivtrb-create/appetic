@@ -7,7 +7,7 @@
   locales chicos y tráilers (el que jale las ventas), otro con mesas y cocina, y otro con
   contabilidad. **Solo la propuesta de venta; la app no se toca.**
 - **Inicio:** 2 de noviembre de 2026
-- **Estado:** 🔵 Construyendo
+- **Estado:** ✅ **TERMINADA** — 2 de noviembre de 2026 · propuesta de 5 páginas + tapa con las fotos de Gemini
 - **Proyecto:** `appetic` (propuesta en `propuesta/`)
 - **Depende de:** `Guía para los precios nuevos de Appetic.md` (P1–P10, 27-oct) y
   `Guía para la propuesta nueva de Appetic.md` (D1–D23, 25-oct). Siguen vigentes salvo lo que esta
@@ -163,7 +163,7 @@ propuesta de venta, que sea muy llamativa y a la vez muy bien distribuida."*
 - [x] 4 · Actualizar `tapa-appetic.html` (S11) y los comentarios de `generar.sh`.
 - [x] 5 · Generar el PDF, revisar cada página en imagen (nada pisa el pie, nada se sale).
 - [x] 6 · Subir a la rama y entregar el PDF.
-- [ ] 7 · Cuando lleguen las imágenes de Gemini: reemplazar, regenerar y cerrar (borrar los HTML de las rondas).
+- [x] 7 · Cuando lleguen las imágenes de Gemini: reemplazar, regenerar y cerrar (borrar los HTML de las rondas).
 
 ---
 
@@ -190,3 +190,6 @@ propuesta de venta, que sea muy llamativa y a la vez muy bien distribuida."*
     un tercio de página abajo. Corregido (TV más chica de letra, arte de 112 mm, más aire).
   - La tapa decía «desde $39.900»: se quitó por P7 (portada sin precio).
   - QR de la demo regenerado a `appetic.vercel.app/demo` (S7).
+- **2 de noviembre de 2026** — Llegaron las 5 fotos de Gemini y reemplazaron a las provisionales
+  con los mismos nombres. Regenerados la propuesta (5 páginas) y la versión impresa (tapa + 5).
+  Borrados los cuestionarios HTML de las rondas 1 y 2. **Tarea cerrada.**
