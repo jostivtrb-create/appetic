@@ -24,7 +24,7 @@ entorno es Linux y no tiene esas herramientas ni esos archivos.
 | `Actualizar_Reglas_Firebase` | ⚠️ A medias | La CLI de Firebase no está logueada en la nube → cae al modo manual (pegar reglas en la consola) |
 | `despliegue_en_vercel` | ✅ Sí | Solo git/gh |
 | `auditoria`, `Mejora_Visual` | ✅ Sí | Levantan el dev server del propio repo |
-| `Mensajes_Whatsapp`, `instalar-app-mobil`, `Solucion_Ingreso`, `finalizar-sesion`, `Demos_Apps` | ✅ Sí | Solo tocan código del repo |
+| `Mensajes_Whatsapp`, `instalar-app-mobil`, `Solucion_Ingreso`, `finalizar-sesion`, `Demos_Apps`, `Mega-Cuestionario` | ✅ Sí | Solo tocan código del repo |
 
 **Regla práctica:** desde la nube, diseña y programa; deja para el PC lo que genere imágenes o toque
 Firebase con llave.
