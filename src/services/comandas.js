@@ -12,8 +12,8 @@
 //   creadaEn · entregadaEn · canceladaEn   (Timestamp)
 //   creadaPor: { email, nombre }
 //   total · cantidadItems · origen: 'mesero'
-//   porCobrar: true al nacer → false cuando la caja la marca cobrada (cobradaEn · cobradaPor) o se
-//              cancela. Guía «Cuenta por mesa»: la Caja lista las porCobrar y su historial son las cobradas.
+//   porCobrar: true al nacer → false cuando la caja la marca cobrada (cobradaEn · cobradaPor · ventaId,
+//              la venta de services/cuentas.js) o se cancela. Guía «Cuenta por mesa»: la Caja lista las porCobrar y su historial son las cobradas.
 //   envio:     (pedidos de la app a domicilio) costo del envío, para cobrar el total completo.
 //
 // Tachar es por LÍNEA (las 4 hamburguesas son una línea): la cocina tacha la pizza que ya salió
@@ -32,6 +32,10 @@ import { precioItem } from '../utils/price'
 import { resumenSeleccion } from '../utils/selectionSummary'
 
 export const POR_PAGINA = 20
+
+// ¿El local usa pantalla de cocina? (guía «Cuentas del negocio» D13/S12). Sin dato = sí.
+// Sin cocina, las comandas nacen entregadas y todo lo que esté por cobrar se puede cobrar ya.
+export const usaCocina = local => local?.usaCocina !== false
 
 // Convierte los ítems del carrito del mesero al formato de la comanda.
 export function itemsDeComanda(carrito) {
@@ -213,17 +217,19 @@ function firestoreApi(localId) {
     nuevoId: () => doc(col()).id,
     // Con id propio (setDoc): si el mesero reintenta un envío que en realidad sí había llegado,
     // escribe el MISMO documento y no aparece una comanda repetida en cocina.
-    async crear({ id, destino, items, creadaPor, origen = 'mesero' }) {
+    // entregada: el local no usa cocina (D13), la comanda nace terminada y lista para cobrar.
+    async crear({ id, destino, items, creadaPor, origen = 'mesero', entregada = false }) {
       const data = {
         destino,
         items,
-        estado: 'activa',
+        estado: entregada ? 'entregada' : 'activa',
+        ...(entregada ? { entregadaEn: serverTimestamp(), items: items.map(it => ({ ...it, hecho: true })) } : {}),
         origen,
         creadaPor,
         total: items.reduce((s, it) => s + (it.precio || 0), 0),
         cantidadItems: items.reduce((s, it) => s + (it.cantidad || 0), 0),
         creadaEn: serverTimestamp(),
-        cerradaEn: null,
+        cerradaEn: entregada ? serverTimestamp() : null,
         porCobrar: true,
       }
       await setDoc(doc(col(), id), data)
@@ -284,11 +290,13 @@ function firestoreApi(localId) {
       const q = query(col(), orderBy('cobradaEn', 'desc'), limit(n))
       return escucharConReintento(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))), onError)
     },
-    async cobrar(comanda, por) {
-      await updateDoc(doc(col(), comanda.id), { porCobrar: false, cobradaEn: serverTimestamp(), cobradaPor: por || null })
+    // (El cobro con plata lo hace services/cuentas.js en el mismo lote que la venta: esto es para
+    // la demo y para casos sueltos.)
+    async cobrar(comanda, por, ventaId = null) {
+      await updateDoc(doc(col(), comanda.id), { porCobrar: false, cobradaEn: serverTimestamp(), cobradaPor: por || null, ...(ventaId ? { ventaId } : {}) })
     },
     async descobrar(comanda) {
-      await updateDoc(doc(col(), comanda.id), { porCobrar: true, cobradaEn: deleteField(), cobradaPor: deleteField() })
+      await updateDoc(doc(col(), comanda.id), { porCobrar: true, cobradaEn: deleteField(), cobradaPor: deleteField(), ventaId: deleteField() })
     },
   }
 }
@@ -352,13 +360,14 @@ function demoApi(localId) {
       return { lista: l.map(hidratar), ultimo: l.length ? desde + l.length : null }
     },
     nuevoId: () => 'demo-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    async crear({ id, destino, items, creadaPor, origen = 'mesero' }) {
+    async crear({ id, destino, items, creadaPor, origen = 'mesero', entregada = false }) {
       const ahora = Date.now()
       escribir([...leer().filter(c => c.id !== id), {
-        id, destino, items, estado: 'activa', origen, creadaPor,
+        id, destino, items, estado: entregada ? 'entregada' : 'activa', origen, creadaPor,
         total: items.reduce((s, it) => s + (it.precio || 0), 0),
         cantidadItems: items.reduce((s, it) => s + (it.cantidad || 0), 0),
-        creadaEn: ahora, cerradaEn: null, porCobrar: true,
+        creadaEn: ahora, cerradaEn: entregada ? ahora : null, porCobrar: true,
+        ...(entregada ? { entregadaEn: ahora, items: items.map(it => ({ ...it, hecho: true })) } : {}),
       }])
       return id
     },
@@ -403,11 +412,11 @@ function demoApi(localId) {
     escucharCobradas(cb, _onError, n = POR_PAGINA) {
       return suscribir(() => [leer().filter(c => c.cobradaEn).sort((a, b) => b.cobradaEn - a.cobradaEn).slice(0, n).map(hidratar)], cb)
     },
-    async cobrar(comanda, por) {
-      cambiar(comanda.id, c => ({ ...c, porCobrar: false, cobradaEn: Date.now(), cobradaPor: por || null }))
+    async cobrar(comanda, por, ventaId = null) {
+      cambiar(comanda.id, c => ({ ...c, porCobrar: false, cobradaEn: Date.now(), cobradaPor: por || null, ...(ventaId ? { ventaId } : {}) }))
     },
     async descobrar(comanda) {
-      cambiar(comanda.id, c => { const { cobradaEn, cobradaPor, ...resto } = c; return { ...resto, porCobrar: true } })
+      cambiar(comanda.id, c => { const { cobradaEn, cobradaPor, ventaId, ...resto } = c; return { ...resto, porCobrar: true } }) // eslint-disable-line no-unused-vars
     },
   }
 }

@@ -4,7 +4,6 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useAdmin } from '../../contexts/AdminContext'
 import { esSuperadmin } from '../../config/roles'
 import { getPerfil } from '../../services/usuarios'
-import AdminMetricas from '../Admin/AdminMetricas'
 import logo from '../../assets/appetic-logo.png'
 import './Cuenta.css'
 
@@ -94,7 +93,8 @@ export default function Cuenta() {
         <>
           <nav className="cuenta-tabs">
             <button className={tab === 'cuenta' ? 'on' : ''} onClick={() => setTab('cuenta')}>🏪 Cuenta</button>
-            <button className={tab === 'metricas' ? 'on' : ''} onClick={() => setTab('metricas')}>📊 Métricas</button>
+            {/* Las métricas viven ahora en el panel, sección Cuentas (guía «Cuentas del negocio» D15). */}
+            <button className={tab === 'metricas' ? 'on' : ''} onClick={() => localSel ? navigate(`/${localSel.slug}/admin/cuentas`) : setTab('metricas')}>📊 Cuentas</button>
           </nav>
 
           {tab === 'cuenta' && (
@@ -122,11 +122,7 @@ export default function Cuenta() {
             </section>
           )}
 
-          {tab === 'metricas' && (
-            localSel
-              ? <div className="cuenta-metricas"><AdminMetricas local={localSel} demo={false} /></div>
-              : <p className="cuenta-selector-aviso">Elige un local en la pestaña «Cuenta» para ver sus métricas.</p>
-          )}
+          {tab === 'metricas' && <p className="cuenta-selector-aviso">Elige un local en la pestaña «Cuenta» para ver sus cuentas.</p>}
         </>
       ) : (
         <>

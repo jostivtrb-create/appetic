@@ -117,6 +117,9 @@ function comandaDe(p, por) {
     creadaPor: por,
     // 💵 Caja: el domicilio se cobra con el envío incluido.
     envio: p.entrega === 'domicilio' ? (Number(p.domicilio) || 0) : 0,
+    // 💳 Cuentas: con qué dijo el cliente que pagaría (al cobrar sale marcado). El pedido se borra
+    // a los 2 días; la comanda no, por eso se copia aquí.
+    pagoSugerido: p.metodoPago || null,
     porCobrar: true,
     total: items.reduce((s, it) => s + it.precio, 0),
     cantidadItems: items.reduce((s, it) => s + it.cantidad, 0),
@@ -170,16 +173,22 @@ function firestoreApi(localId) {
       return lista(query(col(), where('entrega', '==', 'domicilio'), where('estado', '==', 'entregado'), orderBy('actualizadoEn', 'desc'), limit(10)), cb, onError)
     },
     // Confirmar: una sola vez (transacción). Crea la comanda con el MISMO id del pedido.
-    async confirmar(id, por) {
+    // sinCocina (guía «Cuentas del negocio» D13): el local no usa pantalla de cocina → la comanda
+    // nace entregada y el pedido queda «listo» de una (para recoger o para el domiciliario).
+    async confirmar(id, por, { sinCocina = false } = {}) {
       return runTransaction(db, async tx => {
         const ref = doc(col(), id)
         const snap = await tx.get(ref)
         if (!snap.exists()) throw new Error('no-existe')
         const p = { id: snap.id, ...snap.data() }
         if (p.estado !== 'nuevo') throw new YaAtendidoError(p)
-        tx.set(comandaRef(id), { ...comandaDe(p, por), estado: 'activa', creadaEn: serverTimestamp(), cerradaEn: null })
-        tx.update(ref, { estado: 'en-cocina', confirmadoPor: por, confirmadoEn: serverTimestamp(), actualizadoEn: serverTimestamp() })
-        tx.update(pub(id), { estado: 'en-cocina', actualizadoEn: serverTimestamp() })
+        const estado = sinCocina ? 'listo' : 'en-cocina'
+        tx.set(comandaRef(id), {
+          ...comandaDe(p, por), creadaEn: serverTimestamp(),
+          ...(sinCocina ? { estado: 'entregada', entregadaEn: serverTimestamp(), cerradaEn: serverTimestamp() } : { estado: 'activa', cerradaEn: null }),
+        })
+        tx.update(ref, { estado, confirmadoPor: por, confirmadoEn: serverTimestamp(), actualizadoEn: serverTimestamp() })
+        tx.update(pub(id), { estado, actualizadoEn: serverTimestamp() })
         return p
       })
     },
@@ -250,7 +259,7 @@ function demoApi(localId) {
     escucharPorConfirmar(cb) { return suscribir(() => leer().filter(p => p.estado === 'nuevo').sort((a, b) => a.createdAt - b.createdAt).map(hidratar), cb) },
     escucharDomicilios(cb) { return suscribir(() => leer().filter(p => p.entrega === 'domicilio' && ESTADOS_VIVOS_DOMICILIO.includes(p.estado)).sort((a, b) => a.createdAt - b.createdAt).map(hidratar), cb) },
     escucharEntregados(cb) { return suscribir(() => leer().filter(p => p.entrega === 'domicilio' && p.estado === 'entregado').sort((a, b) => b.actualizadoEn - a.actualizadoEn).slice(0, 10).map(hidratar), cb) },
-    async confirmar(id, por) {
+    async confirmar(id, por, { sinCocina = false } = {}) {
       const p = uno(id)
       if (!p) throw new Error('no-existe')
       if (p.estado !== 'nuevo') throw new YaAtendidoError(hidratar(p))
@@ -258,11 +267,12 @@ function demoApi(localId) {
       let coms = []
       try { coms = JSON.parse(localStorage.getItem(KEY_COM) || '[]') } catch { /* nada */ }
       if (!coms.some(c => c.id === id)) {
-        coms.push({ id, ...comandaDe({ ...p, id }, por), estado: 'activa', creadaEn: Date.now(), cerradaEn: null })
+        const ahora = Date.now()
+        coms.push({ id, ...comandaDe({ ...p, id }, por), creadaEn: ahora, ...(sinCocina ? { estado: 'entregada', entregadaEn: ahora, cerradaEn: ahora } : { estado: 'activa', cerradaEn: null }) })
         try { localStorage.setItem(KEY_COM, JSON.stringify(coms)) } catch { /* nada */ }
         canalCom?.postMessage('cambio')
       }
-      cambiar(id, x => ({ ...x, estado: 'en-cocina', confirmadoPor: por }))
+      cambiar(id, x => ({ ...x, estado: sinCocina ? 'listo' : 'en-cocina', confirmadoPor: por }))
       return hidratar(p)
     },
     async rechazar(id, por) {

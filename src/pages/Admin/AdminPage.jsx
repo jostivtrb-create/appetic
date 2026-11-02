@@ -10,7 +10,6 @@ import { subirFotoProducto, subirFotoOpcion, subirBanner, subirFotoExterna } fro
 import AdminProductos from './AdminProductos'
 import AdminFotosExternas from './AdminFotosExternas'
 import AdminConfig from './AdminConfig'
-import AdminMetricas from './AdminMetricas'
 import AdminDifundir from './AdminDifundir'
 import DemoLetrero from '../../components/Demo/DemoLetrero'
 import { isDevSlug, getDevLocal } from '../../dev'
@@ -20,6 +19,8 @@ import { useAdmin } from '../../contexts/AdminContext'
 import AdminMesero from './AdminMesero'
 import AdminComandas from './AdminComandas'
 import AdminCaja from './AdminCaja'
+import AdminCuentas from './AdminCuentas'
+import ConfigPagos from './ConfigPagos'
 import AdminDomicilios from './AdminDomicilios'
 import AdminAjustes from './AdminAjustes'
 import { EquipoEnLinea } from './AdminEquipo'
@@ -30,15 +31,19 @@ import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 // Título de cada página del panel (va en el encabezado y en la pestaña del navegador).
 const SECCIONES = {
+  caja: 'Caja',
+  cuentas: 'Cuentas',
   mesero: 'Mesero',
-  comandas: 'Cocina',
+  cocina: 'Cocina',
   domicilios: 'Domicilios',
-  caja: 'Comandas',
   catalogo: 'Catálogo',
   difundir: 'Difundir',
   config: 'Configuración',
-  metricas: 'Métricas',
 }
+
+// Rutas viejas que se mudaron (guía «Cuentas del negocio» D3 y D15): las tablets de cocina
+// instaladas con /admin/comandas y los links a /admin/metricas siguen funcionando.
+const MUDADAS = { comandas: 'cocina', metricas: 'cuentas' }
 
 export default function AdminPage() {
   const { slug, panel, sub } = useParams()
@@ -76,11 +81,16 @@ export default function AdminPage() {
   const esAdmin = demo ? rolesSimulados.length === 0 : puedeAdministrarLocal(usuario?.email, local)
   // Mesero / cocina de ESTE local (sin ser admin): solo entran a la sección de su rol.
   const rolesEquipo = esAdmin ? [] : rolesEn(slug)
-  const seccionPorDefecto = esAdmin ? 'caja' : rolesEquipo.includes('mesero') ? 'mesero' : rolesEquipo.includes('cocina') ? 'comandas' : 'domicilios'
-  const seccion = panel || seccionPorDefecto // mesero | comandas | catalogo | difundir | config | metricas
+  const seccionPorDefecto = esAdmin ? 'caja'
+    : rolesEquipo.includes('cajero') ? 'caja'
+      : rolesEquipo.includes('mesero') ? 'mesero'
+        : rolesEquipo.includes('cocina') ? 'cocina' : 'domicilios'
+  const seccion = MUDADAS[panel] || panel || seccionPorDefecto // caja | cuentas | mesero | cocina | domicilios | difundir | config
+  // Espejo de los `roles` de PanelRail.jsx.
   const puedeVerSeccion = esAdmin
+    || (seccion === 'caja' && rolesEquipo.includes('cajero'))
     || (seccion === 'mesero' && rolesEquipo.includes('mesero'))
-    || (seccion === 'comandas' && rolesEquipo.includes('cocina'))
+    || (seccion === 'cocina' && rolesEquipo.includes('cocina'))
     || (seccion === 'domicilios' && rolesEquipo.includes('domiciliario'))
   const entraComoSuperadmin = !demo && esSuperadmin(usuario?.email) && !local?.admins?.includes(usuario?.email)
 
@@ -295,6 +305,10 @@ export default function AdminPage() {
     )
   }
 
+  if (MUDADAS[panel]) {
+    return <Navigate to={`/${slug}/admin/${MUDADAS[panel]}${location.search}`} replace />
+  }
+
   // «Catálogo» vive ahora dentro de Configuración: los links viejos (/admin/catalogo#cat-…) se mudan.
   if (seccion === 'catalogo') {
     return <Navigate to={`/${slug}/admin/config/catalogo${location.search}${location.hash}`} replace />
@@ -302,7 +316,7 @@ export default function AdminPage() {
 
   // Del equipo pero en una sección que no es la suya → a la suya.
   if (!esAdmin && rolesEquipo.length && !puedeVerSeccion) {
-    return <Navigate to={`/${slug}/admin/${seccionPorDefecto}`} replace />
+    return <Navigate to={`/${slug}/admin/${seccionPorDefecto}${location.search}`} replace />
   }
 
   // Logueado pero no autorizado para ESTE local
@@ -374,13 +388,13 @@ export default function AdminPage() {
           Solo la vista previa DEMO (sin barra) conserva estas pestañas para moverse. */}
       {!tieneBarra && (
         <nav className="admin-tabs">
-          <button className={seccion === 'caja' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/caja${location.search}`)}>🧾 Comandas</button>
+          <button className={seccion === 'caja' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/caja${location.search}`)}>💵 Caja</button>
+          <button className={seccion === 'cuentas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/cuentas${location.search}`)}>📊 Cuentas</button>
           <button className={seccion === 'mesero' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/mesero${location.search}`)}>🧑‍🍳 Mesero</button>
-          <button className={seccion === 'comandas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/comandas${location.search}`)}>🍳 Cocina</button>
+          <button className={seccion === 'cocina' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/cocina${location.search}`)}>🍳 Cocina</button>
           <button className={seccion === 'domicilios' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/domicilios${location.search}`)}>🛵 Domicilios</button>
           <button className={seccion === 'difundir' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/difundir`)}>📣 Difundir</button>
           <button className={seccion === 'config' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/config/catalogo${location.search}`)}>⚙️ Configuración</button>
-          <button className={seccion === 'metricas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/metricas`)}>📊 Métricas</button>
         </nav>
       )}
 
@@ -388,8 +402,9 @@ export default function AdminPage() {
         {/* key={local.id}: al cambiar de local desde la barra, Mesero y Comandas arrancan de cero
             (sin esto el pedido a medio armar de un local se pasaba al otro). */}
         {seccion === 'mesero' ? <AdminMesero key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
-          : seccion === 'comandas' ? <AdminComandas key={local.id} local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
-          : seccion === 'caja' ? <AdminCaja key={local.id} local={local} demo={demo} usuario={usuario} />
+          : seccion === 'cocina' ? <AdminComandas key={local.id} local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
+          : seccion === 'caja' ? <AdminCaja key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
+          : seccion === 'cuentas' ? <AdminCuentas key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} />
           : seccion === 'domicilios' ? <AdminDomicilios key={local.id} local={local} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} onUpdate={updateLocal} />
           : seccion === 'config' ? (
@@ -397,16 +412,17 @@ export default function AdminPage() {
               {vista => vista === 'catalogo' ? catalogo
                 : vista === 'equipo' ? (
                   <div className="aj-equipo">
+                    <EquipoEnLinea local={local} rol="cajero" demo={demo} />
                     <EquipoEnLinea local={local} rol="mesero" demo={demo} />
                     <EquipoEnLinea local={local} rol="cocina" demo={demo} />
                     <EquipoEnLinea local={local} rol="domiciliario" demo={demo} />
                   </div>
                 )
+                : vista === 'pagos' ? <ConfigPagos local={local} onUpdate={updateLocal} />
                 : <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} vista={vista} />}
             </AdminAjustes>
           )
-            : seccion === 'metricas' ? <AdminMetricas local={local} demo={demo} />
-              : catalogo}
+            : catalogo}
       </main>
     </div>
   )

@@ -7,6 +7,7 @@
 //   3. Escribe de nuevo el local y el menú.
 //   4. Siembra 4 comandas en la cocina (con tiempos distintos) y un domicilio por confirmar.
 //   5. Siembra métricas de ejemplo de los últimos 7 días.
+//   6. Siembra cuentas de ejemplo: ventas, gastos, nómina y resúmenes (guía «Cuentas del negocio» S8).
 import {
   collection, doc, getDoc, getDocs, setDoc, writeBatch, Timestamp, serverTimestamp,
 } from 'firebase/firestore'
@@ -16,10 +17,11 @@ import { DEMO_LOCAL, DEMO_PRODUCTOS } from '../dev/burgerDemo'
 import { DEMO_SLUG } from '../config/demo'
 import { itemsDeComanda } from './comandas'
 import { crearPedido } from './pedidos'
+import { cuentasDeEjemplo } from './cuentasEjemplo'
 
 const ID = DEMO_SLUG
 // pedidosPublicos no se puede listar (reglas): se borra por los mismos ids de los pedidos.
-const SUBCOLECCIONES = ['comandas', 'pedidos', 'equipo', 'productos', 'stats']
+const SUBCOLECCIONES = ['comandas', 'pedidos', 'equipo', 'productos', 'stats', 'ventas', 'movimientos', 'trabajadores', 'resumen']
 
 async function vaciar(nombre) {
   const snap = await getDocs(collection(db, 'locales', ID, nombre))
@@ -157,5 +159,21 @@ export async function reiniciarDemo(onPaso = () => {}) {
   const bs = writeBatch(db)
   for (const [id, data] of metricasDeEjemplo()) bs.set(doc(db, 'locales', ID, 'stats', id), data)
   await bs.commit()
+
+  onPaso('Poniendo cuentas de ejemplo…')
+  const ej = cuentasDeEjemplo(DEMO_LOCAL, DEMO_PRODUCTOS)
+  if (ej) {
+    const docs = [
+      ...ej.ventas.map(({ id, en, ...v }) => ['ventas', id, { ...v, en: Timestamp.fromMillis(en) }]),
+      ...ej.movimientos.map(({ id, en, ...m }) => ['movimientos', id, { ...m, en: Timestamp.fromMillis(en) }]),
+      ...ej.trabajadores.map(({ id, ...t }) => ['trabajadores', id, { ...t, creadoEn: serverTimestamp() }]),
+      ...Object.entries(ej.resumen).map(([id, r]) => ['resumen', id, r]),
+    ]
+    for (let i = 0; i < docs.length; i += 400) {
+      const bk = writeBatch(db)
+      for (const [col, id, data] of docs.slice(i, i + 400)) bk.set(doc(db, 'locales', ID, col, id), data)
+      await bk.commit()
+    }
+  }
   onPaso('¡Listo! La demo quedó como nueva.')
 }

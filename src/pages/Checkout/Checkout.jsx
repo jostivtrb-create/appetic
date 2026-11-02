@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { cuentasCliente } from '../../utils/cuentasDinero'
 import { useCart } from '../../contexts/CartContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { cop } from '../../utils/money'
@@ -45,7 +46,8 @@ export default function Checkout({ local, onClose, abierto = true }) {
   const [direccion, setDireccion] = useState('')
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
-  const [pagoId, setPagoId] = useState(local.pagos?.[0]?.id || null)
+  const pagosCliente = cuentasCliente(local)   // D21: las cuentas de dinero que el cliente ve
+  const [pagoId, setPagoId] = useState(pagosCliente[0]?.id || null)
   const [cash, setCash] = useState('')
   const [notas, setNotas] = useState('')
   const [confirmoWhatsapp, setConfirmoWhatsapp] = useState(false)
@@ -85,7 +87,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
   )
   const costoEnvio = entrega === 'domicilio' && domicilio?.ok ? domicilio.costo : 0
   const total = subtotal + costoEnvio
-  const pago = local.pagos?.find(p => p.id === pagoId)
+  const pago = pagosCliente.find(p => p.id === pagoId)
   const cashNum = Number(String(cash).replace(/\D/g, '')) || 0
 
   // 🛵 Si la ubicación FALLA (permiso denegado o error), no bloqueamos el pedido:
@@ -320,7 +322,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
         {/* Método de pago */}
         <section className="co-sec">
           <h3 className="co-sec-title">¿Cómo pagas?</h3>
-          {local.pagos?.map(p => (
+          {pagosCliente.map(p => (
             <label key={p.id} className={`co-pago ${pagoId === p.id ? 'on' : ''}`}>
               <span>{p.nombre}</span>
               <input type="radio" name="pago" checked={pagoId === p.id} onChange={() => setPagoId(p.id)} />

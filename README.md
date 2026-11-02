@@ -1,10 +1,9 @@
 # 🍔 Appetic
 
-**El menú digital de tu barrio.** Cada negocio de comida tiene su menú con carrito; el cliente arma su pedido y le llega al WhatsApp del local. Bogotá.
+**El sistema del negocio de comida en una sola app.** Menú con pedidos al WhatsApp, domicilios, meseros y cocina, y las cuentas del negocio. Bogotá. La propuesta comercial vigente está en [`propuesta/propuesta-appetic.html`](propuesta/propuesta-appetic.html).
 
 - **Stack:** Vite + React + Firebase (Blaze) · PWA instalable · despliegue en Vercel.
 - **Planeación completa:** ver [`PLANEACION.md`](PLANEACION.md) (40+ decisiones).
-- **Resumen del proyecto:** ver [`RESUMEN-APPETIC.md`](RESUMEN-APPETIC.md).
 
 ## Desarrollo
 

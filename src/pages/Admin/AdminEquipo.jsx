@@ -7,6 +7,7 @@ const TEXTOS = {
   mesero: { icono: '🧑‍🍳', titulo: 'Meseros', uno: 'mesero', boton: '👥 Meseros', ayuda: 'Entran con su correo de Google y solo ven la pantalla de Mesero.' },
   cocina: { icono: '🍳', titulo: 'Cocina', uno: 'cocina', boton: '👥 Cocina', ayuda: 'Cada tablet o celular de cocina entra con un correo de Google y solo ve la pantalla de Cocina.' },
   domiciliario: { icono: '🛵', titulo: 'Domiciliarios', uno: 'domiciliario', boton: '👥 Domiciliarios', ayuda: 'Entran con su correo de Google y solo ven el panel de Domicilios.' },
+  cajero: { icono: '💵', titulo: 'Cajeros', uno: 'cajero', boton: '👥 Cajeros', ayuda: 'Entran con su correo de Google y solo ven la Caja: venden, cobran y anotan gastos. No ven la ganancia ni los saldos.' },
 }
 
 // 👥 Botón + ventana para que el ADMIN maneje su equipo de un rol (meseros o cocina):
@@ -120,7 +121,7 @@ function ComoEntra({ local, rol, recien }) {
   const [copiado, setCopiado] = useState(false)
   const t = TEXTOS[rol]
   const link = `${window.location.origin}/${local.slug}/admin`
-  const pantalla = rol === 'mesero' ? 'tomar pedidos' : rol === 'cocina' ? 'ver las comandas' : 'ver los domicilios'
+  const pantalla = { mesero: 'tomar pedidos', cocina: 'ver las comandas', domiciliario: 'ver los domicilios', cajero: 'vender y cobrar' }[rol] || 'trabajar'
   const mensaje = `¡Hola! Ya quedaste como ${t.uno} de ${local.nombre} en Appetic 🧡\n\n` +
     `1. Abre este link: ${link}\n2. Toca «Entrar con Google» y elige la cuenta ${recien || 'que te agregamos'}\n` +
     `3. Listo: te sale tu pantalla para ${pantalla}. Guárdala en el inicio del celular para tenerla a la mano.`

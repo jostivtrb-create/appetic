@@ -6,7 +6,7 @@
 //   locales/{localId}/stats/total          -> { visitas, pedidos, monto }   (acumulado)
 //   locales/{localId}/stats/d_YYYY-MM-DD    -> { fecha, visitas, pedidos, monto } (por día)
 import {
-  doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, increment,
+  doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, increment, startAt, endAt,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
@@ -77,4 +77,13 @@ export async function obtenerEstadisticas(localId) {
 
   const hoy = dias.find(d => d.fecha === fechaKey()) || { ...vacio, fecha: fechaKey() }
   return { total, hoy, dias }
+}
+
+// 📊 Cuentas → Mes (guía «Cuentas del negocio» D15): visitas y pedidos por la app de un rango de
+// días ('AAAA-MM-DD'). Lo que era «Métricas» vive ahora dentro de Cuentas; el «Estimado» en plata
+// ya no se muestra (las ventas de verdad salen de la caja).
+export async function estadisticasEntre(localId, desde, hasta) {
+  const q = query(collection(db, 'locales', localId, 'stats'), orderBy('fecha'), startAt(desde), endAt(hasta))
+  const snap = await getDocs(q)
+  return snap.docs.map(d => d.data()).reduce((t, d) => ({ visitas: t.visitas + (d.visitas || 0), pedidos: t.pedidos + (d.pedidos || 0) }), { visitas: 0, pedidos: 0 })
 }

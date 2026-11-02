@@ -11,8 +11,8 @@ import './PanelRail.css'
 // administración del dueño y le da al superadmin la que nunca tuvo (antes se
 // movía con pestañas arriba). Muestra SOLO lo que el usuario puede abrir:
 //   • Selector de local: los suyos (dueño) o todos (superadmin).
-//   • "Este local": Ver menú · Mesero · Comandas · Domicilios · Difundir · Métricas ·
-//     Configuración (que adentro tiene Catálogo, Negocio, Apariencia y Equipo).
+//   • "Este local": Caja · Cuentas · Ver menú · Mesero · Cocina · Domicilios · Difundir ·
+//     Configuración (que adentro tiene Catálogo, Negocio, Cuentas y pagos, Apariencia y Equipo).
 //   • "Superadmin" (solo superadmin): Locales y planes.
 //   • "Appetic" (todos): Buscar · el menú que estés viendo · Favoritos ·
 //     Mis pedidos · Mis datos — lo de cliente, para no tener que cambiar de barra.
@@ -40,19 +40,20 @@ function cargarTodos() {
   return todosPromise
 }
 
-// `roles`: quién ve cada sección. El admin (dueño o superadmin) ve todas; el mesero solo
-// «Mesero», la cocina solo «Comandas» y el domiciliario solo «Domicilios». Espejo de puedeVerSeccion() en AdminPage.jsx.
-// El admin sigue TODO desde «Comandas» (ruta /caja): va de primera. «Cocina» es la pantalla del
-// cocinero (ruta /comandas, se conserva para no romper las tablets ya instaladas).
+// `roles`: quién ve cada sección. El admin (dueño o superadmin) ve todas; el resto, solo la de su
+// rol. Espejo de puedeVerSeccion() en AdminPage.jsx.
+// Guía «Cuentas del negocio» D3/D12: «Caja» es el día (vender, cobrar, gastos; la usa el cajero) y
+// «Cuentas» el mes (solo el dueño). «Cocina» es la pantalla del cocinero; su ruta vieja
+// /admin/comandas redirige a /admin/cocina para no romper las tablets ya instaladas.
 const SECCIONES = [
-  { id: 'caja', label: 'Comandas', Icon: IconComandas, ruta: s => `/${s}/admin/caja`, roles: ['admin'] },
-  { id: 'menu', label: 'Ver menú', Icon: IconMenu, ruta: s => `/${s}`, roles: ['admin', 'mesero'] },
+  { id: 'caja', label: 'Caja', Icon: IconCaja, ruta: s => `/${s}/admin/caja`, roles: ['admin', 'cajero'] },
+  { id: 'cuentas', label: 'Cuentas', Icon: IconMetricas, ruta: s => `/${s}/admin/cuentas`, roles: ['admin'] },
+  { id: 'menu', label: 'Ver menú', Icon: IconMenu, ruta: s => `/${s}`, roles: ['admin', 'mesero', 'cajero'] },
   { id: 'mesero', label: 'Mesero', Icon: IconMesero, ruta: s => `/${s}/admin/mesero`, roles: ['admin', 'mesero'] },
-  { id: 'comandas', label: 'Cocina', Icon: IconCocina, ruta: s => `/${s}/admin/comandas`, roles: ['admin', 'cocina'] },
+  { id: 'cocina', label: 'Cocina', Icon: IconCocina, ruta: s => `/${s}/admin/cocina`, roles: ['admin', 'cocina'] },
   { id: 'domicilios', label: 'Domicilios', Icon: IconMoto, ruta: s => `/${s}/admin/domicilios`, roles: ['admin', 'domiciliario'] },
   { id: 'difundir', label: 'Difundir', Icon: IconDifundir, ruta: s => `/${s}/admin/difundir`, roles: ['admin'] },
-  { id: 'metricas', label: 'Métricas', Icon: IconMetricas, ruta: s => `/${s}/admin/metricas`, roles: ['admin'] },
-  // Configuración reúne Catálogo · Negocio · Apariencia · Equipo (ver AdminAjustes).
+  // Configuración reúne Catálogo · Negocio · Cuentas y pagos · Apariencia · Equipo (ver AdminAjustes).
   { id: 'config', label: 'Configuración', Icon: IconConfig, ruta: s => `/${s}/admin/config/catalogo`, roles: ['admin'] },
 ]
 
@@ -182,7 +183,7 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
           <img className="bnav-brand-logo" src={logoAppetic} alt="" />
           <span className="bnav-brand-texto">
             <span className="bnav-brand-nombre">Appetic</span>
-            <span className="bnav-brand-rol">{esSuper ? '👑 Superadmin' : esSoloEquipo && misRoles.length ? misRoles.map(r => ({ mesero: 'Mesero', cocina: 'Cocina', domiciliario: 'Domiciliario' }[r] || r)).join(' · ') : 'Panel del local'}</span>
+            <span className="bnav-brand-rol">{esSuper ? '👑 Superadmin' : esSoloEquipo && misRoles.length ? misRoles.map(r => ({ mesero: 'Mesero', cocina: 'Cocina', domiciliario: 'Domiciliario', cajero: 'Cajero' }[r] || r)).join(' · ') : 'Panel del local'}</span>
           </span>
         </button>
         {enCajon && (
@@ -369,8 +370,8 @@ function IconMenu() {
 function IconMesero() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M4 17h16" /><path {...sw} d="M5.5 17a6.5 6.5 0 0 1 13 0" /><path {...sw} d="M12 8.5V7" /><path {...sw} d="M10.5 7h3" /><path {...sw} d="M3 20h18" /></svg>
 }
-function IconComandas() {
-  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M7 3h10v18l-2.5-1.6L12 21l-2.5-1.6L7 21z" /><path {...sw} d="M10 8h4" /><path {...sw} d="M10 12h4" /><path {...sw} d="m9.6 15.6 1.2 1.2 2.6-2.6" /></svg>
+function IconCaja() {
+  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><rect {...sw} x="3" y="11" width="18" height="9" rx="2" /><path {...sw} d="M6 11V6.5A1.5 1.5 0 0 1 7.5 5h9A1.5 1.5 0 0 1 18 6.5V11" /><path {...sw} d="M9 8h6" /><path {...sw} d="M7 15h2M11 15h2M15 15h2" /></svg>
 }
 function IconCatalogo() {
   return (

@@ -1,6 +1,11 @@
 rules_version = '2';
 
-// Última actualización: 2026-10-29 (paso 3)
+// Última actualización: 2026-11-02 (Cuentas del negocio)
+// Cambios Cuentas: rol CAJERO por local (vende, cobra y anota gastos; no ve saldos ni ganancia) ·
+//   ventas/, movimientos/, trabajadores/ y resumen/ PRIVADOS del local (ver services/cuentas.js) ·
+//   las comandas pueden nacer «entregada» si el local no usa cocina · el cobro (porCobrar,
+//   cobradaEn, cobradaPor, ventaId) lo mueven el admin y el cajero. Ver «Guía para las Cuentas del negocio».
+// Última actualización anterior: 2026-10-29 (paso 3)
 // Cambios paso 3: pedidos de la app → el personal del local (admin, mesero, cocina, domiciliario)
 //   los lee y mueve (confirmar, rechazar, en camino, entregado); RESUMEN PÚBLICO
 //   (pedidosPublicos) sin teléfono ni dirección, legible solo por su id para «Mi pedido»;
@@ -65,9 +70,24 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/locales/$(localId)/equipo/$(rol + ':' + request.auth.token.email.lower())).data.activo == true;
     }
 
-    // ¿Trabaja en el salón o la cocina de este local (o lo administra)? → comandas.
+    // 💵 ¿Es cajero ACTIVO de este local? Vende, cobra y anota gastos (guía «Cuentas del negocio» D8).
+    function esCajero(localId) {
+      return equipoActivo(localId, 'cajero');
+    }
+
+    // ¿Puede usar la Caja (vender, cobrar, gastos)? El que administra o el cajero.
+    function puedeCaja(localId) {
+      return puedeAdministrar(localId) || esCajero(localId);
+    }
+
+    // ¿Trabaja en el salón, la caja o la cocina de este local (o lo administra)? → comandas.
     function esPersonal(localId) {
-      return puedeAdministrar(localId) || equipoActivo(localId, 'mesero') || equipoActivo(localId, 'cocina');
+      return puedeAdministrar(localId) || equipoActivo(localId, 'mesero') || equipoActivo(localId, 'cocina') || esCajero(localId);
+    }
+
+    // ¿Se creó hace menos de 36 h? El cajero solo corrige lo del día (S17); el dueño, todo.
+    function reciente() {
+      return resource.data.en is timestamp && resource.data.en > request.time - duration.value(36, 'h');
     }
 
     // ¿Puede ver y mover los pedidos de la app de este local? El personal + el domiciliario.
@@ -135,7 +155,7 @@ service cloud.firestore {
         allow read: if puedeAdministrar(localId)
                     || (request.auth != null && resource.data.email == request.auth.token.email.lower());
         allow create, update: if puedeAdministrar(localId)
-                              && request.resource.data.rol in ['mesero', 'cocina', 'domiciliario']
+                              && request.resource.data.rol in ['mesero', 'cocina', 'domiciliario', 'cajero']
                               && request.resource.data.email is string
                               && request.resource.data.localId == localId
                               && docId == request.resource.data.rol + ':' + request.resource.data.email;
@@ -149,27 +169,29 @@ service cloud.firestore {
         allow read: if esPersonal(localId);
         // También el CLIENTE desde el QR de su mesa (origen 'qr'), sin sesión: solo si el local
         // activó sus mesas, a una mesa que existe, y nace limpia (sin correcciones ni tachados).
-        allow create: if request.resource.data.estado == 'activa'
+        // Nace activa; o entregada si la crea el personal de un local sin cocina (D13).
+        allow create: if (request.resource.data.estado == 'activa'
+                          || (request.resource.data.estado == 'entregada' && request.resource.data.get('origen', '') != 'qr'))
                       && request.resource.data.items is list
                       && request.resource.data.items.size() > 0
                       && request.resource.data.items.size() <= 60
                       && (
-                        puedeAdministrar(localId) || equipoActivo(localId, 'mesero')
-                        || (request.resource.data.origen == 'qr'
+                        puedeAdministrar(localId) || equipoActivo(localId, 'mesero') || esCajero(localId)
+                        || (request.resource.data.origen == 'qr' && request.resource.data.estado == 'activa'
                             && request.resource.data.destino.tipo == 'mesa'
                             && get(/databases/$(database)/documents/locales/$(localId)).data.get('mesas', 0) > 0
                             && int(request.resource.data.destino.mesa) >= 1
                             && int(request.resource.data.destino.mesa) <= get(/databases/$(database)/documents/locales/$(localId)).data.get('mesas', 0)
                             && !('cambios' in request.resource.data))
                       );
-        // 💵 Lo de COBRO (porCobrar · cobradaEn · cobradaPor) solo lo toca el admin (la caja). Una
-        // cancelación del mesero sí la saca de «por cobrar». Guía «Cuenta por mesa» D6.
+        // 💵 Lo de COBRO (porCobrar · cobradaEn · cobradaPor · ventaId) solo lo tocan el admin y el
+        // cajero (la caja). Una cancelación del mesero sí la saca de «por cobrar». Guía «Cuenta por mesa» D6.
         allow update: if esPersonal(localId)
                       && request.resource.data.estado in ['activa', 'entregada', 'cancelada']
-                      && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['porCobrar', 'cobradaEn', 'cobradaPor'])
-                          || puedeAdministrar(localId)
+                      && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['porCobrar', 'cobradaEn', 'cobradaPor', 'ventaId'])
+                          || puedeCaja(localId)
                           || (request.resource.data.estado == 'cancelada' && request.resource.data.get('porCobrar', false) == false
-                              && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['cobradaEn', 'cobradaPor'])));
+                              && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['cobradaEn', 'cobradaPor', 'ventaId'])));
         allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
 
@@ -181,6 +203,48 @@ service cloud.firestore {
                               && request.resource.data.email == request.auth.token.email.lower()
                               && request.resource.data.token == token;
         allow read, delete: if request.auth != null && resource.data.email == request.auth.token.email.lower();
+      }
+
+      // 💰 CUENTAS DEL NEGOCIO (guía «Cuentas del negocio»; modelo en src/services/cuentas.js).
+      // Ventas: las registra y lee la caja (admin o cajero). Nunca se borran: eliminar = marcar.
+      // El cajero solo corrige el pago o elimina lo reciente (S17); el dueño, cualquier cosa.
+      match /ventas/{ventaId} {
+        allow read: if puedeCaja(localId);
+        allow create: if puedeCaja(localId)
+                      && request.resource.data.estado == 'ok'
+                      && request.resource.data.total is number
+                      && request.resource.data.total >= 0
+                      && request.resource.data.pagos is list;
+        allow update: if puedeAdministrar(localId)
+                      || (esCajero(localId) && reciente()
+                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pagos', 'propina', 'cambios', 'estado', 'eliminada']));
+        allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
+      }
+
+      // Gastos, nómina, retiros, ingresos y traslados. El cajero solo ve y anota GASTOS.
+      match /movimientos/{movId} {
+        allow read: if puedeAdministrar(localId) || (esCajero(localId) && resource.data.tipo == 'gasto');
+        allow create: if (puedeAdministrar(localId) || (esCajero(localId) && request.resource.data.tipo == 'gasto'))
+                      && request.resource.data.estado == 'ok'
+                      && request.resource.data.monto is number
+                      && request.resource.data.monto > 0;
+        allow update: if puedeAdministrar(localId)
+                      || (esCajero(localId) && resource.data.tipo == 'gasto' && reciente()
+                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'eliminado']));
+        allow delete: if esSuperadmin() && esLocalDemo(localId);
+      }
+
+      // La gente de la nómina: solo el dueño.
+      match /trabajadores/{tId} {
+        allow read, write: if puedeAdministrar(localId);
+        allow delete: if esSuperadmin() && esLocalDemo(localId);
+      }
+
+      // Resúmenes (saldos, días y meses). Los mueve la caja con increment() al vender o anotar un
+      // gasto. El cajero puede leer los días (lo vendido hoy en la cabecera), no el mes ni los saldos.
+      match /resumen/{resId} {
+        allow read: if puedeAdministrar(localId) || (esCajero(localId) && resId.matches('d_.*'));
+        allow write: if puedeCaja(localId);
       }
 
       match /stats/{statId} {

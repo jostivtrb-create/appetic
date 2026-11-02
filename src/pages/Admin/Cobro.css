@@ -1,0 +1,68 @@
+/* 💵 Ventana de cobro (guía «Cuentas del negocio» D11). */
+.cb-velo { position: fixed; inset: 0; z-index: 320; background: rgba(20, 14, 10, .5); display: flex; align-items: flex-end; justify-content: center; }
+.cb {
+  width: 100%; max-width: 520px; max-height: 94dvh; overflow-y: auto; display: grid; gap: 12px;
+  background: var(--surface); border-radius: 22px 22px 0 0; padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  animation: cbSube .24s cubic-bezier(.16, 1, .3, 1) both;
+}
+@media (min-width: 768px) { .cb-velo { align-items: center; } .cb { border-radius: 22px; padding: 20px; } }
+@keyframes cbSube { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.cb-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.cb-cab small { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
+.cb-cab h2 { font-size: 21px; font-weight: 900; line-height: 1.15; }
+.cb-x { width: 38px; height: 38px; border-radius: 50%; background: var(--surface-2); font-size: 15px; flex-shrink: 0; }
+.cb-detalle { font-size: 14px; color: var(--text-soft); background: var(--surface-2); padding: 9px 12px; border-radius: 12px; line-height: 1.4; }
+
+.cb-sec { display: grid; gap: 8px; }
+.cb-sec h3 { font-size: 13px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: var(--text-soft); }
+.cb-sec-cab { display: flex; justify-content: space-between; align-items: center; }
+.cb-fila { grid-template-columns: auto 1fr; align-items: center; }
+.cb-fila .cb-mini { justify-self: end; }
+.cb-link { font: inherit; font-size: 13.5px; font-weight: 800; color: var(--brand-orange-strong); background: none; border: 0; cursor: pointer; }
+
+.cb-cuentas { display: flex; flex-wrap: wrap; gap: 8px; }
+.cb-cuentas button {
+  display: inline-flex; align-items: center; gap: 7px; padding: 11px 14px; border-radius: 14px;
+  border: 2px solid var(--border); background: var(--surface); font: inherit; font-weight: 800; font-size: 15px; cursor: pointer;
+  transition: transform .12s, border-color .12s, background .12s;
+}
+.cb-cuentas button:active { transform: scale(.97); }
+.cb-cuentas button.on { border-color: var(--brand-orange); background: var(--brand-orange-tint); }
+
+.cb-div { display: grid; gap: 8px; padding: 10px; border-radius: 14px; background: var(--surface-2); }
+.cb-campo { display: grid; gap: 4px; font-size: 13px; font-weight: 700; color: var(--text-soft); }
+.cb-campo input, .cb-desc input, .cb-motivo, .cb-billetes input {
+  font: inherit; font-size: 17px; font-weight: 800; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--text); min-width: 0; font-variant-numeric: tabular-nums;
+}
+.cb-motivo { font-size: 15px; font-weight: 600; width: 100%; }
+.cb-resto { font-size: 14px; color: var(--text-soft); }
+
+.cb-mini { display: inline-flex; gap: 4px; padding: 3px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border); }
+.cb-mini button { border: 0; background: transparent; font: inherit; font-weight: 800; font-size: 14px; padding: 7px 11px; border-radius: 9px; color: var(--text-soft); cursor: pointer; }
+.cb-mini button.on { background: var(--surface); color: var(--text); box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+
+.cb-desc { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cb-desc input { width: 140px; }
+.cb-chip { padding: 8px 11px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font: inherit; font-weight: 800; cursor: pointer; }
+.cb-menos { margin-left: auto; font-weight: 900; color: #1B7A43; }
+.cb-nota { font-size: 12.5px; color: var(--text-soft); }
+
+.cb-efectivo { padding: 12px; border-radius: 14px; background: #F1FAF4; border: 1px solid #CDEBD8; }
+.cb-billetes { display: flex; flex-wrap: wrap; gap: 6px; }
+.cb-billetes button { padding: 9px 12px; border-radius: 11px; border: 1.5px solid #CDEBD8; background: var(--surface); font: inherit; font-weight: 800; cursor: pointer; font-variant-numeric: tabular-nums; }
+.cb-billetes button.on { border-color: #1B8A4B; background: #DFF3E7; }
+.cb-billetes input { width: 120px; font-size: 15px; }
+.cb-vueltas { font-size: 15px; color: #1B5E36; }
+.cb-vueltas b { font-size: 24px; font-weight: 900; margin-left: 6px; font-variant-numeric: tabular-nums; }
+.cb-aviso { font-size: 13.5px; font-weight: 700; color: #8A5300; }
+
+.cb-total { display: grid; gap: 8px; position: sticky; bottom: -16px; background: var(--surface); padding-top: 6px; }
+.cb-cuenta { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 14px; color: var(--text-soft); font-variant-numeric: tabular-nums; }
+.cb-error { background: #FDECEC; color: #8E1B14; padding: 10px 12px; border-radius: 12px; font-weight: 700; font-size: 14px; }
+.cb-cobrar { width: 100%; font: inherit; font-size: 18px; font-weight: 900; padding: 15px; border: 0; border-radius: 14px; cursor: pointer; background: var(--acc, var(--brand-orange)); color: var(--acc-txt, #fff); box-shadow: 0 10px 24px -12px var(--acc, var(--brand-orange)); }
+.cb-cobrar:active { transform: scale(.98); }
+.cb-cobrar:disabled { background: var(--surface-2); color: var(--text-faint); cursor: default; }
+.cb-ayuda { text-align: center; font-size: 12px; color: var(--text-faint); }
+@media (hover: none) { .cb-ayuda { display: none; } }

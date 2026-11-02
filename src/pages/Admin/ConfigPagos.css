@@ -1,0 +1,29 @@
+/* 💳 Configuración → Cuentas y pagos */
+.cp { display: grid; gap: 16px; max-width: 760px; }
+.cp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 16px; display: grid; gap: 12px; box-shadow: var(--shadow-sm); }
+.cp-card h3 { font-size: 17px; font-weight: 900; }
+.cp-ayuda, .cp-nota { font-size: 13.5px; color: var(--text-soft); line-height: 1.45; }
+.cp-nota { font-size: 12.5px; }
+.cp-lista { list-style: none; display: grid; gap: 8px; }
+.cp-cuenta { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: start; padding: 11px; border-radius: 14px; background: var(--surface-2); border: 1px solid var(--border); }
+.cp-emoji { font-size: 24px; width: 36px; height: 36px; display: grid; place-items: center; background: var(--surface); border-radius: 10px; }
+.cp-campos { display: grid; gap: 6px; min-width: 0; }
+.cp-campos input:not([type]), .cp-campos select, .cp-nueva input, .cp-nueva select {
+  font: inherit; font-size: 15px; padding: 9px 11px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--surface); min-width: 0; color: var(--text);
+}
+.cp-campos > input { font-weight: 800; }
+.cp-fila { display: flex; gap: 6px; flex-wrap: wrap; }
+.cp-fila > * { flex: 1 1 150px; }
+.cp-check { display: flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 700; color: var(--text-soft); cursor: pointer; }
+.cp-acc { display: flex; flex-direction: column; gap: 4px; }
+.cp-acc button { width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-weight: 800; }
+.cp-acc button:disabled { opacity: .3; cursor: default; }
+.cp-nueva { display: flex; gap: 8px; flex-wrap: wrap; }
+.cp-nueva input { flex: 2 1 220px; }
+.cp-nueva select { flex: 1 1 150px; }
+.cp-switch { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+.cp-switch input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--brand-orange); flex-shrink: 0; }
+.cp-switch b { display: block; font-size: 15.5px; }
+.cp-switch small { display: block; font-size: 13.5px; color: var(--text-soft); line-height: 1.45; margin-top: 2px; }
+.cp-guardar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.cp-aviso { font-size: 13.5px; font-weight: 700; color: #8A5300; }

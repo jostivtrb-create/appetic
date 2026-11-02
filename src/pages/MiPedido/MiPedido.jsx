@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useAdmin } from '../../contexts/AdminContext'
 import { getLocalBySlug } from '../../services/locales'
+import { usaCocina } from '../../services/comandas'
 import { pedidosDe, YaAtendidoError } from '../../services/pedidos'
 import { isDevSlug, getDevLocal } from '../../dev'
 import { puedeAdministrarLocal } from '../../config/roles'
@@ -151,7 +152,7 @@ export function VistaPersonal({ local, pedidoId, demo, usuario, compacta = false
   async function confirmar() {
     setEstado('confirmando')
     try {
-      const pedido = await api.confirmar(pedidoId, por)
+      const pedido = await api.confirmar(pedidoId, por, { sinCocina: !usaCocina(local) })
       setHecho({ tipo: 'confirmado', pedido })
       avisarDemo('pedido-confirmado')
       setEstado('')

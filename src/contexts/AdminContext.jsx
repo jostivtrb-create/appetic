@@ -30,7 +30,7 @@ function devEquipo() {
     const v = sessionStorage.getItem(DEV_EQUIPO_KEY)
     if (!v) return null
     return v.split(',').map(par => { const [slug, rol] = par.split(':'); return { slug: slug?.trim(), rol: rol?.trim() } })
-      .filter(p => p.slug && ['mesero', 'cocina', 'domiciliario'].includes(p.rol))
+      .filter(p => p.slug && ['mesero', 'cocina', 'domiciliario', 'cajero'].includes(p.rol))
   } catch { return null }
 }
 
