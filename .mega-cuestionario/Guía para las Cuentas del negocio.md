@@ -8,7 +8,7 @@
   comandas, mesero, cocina y domicilios, que sea intuitivo y que se sienta profesional. De paso,
   arreglar lo que esté mal hecho en esa zona del panel.
 - **Inicio:** 2 de noviembre de 2026
-- **Estado:** 🟢 Construido y probado en la vista previa · falta desplegar reglas/índices y publicar (2-nov-2026)
+- **Estado:** ✅ **Publicada** — 2 de noviembre de 2026 · reglas e índices desplegados, app en producción (commit `98f083c`)
 - **Proyecto:** `/home/zevenoficial07/Apps Zeven/Swiftfly Solutions/Appetic`
 - **Viene de:** `Guía para los planes por tipo de negocio.md` (D9: las cuentas se vendieron como si
   ya existieran) y `Guía para la Cuenta por mesa.md` (la Caja actual).
@@ -199,9 +199,9 @@ día y del mes, con comparación contra el mes anterior y una gráfica de los ú
 - [x] 5b. **Mesero con la misma estética** (D29), conservando opciones, comentario, aviso de mesa en curso, reintento sin duplicar y «En curso».
 - [x] 6. Sin cocina: comandas y pedidos confirmados nacen listos para cobrar (D13).
 - [x] 7. **Cuentas** (dueño): Hoy (vendiste − gastaste − nómina = te quedó, resumen por WhatsApp) · Mes (ganancia, vs mes anterior, gráfica, ticket promedio, platos top, horas pico, movimiento de la app, descarga) · Saldos (meter, sacar, mover, movimientos) · Nómina (trabajadores + pagar con calendario).
-- [x] 8. Reglas de Firestore + índices, y «Reiniciar demo» borra lo nuevo. ⚠️ **Escritas, NO desplegadas** (desplegar es decisión del usuario).
+- [x] 8. Reglas de Firestore + índices, y «Reiniciar demo» borra lo nuevo. Desplegadas el 2-nov-2026 a `appetic-17477`.
 - [x] 9. Datos de ejemplo en vista previa y `/demo` (S8).
-- [~] 10. Probado en la vista previa (PC y celular, dueño, cajero y mesero). **Falta:** desplegar reglas e índices, probar con Firestore real (un local de muestra) y publicar.
+- [x] 10. Probado en la vista previa (PC y celular, dueño, cajero y mesero), reglas e índices desplegados y publicado en Vercel. **Falta:** probarlo con Firestore real en un local de muestra.
 
 ## 7. Notas de construcción
 
@@ -238,8 +238,8 @@ día y del mes, con comparación contra el mes anterior y una gráfica de los ú
   - La ventana de opciones arrastraba la elección del plato anterior → `key={abierto.id}`.
   - El detalle de una venta seguía diciendo «pagó con $50.000» después de cambiarla a Nequi →
     «pagó con» solo si hubo efectivo.
-- **Pendiente para cerrar:** desplegar `firestore.rules` + `firestore.indexes.json`
-  (`ventas: estado+en`, `movimientos: tipo+en`); probar con un local real; publicar en Vercel.
+- **2-nov-2026 · Publicado.** Reglas + índices con `jostivtrb@gmail.com`; push a `main` y producción
+  sirviendo el build nuevo a los 50 s. **Pendiente:** probar con un local real (Firestore de verdad).
   Quedan estilos viejos sin uso en `Mesero.css` (`.ms-pos*`, `.ms-hoja*` de la comanda) y `.am-*`
   de Métricas en `Admin.css`: se pueden limpiar.
 - **Lo siguiente (D2):** la pantalla del menú en el TV y después los planes en la app.
