@@ -218,3 +218,9 @@ propuesta de venta, que sea muy llamativa y a la vez muy bien distribuida."*
   5. **Los planes**: «Tómalo completo, o solo lo que necesitas». Cada plan lleva la foto de su
      negocio y dice qué números incluye: Básico = 1, 2 y 3 · Pro = del 1 al 4 · Total = del 1 al 5.
   La página «¿Cuál es tu Appetic?» desaparece: sus fotos pasaron a las tarjetas de los planes.
+- **2 de noviembre de 2026** — Portada: el bloque de abajo deja de ser la TV (*"cambiar esto porque
+  ya más abajo se explica; mejor profundizar brevemente en qué es Appetic"*). Ahora dice **qué es
+  Appetic**: «El sistema de tu negocio de comida, en una sola app», una línea de lo que junta y
+  cómo se instala, y 4 puntos (lo instalamos nosotros · sin descargar nada · sin comisión · te
+  acompañamos). Para no repetirlo, la página 2 abre con «Cinco cosas que cambian en tu negocio».
+  La TV ya no es gancho de portada (ajusta R12): vive en su sección 2.

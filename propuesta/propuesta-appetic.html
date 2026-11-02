@@ -59,10 +59,10 @@ h2 em{font-style:normal;color:var(--orange-strong);}
 .cover-tags span{background:rgba(255,251,244,.94);color:var(--ink);font-size:8.4pt;font-weight:800;border-radius:999px;padding:6px 14px;letter-spacing:.02em;}
 .cover-tags span i{font-style:normal;margin-right:5px;}
 
-.cover-bottom{display:grid;grid-template-columns:1fr 1.05fr;gap:8mm;align-items:center;padding:12mm 15mm 0;}
+.cover-bottom{display:block;padding:11mm 15mm 0;}
 .gancho .k{display:block;}
-.gancho h3{font-family:var(--serif);font-weight:800;font-size:23pt;line-height:1.08;margin-top:4px;}
-.gancho p{font-size:10.8pt;color:var(--ink-soft);margin-top:5px;line-height:1.45;}
+.gancho h3{font-family:var(--serif);font-weight:800;font-size:22pt;line-height:1.08;margin-top:4px;}
+.gancho p{max-width:165mm;font-size:10.6pt;color:var(--ink-soft);margin-top:5px;line-height:1.45;}
 .trio{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;}
 .trio span{background:var(--tint);color:var(--ink);font-size:8.3pt;font-weight:800;border-radius:999px;padding:5px 11px;}
 
@@ -286,6 +286,16 @@ h2 em{font-style:normal;color:var(--orange-strong);}
 .plan .pic span{position:absolute;left:8px;right:8px;bottom:7px;background:rgba(26,20,16,.78);color:#fff;font-size:7.8pt;font-weight:800;line-height:1.25;border-radius:9px;padding:5px 8px;}
 .plan.best .pic{border-radius:18px 18px 0 0;}
 .plan .badge{z-index:2;}
+.pilares{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:6mm;}
+.pilares div{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:11px 11px;}
+.pilares i{font-style:normal;font-size:17pt;line-height:1;display:block;}
+.pilares b{display:block;font-size:9.4pt;line-height:1.2;margin-top:4px;}
+.pilares span{display:block;font-size:8.2pt;color:var(--ink-soft);line-height:1.25;margin-top:2px;}
+.devices{position:relative;height:84mm;}
+.dv-phone{position:absolute;width:38mm;background:#141010;border-radius:16px;padding:4px;box-shadow:0 14px 28px rgba(42,33,28,.3);}
+.dv-phone img{display:block;width:100%;height:76mm;object-fit:cover;object-position:top;border-radius:12px;}
+.dv-phone{left:4mm;top:0;transform:rotate(-5deg);}
+.dv-phone.b{left:auto;right:4mm;top:6mm;transform:rotate(5deg);}
 </style>
 </head>
 <body>
@@ -306,20 +316,15 @@ h2 em{font-style:normal;color:var(--orange-strong);}
 
   <div class="cover-bottom">
     <div class="gancho">
-      <span class="k">Nuevo · en todos los planes</span>
-      <h3>Tu menú se mueve solo en tu TV.</h3>
-      <p>Pones Appetic en el televisor y tus platos van pasando con foto y precio. Sale del menú que ya tienes: tú no haces nada.</p>
-      <div class="trio"><span>Sin comisión</span><span>Sin contratos</span><span>Pagas cuando funciona</span></div>
-    </div>
-    <div class="tv sm">
-      <span class="live">● En vivo</span>
-      <div class="tv-frame"><div class="tv-screen">
-        <div class="ph"><img src="img/plato-picada.jpg" alt=""></div>
-        <div class="info"><span class="tg">Para compartir</span><span class="nm">Picada para dos</span><span class="pr">$42.000</span></div>
-        <span class="logo">Appetic</span>
-        <div class="dots"><i></i><i class="on"></i><i></i><i></i></div>
-      </div></div>
-      <div class="tv-stand"></div>
+      <span class="k">Qué es Appetic</span>
+      <h3>El sistema de tu negocio de comida,<br>en una sola app.</h3>
+      <p>Junta en un solo lugar tu menú, tus pedidos, tus domicilios, tu salón y tus cuentas. Nosotros lo instalamos con tu carta, tus fotos y tus precios; tú y tu equipo lo usan desde el celular, la tablet y el TV que ya tienen.</p>
+      <div class="pilares">
+        <div><i>🛠️</i><b>Lo instalamos nosotros</b><span>Tú no configuras nada</span></div>
+        <div><i>📲</i><b>Sin descargar nada</b><span>Abre con un QR o un link</span></div>
+        <div><i>💸</i><b>Sin comisión</b><span>Cada peso del pedido es tuyo</span></div>
+        <div><i>🤝</i><b>Te acompañamos</b><span>Soporte por WhatsApp</span></div>
+      </div>
     </div>
   </div>
 
@@ -331,9 +336,9 @@ h2 em{font-style:normal;color:var(--orange-strong);}
 
 <!-- ═════════════════════ 2 · QUÉ ES APPETIC + MENÚ DIGITAL ═════════════════════ -->
 <div class="page"><div class="pad">
-  <span class="k">Qué es Appetic</span>
-  <h2>Un sistema que instalamos <em>en tu negocio.</em></h2>
-  <p class="sub">Lo montamos con tu carta, tus fotos y tus precios, y te lo entregamos funcionando. <b>Tú solo lo usas.</b> Esto es lo que puede hacer por ti:</p>
+  <span class="k">Lo que hace por ti</span>
+  <h2>Cinco cosas que cambian <em>en tu negocio.</em></h2>
+  <p class="sub">Te las mostramos una por una. Al final escoges cuáles necesitas.</p>
 
   <div class="idx">
     <div><i>📱</i><b>Menú digital con fotos</b><span>1</span></div>
