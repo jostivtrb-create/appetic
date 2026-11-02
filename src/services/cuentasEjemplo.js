@@ -80,7 +80,7 @@ export function cuentasDeEjemplo(local, productos, ahora = Date.now()) {
       const desde = dia === 15 ? 1 : 16
       const dias = Array.from({ length: dia - desde + 1 }, (_, i) => `${jornada.slice(0, 8)}${String(desde + i).padStart(2, '0')}`)
       for (const t of trabajadores) {
-        movimientos.push({ id: `ej-n${d}-${t.id}`, tipo: 'nomina', jornada, en: Date.parse(`${jornada}T23:00:00Z`), por: POR, cuenta: efectivo.id, monto: t.id === 'ej-ana' ? 900000 : 750000, concepto: '', trabajadorId: t.id, trabajador: t.nombre, dias, estado: 'ok' })
+        movimientos.push({ id: `ej-n${d}-${t.id}`, tipo: 'nomina', jornada, en: Date.parse(`${jornada}T23:00:00Z`), por: POR, cuenta: (otra || efectivo).id, monto: t.id === 'ej-ana' ? 900000 : 750000, concepto: '', trabajadorId: t.id, trabajador: t.nombre, dias, estado: 'ok' })
       }
     }
   }
@@ -88,6 +88,14 @@ export function cuentasDeEjemplo(local, productos, ahora = Date.now()) {
   movimientos.unshift({ id: 'ej-i1', tipo: 'ingreso', jornada: sumarDias(hoy, -19), en: Date.parse(`${sumarDias(hoy, -19)}T15:00:00Z`), por: POR, cuenta: efectivo.id, monto: 400000, concepto: 'Base para vueltas', estado: 'ok' })
   if (otra) movimientos.push({ id: 'ej-t1', tipo: 'traslado', jornada: sumarDias(hoy, -4), en: Date.parse(`${sumarDias(hoy, -4)}T16:00:00Z`), por: POR, cuenta: efectivo.id, cuentaDestino: otra.id, monto: 300000, concepto: 'Consignación', estado: 'ok' })
   movimientos.push({ id: 'ej-r1', tipo: 'retiro', jornada: sumarDias(hoy, -2), en: Date.parse(`${sumarDias(hoy, -2)}T22:00:00Z`), por: POR, cuenta: efectivo.id, monto: 200000, concepto: 'Para la casa', estado: 'ok' })
+
+  // Gastos y nómina, proporcionales a lo que vende el local (si no, un local pequeño queda en rojo):
+  // los gastos suman ~30 % de las ventas.
+  const vendido = ventas.reduce((t, v) => t + v.total, 0)
+  const gastado = movimientos.filter(m => m.tipo === 'gasto').reduce((t, m) => t + m.monto, 0)
+  for (const m of movimientos) if (m.tipo === 'gasto') m.monto = Math.max(5000, Math.round(m.monto * vendido * 0.3 / (gastado || 1) / 100) * 100)
+  const venta15 = vendido / 20 * 15
+  for (const m of movimientos) if (m.tipo === 'nomina') m.monto = Math.max(200000, Math.round(venta15 * (m.trabajadorId === 'ej-ana' ? 0.12 : 0.1) / 10000) * 10000)
 
   // Resúmenes con los mismos deltas del motor.
   const resumen = { saldos: {} }
@@ -111,12 +119,12 @@ export function cuentasDeEjemplo(local, productos, ahora = Date.now()) {
   const inicio = sumarDias(hoy, -19)
   if (mesDe(inicio) !== mesDe(hoy)) {
     const faltan = Number(inicio.slice(8)) - 1
-    if (faltan > 0) relleno(`m_${mesDe(inicio)}`, faltan, faltan >= 15 ? 1650000 : 0)
+    if (faltan > 0) relleno(`m_${mesDe(inicio)}`, faltan, faltan >= 15 ? Math.round(porDia * 15 * 0.22 / 10000) * 10000 : 0)
   }
   let m = mesDe(inicio)
   for (let i = 0; i < 5; i++) {
     m = mesAnterior(m)
-    if (!resumen[`m_${m}`]) relleno(`m_${m}`, 30, 3300000)
+    if (!resumen[`m_${m}`]) relleno(`m_${m}`, 30, Math.round(porDia * 30 * 0.22 / 10000) * 10000)
   }
   return { ventas, movimientos, trabajadores, resumen }
 }
