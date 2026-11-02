@@ -38,7 +38,7 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
     }
     try {
       await Promise.race([api.crear(datos), new Promise((_, rej) => setTimeout(() => rej(new Error('tiempo')), 10000))])
-      if (!demo) registrarPedidoStats(local.id, subtotal)
+      if (!demo) registrarPedidoStats(local.id, subtotal, 'mesa')
       try { localStorage.setItem(NOMBRE_KEY, JSON.stringify({ ...(JSON.parse(localStorage.getItem(NOMBRE_KEY)) || {}), nombre: quien })) } catch { /* nada */ }
       idRef.current = null
       clear()

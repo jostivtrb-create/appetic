@@ -166,8 +166,8 @@ function Mes({ local, api, demo }) {
   useEffect(() => {
     let vivo = true
     setApp(null)
-    if (demo) { setApp({ visitas: 312, pedidos: 27 }); return }
-    estadisticasEntre(local.id, `${mes}-01`, `${mes}-31`).then(x => { if (vivo) setApp(x) }).catch(() => { if (vivo) setApp({ visitas: 0, pedidos: 0 }) })
+    if (demo) { setApp({ visitas: 312, pedidos: 27, domicilios: 21, recoger: 6 }); return }
+    estadisticasEntre(local.id, `${mes}-01`, `${mes}-31`).then(x => { if (vivo) setApp(x) }).catch(() => { if (vivo) setApp({ visitas: 0, pedidos: 0, domicilios: 0, recoger: 0 }) })
     return () => { vivo = false }
   }, [local.id, mes, demo])
 
@@ -253,7 +253,7 @@ function Mes({ local, api, demo }) {
             <div className="pv-card cu-kpi">
               <small>Por la app</small>
               <b>{app ? app.visitas : '…'}</b>
-              <span className="pv-nota">👁️ visitas al menú · 🛍️ {app?.pedidos ?? '…'} pedidos por WhatsApp</span>
+              <span className="pv-nota">👁️ visitas al menú · 🛍️ {app?.pedidos ?? '…'} pedidos por WhatsApp{app?.domicilios ? ` (🛵 ${app.domicilios} domicilios · 🥡 ${app.recoger} para recoger)` : ''}</span>
             </div>
           </div>
 

@@ -307,7 +307,7 @@ export function pedidosDe(localId, { demo = false } = {}) {
 // WhatsApp. Best-effort: si falla, NO rompe el flujo del cliente (el WhatsApp sale igual).
 export async function crearPedido(local, pedido, codigo, id, { demo = false } = {}) {
   if (!local?.id || !id) return false
-  if (!demo) registrarPedidoStats(local.id, pedido.total)
+  if (!demo) registrarPedidoStats(local.id, pedido.total, pedido.entrega || 'recoger')
   try {
     await pedidosDe(local.id, { demo }).crear(local, pedido, codigo, id)
     return true

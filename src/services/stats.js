@@ -3,8 +3,8 @@
 // que se incrementan en cada evento. Leer las métricas = pocas lecturas fijas.
 //
 // Estructura:
-//   locales/{localId}/stats/total          -> { visitas, pedidos, monto }   (acumulado)
-//   locales/{localId}/stats/d_YYYY-MM-DD    -> { fecha, visitas, pedidos, monto } (por día)
+//   locales/{localId}/stats/total          -> { visitas, pedidos, monto, domicilios, recoger, mesaQR } (acumulado)
+//   locales/{localId}/stats/d_YYYY-MM-DD    -> { fecha, visitas, pedidos, monto, domicilios, recoger, mesaQR } (por día)
 import {
   doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs, increment, startAt, endAt,
 } from 'firebase/firestore'
@@ -50,10 +50,14 @@ export async function registrarVisita(localId) {
   await sumar(localId, { visitas: increment(1) })
 }
 
-// Suma un pedido enviado y su monto estimado.
-export async function registrarPedidoStats(localId, total) {
+// Suma un pedido enviado y su monto estimado, y de qué tipo fue: domicilio, recoger o desde el QR
+// de una mesa. Los pedidos se borran a los 2 días (TTL); estos contadores quedan para siempre y son
+// los que responden «¿cuántos domicilios hicieron este mes?».
+const CAMPO_ENTREGA = { domicilio: 'domicilios', recoger: 'recoger', mesa: 'mesaQR' }
+export async function registrarPedidoStats(localId, total, entrega) {
   if (!localId) return
-  await sumar(localId, { pedidos: increment(1), monto: increment(Number(total) || 0) })
+  const campo = CAMPO_ENTREGA[entrega]
+  await sumar(localId, { pedidos: increment(1), monto: increment(Number(total) || 0), ...(campo ? { [campo]: increment(1) } : {}) })
 }
 
 // 🍔 Demo para clientes: alguien tocó «Quiero esto para mi negocio» (D18).
@@ -85,5 +89,8 @@ export async function obtenerEstadisticas(localId) {
 export async function estadisticasEntre(localId, desde, hasta) {
   const q = query(collection(db, 'locales', localId, 'stats'), orderBy('fecha'), startAt(desde), endAt(hasta))
   const snap = await getDocs(q)
-  return snap.docs.map(d => d.data()).reduce((t, d) => ({ visitas: t.visitas + (d.visitas || 0), pedidos: t.pedidos + (d.pedidos || 0) }), { visitas: 0, pedidos: 0 })
+  return snap.docs.map(d => d.data()).reduce((t, d) => ({
+    visitas: t.visitas + (d.visitas || 0), pedidos: t.pedidos + (d.pedidos || 0),
+    domicilios: t.domicilios + (d.domicilios || 0), recoger: t.recoger + (d.recoger || 0),
+  }), { visitas: 0, pedidos: 0, domicilios: 0, recoger: 0 })
 }

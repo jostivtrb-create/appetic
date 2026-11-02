@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Última actualización: 2026-11-02 (Cuentas del negocio)
+// Última actualización: 2026-11-02 (Cuentas del negocio + contadores por tipo de pedido)
 // Cambios Cuentas: rol CAJERO por local (vende, cobra y anota gastos; no ve saldos ni ganancia) ·
 //   ventas/, movimientos/, trabajadores/ y resumen/ PRIVADOS del local (ver services/cuentas.js) ·
 //   las comandas pueden nacer «entregada» si el local no usa cocina · el cobro (porCobrar,
@@ -248,10 +248,10 @@ service cloud.firestore {
       }
 
       match /stats/{statId} {
-        // Contadores (visitas/pedidos/monto). El cliente los incrementa anónimo;
+        // Contadores (visitas/pedidos/monto y por tipo: domicilios/recoger/mesaQR). El cliente los incrementa anónimo;
         // solo el admin del local (o el superadmin) los lee. Escritura acotada a esos campos.
         allow read: if puedeAdministrar(localId);
-        allow write: if request.resource.data.keys().hasOnly(['fecha', 'visitas', 'pedidos', 'monto', 'interesados']);
+        allow write: if request.resource.data.keys().hasOnly(['fecha', 'visitas', 'pedidos', 'monto', 'interesados', 'domicilios', 'recoger', 'mesaQR']);
         allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
     }
