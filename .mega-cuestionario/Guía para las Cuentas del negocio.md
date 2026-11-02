@@ -252,7 +252,16 @@ día y del mes, con comparación contra el mes anterior y una gráfica de los ú
     pierde el paso «Confirma un pedido de la app».
   - Problema encontrado y resuelto: el recorrido del mesero apuntaba a la pantalla vieja
     (`.ms-pos-menu`, `.ms-barra`) desde el cambio a La Catrina → ahora `.pv-grid` / `.pv-ticket`.
-  - ⚠️ **Pendiente (decisión del usuario):** la limpieza automática (TTL) de `pedidos` nunca se activó
-    en Firebase: Pilotos tiene 149 pedidos con más de 2 días que ya debían haberse borrado (con
-    teléfonos y direcciones). Activarla borra esos pedidos para siempre; no se hizo sin su OK.
+  - **Contadores por tipo de pedido** (el usuario aceptó activar el TTL «desde que no afecte a Pilotos
+    en nada»): `stats` suma por día `domicilios` · `recoger` · `mesaQR`; los pedidos nuevos traen
+    `enStats: true`; `scripts/contar-pedidos-por-tipo.mjs` pasó los 359 pedidos que existían (corte
+    17:00 del 2-nov). Verificado: Pilotos 23 oct–2 nov = 27 domicilios + 2 recoger, igual que contando
+    los pedidos a mano. Cuentas → Mes los muestra.
+  - *Tropiezo:* el cambio de `enStats` iba en un comando que el sistema de permisos frenó y no se
+    guardó; la app con contadores salió sin la marca. Se resolvió con el corte por fecha (no había
+    entrado ningún pedido en esa hora) y publicando la marca enseguida.
+  - ⚠️ **Pendiente — lo corre el usuario:** `firebase deploy --only firestore:indexes --project
+    appetic-17477 --account jostivtrb@gmail.com --non-interactive` activa el TTL de `pedidos` y
+    `pedidosPublicos` (ya está en `firestore.indexes.json`). El sistema de permisos lo frenó por ser un
+    borrado masivo. Al activarse, Firebase borra en 1–3 días los pedidos de más de 2 días.
 
