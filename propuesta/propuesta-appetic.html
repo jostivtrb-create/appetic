@@ -187,6 +187,52 @@ h2 em{font-style:normal;color:var(--orange-strong);}
 .tk-items b{color:var(--orange-strong);}
 .tk-btn{margin-top:6px;display:inline-block;background:var(--green);color:#fff;font-size:6.8pt;font-weight:800;border-radius:999px;padding:3px 9px;}
 
+/* ── Sección 4 · Meseros y cocina (página propia) ── */
+.viaje{margin-top:6mm;background:var(--tint);border-radius:20px;padding:12px 14px 13px;}
+.viaje .head{display:flex;justify-content:space-between;align-items:baseline;}
+.viaje .head h4{font-family:var(--serif);font-weight:800;font-size:13.5pt;}
+.viaje .head span{font-size:8.2pt;color:var(--ink-soft);font-weight:700;}
+.viaje .row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:5px;align-items:start;margin-top:9px;}
+.viaje .ar{color:var(--orange-strong);font-weight:900;font-size:14pt;margin-top:19mm;}
+.viaje .cel{text-align:center;min-width:0;}
+.viaje .v{height:42mm;border-radius:14px;overflow:hidden;box-shadow:0 10px 22px rgba(42,33,28,.2);background:#141010;}
+.viaje .v img{display:block;width:100%;height:100%;object-fit:cover;}
+.viaje .v.tk{padding:4px;}
+.viaje .v.tk img{border-radius:10px;object-position:top;}
+.viaje .v.aviso{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:10px 8px;background:linear-gradient(160deg,#2A211C,#4a3326);color:#fff;}
+.aviso .bell{width:13mm;height:13mm;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:17pt;box-shadow:0 0 0 5px rgba(237,125,43,.25),0 0 0 10px rgba(237,125,43,.12);}
+.aviso .t1{font-family:var(--serif);font-weight:800;font-size:11pt;margin-top:9px;}
+.aviso .t2{font-size:7.6pt;color:#E8D8C8;margin-top:2px;}
+.aviso .t3{margin-top:7px;background:#fff;color:var(--ink);font-size:6.8pt;font-weight:800;border-radius:999px;padding:3px 10px;}
+.viaje .cel b{display:block;font-size:9pt;margin-top:7px;line-height:1.25;}
+.viaje .cel b .n{display:inline-block;width:17px;height:17px;border-radius:6px;background:var(--orange);color:#fff;font-weight:800;font-size:7.8pt;line-height:17px;margin-right:4px;}
+.viaje .cel span{display:block;font-size:7.6pt;color:var(--ink-soft);margin-top:1px;line-height:1.3;}
+
+.lado{display:grid;gap:8mm;align-items:center;margin-top:7mm;}
+.lado.a{grid-template-columns:44mm 1fr;}
+.lado.b{grid-template-columns:1fr 92mm;}
+.lado .kk{font-size:7.4pt;letter-spacing:.2em;font-weight:800;text-transform:uppercase;color:var(--orange);}
+.lado h4{font-family:var(--serif);font-weight:800;font-size:14.5pt;line-height:1.12;margin-top:3px;}
+.lado p{font-size:9pt;color:var(--ink-soft);line-height:1.45;margin-top:4px;}
+.lado .chips{display:flex;flex-direction:column;gap:5px;margin-top:8px;}
+.lado .chips span{font-size:9pt;font-weight:700;color:var(--ink);line-height:1.3;}
+.lado .chips span i{font-style:normal;color:var(--green);font-weight:900;margin-right:5px;}
+.cel-fr{background:#141010;border-radius:18px;padding:4px;box-shadow:0 12px 26px rgba(42,33,28,.24);}
+.cel-fr img{display:block;width:100%;height:70mm;object-fit:cover;object-position:top;border-radius:14px;}
+.tab-fr{background:#141010;border-radius:14px;padding:6px;box-shadow:0 12px 26px rgba(42,33,28,.24);}
+.tab-fr img{display:block;width:100%;border-radius:9px;}
+.colores{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+.colores span{font-size:7.2pt;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;border-radius:6px;padding:3px 8px;}
+
+.extras{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:7mm;}
+.extras div{background:var(--surface2);border-radius:13px;padding:10px 11px;}
+.extras b{display:block;font-size:8.8pt;line-height:1.25;color:var(--ink);}
+.extras span{display:block;font-size:7.6pt;color:var(--ink-soft);line-height:1.3;margin-top:2px;}
+
+/* ── Sección 5 · Tus cuentas (página propia) ── */
+.cuentas{display:grid;grid-template-columns:1fr 1fr;gap:8mm;align-items:center;margin-top:7mm;}
+.cuentas .art-total{height:auto;padding:14px;gap:9px;}
+
 /* Arte del Total: las cuentas */
 .art-total{height:100%;background:var(--surface2);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;justify-content:center;}
 .acc{background:var(--paper);border-radius:12px;padding:8px 10px;box-shadow:0 4px 12px rgba(42,33,28,.06);}
@@ -259,10 +305,11 @@ h2 em{font-style:normal;color:var(--orange-strong);}
 .fine{font-size:7.4pt;color:var(--faint);margin-top:5px;line-height:1.4;}
 
 /* ═════════ Orden narrativo (nov-2026, 2.ª versión) ═════════ */
-.idx{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8mm;}
-.idx div{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:9px 8px;text-align:center;}
-.idx i{font-style:normal;display:block;font-size:17pt;line-height:1;}
-.idx b{display:block;font-size:8.6pt;line-height:1.25;margin-top:5px;}
+.idx{display:grid;grid-template-columns:repeat(5,1fr);margin-top:7mm;}
+.idx div{text-align:center;padding:0 6px;position:relative;}
+.idx div+div::before{content:"";position:absolute;left:0;top:12%;bottom:12%;width:1px;background:var(--line);}
+.idx img{display:block;height:17mm;width:auto;max-width:20mm;margin:0 auto;object-fit:contain;}
+.idx b{display:block;font-size:8.8pt;line-height:1.25;margin-top:5px;text-wrap:balance;}
 .idx span{display:inline-block;width:16px;height:16px;border-radius:5px;background:var(--orange);color:#fff;font-weight:800;font-size:7.4pt;line-height:16px;margin-top:5px;}
 .sec{display:flex;align-items:center;gap:9px;margin-top:9mm;}
 .sec .n{flex:0 0 auto;width:9mm;height:9mm;border-radius:9px;background:var(--grad);color:#fff;font-family:var(--serif);font-weight:800;font-size:15pt;display:flex;align-items:center;justify-content:center;}
@@ -276,29 +323,177 @@ h2 em{font-style:normal;color:var(--orange-strong);}
 .tvwide .chips{display:flex;flex-direction:column;gap:7px;}
 .tvwide .chips span{font-size:9.6pt;font-weight:700;color:var(--ink);line-height:1.3;}
 .tvwide .chips span i{font-style:normal;color:var(--green);font-weight:900;margin-right:5px;}
+.domi{display:grid;grid-template-columns:1.55fr 1fr;gap:7mm;align-items:center;margin-top:5mm;}
+.domi .foto{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:3/2;background:linear-gradient(135deg,#3a2a20,#7a4a2a);box-shadow:0 14px 30px rgba(42,33,28,.25);}
+.domi .foto img{width:100%;height:100%;object-fit:cover;display:block;}
+.domi .badge{position:absolute;left:10px;bottom:10px;background:rgba(255,251,244,.96);border-radius:12px;padding:7px 11px;box-shadow:0 6px 16px rgba(0,0,0,.25);}
+.domi .badge .t{display:block;font-size:6.6pt;letter-spacing:.16em;font-weight:800;text-transform:uppercase;color:var(--orange);}
+.domi .badge .v{display:block;font-size:9.6pt;font-weight:800;color:var(--ink);margin-top:1px;}
+.domi .txt b.h{display:block;font-family:var(--serif);font-weight:800;font-size:13pt;line-height:1.15;}
+.domi .txt p{font-size:8.8pt;color:var(--ink-soft);line-height:1.4;margin-top:4px;}
+.domi .chips{display:flex;flex-direction:column;gap:7px;margin-top:9px;}
+.domi .chips span{font-size:9.4pt;font-weight:700;color:var(--ink);line-height:1.3;}
+.domi .chips span i{font-style:normal;color:var(--green);font-weight:900;margin-right:5px;}
+.mas{font-size:7.4pt;letter-spacing:.2em;font-weight:800;text-transform:uppercase;color:var(--orange);display:block;margin-top:6mm;}
+.icons.ocho{grid-template-columns:repeat(4,1fr);margin-top:3mm;gap:6px;}
+.icons.ocho .ico{padding:11px 10px;gap:8px;}
+.icons.ocho .ico .ic{flex:0 0 11mm;height:11mm;}
+.icons.ocho .ico .ic img{width:100%;height:100%;object-fit:contain;display:block;}
+.icons.ocho .ico b{font-size:9pt;}
+.icons.ocho .ico span{font-size:7.6pt;}
 .tv.xl{font-size:19pt;}
 .tv.xl .dots i{width:7px;height:7px;}
 .tv.xl .dots i.on{width:22px;}
 .gcard .tg{font-family:var(--serif);font-weight:800;font-size:17pt;line-height:1.05;display:flex;gap:8px;align-items:center;}
 .gcard .tg .n{width:8mm;height:8mm;border-radius:8px;background:var(--grad);color:#fff;font-size:13pt;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
-.plan .pic{height:25mm;margin:-15px -13px 10px;border-radius:19px 19px 0 0;overflow:hidden;position:relative;}
+.plan .pic{height:20mm;margin:-15px -13px 10px;border-radius:19px 19px 0 0;overflow:hidden;position:relative;}
 .plan .pic img{width:100%;height:100%;object-fit:cover;display:block;}
 .plan .pic span{position:absolute;left:8px;right:8px;bottom:7px;background:rgba(26,20,16,.78);color:#fff;font-size:7.8pt;font-weight:800;line-height:1.25;border-radius:9px;padding:5px 8px;}
 .plan.best .pic{border-radius:18px 18px 0 0;}
 .plan .badge{z-index:2;}
-.pilares{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:6mm;}
-.pilares div{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:11px 11px;}
-.pilares i{font-style:normal;font-size:17pt;line-height:1;display:block;}
-.pilares b{display:block;font-size:9.4pt;line-height:1.2;margin-top:4px;}
-.pilares span{display:block;font-size:8.2pt;color:var(--ink-soft);line-height:1.25;margin-top:2px;}
+.pilares{display:grid;grid-template-columns:repeat(4,1fr);margin-top:5mm;}
+.pilares div{text-align:center;padding:0 8px;position:relative;}
+.pilares div+div::before{content:"";position:absolute;left:0;top:14%;bottom:8%;width:1px;background:var(--line);}
+.pilares img{display:block;height:20mm;width:auto;max-width:21mm;margin:0 auto 5px;object-fit:contain;}
+.pilares b{display:block;font-size:9.6pt;line-height:1.2;}
+.pilares span{display:block;font-size:8.2pt;color:var(--ink-soft);line-height:1.25;margin-top:2px;text-wrap:balance;}
 .devices{position:relative;height:84mm;}
 .dv-phone{position:absolute;width:38mm;background:#141010;border-radius:16px;padding:4px;box-shadow:0 14px 28px rgba(42,33,28,.3);}
 .dv-phone img{display:block;width:100%;height:76mm;object-fit:cover;object-position:top;border-radius:12px;}
 .dv-phone{left:4mm;top:0;transform:rotate(-5deg);}
 .dv-phone.b{left:auto;right:4mm;top:6mm;transform:rotate(5deg);}
+
+/* ═════════ Portada de vuelo · Swiftfly × Appetic (2-nov-2026) ═════════ */
+.vuelo{background:#010C29;color:#fff;}
+.vuelo .bg{position:absolute;inset:0;}
+.vuelo .bg img{width:100%;height:100%;object-fit:cover;display:block;transform:translateY(5mm);}
+.vuelo .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,27,68,.78) 0%,rgba(4,27,68,.15) 34%,rgba(4,27,68,0) 55%,rgba(4,27,68,.55) 78%,rgba(4,27,68,.92) 100%);}
+.vuelo .top{position:absolute;z-index:2;left:15mm;right:15mm;top:11mm;display:flex;justify-content:space-between;align-items:center;}
+.vuelo .top .fe{font-size:7.4pt;letter-spacing:.26em;font-weight:800;text-transform:uppercase;color:#BFD4FF;text-align:right;line-height:1.6;}
+.vuelo .titulo{position:absolute;z-index:2;left:15mm;right:15mm;top:31mm;}
+.vuelo .marca{display:flex;align-items:center;gap:11px;}
+.vuelo .marca img{width:12mm;height:12mm;border-radius:10px;box-shadow:0 8px 22px rgba(237,125,43,.45);}
+.vuelo .marca b{font-family:var(--serif);font-weight:800;font-size:22pt;letter-spacing:-.01em;}
+.vuelo h1{font-family:var(--serif);font-weight:800;font-size:33pt;line-height:1.02;letter-spacing:-.02em;text-shadow:0 4px 24px rgba(4,27,68,.6);}
+.vuelo h1 em{font-style:normal;color:#6FB6FF;}
+.vuelo h1 em span{color:#F6A45C;}
+.vuelo .bajada{font-size:10pt;line-height:1.4;color:#E4ECFF;margin-top:3mm;max-width:150mm;text-shadow:0 2px 12px rgba(4,27,68,.7);}
+/* pase de abordar */
+.pase{position:absolute;z-index:2;left:15mm;right:15mm;bottom:6mm;display:grid;grid-template-columns:1fr 40mm;background:#FFFBF4;color:var(--ink);border-radius:18px;box-shadow:0 24px 50px rgba(0,0,0,.45);overflow:hidden;}
+.pase .main{padding:6px 14px 7px;}
+.pase .cab{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:4px;}
+.pase .cab span{font-size:7.2pt;letter-spacing:.26em;font-weight:800;text-transform:uppercase;color:var(--orange-strong);}
+.pase .cab i{font-style:normal;font-size:7.2pt;font-weight:800;letter-spacing:.14em;color:var(--faint);}
+.pase .ruta{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-top:4px;}
+.pase .ruta .lb{display:block;font-size:6.6pt;letter-spacing:.2em;font-weight:800;text-transform:uppercase;color:var(--faint);}
+.pase .ruta b{display:block;white-space:nowrap;font-family:var(--serif);font-weight:800;font-size:12pt;line-height:1.05;margin-top:1px;}
+.pase .ruta .der{text-align:right;}
+.pase .ruta .der b{color:var(--orange-strong);}
+.pase .avion{display:flex;align-items:center;gap:6px;}
+.pase .avion i{display:block;width:9mm;border-top:2px dashed #C9B8A6;}
+.pase .avion img{width:7mm;height:7mm;border-radius:5px;}
+.pase .datos{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;gap:8px;margin-top:5px;border-top:1px solid var(--line);padding-top:4px;}
+.pase .datos .lb{display:block;font-size:6.4pt;letter-spacing:.18em;font-weight:800;text-transform:uppercase;color:var(--faint);}
+.pase .datos b{display:block;font-size:8.4pt;margin-top:0;}
+.pase .talon{position:relative;background:var(--surface2);border-left:2px dashed #D9C8B5;padding:5px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;}
+.pase .talon::before,.pase .talon::after{content:"";position:absolute;left:-9px;width:16px;height:16px;border-radius:50%;background:#010C29;}
+.pase .talon::before{top:-8px;}.pase .talon::after{bottom:-8px;}
+.pase .talon .lb{font-size:6.4pt;letter-spacing:.2em;font-weight:800;text-transform:uppercase;color:var(--faint);}
+.pase .talon img.sw{width:19mm;}
+.pase .talon .tel2{font-size:7.8pt;font-weight:900;color:var(--ink);}
+
+/* Pago por adelantado dentro de cada plan (2-nov-2026) */
+.plan .adel{margin-top:auto;padding-top:8px;border-top:1px dashed #E3D3C2;}
+.plan ul{margin-bottom:10px;}
+.plan .adel .t{display:block;font-size:7pt;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);}
+.plan .adel .r{display:flex;justify-content:space-between;align-items:center;margin-top:5px;}
+.plan .adel .q{font-size:8.6pt;font-weight:800;color:var(--ink);line-height:1.1;}
+.plan .adel .q em{display:block;font-style:normal;font-size:7pt;font-weight:700;color:var(--ink-soft);}
+.plan .adel .v{text-align:right;line-height:1.1;}
+.plan .adel .v s{display:block;line-height:1.35;font-size:7.8pt;color:var(--faint);text-decoration-color:#E0692A;text-decoration-thickness:1.5px;}
+.plan .adel .v b{display:block;font-family:var(--serif);font-weight:800;font-size:12pt;color:var(--orange-strong);}
+.plan .adel .ah{display:block;margin-top:6px;background:#E8F5EC;color:var(--green);font-size:7.4pt;font-weight:800;border-radius:8px;padding:4px 8px;text-align:center;}
+.plan .adel + .x2{margin-top:0;padding-top:7px;}
+.save.uno{grid-template-columns:1fr;}
+.save.uno .p{display:flex;align-items:center;gap:14px;}
+.sello{position:absolute;z-index:3;top:-11px;right:-7px;width:19mm;height:19mm;border-radius:50%;background:var(--grad);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:rotate(9deg);box-shadow:0 8px 18px rgba(224,105,42,.4),inset 0 0 0 2px rgba(255,255,255,.85),inset 0 0 0 4px rgba(224,105,42,1),inset 0 0 0 5px rgba(255,255,255,.6);text-align:center;line-height:1;}
+.sello span{font-size:7pt;font-weight:800;letter-spacing:.06em;text-transform:uppercase;}
+.sello b{font-family:var(--serif);font-weight:800;font-size:12.5pt;margin-top:2px;}
+
+/* ── Sección 5 · Tus cuentas, versión 2 ── */
+.cta5 .flot{position:absolute;right:10px;bottom:10px;background:rgba(255,251,244,.97);border-radius:14px;padding:9px 13px;box-shadow:0 10px 24px rgba(0,0,0,.3);}
+.cta5 .flot .t{display:block;font-size:6.6pt;letter-spacing:.16em;font-weight:800;text-transform:uppercase;color:var(--faint);}
+.cta5 .flot b{display:block;font-family:var(--serif);font-weight:800;font-size:17pt;color:var(--orange-strong);line-height:1.1;}
+.cta5 .flot .up{display:block;font-size:7.4pt;font-weight:800;color:var(--green);}
+.cta5 .kk{font-size:7.4pt;letter-spacing:.2em;font-weight:800;text-transform:uppercase;color:var(--orange);display:block;margin-bottom:3px;}
+.viaje.dia{margin-top:7mm;}
+.row3{display:grid;grid-template-columns:1fr auto 1fr auto .85fr;gap:7px;align-items:stretch;margin-top:9px;}
+.row3 .op{align-self:center;font-family:var(--serif);font-weight:800;font-size:20pt;color:var(--orange-strong);}
+.nc{background:var(--paper);border-radius:14px;padding:10px 12px;box-shadow:0 6px 16px rgba(42,33,28,.07);}
+.nc .lb{display:flex;align-items:center;gap:5px;font-size:6.8pt;letter-spacing:.14em;font-weight:800;text-transform:uppercase;color:var(--faint);}
+.nc .lb i{font-style:normal;width:13px;height:13px;border-radius:4px;color:#fff;font-size:8pt;line-height:13px;text-align:center;letter-spacing:0;}
+.nc .lb i.ing{background:var(--green);}.nc .lb i.egr{background:#C0392B;}
+.nc .big{display:block;font-family:var(--serif);font-weight:800;font-size:16pt;line-height:1.1;margin-top:3px;}
+.nc .split{display:flex;height:6px;border-radius:4px;overflow:hidden;margin:6px 0 4px;gap:2px;}
+.nc .rowx{display:flex;justify-content:space-between;font-size:7.8pt;color:var(--ink-soft);margin-top:3px;}
+.nc .rowx b{color:var(--ink);}
+.nc .rowx span em{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:5px;vertical-align:middle;}
+.nc .rowx.nom{border-top:1px dashed var(--line);padding-top:4px;margin-top:6px;}
+.nc .rowx b.ok{color:var(--green);}
+.nc.res{background:var(--grad);color:#fff;display:flex;flex-direction:column;justify-content:center;}
+.nc.res .lb{color:#FFE7D0;}
+.nc.res .big{font-size:20pt;}
+.nc.res .sm{font-size:7.8pt;color:#FFF1E4;margin-top:4px;line-height:1.3;}
+.mes{display:grid;grid-template-columns:1fr 1.1fr;gap:8mm;align-items:center;margin-top:7mm;background:var(--ink);color:#fff;border-radius:20px;padding:13px 18px;}
+.mes .lb{display:block;font-size:7pt;letter-spacing:.18em;font-weight:800;text-transform:uppercase;color:#D6C7B8;margin-bottom:4px;}
+.mes .rowx{display:flex;justify-content:space-between;font-size:8.8pt;color:#E7D9CA;margin-top:4px;}
+.mes .rowx b{color:#fff;}
+.mes .tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(255,255,255,.18);margin-top:7px;padding-top:6px;}
+.mes .tot span{font-size:9pt;font-weight:800;}
+.mes .tot b{font-family:var(--serif);font-weight:800;font-size:19pt;color:var(--orange-soft);}
+.barras{display:flex;align-items:flex-end;gap:8px;height:27mm;}
+.barras div{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;}
+.barras i{display:block;width:100%;background:rgba(255,255,255,.18);border-radius:6px 6px 2px 2px;}
+.barras .on i{background:var(--grad);}
+.barras span{font-size:7pt;font-weight:800;color:#D6C7B8;margin-top:4px;}
+.barras .on span{color:#fff;}
+.nota5{font-size:7.4pt;color:#D6C7B8;margin-top:7px;line-height:1.35;}
+.nota5 b{color:#fff;}
 </style>
 </head>
 <body>
+
+<!-- ═════════════════════ 0 · PORTADA DE VUELO (Swiftfly × Appetic) ═════════════════════ -->
+<div class="page vuelo">
+  <div class="bg"><img src="img/portada-vuelo.jpg" alt="" onerror="this.remove()"></div>
+  <div class="top"><div class="marca"><img src="img/logo-appetic.png" alt=""><b>Appetic</b></div><div class="fe">Propuesta comercial<br>Noviembre 2026</div></div>
+  <div class="titulo">
+    <h1>Tu negocio de comida,<br><em>listo para <span>despegar.</span></em></h1>
+    <p class="bajada">Menú, pedidos, domicilios, salón y cuentas, volando juntos en una sola app.</p>
+  </div>
+
+  <div class="pase">
+    <div class="main">
+      <div class="cab"><span>Pase de abordar</span><i>VUELO AP-2026 · CLASE: TU NEGOCIO</i></div>
+      <div class="ruta">
+        <div><span class="lb">Desde</span><b>Tu carta de hoy</b></div>
+        <div class="avion"><i></i><img src="img/swiftfly-mark.png" alt=""><i></i></div>
+        <div class="der"><span class="lb">Hacia</span><b>Tu propia app</b></div>
+      </div>
+      <div class="datos">
+        <div><span class="lb">Pasajero</span><b>Tu negocio</b></div>
+        <div><span class="lb">Equipaje</span><b>Tu carta y tu logo</b></div>
+        <div><span class="lb">Comisión</span><b>0%</b></div>
+        <div><span class="lb">Embarque</span><b>Cuando digas sí</b></div>
+      </div>
+    </div>
+    <div class="talon">
+      <span class="lb">Un producto de</span>
+      <img class="sw" src="img/swiftfly-lockup.png" alt="Swiftfly Solutions">
+      <span class="tel2">💬 320 843 5143</span>
+    </div>
+  </div>
+</div>
 
 <!-- ═════════════════════ 1 · PORTADA ═════════════════════ -->
 <div class="page">
@@ -320,10 +515,10 @@ h2 em{font-style:normal;color:var(--orange-strong);}
       <h3>El sistema de tu negocio de comida,<br>en una sola app.</h3>
       <p>Junta en un solo lugar tu menú, tus pedidos, tus domicilios, tu salón y tus cuentas. Nosotros lo instalamos con tu carta, tus fotos y tus precios; tú y tu equipo lo usan desde el celular, la tablet y el TV que ya tienen.</p>
       <div class="pilares">
-        <div><i>🛠️</i><b>Lo instalamos nosotros</b><span>Tú no configuras nada</span></div>
-        <div><i>📲</i><b>Sin descargar nada</b><span>Abre con un QR o un link</span></div>
-        <div><i>💸</i><b>Sin comisión</b><span>Cada peso del pedido es tuyo</span></div>
-        <div><i>🤝</i><b>Te acompañamos</b><span>Soporte por WhatsApp</span></div>
+        <div><img src="img/pilar-instalamos.png" alt=""><b>Lo instalamos nosotros</b><span>Tú no configuras nada</span></div>
+        <div><img src="img/pilar-sin-descargar.png" alt=""><b>Sin descargar nada</b><span>Abre con un QR o un link</span></div>
+        <div><img src="img/pilar-sin-comision.png" alt=""><b>Sin comisión</b><span>Cada peso del pedido es tuyo</span></div>
+        <div><img src="img/pilar-acompanamos.png" alt=""><b>Te acompañamos</b><span>Soporte por WhatsApp</span></div>
       </div>
     </div>
   </div>
@@ -341,11 +536,11 @@ h2 em{font-style:normal;color:var(--orange-strong);}
   <p class="sub">Te las mostramos una por una. Al final escoges cuáles necesitas.</p>
 
   <div class="idx">
-    <div><i>📱</i><b>Menú digital con fotos</b><span>1</span></div>
-    <div><i>📺</i><b>Tu menú en vivo en el TV</b><span>2</span></div>
-    <div><i>🛵</i><b>Domicilios</b><span>3</span></div>
-    <div><i>🍽️</i><b>Meseros y cocina</b><span>4</span></div>
-    <div><i>📊</i><b>Tus cuentas</b><span>5</span></div>
+    <div><img src="img/idx-menu.png" alt=""><b>Menú digital con fotos</b><span>1</span></div>
+    <div><img src="img/idx-tv.png" alt=""><b>Tu menú en vivo en el TV</b><span>2</span></div>
+    <div><img src="img/idx-domicilios.png" alt=""><b>Domicilios</b><span>3</span></div>
+    <div><img src="img/idx-meseros.png" alt=""><b>Meseros y cocina</b><span>4</span></div>
+    <div><img src="img/idx-cuentas.png" alt=""><b>Tus cuentas</b><span>5</span></div>
   </div>
 
   <div class="sec"><span class="n">1</span><div><h3>Tu menú digital, con fotos</h3><p>Y se acaba la fila: te piden desde el QR mientras esperan.</p></div></div>
@@ -367,7 +562,7 @@ h2 em{font-style:normal;color:var(--orange-strong);}
 
   <div class="footer">
     <div class="brand"><img src="img/swiftfly-mark.png" alt=""> Appetic · un producto de Swiftfly Solutions</div>
-    <div class="pg">2</div>
+    <div class="pg">3</div>
   </div>
 </div></div>
 
@@ -395,74 +590,176 @@ h2 em{font-style:normal;color:var(--orange-strong);}
     </div>
   </div>
 
-  <div class="sec" style="margin-top:16mm"><span class="n">3</span><div><h3>Domicilios, y todo lo demás</h3><p>El pedido te llega armado y tú decides cómo lo entregas.</p></div></div>
+  <div class="sec" style="margin-top:10mm"><span class="n">3</span><div><h3>Domicilios, sin comisión</h3><p>El pedido te llega armado y lo entrega tu domiciliario. Cada peso es tuyo.</p></div></div>
 
-  <div class="icons">
-    <div class="ico"><span class="ic">🛵</span><div><b>Domicilios</b><span>Cobro por distancia y panel del domiciliario</span></div></div>
-    <div class="ico"><span class="ic">💬</span><div><b>Pedido al WhatsApp</b><span>Llega armado, listo para confirmar</span></div></div>
-    <div class="ico"><span class="ic">🧾</span><div><b>Comandas</b><span>Sabes qué pedido falta por cobrar</span></div></div>
-    <div class="ico"><span class="ic">✏️</span><div><b>Tú cambias todo</b><span>Precios, agotados y horario</span></div></div>
-    <div class="ico"><span class="ic">🍲</span><div><b>Menú del día</b><span>Lo cambias en un minuto</span></div></div>
-    <div class="ico"><span class="ic">🔎</span><div><b>Buscador del barrio</b><span>Clientes nuevos te encuentran</span></div></div>
-    <div class="ico"><span class="ic">0%</span><div><b>Sin comisión</b><span>Cada peso del pedido es tuyo</span></div></div>
-    <div class="ico"><span class="ic">📲</span><div><b>Sin descargar nada</b><span>Abre con el QR o un link</span></div></div>
-    <div class="ico"><span class="ic">🤝</span><div><b>Soporte directo</b><span>Un WhatsApp, una persona</span></div></div>
+  <div class="domi">
+    <div class="foto">
+      <img src="img/domicilios.jpg" alt="" onerror="this.remove()">
+      <div class="badge"><span class="t">Domicilio · 2,1 km</span><span class="v">Envío $4.000 ✓</span></div>
+    </div>
+    <div class="txt">
+      <b class="h">Del menú a la puerta, sin volver a escribir nada.</b>
+      <p>Tu cliente pide desde el link o el QR, la app le cobra el envío según la distancia y a ti te llega el pedido completo.</p>
+      <div class="chips">
+        <span><i>✓</i>Cobro del envío por distancia</span>
+        <span><i>✓</i>El pedido llega armado a tu WhatsApp</span>
+        <span><i>✓</i>Panel para tu domiciliario</span>
+        <span><i>✓</i>Lo entrega tu gente, no una app</span>
+      </div>
+    </div>
+  </div>
+
+  <span class="mas">Y todo lo demás</span>
+  <div class="icons ocho">
+    <div class="ico"><span class="ic"><img src="img/ico-whatsapp.png" alt=""></span><div><b>Pedido al WhatsApp</b><span>Llega armado, listo para confirmar</span></div></div>
+    <div class="ico"><span class="ic"><img src="img/ico-comandas.png" alt=""></span><div><b>Comandas</b><span>Sabes qué pedido falta por cobrar</span></div></div>
+    <div class="ico"><span class="ic"><img src="img/ico-cambias.png" alt=""></span><div><b>Tú cambias todo</b><span>Precios, agotados y horario</span></div></div>
+    <div class="ico"><span class="ic"><img src="img/ico-menu-dia.png" alt=""></span><div><b>Menú del día</b><span>Lo cambias en un minuto</span></div></div>
+    <div class="ico"><span class="ic"><img src="img/ico-buscador.png" alt=""></span><div><b>Buscador del barrio</b><span>Clientes nuevos te encuentran</span></div></div>
+    <div class="ico"><span class="ic"><img src="img/pilar-sin-comision.png" alt=""></span><div><b>Sin comisión</b><span>Cada peso del pedido es tuyo</span></div></div>
+    <div class="ico"><span class="ic"><img src="img/pilar-sin-descargar.png" alt=""></span><div><b>Sin descargar nada</b><span>Abre con el QR o un link</span></div></div>
+    <div class="ico"><span class="ic"><img src="img/pilar-acompanamos.png" alt=""></span><div><b>Soporte directo</b><span>Un WhatsApp, una persona</span></div></div>
   </div>
 
   <div class="footer">
     <div class="brand"><img src="img/swiftfly-mark.png" alt=""> Appetic · un producto de Swiftfly Solutions</div>
-    <div class="pg">3</div>
+    <div class="pg">4</div>
   </div>
 </div></div>
 
-<!-- ═════════════════════ 4 · MESEROS, COCINA Y CUENTAS ═════════════════════ -->
+<!-- ═════════════════════ 4 · MESEROS Y COCINA ═════════════════════ -->
 <div class="page"><div class="pad">
-  <span class="k">Y si tu negocio es más grande</span>
-  <h2>Tu salón y tus cuentas, <em>en orden.</em></h2>
+  <span class="k">Y si tienes mesas</span>
+  <div class="sec" style="margin-top:3mm"><span class="n">4</span><div><h3>Meseros y cocina, conectados</h3><p>El pedido viaja solo de la mesa a la cocina, y de vuelta al mesero. Sin libreta, sin gritos y sin caminar.</p></div></div>
 
-  <div class="grow">
-    <div class="gcard">
-      <div class="tg"><span class="n">4</span>Meseros y cocina</div>
-      <div class="plus">Tus meseros piden desde el celular</div>
-      <div class="art"><div class="art-real">
-        <figure><img class="m" src="img/pro-mesero-pide.jpg" alt=""><figcaption>El mesero pide</figcaption></figure>
-        <figure><img class="c" src="img/pro-tablet-pedidos.jpg" alt=""><figcaption>Los pedidos en la tablet</figcaption></figure>
-      </div></div>
-      <ul>
-        <li><i>✓</i>El mesero pide desde su celular</li>
-        <li><i>✓</i>La comanda sale en la pantalla de cocina (y en papel si quieres)</li>
-        <li><i>✓</i>QR en cada mesa y cuenta por mesa</li>
-      </ul>
-      <p class="nota">Meseros y pantallas <b>sin límite</b>.</p>
+  <div class="viaje">
+    <div class="head"><h4>El viaje de un pedido</h4><span>De la mesa 4 a la cocina, y de vuelta</span></div>
+    <div class="row">
+      <div class="cel"><div class="v"><img src="img/pro-mesero-pide.jpg" alt="" style="object-position:center 35%"></div><b><span class="n">1</span>Se pide en la mesa</b><span>en el celular del mesero o con el QR de la mesa</span></div>
+      <span class="ar">→</span>
+      <div class="cel"><div class="v tk"><img src="img/cocina-mesa4.jpg" alt=""></div><b><span class="n">2</span>Llega a la cocina</b><span>con la mesa, las notas y cuánto lleva</span></div>
+      <span class="ar">→</span>
+      <div class="cel"><div class="v"><img src="img/pro-tablet-pedidos.jpg" alt=""></div><b><span class="n">3</span>La cocina despacha</b><span>y tacha cada plato a medida que sale</span></div>
+      <span class="ar">→</span>
+      <div class="cel"><div class="v aviso"><div class="bell">🔔</div><div class="t1">¡Pedido listo!</div><div class="t2">Mesa 4 · 4 ítems</div><div class="t3">Toca para verlo</div></div><b><span class="n">4</span>Le avisa al mesero</b><span>con sonido, esté en la pantalla que esté</span></div>
     </div>
+  </div>
 
-    <div class="gcard">
-      <div class="tg"><span class="n">5</span>Tus cuentas</div>
-      <div class="plus">Sabes cuánto ganas de verdad</div>
-      <div class="art"><div class="art-total">
-        <div class="acc">
-          <span class="lb">Cierre de caja · hoy</span>
-          <div class="rowx"><span>💵 Efectivo</span><b>$612.000</b></div>
-          <div class="rowx"><span>📲 Nequi</span><b>$348.000</b></div>
-          <div class="rowx"><span>💳 Tarjeta</span><b>$190.000</b></div>
-          <div class="tot"><span>Vendiste</span><span>$1.150.000</span></div>
-        </div>
-        <div class="two-acc">
-          <div class="acc"><span class="lb">Gastos</span><div class="rowx"><span>Carne y pollo</span><b>$280.000</b></div><div class="rowx"><span>Gas</span><b>$45.000</b></div></div>
-          <div class="acc"><span class="lb">Nómina</span><div class="rowx"><span>Ana · mesera</span><b>Pagado</b></div><div class="rowx"><span>Luis · cocina</span><b>Pagado</b></div></div>
-        </div>
-        <div class="acc big">
-          <span class="lb">Ganancia de octubre</span>
-          <div class="n">$4.820.000</div>
-          <div class="bars"><i style="height:45%"></i><i style="height:60%"></i><i style="height:52%"></i><i style="height:74%"></i><i class="on" style="height:92%"></i></div>
-        </div>
-      </div></div>
-      <ul>
-        <li><i>✓</i>Cierre de caja del día: efectivo, Nequi y tarjeta</li>
-        <li><i>✓</i>Gastos, compras y pago de nómina</li>
-        <li><i>✓</i>Cuánto ganaste en el mes</li>
-      </ul>
-      <p class="nota">Son <b>tus cuentas, para ti</b>. No es facturación electrónica ni trámites con la DIAN.</p>
+  <div class="lado a">
+    <div class="cel-fr"><img src="img/mesero-comanda.jpg" alt="La comanda en el celular del mesero"></div>
+    <div>
+      <span class="kk">Así lo ve el mesero</span>
+      <h4>Toma el pedido sin moverse de la mesa.</h4>
+      <p>Abre en su celular el mismo menú que ven tus clientes, con las mismas opciones y los mismos precios. Toca los platos, escribe la nota para la cocina, marca la mesa y lo manda. Nada de libreta ni de ir a cantarle el pedido a nadie.</p>
+      <div class="chips">
+        <span><i>✓</i>Cada plato con su nota: «sin cebolla», «bien asada»</span>
+        <span><i>✓</i>Para una mesa, a nombre de alguien o para llevar</span>
+        <span><i>✓</i>En «En curso» ve todas las mesas y lo que ya salió</span>
+        <span><i>✓</i>Si se equivocó, corrige o cancela la comanda</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="lado b">
+    <div>
+      <span class="kk">Así lo ve la cocina</span>
+      <h4>Todo escrito, en orden y a la vista.</h4>
+      <p>Las comandas entran solas a la pantalla de la cocina, en el orden en que llegaron y con un reloj que dice cuánto llevan esperando. Lo primero que se lee es para dónde va.</p>
+      <div class="colores"><span style="background:#ED7D2B">Mesa</span><span style="background:#7B3FE4">Domicilio</span><span style="background:#2E6B45">Para llevar</span></div>
+      <div class="chips">
+        <span><i>✓</i>Tacha plato por plato a medida que sale</span>
+        <span><i>✓</i>Cada comanda dice quién la tomó</span>
+        <span><i>✓</i>En la tablet o el computador que ya tienes</span>
+      </div>
+    </div>
+    <div class="tab-fr"><img src="img/cocina-comandas.jpg" alt="La pantalla de la cocina con las comandas"></div>
+  </div>
+
+  <div class="extras">
+    <div><b>Sin límite</b><span>Todos los meseros y pantallas que necesites</span></div>
+    <div><b>Un QR por mesa</b><span>Con tu logo y el número, listos para imprimir</span></div>
+    <div><b>Si pide la mesa</b><span>Cuando sale, les suena a todos los meseros</span></div>
+    <div><b>Tú lo ves todo</b><span>Sigues cada comanda y marcas «ya se cobró»</span></div>
+  </div>
+
+  <div class="footer">
+    <div class="brand"><img src="img/swiftfly-mark.png" alt=""> Appetic · un producto de Swiftfly Solutions</div>
+    <div class="pg">5</div>
+  </div>
+</div></div>
+
+<!-- ═════════════════════ 5 · TUS CUENTAS ═════════════════════ -->
+<div class="page"><div class="pad">
+  <span class="k">Y para saber cuánto ganas</span>
+  <div class="sec" style="margin-top:3mm"><span class="n">5</span><div><h3>Tus cuentas, claras</h3><p>Lo que vendiste, lo que gastaste y lo que te quedó, sin cuaderno ni calculadora.</p></div></div>
+
+  <div class="domi cta5">
+    <div class="foto">
+      <img src="img/cuentas-cierre.jpg" alt="" onerror="this.remove()">
+      <div class="flot">
+        <span class="t">Ganancia de octubre</span>
+        <b>$4.820.000</b>
+        <span class="up">▲ 12% más que septiembre</span>
+      </div>
+    </div>
+    <div class="txt">
+      <span class="kk">Sabes cuánto ganas de verdad</span>
+      <b class="h">Al cerrar, la cuenta ya está hecha.</b>
+      <p>Cada venta del menú, de las mesas y de los domicilios entra sola. Tú solo anotas lo que compras y lo que le pagas a tu gente, y Appetic te dice cuánto te quedó.</p>
+      <div class="chips">
+        <span><i>✓</i>Cierre de caja: efectivo, Nequi y tarjeta</span>
+        <span><i>✓</i>Gastos y compras del día</span>
+        <span><i>✓</i>Pago de nómina de tu equipo</span>
+        <span><i>✓</i>Tu ganancia del día y del mes</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="viaje dia">
+    <div class="head"><h4>Tu día en números</h4><span>Lo que ves al cerrar el local</span></div>
+    <div class="row3">
+      <div class="nc">
+        <span class="lb"><i class="ing">+</i>Vendiste hoy</span>
+        <b class="big">$1.150.000</b>
+        <div class="split"><i style="flex:612;background:#ED7D2B"></i><i style="flex:348;background:#7B3FE4"></i><i style="flex:190;background:#2A211C"></i></div>
+        <div class="rowx"><span><em style="background:#ED7D2B"></em>Efectivo</span><b>$612.000</b></div>
+        <div class="rowx"><span><em style="background:#7B3FE4"></em>Nequi</span><b>$348.000</b></div>
+        <div class="rowx"><span><em style="background:#2A211C"></em>Tarjeta</span><b>$190.000</b></div>
+      </div>
+      <span class="op">−</span>
+      <div class="nc">
+        <span class="lb"><i class="egr">−</i>Gastaste hoy</span>
+        <b class="big">$325.000</b>
+        <div class="rowx"><span>🥩 Carne y pollo</span><b>$280.000</b></div>
+        <div class="rowx"><span>🔥 Gas</span><b>$45.000</b></div>
+        <div class="rowx nom"><span>👥 Nómina de la quincena</span><b class="ok">Pagada ✓</b></div>
+      </div>
+      <span class="op">=</span>
+      <div class="nc res">
+        <span class="lb">Te quedó hoy</span>
+        <b class="big">$825.000</b>
+        <span class="sm">Sin sumar a mano ni un solo peso.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mes">
+    <div class="izq">
+      <span class="lb">Así se ve tu mes · octubre</span>
+      <div class="rowx"><span>Ventas</span><b>$26.420.000</b></div>
+      <div class="rowx"><span>Gastos y compras</span><b>− $14.200.000</b></div>
+      <div class="rowx"><span>Nómina</span><b>− $7.400.000</b></div>
+      <div class="tot"><span>Ganancia</span><b>$4.820.000</b></div>
+    </div>
+    <div class="der">
+      <div class="barras">
+        <div><i style="height:52%"></i><span>Jun</span></div>
+        <div><i style="height:61%"></i><span>Jul</span></div>
+        <div><i style="height:57%"></i><span>Ago</span></div>
+        <div><i style="height:78%"></i><span>Sep</span></div>
+        <div class="on"><i style="height:92%"></i><span>Oct</span></div>
+      </div>
+      <p class="nota5">Son <b>tus cuentas, para ti</b>. No es facturación electrónica ni trámites con la DIAN.</p>
     </div>
   </div>
 
@@ -477,11 +774,10 @@ h2 em{font-style:normal;color:var(--orange-strong);}
 
   <div class="footer">
     <div class="brand"><img src="img/swiftfly-mark.png" alt=""> Appetic · un producto de Swiftfly Solutions</div>
-    <div class="pg">4</div>
+    <div class="pg">6</div>
   </div>
 </div></div>
 
-<!-- ═════════════════════ 5 · PLANES ═════════════════════ -->
 <div class="page"><div class="pad">
   <span class="k">Ahora sí, los planes</span>
   <h2>Tómalo completo, <em>o solo lo que necesitas.</em></h2>
@@ -491,64 +787,78 @@ h2 em{font-style:normal;color:var(--orange-strong);}
     <div>
       <span class="nm">Plan Desarrollador</span>
       <div class="ttl">Tu propia app, hecha a tu medida</div>
-      <p>Todo lo del Total, con tu marca, en un servidor solo para ti y con el código entregado. Para cadenas.</p>
-      <span class="tag2x1">2×1 en la mensualidad</span>
+      <p>Te creamos la app con todo lo del Empresario y tu marca, y te entregamos el código. El servidor y el mantenimiento corren por tu cuenta. Para cadenas.</p>
+      <span class="tag2x1">Pago único · sin mensualidad</span>
     </div>
-    <div class="amt"><b>$5.000.000</b><span>una vez + $1.000.000 / mes</span></div>
+    <div class="amt"><b>$3.000.000</b><span>una sola vez · sin mensualidad</span></div>
   </div>
 
   <div class="plans">
     <div class="plan best">
       <span class="badge">Para empezar hoy</span>
-      <div class="pic"><img src="img/negocio-trailer.jpg" alt=""><span>Tengo un tráiler o un local pequeño</span></div>
-      <span class="nm">Básico</span>
-      <span class="for">Lo esencial: 1, 2 y 3</span>
-      <div class="amt">$39.900 <small>/ mes</small></div>
+      <div class="sello"><span>2.º mes</span><b>Gratis</b></div>
+      <div class="pic"><img src="img/negocio-trailer.jpg" alt=""><span>Tengo un tráiler o un local</span></div>
+      <span class="nm">Emprendedor</span>
+      <span class="for">Menú, pedidos y cuentas: 1, 2 y 5</span>
+      <div class="amt">$59.900 <small>/ mes</small></div>
       <span class="inc">Incluye</span>
       <ul>
         <li><i>✓</i>Menú con fotos y QR</li>
+        <li><i>✓</i>Pedidos para recoger por WhatsApp</li>
         <li><i>✓</i>Pantalla de menú para TV</li>
-        <li><i>✓</i>Pedidos al WhatsApp</li>
-        <li><i>✓</i>Domicilios y comandas</li>
         <li><i>✓</i>Menú del día y buscador</li>
+        <li><i>✓</i>Cierre de caja y gastos</li>
+        <li><i>✓</i>Nómina y ganancia del mes</li>
       </ul>
-      <div class="x2"><span class="no">Ya es el precio más bajo</span></div>
+      <div class="adel">
+        <span class="t">Si pagas por adelantado</span>
+        <div class="r"><span class="q">6 meses<em>pagas 5</em></span><span class="v"><s>$359.400</s><b>$299.500</b></span></div>
+        <div class="r"><span class="q">12 meses<em>pagas 10</em></span><span class="v"><s>$718.800</s><b>$599.000</b></span></div>
+        <span class="ah">Ahorras hasta $119.800 al año</span>
+      </div>
+    </div>
+    <div class="plan">
+      <span class="badge dk">Con domiciliario</span>
+      <div class="sello"><span>2.º mes</span><b>Gratis</b></div>
+      <div class="pic"><img src="img/negocio-local.jpg" alt=""><span>Tengo domiciliario</span></div>
+      <span class="nm">Comerciante</span>
+      <span class="for">Más domicilios: 1, 2, 3 y 5</span>
+      <div class="amt">$79.900 <small>/ mes</small></div>
+      <span class="inc">Todo el Emprendedor, más</span>
+      <ul>
+        <li><i>✓</i>Pedidos a domicilio</li>
+        <li><i>✓</i>Cobro del envío por distancia</li>
+        <li><i>✓</i>Panel del domiciliario</li>
+        <li><i>✓</i>Afiche de domicilios para imprimir</li>
+      </ul>
+      <div class="adel">
+        <span class="t">Si pagas por adelantado</span>
+        <div class="r"><span class="q">6 meses<em>pagas 5</em></span><span class="v"><s>$479.400</s><b>$399.500</b></span></div>
+        <div class="r"><span class="q">12 meses<em>pagas 10</em></span><span class="v"><s>$958.800</s><b>$799.000</b></span></div>
+        <span class="ah">Ahorras hasta $159.800 al año</span>
+      </div>
     </div>
     <div class="plan">
       <span class="badge dk">Para restaurantes</span>
-      <div class="pic"><img src="img/negocio-local.jpg" alt=""><span>Tengo mesas, meseros y cocina</span></div>
-      <span class="nm">Pro</span>
-      <span class="for">Del 1 al 4</span>
-      <div class="amt">$79.000 <small>/ mes</small></div>
-      <span class="inc">Todo el Básico, más</span>
+      <div class="sello"><span>2.º mes</span><b>Gratis</b></div>
+      <div class="pic"><img src="img/negocio-restaurante.jpg" alt=""><span>Tengo mesas, meseros y cocina</span></div>
+      <span class="nm">Empresario</span>
+      <span class="for">Todo: del 1 al 5</span>
+      <div class="amt">$99.900 <small>/ mes</small></div>
+      <span class="inc">Todo el Comerciante, más</span>
       <ul>
         <li><i>✓</i>Mesero en su celular</li>
         <li><i>✓</i>Pantalla de cocina</li>
-        <li><i>✓</i>QR en cada mesa</li>
-        <li><i>✓</i>Cuenta por mesa</li>
+        <li><i>✓</i>QR en cada mesa y cuenta por mesa</li>
+        <li><i>✓</i>Meseros y pantallas sin límite</li>
       </ul>
-      <div class="x2"><span>2×1 · primer mes</span></div>
+      <div class="adel">
+        <span class="t">Si pagas por adelantado</span>
+        <div class="r"><span class="q">6 meses<em>pagas 5</em></span><span class="v"><s>$599.400</s><b>$499.500</b></span></div>
+        <div class="r"><span class="q">12 meses<em>pagas 10</em></span><span class="v"><s>$1.198.800</s><b>$999.000</b></span></div>
+        <span class="ah">Ahorras hasta $199.800 al año</span>
+      </div>
     </div>
-    <div class="plan">
-      <div class="pic"><img src="img/negocio-restaurante.jpg" alt=""><span>Quiero saber cuánto gano</span></div>
-      <span class="nm">Total</span>
-      <span class="for">Todo: del 1 al 5</span>
-      <div class="amt">$129.000 <small>/ mes</small></div>
-      <span class="inc">Todo el Pro, más</span>
-      <ul>
-        <li><i>✓</i>Cierre de caja del día</li>
-        <li><i>✓</i>Gastos y compras</li>
-        <li><i>✓</i>Pago de nómina</li>
-        <li><i>✓</i>Ganancia del mes</li>
-      </ul>
-      <div class="x2"><span>2×1 · primer mes</span></div>
-    </div>
-  </div>
-
-  <div class="save">
-    <div class="s"><b>Paga 5, recibe 6</b><span>Pago semestral</span></div>
-    <div class="s"><b>Paga 10, recibe 12</b><span>Pago anual</span></div>
-    <div class="p"><b>2×1 primer mes</b><span>En Pro, Total y Desarrollador, hasta el 31 de diciembre de 2026.</span></div>
   </div>
 
   <div class="conds">
@@ -566,11 +876,11 @@ h2 em{font-style:normal;color:var(--orange-strong);}
     </div>
     <img src="img/qr-whatsapp.png" alt="QR de WhatsApp">
   </div>
-  <p class="fine">El pago semestral o anual no se suma con el 2×1. Precios en pesos colombianos.</p>
+  <p class="fine">El 2.º mes gratis aplica en los tres planes hasta el 31 de diciembre de 2026 y no se suma con el pago por adelantado. Precios en pesos colombianos.</p>
 
   <div class="footer">
     <div class="brand"><img src="img/swiftfly-mark.png" alt=""> Appetic · un producto de Swiftfly Solutions</div>
-    <div class="pg">5</div>
+    <div class="pg">7</div>
   </div>
 </div></div>
 

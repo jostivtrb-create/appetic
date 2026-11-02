@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Armador de planes · Appetic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --orange:#ED7D2B; --orange-strong:#E0692A; --orange-soft:#F6A45C;
+  --bg:#FFFBF4; --paper:#FFFFFF; --surface2:#FAF4EA; --tint:#FCEBD9;
+  --ink:#2A211C; --ink-soft:#6B5647; --faint:#9A8B7E; --line:rgba(42,33,28,.10);
+  --green:#1F8A4C; --blue:#2F6FE0;
+  --grad:linear-gradient(125deg,#E0692A 0%,#ED7D2B 46%,#F6A45C 100%);
+  --serif:'Playfair Display',Georgia,serif; --sans:'Plus Jakarta Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 120px;}
+.k{color:var(--orange-strong);font-size:11px;letter-spacing:.24em;font-weight:800;text-transform:uppercase;}
+h1{font-family:var(--serif);font-weight:800;font-size:34px;line-height:1.05;margin-top:6px;}
+h1 em{font-style:normal;color:var(--orange-strong);}
+.sub{color:var(--ink-soft);margin-top:8px;max-width:760px;}
+.regla{margin-top:14px;background:var(--tint);border-radius:14px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;max-width:860px;}
+.regla b{color:var(--orange-strong);}
+.leyenda{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px;font-size:12.5px;color:var(--ink-soft);}
+.leyenda span{display:inline-flex;align-items:center;gap:6px;}
+.dot{width:12px;height:12px;border-radius:4px;display:inline-block;}
+
+/* Planes (cabecera editable) */
+.planes{display:grid;gap:10px;margin-top:22px;}
+.pcard{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 14px;position:relative;}
+.pcard .ord{font-size:10.5px;letter-spacing:.18em;font-weight:800;text-transform:uppercase;color:var(--faint);}
+.pcard input.nm{font-family:var(--serif);font-weight:800;font-size:22px;border:0;background:transparent;width:100%;color:var(--ink);margin-top:2px;}
+.pcard .pr{display:flex;align-items:center;gap:6px;margin-top:4px;}
+.pcard .pr span{font-weight:800;color:var(--orange-strong);font-family:var(--serif);font-size:20px;}
+.pcard .pr input{width:100%;font-family:var(--serif);font-weight:800;font-size:20px;color:var(--orange-strong);border:1px dashed transparent;border-radius:8px;background:transparent;padding:2px 4px;}
+.pcard .pr input:hover,.pcard .pr input:focus{border-color:var(--orange-soft);outline:0;background:#FFF8F0;}
+.pcard .pr small{color:var(--ink-soft);font-weight:700;white-space:nowrap;}
+.pcard .cnt{font-size:12px;color:var(--ink-soft);margin-top:4px;}
+.pcard .x{position:absolute;top:8px;right:8px;border:0;background:var(--surface2);border-radius:8px;width:24px;height:24px;cursor:pointer;color:var(--faint);font-weight:800;}
+.pcard .x:hover{background:#FBE1E1;color:#B3261E;}
+.addplan{border:2px dashed #E3D3C2;border-radius:16px;background:transparent;cursor:pointer;color:var(--ink-soft);font-weight:800;font-family:var(--sans);font-size:13px;min-height:92px;}
+.addplan:hover{border-color:var(--orange);color:var(--orange-strong);}
+
+/* Tabla de servicios */
+.cat{margin-top:22px;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden;}
+.cat-h{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--surface2);}
+.cat-h h2{font-family:var(--serif);font-weight:800;font-size:19px;}
+.cat-h .n{font-size:12px;color:var(--faint);font-weight:700;}
+.row{display:grid;align-items:center;border-top:1px solid var(--line);}
+.row .info{padding:9px 16px;display:flex;flex-direction:column;gap:2px;min-width:0;}
+.row .info .t{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.row .info input.sn{font-weight:800;font-size:14px;border:0;background:transparent;color:var(--ink);font-family:var(--sans);min-width:0;flex:1;}
+.row .info input.sn:focus{outline:1px dashed var(--orange-soft);border-radius:6px;}
+.row .info .d{font-size:12px;color:var(--ink-soft);}
+.tag{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:2px 8px;white-space:nowrap;}
+.tag.ok{background:#E8F5EC;color:var(--green);}
+.tag.idea{background:#EAF0FD;color:var(--blue);}
+.tag.nueva{background:var(--tint);color:var(--orange-strong);}
+.row .del{border:0;background:transparent;color:var(--faint);cursor:pointer;font-size:16px;padding:0 6px;}
+.row .del:hover{color:#B3261E;}
+.cell{height:100%;min-height:52px;display:flex;align-items:center;justify-content:center;border-left:1px solid var(--line);cursor:pointer;user-select:none;transition:background .12s;}
+.cell:hover{background:#FFF4E8;}
+.cell .b{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:15px;border:2px solid #E6D9CB;color:transparent;background:#fff;}
+.cell.desde .b{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(224,105,42,.3);}
+.cell.hereda .b{background:#FCEBD9;border-color:#F3CFA9;color:var(--orange-strong);}
+.cell.no:hover .b{border-color:var(--orange-soft);color:var(--orange-soft);}
+.cell.no:hover .b::after{content:"+";}
+.thead{display:grid;position:sticky;top:0;z-index:5;background:var(--ink);color:#fff;border-radius:14px;margin-top:22px;box-shadow:0 8px 20px rgba(42,33,28,.18);}
+.thead div{padding:10px 8px;text-align:center;font-weight:800;font-size:13px;}
+.thead div:first-child{text-align:left;padding-left:16px;color:#D6C7B8;font-size:11px;letter-spacing:.16em;text-transform:uppercase;}
+.thead div small{display:block;color:var(--orange-soft);font-size:11.5px;}
+.addsvc{display:flex;gap:8px;padding:10px 16px;border-top:1px solid var(--line);background:#FFFDF9;}
+.addsvc input{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-family:var(--sans);font-size:13px;}
+.addsvc button,.btn{border:0;border-radius:10px;padding:8px 14px;font-weight:800;font-family:var(--sans);cursor:pointer;background:var(--ink);color:#fff;font-size:13px;}
+.btn.or{background:var(--grad);}
+.btn.gh{background:var(--surface2);color:var(--ink);}
+
+/* Resumen */
+.resumen{margin-top:30px;}
+.resumen h2{font-family:var(--serif);font-weight:800;font-size:26px;}
+.rcards{display:grid;gap:10px;margin-top:12px;}
+.rc{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:14px;}
+.rc .nm{font-family:var(--serif);font-weight:800;font-size:22px;}
+.rc .amt{font-family:var(--serif);font-weight:800;font-size:24px;color:var(--orange-strong);margin-top:2px;}
+.rc .amt small{font-family:var(--sans);font-size:12px;color:var(--ink-soft);}
+.rc .inc{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-top:10px;}
+.rc ul{list-style:none;margin-top:6px;display:grid;gap:3px;}
+.rc li{font-size:13px;display:flex;gap:6px;}
+.rc li i{font-style:normal;color:var(--green);font-weight:900;}
+.rc li.id i{color:var(--blue);}
+.rc .vacio{font-size:12.5px;color:var(--faint);margin-top:6px;}
+.aviso{margin-top:8px;font-size:12px;color:#9a4b00;background:#FFF1DE;border-radius:8px;padding:6px 9px;}
+
+.barra{position:fixed;left:0;right:0;bottom:0;background:rgba(42,33,28,.96);backdrop-filter:blur(6px);color:#fff;padding:12px 16px;z-index:20;}
+.barra .in{max-width:1180px;margin:0 auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.barra .msg{flex:1;font-size:13px;color:#E7D9CA;min-width:200px;}
+.barra .msg b{color:#fff;}
+textarea.obs{width:100%;margin-top:8px;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-family:var(--sans);font-size:13px;min-height:70px;background:#fff;}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:var(--green);color:#fff;font-weight:800;border-radius:999px;padding:9px 18px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:30;}
+.toast.on{opacity:1;}
+
+@media (max-width:720px){
+  h1{font-size:27px;}
+  .row .info{padding:8px 10px;}
+  .cell .b{width:26px;height:26px;}
+  .thead div{font-size:11.5px;padding:8px 4px;}
+  .planes{grid-template-columns:1fr 1fr !important;}
+  .rcards{grid-template-columns:1fr !important;}
+  .barra .msg{display:none;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="k">Appetic · armador de planes</span>
+  <h1>Arma los planes <em>a tu medida.</em></h1>
+  <p class="sub">Están todos los servicios de Appetic: los que ya existen en la app y algunos que podríamos crear. Toca la casilla del plan <b>más barato</b> donde quieres que aparezca cada servicio y ponle precio a cada plan.</p>
+  <div class="regla"><span style="font-size:20px">⬆️</span><div><b>La regla:</b> lo que pongas en un plan se incluye solo en todos los planes más grandes que él. Para quitar un servicio de todos, toca otra vez la casilla naranja.</div></div>
+  <div class="leyenda">
+    <span><i class="dot" style="background:var(--grad)"></i>Desde este plan</span>
+    <span><i class="dot" style="background:#FCEBD9;border:1px solid #F3CFA9"></i>Incluido porque viene de un plan menor</span>
+    <span><span class="tag ok">Ya existe</span>está en la app hoy</span>
+    <span><span class="tag idea">Idea</span>habría que construirlo</span>
+  </div>
+
+  <div class="planes" id="planes"></div>
+  <div class="thead" id="thead"></div>
+  <div id="cats"></div>
+
+  <div class="resumen">
+    <span class="k">Así quedarían</span>
+    <h2>Resumen de los planes</h2>
+    <div class="rcards" id="rcards"></div>
+    <p class="sub" style="margin-top:14px"><b>Observaciones</b> (lo que quieras que tenga en cuenta, por ejemplo el plan Desarrollador, descuentos o nombres):</p>
+    <textarea class="obs" id="obs" placeholder="Escribe aquí…"></textarea>
+  </div>
+</div>
+
+<div class="barra"><div class="in">
+  <div class="msg" id="msg"></div>
+  <button class="btn gh" id="reset">Volver a lo acordado</button>
+  <button class="btn or" id="copiar">📋 Copiar para el chat</button>
+</div></div>
+<div class="toast" id="toast">¡Copiado! Pégalo en el chat</div>
+
+<script>
+// ── Catálogo. tier = índice del plan más barato donde aparece (-1 = en ninguno). ──
+// Estado inicial = los planes acordados el 2-nov-2026 (Emprendedor · Comerciante · Empresario),
+// ver .mega-cuestionario/Guía para los planes por tipo de negocio.md.
+const BASE = {
+  planes:[
+    {nombre:'Emprendedor', precio:59900},
+    {nombre:'Comerciante', precio:79900},
+    {nombre:'Empresario', precio:99900},
+  ],
+  cats:[
+    {id:'menu', nombre:'📱 Menú digital', items:[
+      ['Menú digital con fotos','Tu carta con la foto de cada plato, por categorías','ok',0],
+      ['Fotos de los platos hechas con IA','Armamos la foto de cada plato de la carta','ok',0],
+      ['Opciones, adiciones y combos','Acompañantes, «sin cebolla», combos con precio','ok',0],
+      ['QR del local y link propio','Para pegar en el local, redes y WhatsApp','ok',0],
+      ['Tu marca: colores, logo y portada','El menú se ve como tu negocio','ok',0],
+      ['Precios y agotados al instante','Lo cambias tú y se ve de una vez','ok',0],
+      ['Horario de atención','Abre y cierra solo según tu horario','ok',0],
+      ['Menú del día','El almuerzo de hoy, lo cambias en un minuto','ok',0],
+      ['Se instala sin tienda de apps','El cliente la deja en su pantalla','ok',0],
+      ['Favoritos y «Mis pedidos» del cliente','Repite su pedido de siempre','ok',0],
+    ]},
+    {id:'tv', nombre:'📺 Pantallas', items:[
+      ['Menú en vivo para TV','Los platos pasan solos con foto y precio','ok',0],
+    ]},
+    {id:'pedidos', nombre:'🧾 Pedidos', items:[
+      ['Pedido al WhatsApp del local','Llega armado, listo para confirmar','ok',0],
+      ['Pedido para recoger','El cliente pide y pasa por él','ok',0],
+      ['Pedidos por confirmar','Aceptas o rechazas cada pedido con un toque','ok',0],
+      ['Comandas con «ya se cobró»','Sigues cada pedido hasta cobrarlo','ok',0],
+      ['Avisos al celular (notificaciones)','Te suena cuando entra un pedido','ok',0],
+    ]},
+    {id:'domi', nombre:'🛵 Domicilios', items:[
+      ['Domicilios','Pedidos para llevar a la casa del cliente','ok',1],
+      ['Cobro del envío por distancia','La app calcula el domicilio sola','ok',1],
+      ['Panel del domiciliario','Ve a dónde va y cuánto cobrar','ok',1],
+      ['Afiche de domicilios para imprimir','Con tu QR, listo para pegar','ok',1],
+    ]},
+    {id:'salon', nombre:'🍽️ Salón: meseros y cocina', items:[
+      ['Mesero en su celular','Toma el pedido en la mesa y lo manda','ok',2],
+      ['Pantalla de cocina','Comandas en orden, con reloj y por destino','ok',2],
+      ['QR en cada mesa','El cliente pide solo desde su mesa','ok',2],
+      ['Cuenta por mesa','Todo lo que pidió la mesa, junto','ok',2],
+      ['Aviso de «pedido listo» al mesero','Con sonido, en cualquier pantalla','ok',2],
+      ['Corregir o cancelar comandas','Si el mesero se equivocó','ok',2],
+      ['Comanda impresa en papel','Impresora térmica en la cocina','idea',-1],
+      ['Reservas de mesa','El cliente aparta su mesa desde el menú','idea',-1],
+      ['Dividir la cuenta y propinas','Cada quien paga lo suyo','idea',-1],
+    ]},
+    {id:'cuentas', nombre:'📊 Cuentas y números', items:[
+      ['Tus números del menú','Visitas, pedidos y cuánto sumaron','ok',0],
+      ['Cierre de caja del día','Efectivo, Nequi y tarjeta','idea',0],
+      ['Gastos y compras','Lo que compraste en el día','idea',0],
+      ['Pago de nómina','Lo que le pagas a tu equipo','idea',0],
+      ['Ganancia del día y del mes','Cuánto te quedó de verdad','idea',0],
+      ['Inventario de insumos','Te avisa cuando algo se está acabando','idea',-1],
+      ['Platos más vendidos','Qué vende y qué no','idea',0],
+    ]},
+    {id:'clientes', nombre:'💛 Clientes y ventas', items:[
+      ['Buscador del barrio','Clientes nuevos te encuentran en Appetic','ok',0],
+      ['Kit de bienvenida y difusión','Link, QR, artes y mensajes para WhatsApp','ok',0],
+      ['Cupones y promociones','«2×1 los martes», descuentos con código','idea',-1],
+      ['Clientes frecuentes y puntos','Premia al que más te compra','idea',-1],
+      ['Mensajes masivos a tus clientes','Avisa el menú del día por WhatsApp','idea',-1],
+      ['Reseñas de clientes','Estrellas y comentarios en tu menú','idea',-1],
+      ['Chatbot con IA','Responde preguntas dentro del menú','idea',-1],
+    ]},
+    {id:'pagos', nombre:'💳 Pagos y facturas', items:[
+      ['Pago en línea (Nequi, PSE, tarjeta)','El cliente paga desde el menú','idea',-1],
+      ['Facturación electrónica DIAN','Con un aliado autorizado','idea',-1],
+    ]},
+    {id:'servicio', nombre:'🤝 Servicio', items:[
+      ['Montaje: lo instalamos nosotros','Tu carta, fotos, mesas y equipo listos','ok',0],
+      ['Soporte por WhatsApp','Hablas con quien hizo la app','ok',0],
+      ['Meseros y pantallas sin límite','Todos los que necesites','ok',2],
+      ['Varias sedes en una cuenta','Ves todos tus locales juntos','idea',-1],
+      ['Dominio propio (tunegocio.com)','Tu menú con tu propia dirección','idea',-1],
+      ['Soporte prioritario','Te atendemos primero','idea',-1],
+    ]},
+  ]
+};
+
+const KEY='appetic_armador_planes_v2';
+let S;
+function cargar(){
+  try{ const g=localStorage.getItem(KEY); if(g){ S=JSON.parse(g); return; } }catch(e){}
+  S=desdeBase();
+}
+function desdeBase(){
+  return {
+    planes:BASE.planes.map(p=>({...p})),
+    cats:BASE.cats.map(c=>({id:c.id,nombre:c.nombre,items:c.items.map(([n,d,e,t])=>({n,d,e,t}))})),
+    obs:''
+  };
+}
+function guardar(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
+const $=id=>document.getElementById(id);
+const fmt=n=>'$'+Math.round(Number(n)||0).toLocaleString('es-CO').replace(/,/g,'.');
+const cols=()=>`minmax(0,1fr) repeat(${S.planes.length}, ${window.innerWidth<720?'52px':'96px'})`;
+
+function render(){
+  // planes
+  const pl=$('planes');
+  pl.style.gridTemplateColumns=`repeat(${S.planes.length+1}, minmax(0,1fr))`;
+  pl.innerHTML=S.planes.map((p,i)=>`
+    <div class="pcard">
+      <span class="ord">Plan ${i+1}${i>0?' · incluye el '+esc(S.planes[i-1].nombre):''}</span>
+      ${S.planes.length>1?`<button class="x" data-delplan="${i}" title="Quitar plan">×</button>`:''}
+      <input class="nm" data-pn="${i}" value="${esc(p.nombre)}">
+      <div class="pr"><span>$</span><input inputmode="numeric" data-pp="${i}" value="${Number(p.precio).toLocaleString('es-CO').replace(/,/g,'.')}"><small>/ mes</small></div>
+      <div class="cnt">${contar(i)} servicios</div>
+    </div>`).join('')+`<button class="addplan" id="addplan">+ Agregar un plan más grande</button>`;
+  // cabecera de la tabla
+  const th=$('thead');
+  th.style.gridTemplateColumns=cols();
+  th.innerHTML='<div>Servicio</div>'+S.planes.map(p=>`<div>${esc(p.nombre)}<small>${fmt(p.precio)}</small></div>`).join('');
+  // categorías
+  $('cats').innerHTML=S.cats.map((c,ci)=>`
+    <div class="cat">
+      <div class="cat-h"><h2>${esc(c.nombre)}</h2><span class="n">${c.items.length} servicios</span></div>
+      ${c.items.map((it,ii)=>`
+        <div class="row" style="grid-template-columns:${cols()}">
+          <div class="info">
+            <div class="t"><input class="sn" data-sn="${ci}.${ii}" value="${esc(it.n)}"><span class="tag ${it.e}">${it.e==='ok'?'Ya existe':it.e==='idea'?'Idea':'Nueva'}</span>${it.e==='nueva'?`<button class="del" data-del="${ci}.${ii}" title="Borrar">🗑</button>`:''}</div>
+            ${it.d?`<span class="d">${esc(it.d)}</span>`:''}
+          </div>
+          ${S.planes.map((_,pi)=>{
+            const k = it.t<0||pi<it.t ? 'no' : pi===it.t ? 'desde' : 'hereda';
+            return `<div class="cell ${k}" data-c="${ci}.${ii}.${pi}" title="${k==='desde'?'Toca para quitarlo de todos':k==='hereda'?'Viene incluido de un plan menor':'Toca para ponerlo desde este plan'}"><span class="b">${k==='no'?'':'✓'}</span></div>`;
+          }).join('')}
+        </div>`).join('')}
+      <div class="addsvc"><input placeholder="Agregar otro servicio a «${esc(c.nombre.replace(/^\S+\s/,''))}»…" data-addin="${ci}"><button data-add="${ci}">Agregar</button></div>
+    </div>`).join('');
+  // resumen
+  const rc=$('rcards');
+  rc.style.gridTemplateColumns=`repeat(${Math.min(S.planes.length,4)}, minmax(0,1fr))`;
+  rc.innerHTML=S.planes.map((p,i)=>{
+    const nuevos=[]; S.cats.forEach(c=>c.items.forEach(it=>{ if(it.t===i) nuevos.push(it); }));
+    const ideas=nuevos.filter(it=>it.e!=='ok').length;
+    return `<div class="rc">
+      <div class="nm">${esc(p.nombre)}</div>
+      <div class="amt">${fmt(p.precio)} <small>/ mes</small></div>
+      <div class="inc">${i===0?'Incluye':'Todo el '+esc(S.planes[i-1].nombre)+', más'}</div>
+      ${nuevos.length?`<ul>${nuevos.map(it=>`<li class="${it.e!=='ok'?'id':''}"><i>${it.e!=='ok'?'✦':'✓'}</i>${esc(it.n)}</li>`).join('')}</ul>`:'<p class="vacio">Todavía no le agregas nada propio.</p>'}
+      ${ideas?`<p class="aviso">✦ ${ideas} ${ideas===1?'servicio es idea':'servicios son ideas'}: habría que construirlos.</p>`:''}
+      <p class="vacio" style="margin-top:8px">${contar(i)} servicios en total</p>
+    </div>`;
+  }).join('');
+  $('obs').value=S.obs||'';
+  const sin=[]; S.cats.forEach(c=>c.items.forEach(it=>{ if(it.t<0) sin.push(it.n); }));
+  $('msg').innerHTML=`<b>${S.planes.length} planes</b> · ${sin.length} servicios sin asignar a ningún plan · se guarda solo en este navegador`;
+}
+function contar(pi){ let n=0; S.cats.forEach(c=>c.items.forEach(it=>{ if(it.t>=0&&it.t<=pi) n++; })); return n; }
+function esc(s){ return String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m])); }
+
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-c]');
+  if(c){ const [ci,ii,pi]=c.dataset.c.split('.').map(Number); const it=S.cats[ci].items[ii]; it.t = it.t===pi ? -1 : pi; guardar(); render(); return; }
+  const d=e.target.closest('[data-del]');
+  if(d){ const [ci,ii]=d.dataset.del.split('.').map(Number); S.cats[ci].items.splice(ii,1); guardar(); render(); return; }
+  const a=e.target.closest('[data-add]');
+  if(a){ const ci=+a.dataset.add; const inp=document.querySelector(`[data-addin="${ci}"]`); const v=inp.value.trim(); if(!v) return; S.cats[ci].items.push({n:v,d:'',e:'nueva',t:-1}); guardar(); render(); return; }
+  const dp=e.target.closest('[data-delplan]');
+  if(dp){ const i=+dp.dataset.delplan; if(!confirm('¿Quitar el plan «'+S.planes[i].nombre+'»? Sus servicios pasan al plan siguiente (o al anterior si era el último).')) return;
+    S.planes.splice(i,1);
+    S.cats.forEach(c=>c.items.forEach(it=>{ if(it.t>i) it.t--; else if(it.t===i) it.t=Math.min(i,S.planes.length-1); }));
+    guardar(); render(); return; }
+  if(e.target.id==='addplan'){ const u=S.planes[S.planes.length-1]; S.planes.push({nombre:'Plan '+(S.planes.length+1),precio:Math.round((Number(u.precio)||0)*1.5/1000)*1000}); guardar(); render(); return; }
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter' && e.target.matches('[data-addin]')){ document.querySelector(`[data-add="${e.target.dataset.addin}"]`).click(); }
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.pn!==undefined){ S.planes[+t.dataset.pn].nombre=t.value.trim()||'Plan'; }
+  else if(t.dataset.pp!==undefined){ S.planes[+t.dataset.pp].precio=Number(t.value.replace(/\D/g,''))||0; }
+  else if(t.dataset.sn!==undefined){ const [ci,ii]=t.dataset.sn.split('.').map(Number); S.cats[ci].items[ii].n=t.value.trim()||S.cats[ci].items[ii].n; }
+  else return;
+  guardar(); render();
+});
+$('obs').addEventListener('input',e=>{ S.obs=e.target.value; guardar(); });
+$('reset').addEventListener('click',()=>{ if(confirm('¿Volver los planes a como están hoy en la propuesta? Se pierden tus cambios.')){ S=desdeBase(); guardar(); render(); } });
+$('copiar').addEventListener('click',async()=>{
+  let t='PLANES DE APPETIC (armador)\n\n';
+  S.planes.forEach((p,i)=>{
+    t+=`■ ${p.nombre} — ${fmt(p.precio)} / mes\n`;
+    t+= i===0 ? '  Incluye:\n' : `  Todo el ${S.planes[i-1].nombre}, más:\n`;
+    let n=0; S.cats.forEach(c=>c.items.forEach(it=>{ if(it.t===i){ n++; t+=`   ${it.e==='ok'?'✓':'✦'} ${it.n}${it.e==='ok'?'':' ('+(it.e==='idea'?'idea':'nueva')+')'}\n`; } }));
+    if(!n) t+='   (nada propio)\n';
+    t+='\n';
+  });
+  const sin=[]; S.cats.forEach(c=>c.items.forEach(it=>{ if(it.t<0) sin.push(it.n); }));
+  if(sin.length) t+='Sin asignar (no van en ningún plan):\n   '+sin.join(' · ')+'\n\n';
+  if(S.obs&&S.obs.trim()) t+='Observaciones:\n'+S.obs.trim()+'\n';
+  try{ await navigator.clipboard.writeText(t); }catch(e){
+    const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+  }
+  const to=$('toast'); to.classList.add('on'); setTimeout(()=>to.classList.remove('on'),1800);
+});
+window.addEventListener('resize',()=>render());
+cargar(); render();
+</script>
+</body>
+</html>

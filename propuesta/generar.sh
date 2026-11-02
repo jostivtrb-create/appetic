@@ -6,14 +6,14 @@
 #   bash propuesta/generar.sh tapa-appetic propuesta-appetic → también la versión impresa
 #
 # Versión IMPRESA (28-oct-2026): tapa-appetic.html es la tapa del folder. Cada vez que hay
-# tapa y propuesta se une todo en propuesta-impresa-appetic.pdf (tapa + 5 páginas).
+# tapa y propuesta se une todo en propuesta-impresa-appetic.pdf (tapa + 6 páginas).
 #
 # Las imágenes viven en propuesta/img/ y las fuentes en propuesta/fuentes.css
 # (copiado de cartilla/fuentes.css). El PDF resultante sí es autosuficiente:
 # Chrome mete dentro las fuentes y las imágenes.
 #
 # Appetic tiene UNA sola pieza (decisión P8, 27-oct-2026):
-#   · propuesta-appetic.html → 5 páginas A4 (nov-2026): Básico · Pro · Total · Desarrollador,
+#   · propuesta-appetic.html → 6 páginas A4 (nov-2026): Básico · Pro · Total · Desarrollador,
 #     visual y con poco texto. Ver .mega-cuestionario/Guía para los planes por tamaño de Appetic.md
 # El folleto (folleto-appetic.html) y la cartilla (cartilla/) están jubilados: no se regeneran.
 set -e
