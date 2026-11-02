@@ -52,6 +52,9 @@ function armarPedido(local, pedido, codigo) {
     codigo: codigo || '',
     estado: 'nuevo',
     entrega: pedido.entrega || 'recoger',
+    // Ya sumó a los contadores por tipo de stats (domicilios/recoger): el script que pasa los pedidos
+    // viejos a esos contadores se salta los que lo traen, así nunca se cuentan dos veces.
+    enStats: true,
     localId: local.id,
     localNombre: local.nombre || '',
     localSlug: local.slug || '',

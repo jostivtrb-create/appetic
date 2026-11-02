@@ -6,12 +6,14 @@
 // a los que cuenta: se puede correr las veces que haga falta sin contar doble.
 //
 //   node scripts/contar-pedidos-por-tipo.mjs          → solo muestra qué haría
-//   node scripts/contar-pedidos-por-tipo.mjs --escribir
+//   node scripts/contar-pedidos-por-tipo.mjs --escribir [--hasta=<fecha ISO>]
 import { initializeApp, cert } from 'firebase-admin/app'
 import { getFirestore, FieldValue } from 'firebase-admin/firestore'
 import { readFileSync } from 'fs'
 
 const escribir = process.argv.includes('--escribir')
+// --hasta=2026-11-02T17:00:00-05:00 → solo los pedidos creados antes (los de después ya los sumó la app).
+const hasta = Date.parse(process.argv.find(a => a.startsWith('--hasta='))?.slice(8) || '') || Infinity
 initializeApp({ credential: cert(JSON.parse(readFileSync(new URL('./serviceAccount.json', import.meta.url)))) })
 const db = getFirestore()
 const CAMPO = { domicilio: 'domicilios', recoger: 'recoger' }
@@ -19,7 +21,7 @@ const CAMPO = { domicilio: 'domicilios', recoger: 'recoger' }
 const fechaBogota = d => d.toLocaleDateString('en-CA', { timeZone: 'America/Bogota' })
 
 for (const L of (await db.collection('locales').get()).docs) {
-  const pedidos = (await L.ref.collection('pedidos').get()).docs.filter(d => !d.data().enStats)
+  const pedidos = (await L.ref.collection('pedidos').get()).docs.filter(d => !d.data().enStats && (d.data().createdAt?.toMillis?.() || 0) < hasta)
   if (!pedidos.length) continue
   const porDia = {}, total = {}
   for (const d of pedidos) {
