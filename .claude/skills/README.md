@@ -15,7 +15,7 @@ entorno es Linux y no tiene esas herramientas ni esos archivos.
 
 | Skill | ¿En la nube? | Por qué |
 |---|---|---|
-| `Generar_Imagen` | ❌ No | Corre `generar.ps1` (PowerShell) en el PC |
+| `Generar_Imagen` | ✅ Sí | Escribe prompts para Gemini (no genera). Su recorte de croma (`scripts/recortar_croma.py`) necesita `pip install pillow numpy scipy`; subir resolución sí es solo del PC |
 | `Mejorar_Calidad_Imagen` | ❌ No | Necesita el `.exe` de Real-ESRGAN del PC |
 | `Quitar_Fondo_Mejorar_Calidad` | ❌ No | Real-ESRGAN + Pillow del PC |
 | `Mejorar_Calidad_Video` | ❌ No | Real-ESRGAN + ffmpeg del PC |
