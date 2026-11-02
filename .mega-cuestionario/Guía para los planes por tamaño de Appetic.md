@@ -193,3 +193,10 @@ propuesta de venta, que sea muy llamativa y a la vez muy bien distribuida."*
 - **2 de noviembre de 2026** — Llegaron las 5 fotos de Gemini y reemplazaron a las provisionales
   con los mismos nombres. Regenerados la propuesta (5 páginas) y la versión impresa (tapa + 5).
   Borrados los cuestionarios HTML de las rondas 1 y 2. **Tarea cerrada.**
+- **2 de noviembre de 2026** — Ajuste pedido tras ver el PDF: *"las fotos de Pilotos me gustaban,
+  la del local era buena para mostrar el menú digital; las fotos de cocina no se ven nada
+  llamativas"*. Página 3: «Adiós a la fila» ahora son **tres celulares con capturas reales**
+  (menú de Pilotos → producto → pedido al WhatsApp), que además llenan el hueco de abajo.
+  Página 4: el mesero y la cocina **dibujados** se cambian por **capturas reales** recortadas
+  (`img/mesero-recorte.jpg`, `img/cocina-recorte.jpg`). Esto corrige D23/S4 solo para el Pro; la
+  TV y la contabilidad siguen dibujadas porque no existen en la app.
