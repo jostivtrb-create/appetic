@@ -36,7 +36,7 @@
 }
 .pv-vistas-ico { position: relative; font-size: 18px; line-height: 1; }
 .pv-vistas-ico i {
-  position: absolute; top: -7px; right: -12px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px;
+  position: absolute; top: -8px; right: -10px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 999px;
   display: grid; place-items: center; font-style: normal; font-size: 10.5px; font-weight: 900; background: var(--acc); color: var(--acc-txt);
 }
 .pv-vistas button.on { color: var(--acc); }
@@ -53,7 +53,7 @@
 }
 @media (min-width: 1024px) {
   .pv-vistas { margin-top: 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 4px; max-width: 480px; }
-  .pv-vistas button { border-radius: 11px; padding: 9px 12px; }
+  .pv-vistas button { border-radius: 11px; padding: 9px 12px; gap: 14px; }
   .pv-vistas button:hover:not(.on) { color: var(--text); background: var(--surface); }
   .pv-vistas button.on { background: var(--acc); color: var(--acc-txt); box-shadow: 0 6px 16px -8px var(--acc); }
   .pv-vistas button.on .pv-vistas-ico i { background: var(--acc-txt); color: var(--acc); }
@@ -81,7 +81,7 @@
 .pv-cuenta.mesa.lista small { color: #1B7A43; font-weight: 700; }
 .pv-cuenta.mesa.on { border-color: var(--mesa); background: color-mix(in srgb, var(--mesa) 12%, var(--surface)); box-shadow: 0 0 0 1px var(--mesa) inset; }
 .pv-cuenta.mesa.on b { color: var(--mesa); }
-.pv-cuenta.vieja { border-style: dashed; }
+.pv-cuenta.vieja small { color: #B45309; font-weight: 700; }
 @keyframes pvLatido { 50% { transform: scale(.7); opacity: .55; } }
 
 /* Menú + ticket */
@@ -290,6 +290,13 @@
 .pv-elim-q button { text-align: left; font: inherit; font-weight: 800; font-size: 14.5px; padding: 9px 12px; border-radius: 12px; border: 1.5px solid #F0C9C5; background: var(--surface); cursor: pointer; }
 .pv-elim-q button small { display: block; font-weight: 500; font-size: 12.5px; color: var(--text-soft); }
 .pv-elim-q button.on { border-color: var(--danger); background: #FFF1F0; }
-.pv-plato-info { position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: transparent; color: var(--text-soft); font-size: 14px; cursor: pointer; }
-.pv-plato-info:hover { background: var(--acc-soft); color: var(--acc); }
+.pv-plato-info { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: transparent; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.pv-plato-info span { width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid var(--text-faint); color: var(--text-soft); font: 800 11px/1 Georgia, serif; font-style: italic; display: grid; place-items: center; }
+.pv-plato-info:hover span { border-color: var(--acc); color: var(--acc); }
 .pv-plato.on .pv-plato-info { right: 22px; }
+
+.pv-otro-dia { font-weight: 700; color: #B45309; }
+.pv-ya-acc { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 14px; margin-top: 4px; padding-top: 6px; border-top: 1px dashed var(--border); }
+.pv-ya-acc .pv-link { font-size: 13px; }
+.pv-ya-acc.seguro { align-items: center; }
+.pv-ya-acc.seguro span { flex: 1; font-size: 13px; font-weight: 700; color: #8E1B14; }

@@ -32,7 +32,7 @@ import { avisarDemo } from '../../components/Demo/eventosDemo'
 // modo 'mesero' (D29): la MISMA pantalla para el mesero, sin cobrar: el botón grande es
 // «🔥 Enviar a cocina» (a la mesa elegida, o pregunta para dónde va) y F2 envía.
 
-const COLORES = ['#E0692A', '#1E6FD9', '#1B8A4B', '#9C27B0', '#C2185B', '#0F7C8C', '#B7791F', '#5D4037']
+const COLORES = ['#E0692A', '#1E6FD9', '#1B8A4B', '#9C27B0', '#C2185B', '#0F7C8C', '#D97706', '#4F46E5']
 const DOMI = '#6A35C9'
 const uid = () => Math.random().toString(36).slice(2, 10)
 const normalizar = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim()
@@ -83,7 +83,10 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
   const [guardado, setGuardado] = useState(() => {
     try {
       const g = JSON.parse(localStorage.getItem(KEY) || '{}')
-      const carts = Object.fromEntries(Object.entries(g.carts || {}).map(([k, l]) => [k, (l || []).filter(it => idsMenu.has(it.producto?.id))]))
+      // Fuera lo que ya no está en el menú, o cuya variante ya no existe (quedaría en $0).
+      const vale = it => idsMenu.has(it.producto?.id)
+        && (!it.seleccion?.varianteId || (it.producto.variantes || []).some(v => v.id === it.seleccion.varianteId))
+      const carts = Object.fromEntries(Object.entries(g.carts || {}).map(([k, l]) => [k, (l || []).filter(vale)]))
       return { carts, nuevas: g.nuevas || [] }
     } catch { return { carts: {}, nuevas: [] } }
   })
@@ -228,6 +231,23 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
     } finally { setEnviando(false) }
   }
 
+  // ── Comandas atascadas: «Ya salió» (la cocina no la marcó) o cancelarla ──
+  const [cancelando, setCancelando] = useState(null)
+  async function yaSalio(c) {
+    try {
+      await api.entregar(c)
+      if (c.pedidoId) pedidos.cambiarEstado(c.pedidoId, 'listo').catch(() => {})
+    } catch { setError('No se pudo marcar. Revisa el internet.') }
+  }
+  async function cancelarComanda(c) {
+    setCancelando(null)
+    try {
+      await api.cancelar(c, por)
+      if (c.pedidoId) pedidos.cambiarEstado(c.pedidoId, 'rechazado').catch(() => {})
+      avisar(`Comanda de ${etiquetaDestino(c.destino)} cancelada`)
+    } catch { setError('No se pudo cancelar. Revisa el internet.') }
+  }
+
   // ── Cobrar ──
   const [cobro, setCobro] = useState(null)   // { comandas, conLineas, titulo }
   function abrirCobro(soloComanda = null) {
@@ -339,7 +359,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
         <span className="pv-plato-precio">{tieneOpciones(p) && p.variantes?.length ? 'desde ' : ''}{precioDesde(p)}{tieneOpciones(p) ? ' ›' : ''}</span>
         {p.descripcion && (
           <button type="button" className="pv-plato-info" aria-label={`¿Qué lleva ${p.nombre}?`} title="¿Qué lleva?"
-            onClick={e => { e.stopPropagation(); setInfo(p) }}>ⓘ</button>
+            onClick={e => { e.stopPropagation(); setInfo(p) }}><span aria-hidden="true">i</span></button>
         )}
         {n > 0 && <span className="pv-plato-n">{n}</span>}
         {n > 0 && (
@@ -363,10 +383,12 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
 
       {grupo?.comandas.map(c => {
         const e = etapa(c)
+        const desde = ms(c.creadaEn)
+        const otroDia = desde && desde < hoy0
         return (
           <div key={c.id} className={`pv-ya${e.fin ? ' fin' : ''}`}>
             <div className="pv-ya-cab">
-              <span>{e.txt}</span>
+              <span>{e.txt}{otroDia ? <small className="pv-otro-dia"> · {new Date(desde).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}</small> : null}</span>
               {!esMesero && grupo.comandas.length > 1 && e.fin && <button type="button" className="pv-link" onClick={() => abrirCobro(c)}>Cobrar solo esta</button>}
             </div>
             {itemsVivos(c).map(it => (
@@ -376,6 +398,18 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
               </div>
             ))}
             {c.envio > 0 && <div className="pv-linea ya"><div className="pv-linea-nombre">Envío</div><div className="pv-linea-sub">{cop(c.envio)}</div></div>}
+            {cancelando === c.id ? (
+              <div className="pv-ya-acc seguro">
+                <span>¿Cancelar esta comanda? No se cobra.</span>
+                <button type="button" className="pv-link" onClick={() => setCancelando(null)}>No</button>
+                <button type="button" className="pv-link peligro" onClick={() => cancelarComanda(c)}>Sí, cancelar</button>
+              </div>
+            ) : (
+              <div className="pv-ya-acc">
+                {c.estado === 'activa' && !e.fin && <button type="button" className="pv-link" onClick={() => yaSalio(c)}>✓ Ya salió de cocina</button>}
+                <button type="button" className="pv-link peligro" onClick={() => setCancelando(c.id)}>Cancelar comanda</button>
+              </div>
+            )}
           </div>
         )
       })}
