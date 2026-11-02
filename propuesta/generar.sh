@@ -1,34 +1,25 @@
 #!/usr/bin/env bash
-# Regenera los PDF de Appetic con Chrome headless.
+# Regenera el PDF de la propuesta de Appetic con Chrome headless.
 #
-#   bash propuesta/generar.sh                  → la propuesta (única pieza vigente)
-#   bash propuesta/generar.sh propuesta-appetic
-#   bash propuesta/generar.sh tapa-appetic propuesta-appetic → también la versión impresa
+#   bash propuesta/generar.sh
 #
-# Versión IMPRESA (28-oct-2026): tapa-appetic.html es la tapa del folder. Cada vez que hay
-# tapa y propuesta se une todo en propuesta-impresa-appetic.pdf (tapa + 6 páginas).
+# UN SOLO PDF (2-nov-2026): propuesta-appetic.pdf sirve igual para WhatsApp y para imprimir.
+# Ya trae su propia portada (Swiftfly × Appetic), así que la tapa del folder (tapa-appetic) y la
+# versión impresa aparte (propuesta-impresa-appetic.pdf) se retiraron: repetían la portada.
 #
-# Las imágenes viven en propuesta/img/ y las fuentes en propuesta/fuentes.css
-# (copiado de cartilla/fuentes.css). El PDF resultante sí es autosuficiente:
-# Chrome mete dentro las fuentes y las imágenes.
+# Las imágenes viven en propuesta/img/ y las fuentes en propuesta/fuentes.css. El PDF resultante
+# es autosuficiente: Chrome mete dentro las fuentes y las imágenes.
 #
-# Appetic tiene UNA sola pieza (decisión P8, 27-oct-2026):
-#   · propuesta-appetic.html → 6 páginas A4 (nov-2026): Básico · Pro · Total · Desarrollador,
-#     visual y con poco texto. Ver .mega-cuestionario/Guía para los planes por tamaño de Appetic.md
+#   · propuesta-appetic.html → 7 páginas A4: portada · qué es · 1 menú · 2 TV + 3 domicilios ·
+#     4 meseros y cocina · 5 cuentas · planes (Emprendedor · Comerciante · Empresario · Desarrollador).
+#     Ver .mega-cuestionario/Guía para los planes por tipo de negocio.md
 # El folleto (folleto-appetic.html) y la cartilla (cartilla/) están jubilados: no se regeneran.
 set -e
 DIR="$(cd "$(dirname "$0")" && pwd)"
 PROF="/tmp/_appetic_prop_prof"
-DOCS="${@:-propuesta-appetic}"
-for d in $DOCS; do
-  rm -rf "$PROF"
-  google-chrome --headless --disable-gpu --no-pdf-header-footer --no-sandbox \
-    --user-data-dir="$PROF" --virtual-time-budget=5000 \
-    --print-to-pdf="$DIR/$d.pdf" "file://$DIR/$d.html" 2>/dev/null
-  echo "PDF regenerado: $d.pdf"
-done
 rm -rf "$PROF"
-if [ -f "$DIR/tapa-appetic.pdf" ] && [ -f "$DIR/propuesta-appetic.pdf" ]; then
-  pdfunite "$DIR/tapa-appetic.pdf" "$DIR/propuesta-appetic.pdf" "$DIR/propuesta-impresa-appetic.pdf"
-  echo "PDF impreso: propuesta-impresa-appetic.pdf"
-fi
+google-chrome --headless --disable-gpu --no-pdf-header-footer --no-sandbox \
+  --user-data-dir="$PROF" --virtual-time-budget=5000 \
+  --print-to-pdf="$DIR/propuesta-appetic.pdf" "file://$DIR/propuesta-appetic.html" 2>/dev/null
+rm -rf "$PROF"
+echo "PDF regenerado: propuesta-appetic.pdf"

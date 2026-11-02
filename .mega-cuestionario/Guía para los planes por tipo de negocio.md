@@ -130,3 +130,7 @@ algunos no tienen domicilio"*.
 - Armador: arranca con los planes nuevos (clave de guardado `_v2`, para no cargar lo viejo).
 - PDF de la web reemplazado en `web/propuestas/propuesta-appetic.pdf` (solo el archivo, sin publicar).
 - Cuestionarios 1 y 2 borrados (respondidos). La guía se queda.
+- **2 de noviembre de 2026** — **Un solo PDF:** `propuesta-appetic.pdf` sirve para WhatsApp y para
+  imprimir. Se retiraron la tapa del folder (`tapa-appetic.*`) y `propuesta-impresa-appetic.pdf`,
+  que repetían la portada. Al imprimir en impresora normal la portada sale con un borde blanco de
+  pocos milímetros: decidió dejarlo así (sin marco crema).
