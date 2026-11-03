@@ -129,7 +129,7 @@ Pregunta abierta: ¿agregamos al panel un editor de colores y logo? (hoy no exis
 - [x] 11. TV en la demo: letrero + recorrido en `/demo/tv`, `?plato=` resalta el plato cambiado
 - [x] 12. Medir origen: `?origen=` → `/api/demo` → `config/demoEmbudo`; superadmin lo muestra
 - [x] 13. Propuesta: QR pequeño arriba (`prop-p2`) y el de la pág. 6 con `prop-p6`; regenerar PDF
-- [~] 14. Probado en vista previa (móvil) ✅ → pedir permiso para publicar
+- [x] 14. Probado en vista previa (móvil) ✅ → publicado el 3-nov (`fe65d8a`) y verificado en appetic.vercel.app/demo
 
 ---
 
