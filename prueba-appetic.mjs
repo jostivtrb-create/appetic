@@ -262,6 +262,14 @@ eq('vacío', pr.recalcular([], menuPr).error, 'vacio')
 const almSel = sel({'md-sopa':['sin-sopa'],'md-sopa-cambio':['cambio-sopa-0'],'md-principio':['pr1'],'md-proteina':['p2'],'md-jugo':['j1']})
 const rAlm = pr.recalcular([{uid:'m', productoId:'menu-del-dia', cantidad:1, seleccion:almSel, precio:precioUnitario(alm, almSel)}], {'menu-del-dia': alm})
 eq('el almuerzo del día, con «en vez de», pasa', [rAlm.cambios.length, rAlm.subtotal], [0, precioUnitario(alm, almSel)])
+// «No lo lleva» del armador por pasos: { grupo: true }. Antes el servidor lo botaba y la cocina
+// leía la opción más barata que el armador deja marcada para poder cobrar.
+const desaNo = { id:'d', nombre:'Desayuno', precio:12000, gruposOpciones:[
+  { id:'bebida', nombre:'Bebida', min:1, max:1, opciones:[{id:'choco', nombre:'Chocolate'},{id:'cafe', nombre:'Café', precioExtra:1000}] }] }
+const selNo = { grupos:{ bebida:['choco'] }, noLleva:{ bebida:true } }
+const rNo = pr.recalcular([{uid:'n', productoId:'d', cantidad:1, seleccion:selNo, precio:12000}], { d: desaNo })
+eq('«no lo lleva» llega a la cocina como «SIN bebida»', [rNo.cambios.length, rNo.items[0]?.opciones, rNo.items[0]?.seleccion.noLleva], [0, 'SIN bebida', { bebida:true }])
+eq('«no lo lleva» con basura no pasa', pr.recalcular([{uid:'n', productoId:'d', cantidad:1, seleccion:{ ...selNo, noLleva:['bebida', 5] }, precio:12000}], { d: desaNo }).items[0]?.seleccion.noLleva, undefined)
 
 console.log(f===0 ? '\n✅ TODO PASA — los dos lados cuadran\n' : `\n❌ ${f} FALLO(S)\n`)
 process.exit(f===0?0:1)

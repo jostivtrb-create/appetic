@@ -4,7 +4,7 @@
 //   { ok: true, total, subtotal, domicilio, turno }
 //   { cambios: [...], productos: {...}, domicilio }   ← 409: el carrito se pone al día (D2)
 //   { error, motivo }                                  ← no se puede (cerrado, límite, sin plan…)
-//   { sinRed: true }                                   ← no contestó: el WhatsApp sale igual (S9)
+//   { sinRed: true }                                   ← no contestó o sin App Check: el WhatsApp sale igual (S9)
 import { tokenAppCheck } from '../config/firebase'
 import { precioItem } from '../utils/price'
 
@@ -33,7 +33,8 @@ export async function enviarAlServidor(body, { espera = 10000 } = {}) {
   const ctrl = new AbortController()
   const reloj = setTimeout(() => ctrl.abort(), espera)
   try {
-    const token = await tokenAppCheck()
+    // Tope a la prueba de App Check: si reCAPTCHA no carga (bloqueador, mala señal) se manda sin ella.
+    const token = await Promise.race([tokenAppCheck(), new Promise(res => setTimeout(() => res(''), 4000))])
     const r = await fetch('/api/pedido', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(token ? { 'X-Firebase-AppCheck': token } : {}) },
@@ -43,7 +44,9 @@ export async function enviarAlServidor(body, { espera = 10000 } = {}) {
     const data = await r.json().catch(() => ({}))
     if (r.ok) return data
     if (r.status === 409) return { cambios: data.cambios || [], productos: data.productos || {}, domicilio: data.domicilio || null }
-    if (r.status >= 500 && data.motivo !== 'appcheck') return { sinRed: true }
+    // Sin la prueba de App Check el servidor no lo guarda, pero la venta no se pierde: el WhatsApp
+    // sale igual, como cuando no hay red (S9).
+    if (r.status >= 500 || data.motivo === 'appcheck') return { sinRed: true }
     return { error: data.error || 'No se pudo enviar', motivo: data.motivo || 'error' }
   } catch {
     return { sinRed: true }

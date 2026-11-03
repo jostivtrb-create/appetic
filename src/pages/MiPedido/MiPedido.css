@@ -6,10 +6,13 @@
 .mp-cab strong { font-size: 20px; font-weight: 900; }
 .mp-centro { min-height: 60dvh; display: grid; place-content: center; gap: 10px; text-align: center; color: var(--text-soft); }
 .mp-centro a { color: var(--mp-primary, #ED7D2B); font-weight: 800; }
+.mp-reintentar { justify-self: center; margin-top: 4px; padding: 10px 22px; border: 0; border-radius: 999px; background: var(--mp-primary, #ED7D2B); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
 .mp-cargando { text-align: center; color: var(--text-soft); padding: 30px 0; }
 
 .mp-tarjeta { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 16px; box-shadow: 0 2px 10px rgba(30, 20, 10, 0.05); }
 .mp-tarjeta h2 { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
+/* El código del pedido (DE-XEZV) no se parte en dos renglones. */
+.mp-hola b, .mp-tarjeta h2 b { white-space: nowrap; }
 .mp-hola { font-size: 16px; margin-bottom: 14px; }
 
 /* En qué va */

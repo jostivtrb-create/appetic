@@ -23,7 +23,7 @@ export const DEMO_LOCAL = {
   id: SLUG,
   slug: SLUG,
   nombre: 'Burger Demo',
-  descripcion: 'Perros, salchipapas y combos · Local de demostración',
+  descripcion: 'Hamburguesas, perros y salchipapas · Local de demostración',
   whatsapp: WHATSAPP_VENTAS,
   esDemo: true,
 

@@ -27,13 +27,15 @@ export default function MiPedido() {
   const { rolesEn } = useAdmin()
   const demo = isDevSlug(slug)
   const [local, setLocal] = useState(undefined)
+  const [intento, setIntento] = useState(0)
 
   useEffect(() => {
     let activo = true
     const cargar = demo ? getDevLocal(slug).then(d => d?.local || null) : getLocalBySlug(slug)
-    cargar.then(l => { if (activo) setLocal(l || null) }).catch(() => { if (activo) setLocal(null) })
+    // 'error' = no hubo conexión (≠ el local no existe): se ofrece reintentar.
+    cargar.then(l => { if (activo) setLocal(l || null) }).catch(() => { if (activo) setLocal('error') })
     return () => { activo = false }
-  }, [slug, demo])
+  }, [slug, demo, intento])
 
   // 🍔 Demo para clientes: todos son «el dueño»; se abre la sesión anónima para poder confirmar.
   const vitrina = !demo && !!local?.esDemo
@@ -42,9 +44,15 @@ export default function MiPedido() {
   }, [vitrina, authCargando, sesion]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const email = (user?.email || '').toLowerCase()
-  const esPersonal = !!local && (puedeAdministrarLocal(email, local) || rolesEn(slug).includes('mesero') || (demo && devSuper()))
+  const esPersonal = !!local && local !== 'error' && (puedeAdministrarLocal(email, local) || rolesEn(slug).includes('mesero') || (demo && devSuper()))
 
   if (local === undefined || (!demo && authCargando)) return <Centro>Cargando pedido…</Centro>
+  if (local === 'error') return (
+    <Centro>
+      No pudimos cargar tu pedido. Revisa tu conexión.
+      <button className="mp-reintentar" onClick={() => { setLocal(undefined); setIntento(n => n + 1) }}>Reintentar</button>
+    </Centro>
+  )
   if (!local) return <Centro>Este pedido no existe.</Centro>
   if (vitrina && !sesion) return <Centro>Preparando la demo…</Centro>
 
@@ -76,10 +84,14 @@ const PASOS_RECOGER = [['nuevo', 'Recibido'], ['en-cocina', 'En cocina'], ['list
 function VistaCliente({ local, pedidoId, demo, user, entrar }) {
   const api = useMemo(() => pedidosDe(local.id, { demo }), [local.id, demo])
   const [p, setP] = useState(undefined)
-  useEffect(() => api.escucharPublico(pedidoId, setP, () => setP(null)), [api, pedidoId])
+  const [sinConexion, setSinConexion] = useState(false)
+  // La escucha se reconecta sola; mientras tanto se avisa (y se borra al volver a llegar algo).
+  useEffect(() => api.escucharPublico(pedidoId, x => { setSinConexion(false); setP(x) }, () => setSinConexion(true)), [api, pedidoId])
 
-  if (p === undefined) return <p className="mp-cargando">Cargando…</p>
-  if (!p) return <p className="mp-cargando">No encontramos este pedido. Puede que ya haya pasado más de 2 días.</p>
+  if (p === undefined) return <p className="mp-cargando">{sinConexion ? 'Sin conexión. Reintentando…' : 'Cargando…'}</p>
+  // Si el pedido salió por WhatsApp sin alcanzar a quedar registrado (internet lento), puede
+  // aparecer más tarde: la escucha sigue abierta y la pantalla se pone al día sola.
+  if (!p) return <p className="mp-cargando">Todavía no vemos este pedido en línea. Si lo enviaste por WhatsApp, el local ya lo tiene allá y lo atiende por ese chat. Los pedidos se borran de aquí a los 2 días.</p>
 
   return (
     <>

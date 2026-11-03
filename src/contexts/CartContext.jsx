@@ -2,6 +2,9 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { precioItem } from '../utils/price'
 import { avisarDemo } from '../components/Demo/eventosDemo'
 
+// Tope por línea: el servidor no acepta más (api/_lib/precios.js). Para un evento, mejor escribirle al local.
+export const MAX_CANTIDAD = 99
+
 const CartContext = createContext(null)
 export const useCart = () => useContext(CartContext)
 
@@ -25,12 +28,13 @@ export function CartProvider({ localId, children }) {
 
   function addItem({ producto, seleccion = {}, cantidad = 1, notas = '' }) {
     const uid = `${Date.now()}-${Math.round(performance.now() * 1000) % 100000}`
-    setItems(prev => [...prev, { uid, producto, seleccion, cantidad, notas }])
+    setItems(prev => [...prev, { uid, producto, seleccion, cantidad: Math.min(cantidad, MAX_CANTIDAD), notas }])
     avisarDemo('carrito')
   }
 
   function setCantidad(uid, cantidad) {
     if (cantidad <= 0) return removeItem(uid)
+    cantidad = Math.min(cantidad, MAX_CANTIDAD)
     setItems(prev => prev.map(it => it.uid === uid ? { ...it, cantidad } : it))
   }
 

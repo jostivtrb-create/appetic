@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { cuentasCliente } from '../../utils/cuentasDinero'
 import { useCart } from '../../contexts/CartContext'
 import { useAuth } from '../../contexts/AuthContext'
@@ -33,6 +33,18 @@ function guardarClienteLocal(datos) {
   try { localStorage.setItem(CLIENTE_KEY, JSON.stringify(datos)) } catch { /* sin espacio: no pasa nada */ }
 }
 
+// Lo que falta para poder enviar, en el pie del checkout.
+const TEXTO_FALTA = {
+  ubicacion: 'Falta tu ubicación',
+  cobertura: 'Sin domicilio para tu ubicación',
+  direccion: 'Falta la dirección',
+  nombre: 'Falta tu nombre',
+  telefono: 'Falta tu WhatsApp válido',
+  'confirmar-whatsapp': 'Confirma tu WhatsApp',
+  pago: 'Elige cómo pagas',
+  efectivo: 'El efectivo no alcanza para el total',
+}
+
 export default function Checkout({ local, onClose, abierto = true }) {
   const { items, subtotal, clear, ponerAlDia } = useCart()
   const { user } = useAuth()
@@ -53,12 +65,16 @@ export default function Checkout({ local, onClose, abierto = true }) {
   const [direccion, setDireccion] = useState('')
   const [nombre, setNombre] = useState('')
   const [telefono, setTelefono] = useState('')
-  const pagosCliente = cuentasCliente(local)   // D21: las cuentas de dinero que el cliente ve
+  // D21: las cuentas de dinero que el cliente ve. Si el dueño las ocultó todas, al menos Efectivo
+  // (si no, nadie podría pedir).
+  const pagosCliente = cuentasCliente(local).length ? cuentasCliente(local) : [{ id: 'efectivo', nombre: 'Efectivo', tipo: 'efectivo' }]
   const [pagoId, setPagoId] = useState(pagosCliente[0]?.id || null)
   const [cash, setCash] = useState('')
   const [notas, setNotas] = useState('')
   const [confirmoWhatsapp, setConfirmoWhatsapp] = useState(false)
   const [enviando, setEnviando] = useState(false)
+  // Freno inmediato: dos toques casi juntos llegan antes de que React pinte «Enviando…».
+  const enviandoRef = useRef(false)
   const [exito, setExito] = useState(null) // { url, codigo }
   // 🔄 Lo que el servidor corrigió (guía «Blindaje» D2/D3) y por qué no se pudo enviar.
   const [avisoCambios, setAvisoCambios] = useState([])
@@ -114,7 +130,8 @@ export default function Checkout({ local, onClose, abierto = true }) {
     setUbic('cargando')
     navigator.geolocation.getCurrentPosition(
       pos => { setCoord({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setUbic('ok') },
-      err => { setUbic(err.code === 1 ? 'denegado' : 'error') },
+      // Si ya teníamos su ubicación, un intento fallido después no la borra (ni lo deja «a convenir»).
+      err => { setUbic(coord ? 'ok' : err.code === 1 ? 'denegado' : 'error') },
       { enableHighAccuracy: true, timeout: 10000 }
     )
   }
@@ -131,16 +148,20 @@ export default function Checkout({ local, onClose, abierto = true }) {
   if (!telWhatsappValido) faltas.push('telefono')
   if (!confirmoWhatsapp) faltas.push('confirmar-whatsapp')
   if (!pagoId) faltas.push('pago')
+  if (pago?.tipo === 'efectivo' && cashNum > 0 && cashNum < total) faltas.push('efectivo')
+  // Ubicación tomada pero el local no cubre o no tiene tarifa para esa distancia.
+  const sinDomicilioAqui = entrega === 'domicilio' && !ubicacionFallo && !!coordUsada && domicilio && !domicilio.ok
   if (entrega === 'domicilio') {
     if (!direccion.trim()) faltas.push('direccion')
     // La ubicación solo es obligatoria si NO falló su captura. Si falló, se
     // permite pedir con la dirección y el domicilio queda a convenir.
-    if (!domicilio?.ok && !ubicacionFallo) faltas.push('ubicacion')
+    if (!domicilio?.ok && !ubicacionFallo) faltas.push(sinDomicilioAqui ? 'cobertura' : 'ubicacion')
   }
   const valido = items.length > 0 && faltas.length === 0 && abierto
 
   async function enviar() {
-    if (!valido || enviando) return
+    if (!valido || enviando || enviandoRef.current) return
+    enviandoRef.current = true
     setEnviando(true)
     // Código corto que va en el WhatsApp y en «Mi pedido» (para hablar del pedido por su nombre).
     const codigo = generarCodigoPedido(local)
@@ -185,18 +206,22 @@ export default function Checkout({ local, onClose, abierto = true }) {
         if (r.domicilio?.ok) { setEnvioServidor(r.domicilio.costo); textos.push(`El domicilio ahora cuesta ${cop(r.domicilio.costo)}`) }
         if (r.domicilio && !r.domicilio.ok) textos.push(r.domicilio.motivo === 'fuera-cobertura' ? 'Tu ubicación quedó fuera del área de domicilio' : 'El domicilio no está disponible para tu ubicación')
         setAvisoCambios(textos)
+        enviandoRef.current = false
         setEnviando(false)
         return
       }
       if (r.error) {
         setErrorEnvio(r.motivo === 'limite' ? 'Espera un momento antes de volver a pedir.' : r.motivo === 'cerrado' ? 'El local acaba de cerrar.' : `No se pudo enviar: ${r.error}.`)
+        enviandoRef.current = false
         setEnviando(false)
         return
       }
       if (r.ok) { guardado = true; pedido.subtotal = r.subtotal; pedido.total = r.total }
     }
-    // Sin guardar no hay «Mi pedido» que seguir: el link no va en el WhatsApp.
-    if (!guardado) pedido.id = null
+    // Si el servidor no contestó a tiempo, el link «Mi pedido» va igual en el WhatsApp: el pedido
+    // pudo alcanzar a guardarse (red lenta) y, si no, «Mi pedido» lo dice con calma. Al local le
+    // llega además el link para responderle (whatsapp.js).
+    if (!guardado) pedido.sinRegistro = true
 
     // Locales con su propia app: el pedido se deja escrito ALLÁ, con la forma
     // que su pantalla de comandas espera. El link que sale de aquí va en el
@@ -233,10 +258,11 @@ export default function Checkout({ local, onClose, abierto = true }) {
 
     // Abre WhatsApp con el endpoint correcto según dispositivo (móvil/PC).
     // 🍔 En la demo NO se abre WhatsApp: se muestra cómo le llega el mensaje al restaurante.
-    const url = local.esDemo ? '' : abrirPedidoWhatsApp(local, pedido)
+    const wa = local.esDemo ? { url: '', abierto: true } : abrirPedidoWhatsApp(local, pedido)
     clear()
-    setExito({ url, codigo, miPedido: guardado ? `/p/${local.slug}/${id}` : '', chat: local.esDemo ? textoPedido(local, pedido) : '' })
+    setExito({ url: wa.url, waAbierto: wa.abierto, codigo, miPedido: `/p/${local.slug}/${id}`, chat: local.esDemo ? textoPedido(local, pedido) : '' })
     avisarDemo('pedido-app')
+    enviandoRef.current = false
     setEnviando(false)
   }
 
@@ -262,11 +288,18 @@ export default function Checkout({ local, onClose, abierto = true }) {
         {exito.codigo && (
           <p className="co-exito-codigo">Tu código de pedido: <strong>{exito.codigo}</strong></p>
         )}
-        <p>Abrimos WhatsApp con tu pedido listo. Solo dale enviar al chat de <strong>{local.nombre}</strong> para confirmar.</p>
-        {exito.miPedido && (
-          <Link className="btn btn-primary co-exito-seguir" to={exito.miPedido} onClick={() => avisarDemo('mi-pedido')}>📍 Ver en qué va mi pedido</Link>
+        {exito.waAbierto ? (
+          <p>Abrimos WhatsApp con tu pedido listo. Solo dale enviar al chat de <strong>{local.nombre}</strong> para confirmar.</p>
+        ) : (
+          <>
+            <p><strong>Falta un paso:</strong> abre WhatsApp y dale enviar al chat de <strong>{local.nombre}</strong>. Tu pedido ya va escrito.</p>
+            <a className="btn btn-primary" href={exito.url} target="_blank" rel="noreferrer">Abrir WhatsApp</a>
+          </>
         )}
-        <a className={`btn ${exito.miPedido ? 'btn-ghost' : 'btn-primary'}`} href={exito.url} target="_blank" rel="noreferrer">Abrir WhatsApp otra vez</a>
+        {exito.miPedido && (
+          <Link className={`btn ${exito.waAbierto ? 'btn-primary' : 'btn-ghost'} co-exito-seguir`} to={exito.miPedido} onClick={() => avisarDemo('mi-pedido')}>📍 Ver en qué va mi pedido</Link>
+        )}
+        {exito.waAbierto && <a className="btn btn-ghost" href={exito.url} target="_blank" rel="noreferrer">Abrir WhatsApp otra vez</a>}
         <button className="btn btn-ghost" onClick={onClose}>Volver al menú</button>
       </div>
     )
@@ -320,7 +353,10 @@ export default function Checkout({ local, onClose, abierto = true }) {
               </div>
             )}
             {ubic === 'ok' && domicilio && !domicilio.ok && domicilio.motivo === 'fuera-cobertura' && (
-              <div className="co-ubic-error">Estás fuera del área de domicilio (máx {local.domicilio.maxKm} km).</div>
+              <div className="co-ubic-error">Estás fuera del área de domicilio (máx {local.domicilio.maxKm} km). Puedes escoger «Recoger» o escribirle al local.</div>
+            )}
+            {ubic === 'ok' && domicilio && !domicilio.ok && domicilio.motivo === 'sin-tarifa' && (
+              <div className="co-ubic-error">El local todavía no tiene precio de domicilio para tu distancia ({domicilio.distancia.toFixed(1)} km). Puedes escoger «Recoger» o escribirle al local.</div>
             )}
 
             {/* Si la ubicación falló, no bloqueamos: se pide con la dirección y el
@@ -428,14 +464,11 @@ export default function Checkout({ local, onClose, abierto = true }) {
         )}
         {errorEnvio && <p className="co-hint co-hint-err">⚠️ {errorEnvio}</p>}
         {abierto && !valido && items.length > 0 && (
-          <p className="co-hint">
-            {faltas.includes('ubicacion') ? 'Falta tu ubicación · ' : ''}
-            {faltas.includes('direccion') ? 'Falta la dirección · ' : ''}
-            {faltas.includes('nombre') ? 'Falta tu nombre · ' : ''}
-            {faltas.includes('telefono') ? 'Falta tu WhatsApp válido · ' : ''}
-            {faltas.includes('confirmar-whatsapp') ? 'Confirma tu WhatsApp · ' : ''}
-            {faltas.includes('pago') ? 'Elige cómo pagas' : ''}
-          </p>
+          <p className="co-hint">{faltas.map(f => TEXTO_FALTA[f]).filter(Boolean).join(' · ')}</p>
+        )}
+        {/* El servidor pudo quitar todo (agotado, ya no existe): que no quede un botón muerto en $0. */}
+        {items.length === 0 && (
+          <p className="co-hint">Tu pedido quedó vacío. <button type="button" className="co-volver" onClick={onClose}>Volver al menú</button></p>
         )}
         <button className="btn btn-primary co-enviar" disabled={!valido || enviando} onClick={enviar}>
           {!abierto ? 'Cerrado ahora' : enviando ? 'Enviando…'

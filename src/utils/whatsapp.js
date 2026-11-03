@@ -12,8 +12,10 @@ import { mapsUrl } from './geo'
 
 // ¿El navegador es de un celular? (para elegir el endpoint correcto)
 export function isMobileBrowser() {
-  return typeof navigator !== 'undefined' &&
-    /android|iphone|ipad|ipod/i.test(navigator.userAgent || '')
+  if (typeof navigator === 'undefined') return false
+  // El iPad se presenta como Mac; se le reconoce porque tiene pantalla táctil.
+  const iPad = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1
+  return iPad || /android|iphone|ipad|ipod/i.test(navigator.userAgent || '')
 }
 
 // Normaliza un número colombiano a 57XXXXXXXXXX (sin '+', sin espacios).
@@ -147,13 +149,16 @@ export function textoPedido(local, pedido) {
   // 🧾 «Mi pedido» (D28: reemplaza a «Responder al cliente»). Si lo abre el cliente ve su resumen y
   // en qué va; si lo abre el mesero o el admin, además «Confirmar pedido» (manda a cocina y le
   // responde al cliente). Pedidos sin id (sin Firestore) caen al link viejo de responder.
+  // Si el servidor no confirmó que lo guardó (`sinRegistro`), va también el de responder: puede que
+  // en «Mi pedido» no aparezca y el local igual tiene que poder contestarle.
   const linkMio = linkMiPedido(local, pedido)
-  const linkResp = linkMio ? '' : linkRespuestaCliente(local, pedido)
+  const linkResp = linkMio && !pedido.sinRegistro ? '' : linkRespuestaCliente(local, pedido)
   if (linkMio) {
     L.push('')
     L.push('\u{1F9FE} *Mi pedido (toca aquí):*')
     L.push(linkMio)
-  } else if (linkResp) {
+  }
+  if (linkResp) {
     L.push('')
     L.push('\u{1F4AC} *Responder al cliente (toca aquí):*')
     L.push(linkResp)
@@ -172,9 +177,11 @@ export function urlPedidoWhatsApp(local, pedido) {
 }
 
 // Abre WhatsApp con el pedido. En móvil navega al deep link; en PC abre pestaña.
+// `abierto: false` = el navegador bloqueó la pestaña (pasa en PC si el servidor tardó): la pantalla
+// de éxito le pide al cliente que la abra él.
 export function abrirPedidoWhatsApp(local, pedido) {
   const url = urlPedidoWhatsApp(local, pedido)
-  if (isMobileBrowser()) window.location.href = url
-  else window.open(url, '_blank')
-  return url
+  if (isMobileBrowser()) { window.location.href = url; return { url, abierto: true } }
+  const w = window.open(url, '_blank')
+  return { url, abierto: !!w }
 }

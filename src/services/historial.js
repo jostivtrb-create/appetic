@@ -22,6 +22,9 @@ export function guardarEnHistorial(local, pedido) {
       localSlug: local.slug,
       localNombre: local.nombre,
       localLogo: local.icono || local.logo || '',
+      // Para volver a «Mi pedido» desde «Mis pedidos» (vive 2 días en el servidor).
+      pedidoId: pedido.id || null,
+      codigo: pedido.codigo || '',
       entrega: pedido.entrega,
       total: pedido.total,
       subtotal: pedido.subtotal,

@@ -18,7 +18,7 @@ import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import Checkout from '../Checkout/Checkout'
 import CheckoutMesa from '../Checkout/CheckoutMesa'
 import { mesaActual } from '../../utils/mesaQR'
-import { useConMenuDelDia } from '../../utils/useMinuto'
+import { useConMenuDelDia, useMinuto } from '../../utils/useMinuto'
 import './LocalSkinJet.css'
 import './LocalSkinJuance.css'
 import './LocalSkinFruti.css'
@@ -158,8 +158,10 @@ export default function LocalMenu({ local: localBase, productos: productosBase, 
   }, [buscando, q, productos])
 
   // Horario (D25): fuera de horario se ve el menú pero no se puede pedir.
-  const abierto = useMemo(() => estaAbierto(local.horario), [local.horario])
-  const razonCierre = useMemo(() => motivoCierre(local.horario), [local.horario])
+  // Se recalcula cada minuto: quien escaneó a las 10:55 puede pedir a las 11:00 sin recargar.
+  const minuto = useMinuto()
+  const abierto = useMemo(() => estaAbierto(local.horario), [local.horario, minuto]) // eslint-disable-line react-hooks/exhaustive-deps
+  const razonCierre = useMemo(() => motivoCierre(local.horario), [local.horario, minuto]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Productos agrupados por categoría (solo las que tienen productos)
   const porCategoria = useMemo(() => {

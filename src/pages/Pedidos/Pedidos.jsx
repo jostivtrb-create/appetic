@@ -7,6 +7,9 @@ import './Pedidos.css'
 
 // 🧾 "Mis pedidos": el historial guardado en este dispositivo. Cada pedido
 // enviado por WhatsApp queda aquí para verlo y volver a pedir en un toque.
+// «Mi pedido» se borra del servidor a los 2 días: después ya no hay qué seguir.
+const VIVE_MS = 2 * 24 * 60 * 60 * 1000
+
 export default function Pedidos() {
   const navigate = useNavigate()
   // 🔒 Cliente de un local que no sale en el buscador: solo ve los pedidos de ese local (D13).
@@ -52,7 +55,7 @@ export default function Pedidos() {
                 <div className="pedido-info">
                   <strong>{p.localNombre}</strong>
                   <span className="pedido-meta">
-                    {p.entrega === 'domicilio' ? '🛵 Domicilio' : '🏪 Recoger'} · {fmtFecha.format(new Date(p.fecha))}
+                    {p.entrega === 'domicilio' ? '🛵 Domicilio' : '🏪 Recoger'}{p.codigo ? ` · ${p.codigo}` : ''} · {fmtFecha.format(new Date(p.fecha))}
                   </span>
                 </div>
                 <span className="pedido-total">{cop(p.total)}</span>
@@ -64,9 +67,14 @@ export default function Pedidos() {
                 ))}
               </ul>
 
-              <button className="pedido-repetir" onClick={() => navigate(`/${p.localSlug}`)}>
-                Volver a pedir ›
-              </button>
+              <div className="pedido-acciones">
+                {p.pedidoId && Date.now() - p.fecha < VIVE_MS && (
+                  <Link className="pedido-seguir" to={`/p/${p.localSlug}/${p.pedidoId}`}>📍 Ver en qué va</Link>
+                )}
+                <button className="pedido-repetir" onClick={() => navigate(`/${p.localSlug}`)}>
+                  Volver a pedir ›
+                </button>
+              </div>
             </li>
           ))}
         </ul>

@@ -36,7 +36,11 @@ function limpiarSeleccion(s) {
       sel.grupos = {}
       for (const [k, v] of Object.entries(s.grupos)) if (Array.isArray(v)) sel.grupos[k] = v.filter(x => typeof x === 'string').slice(0, 30)
     }
-    if (Array.isArray(s.noLleva)) sel.noLleva = s.noLleva.filter(x => typeof x === 'string').slice(0, 30)
+    // «No lo lleva» del armador por pasos: { [grupoId]: true } (como lo arma ProductWizard).
+    if (s.noLleva && typeof s.noLleva === 'object' && !Array.isArray(s.noLleva)) {
+      const nl = Object.keys(s.noLleva).filter(k => s.noLleva[k] === true).slice(0, 30)
+      if (nl.length) sel.noLleva = Object.fromEntries(nl.map(k => [k, true]))
+    }
   }
   return sel
 }

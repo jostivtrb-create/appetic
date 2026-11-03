@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { cop } from '../../utils/money'
 import { maxDelGrupo, precioUnitario, recortarPorVariante, validarSeleccion } from '../../utils/price'
+import { MAX_CANTIDAD } from '../../contexts/CartContext'
 import './ProductModal.css'
 
 // `compacto`: versión del MESERO — sin la foto grande ni la descripción, para elegir rápido.
@@ -186,7 +187,7 @@ export default function ProductModal({ producto, onCerrar, onAgregar, compacto =
             <div className="pm-qty">
               <button onClick={() => setCantidad(c => Math.max(1, c - 1))} aria-label="Menos">−</button>
               <span>{cantidad}</span>
-              <button onClick={() => setCantidad(c => c + 1)} aria-label="Más">+</button>
+              <button onClick={() => setCantidad(c => Math.min(MAX_CANTIDAD, c + 1))} disabled={cantidad >= MAX_CANTIDAD} aria-label="Más">+</button>
             </div>
           )}
           <button className="btn btn-primary pm-add" onClick={handleAgregar}>

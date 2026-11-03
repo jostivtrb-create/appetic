@@ -87,7 +87,9 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
     if (precios.length === 0) return `Hasta ${maxKm} km · aún sin precios`
     const min = Math.min(...precios), max = Math.max(...precios)
     const rango = min === max ? fmtPesos(min) : `${fmtPesos(min)} – ${fmtPesos(max)}`
-    return `Hasta ${maxKm} km · ${rango}`
+    // Un tramo sin precio deja al cliente a esa distancia sin poder pedir domicilio.
+    const faltan = keys.length - precios.length
+    return `Hasta ${maxKm} km · ${rango}${faltan ? ` · ⚠️ ${faltan} ${faltan === 1 ? 'tramo' : 'tramos'} sin precio` : ''}`
   }, [keys, tarifas, maxKm])
 
   function toggleDia(k) {
@@ -418,6 +420,9 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
                   )
                 })}
                 {keys.length === 0 && <p className="ac-hint">Sube la distancia máxima para definir tramos.</p>}
+                {keys.some(k => !(Number(tarifas[k]) > 0)) && (
+                  <p className="ac-hint">⚠️ A un cliente en un tramo sin precio no le sale el domicilio: ponle precio a todos o baja la distancia máxima.</p>
+                )}
               </div>
               {hayFill && <p className="ac-hint">El botón ↓ rellena los tramos de abajo sumando {fmtPesos(ESCALON_DOMICILIO)} en cada medio kilómetro.</p>}
             </div>

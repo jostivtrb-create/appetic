@@ -1,4 +1,4 @@
-import { useCart } from '../../contexts/CartContext'
+import { useCart, MAX_CANTIDAD } from '../../contexts/CartContext'
 import { cop } from '../../utils/money'
 import { precioItem } from '../../utils/price'
 import { resumenSeleccion } from '../../utils/selectionSummary'
@@ -83,7 +83,7 @@ function ContenidoPedido({ carrito, onCheckout, pista }) {
                 <div className="cd-qty">
                   <button onClick={() => setCantidad(it.uid, it.cantidad - 1)} aria-label="Menos">−</button>
                   <span>{it.cantidad}</span>
-                  <button onClick={() => setCantidad(it.uid, it.cantidad + 1)} aria-label="Más">+</button>
+                  <button onClick={() => setCantidad(it.uid, it.cantidad + 1)} disabled={it.cantidad >= MAX_CANTIDAD} aria-label="Más">+</button>
                 </div>
                 <button className="cd-remove" onClick={() => removeItem(it.uid)}>Quitar</button>
               </div>

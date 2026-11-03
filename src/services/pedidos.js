@@ -94,7 +94,8 @@ function firestoreApi(localId) {
       await b.commit()
     },
     escucharPublico(id, cb, onError) {
-      return onSnapshot(pub(id), s => cb(s.exists() ? { id: s.id, ...s.data() } : null), onError)
+      // Se reconecta sola si se va el internet (el cliente deja «Mi pedido» abierto mucho rato).
+      return escucharConReintento(pub(id), s => cb(s.exists() ? { id: s.id, ...s.data() } : null), onError)
     },
     escucharPedido(id, cb, onError) {
       return onSnapshot(doc(col(), id), s => cb(s.exists() ? { id: s.id, ...s.data() } : null), onError)

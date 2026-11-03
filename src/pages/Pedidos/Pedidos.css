@@ -85,9 +85,11 @@
 }
 .pedido-cant { font-weight: 800; color: var(--brand-orange-strong); }
 
-.pedido-repetir {
-  margin-top: 12px;
-  width: 100%;
+.pedido-acciones { display: flex; gap: 8px; margin-top: 12px; }
+.pedido-repetir, .pedido-seguir {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
   padding: 11px;
   border: none;
   border-radius: 12px;
@@ -98,4 +100,5 @@
   cursor: pointer;
   transition: transform 0.12s ease, background 0.18s ease;
 }
-.pedido-repetir:active { transform: scale(0.98); }
+.pedido-seguir { background: var(--brand-orange); color: #fff; }
+.pedido-repetir:active, .pedido-seguir:active { transform: scale(0.98); }
