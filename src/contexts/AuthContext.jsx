@@ -47,13 +47,16 @@ export function AuthProvider({ children }) {
       setSesion(u)
       setCargando(false)
     })
+    // Seguro (lección de TodyPan): si Firebase Auth se cuelga al arrancar, no dejamos la app
+    // cargando para siempre; sigue como sin sesión y, si la sesión llega después, se pone sola.
+    const seguro = setTimeout(() => setCargando(false), 8000)
     // Al volver de un login por redirect (respaldo del popup), consumimos el
     // resultado. Si falló, aquí es donde aparece el error — antes se perdía.
     getRedirectResult(auth).catch((err) => {
       console.error('[login] falló el redirect de Google:', err?.code, err)
       setErrorLogin(mensajeError(err))
     })
-    return unsub
+    return () => { unsub(); clearTimeout(seguro) }
   }, [])
 
   // Login con Google: popup primero, con redirect como respaldo (lección PWA).

@@ -1,21 +1,30 @@
-// Registro del Service Worker con auto-actualización.
+// Registro del Service Worker: la app se actualiza sola, pero NUNCA en mitad de algo.
 //
-// Gracias a `registerType: 'autoUpdate'` (vite.config.js), cuando se detecta una
-// versión nueva el navegador instala el nuevo Service Worker, toma el control y
-// recarga la app automáticamente. Así la app instalada se actualiza sola, sin
-// tener que desinstalarla y volver a instalarla.
+// Antes el SW nuevo entraba de inmediato (skipWaiting + clientsClaim) y recargaba la app a quien
+// la tuviera abierta: el mesero en plena comanda, el cliente en el checkout. Además cortaba el
+// refresco del token de Firebase Auth (sesiones que se cierran solas, lección de TodyPan) y dejaba
+// a la página vieja pidiendo trozos de JS que ya no estaban en la caché nueva.
 //
-// Aquí añadimos lo que falta para que esa detección ocurra de verdad en una app
-// ya instalada: un chequeo periódico y otro cada vez que el usuario vuelve a
-// abrir la app (la trae a primer plano).
+// Ahora (registerType 'prompt' en vite.config.js) la versión nueva se descarga y QUEDA ESPERANDO.
+// Entra en uno de estos momentos, que son como «volver a abrir la app»:
+//   1) Al cerrar la app del todo y abrirla otra vez (lo hace el navegador solo).
+//   2) Al volver a la app después de tenerla un buen rato en segundo plano (VOLVER_MS). Así entra
+//      también en las PWA instaladas que el celular nunca cierra del todo.
+// Mientras la tiene en pantalla, nadie se lleva una recarga.
 
 import { registerSW } from 'virtual:pwa-register'
 
 // Cada cuánto comprobamos si hay una versión nueva (1 hora).
 const PERIODO_MS = 60 * 60 * 1000
+// Cuánto tiene que estar la app en segundo plano para que volver cuente como «abrirla de nuevo».
+const VOLVER_MS = 15 * 60 * 1000
 
-registerSW({
+let hayVersionNueva = false
+let ocultaDesde = document.visibilityState === 'hidden' ? Date.now() : null
+
+const actualizar = registerSW({
   immediate: true,
+  onNeedRefresh() { hayVersionNueva = true },
   onRegisteredSW(swUrl, registration) {
     if (!registration) return
 
@@ -41,10 +50,15 @@ registerSW({
     // 1) Chequeo periódico mientras la app está abierta.
     setInterval(buscarActualizacion, PERIODO_MS)
 
-    // 2) Chequeo cada vez que el usuario vuelve a la app (clave para PWAs
-    //    instaladas, que se reabren desde el ícono de inicio).
+    // 2) Al volver a la app: si estuvo fuera un buen rato y ya hay versión nueva, entra ahora
+    //    (recarga limpia, el carrito y la cuenta de la Caja viven en localStorage). Si no, solo
+    //    se busca la versión nueva para la próxima vez.
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') buscarActualizacion()
+      if (document.visibilityState === 'hidden') { ocultaDesde = Date.now(); return }
+      const fuera = ocultaDesde ? Date.now() - ocultaDesde : 0
+      ocultaDesde = null
+      if (hayVersionNueva && fuera >= VOLVER_MS) actualizar(true)
+      else buscarActualizacion()
     })
   },
 })

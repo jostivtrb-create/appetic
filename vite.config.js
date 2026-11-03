@@ -39,15 +39,16 @@ export default defineConfig({
     react(),
     apiLocal(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt': la versión nueva espera y entra cuando src/registerSW.js lo decide (nunca en
+      // mitad de una comanda o de un pedido).
+      registerType: 'prompt',
       includeAssets: ['icons/favicon.png', 'icons/apple-touch-icon.png'],
       // El service worker NO se activa en desarrollo (evita problemas de caché y de login).
       devOptions: { enabled: false },
       workbox: {
-        // Activa la versión nueva de inmediato y borra las cachés viejas, para
-        // que la app instalada se actualice sola sin reinstalarla.
-        clientsClaim: true,
-        skipWaiting: true,
+        // SIN skipWaiting ni clientsClaim, a propósito: la versión nueva no le quita la app a
+        // quien la está usando ni corta la sesión de Firebase Auth (ver src/registerSW.js).
+        // Las cachés viejas se borran cuando la nueva entra.
         cleanupOutdatedCaches: true,
         // La cartilla es un archivo real: que el SW no la desvíe al index.html.
         // La ruta vieja sigue en la lista porque hay enlaces sueltos que aún la
