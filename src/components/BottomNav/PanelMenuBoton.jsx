@@ -28,17 +28,3 @@ export default function PanelMenuBoton() {
     </button>
   )
 }
-
-// 📱 En las pantallas que NO son del panel (buscador, menú de un local, Cuenta…)
-// no hay cabecera común donde poner el ☰: va flotando abajo a la izquierda, que
-// es donde estaba la barra inferior y no choca con las cabeceras de cada página.
-export function PanelMenuFlotante() {
-  const { setPanelMenu } = useNavUI()
-  return (
-    <button className="prail-fab" onClick={() => setPanelMenu(true)} aria-label="Abrir menú">
-      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-        <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-      </svg>
-    </button>
-  )
-}

@@ -436,7 +436,7 @@ export default function AdminPage() {
           : seccion === 'domicilios' ? <AdminDomicilios key={local.id} local={local} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} onUpdate={updateLocal} />
           : seccion === 'config' ? (
-            <AdminAjustes slug={slug} sub={sub}>
+            <AdminAjustes slug={slug} sub={sub} conMenu={!tieneBarra}>
               {vista => vista === 'catalogo' ? catalogo
                 : vista === 'equipo' ? (
                   <div className="aj-equipo">

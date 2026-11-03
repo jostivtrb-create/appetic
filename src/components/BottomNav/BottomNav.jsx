@@ -9,7 +9,6 @@ import logoAppetic from '../../assets/appetic-logo.png'
 import ConfirmSalirMenu from '../ConfirmSalirMenu/ConfirmSalirMenu'
 import { soloLocal } from '../../utils/soloLocal'
 import PanelRail, { devSuper } from './PanelRail'
-import { PanelMenuFlotante } from './PanelMenuBoton'
 import { esSuperadmin } from '../../config/roles'
 import './BottomNav.css'
 import { DEMO_SLUG } from '../../config/demo'
@@ -25,7 +24,7 @@ import { DEMO_SLUG } from '../../config/demo'
 // cambia por JS son dos cosas que el CSS no alcanza —la cabecera de marca del
 // rail y que en PC la barra no se esconda al abrir una capa encima—.
 export default function BottomNav() {
-  const { activeLocal, cartCount, live } = useNavUI()
+  const { activeLocal, cartCount, live, setPanelMenu } = useNavUI()
   const { esDueno, tienePanel, localSel, cargando: adminCargando } = useAdmin()
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -51,30 +50,15 @@ export default function BottomNav() {
   // Infiniity): PanelRail, con lo de administrar Y lo de cliente, mostrando
   // solo lo que su rol permite. Antes había dos barras —la de cliente y la del
   // panel— y saltaban según la pantalla, lo que enredaba para entrar.
-  if ((tienePanel || esSuper) && !menuDemo) {
-    // Si abre una capa en un menú (detalle del plato, armador, carrito), en el
-    // celular la barra se aparta —la hoja llega hasta abajo y le tapaba el
-    // botón "Siguiente"— y en PC se queda pero cede la capa.
+  const conPanel = (tienePanel || esSuper) && !menuDemo
+  // 📱 Celular: la barra es el cajón lateral (PanelDrawer). En las pantallas del panel lo abre el ☰
+  // de su cabecera; en las demás va la barra de abajo de siempre, con «Panel» en lugar de «Cuenta»
+  // (antes era un botón flotante que tapaba el contenido — pedido del usuario, 3-nov).
+  if (conPanel && !esPC && enPanel) return null
+  if (conPanel && esPC) {
+    // Si abre una capa en un menú (detalle del plato, armador, carrito), en PC la barra se queda
+    // pero cede la capa.
     const capaEncima = Boolean(live) && live.oculta
-
-    // 📱 Celular: la barra es el cajón lateral (PanelDrawer). En las pantallas
-    // del panel lo abre el ☰ de su cabecera; en las demás, un botón flotante.
-    // Dentro de un menú se suma el botón del pedido: era la única entrada al
-    // carrito en el celular (en PC el carrito ya es un panel fijo al lado).
-    if (!esPC) {
-      if (capaEncima || enPanel) return null
-      return (
-        <>
-          <PanelMenuFlotante />
-          {live && (
-            <button className="prail-fab prail-fab--pedido" onClick={() => live.onCarrito()} aria-label="Ver pedido">
-              <IconBag />
-              {cartCount > 0 && <span className="bnav-cart-badge">{cartCount}</span>}
-            </button>
-          )}
-        </>
-      )
-    }
 
     // 🖥️ PC: rail fijo. Con los colores del local que administra el dueño.
     const temaLocal = esDueno ? localSel : null
@@ -161,9 +145,15 @@ export default function BottomNav() {
         <button className={`bnav-item bnav-item--menu ${activa === 'menu' ? 'is-active' : ''}`} onClick={irAMenu}>
           <IconMenu /><span>Menú</span>
         </button>
-        <button className={`bnav-item bnav-item--cuenta ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
-          <IconUser /><span>Cuenta</span>
-        </button>
+        {conPanel ? (
+          <button className="bnav-item bnav-item--cuenta" onClick={() => setPanelMenu(true)} aria-label="Abrir el menú del panel">
+            <IconPanel /><span>Panel</span>
+          </button>
+        ) : (
+          <button className={`bnav-item bnav-item--cuenta ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
+            <IconUser /><span>Cuenta</span>
+          </button>
+        )}
         <button className="bnav-cart" onClick={irACarrito} aria-label="Ver pedido">
           <span className="bnav-cart-circle">
             <IconBag />
@@ -234,6 +224,9 @@ function IconSearch() {
 }
 function IconRecibo() {
   return <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><path {...sw} d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /><path {...sw} d="M9 8h6M9 12h6M9 16h3" /></svg>
+}
+function IconPanel() {
+  return <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><rect {...sw} x="4" y="4" width="7" height="7" rx="1.6" /><rect {...sw} x="13" y="4" width="7" height="7" rx="1.6" /><rect {...sw} x="4" y="13" width="7" height="7" rx="1.6" /><rect {...sw} x="13" y="13" width="7" height="7" rx="1.6" /></svg>
 }
 function IconUser() {
   return <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><circle {...sw} cx="12" cy="8" r="3.4" /><path {...sw} d="M5 20a7 7 0 0 1 14 0" /></svg>

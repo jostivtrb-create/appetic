@@ -48,7 +48,7 @@ export const RECORRIDOS = {
         objetivo: '.pcard', espera: 'carrito', ruta: D },
       { emoji: '🧾', titulo: 'Abre tu pedido',
         texto: 'Toca «Pedido» y luego «Continuar el pedido».',
-        objetivo: '.cd-checkout, .bnav-cart, .prail-fab--pedido', espera: 'checkout-abierto', ruta: D },
+        objetivo: '.cd-checkout, .bnav-cart', espera: 'checkout-abierto', ruta: D },
       { emoji: '🛵', titulo: 'Pídelo a domicilio',
         texto: 'Elige «Domicilio», escribe tu dirección, tu nombre y tu WhatsApp, y cómo pagas: el envío se calcula solo, por distancia. Toca «Enviar» y verás cómo le llega al WhatsApp del restaurante.',
         espera: 'pedido-app', ruta: D, libre: true },

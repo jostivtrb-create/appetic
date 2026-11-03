@@ -6,6 +6,7 @@ import { useNavUI } from '../../contexts/NavUIContext'
 import { listarTodosLocales } from '../../services/superadmin'
 import logoAppetic from '../../assets/appetic-logo.png'
 import { tiene } from '../../utils/plan'
+import { SECCIONES_AJUSTES } from '../../config/ajustes'
 import './PanelRail.css'
 
 // 🖥️ Barra lateral del PANEL (solo escritorio). Reemplaza en PC a la barra de
@@ -55,7 +56,8 @@ const SECCIONES = [
   { id: 'cocina', label: 'Cocina', Icon: IconCocina, ruta: s => `/${s}/admin/cocina`, roles: ['admin', 'cocina'], funcion: 'cocina' },
   { id: 'domicilios', label: 'Domicilios', Icon: IconMoto, ruta: s => `/${s}/admin/domicilios`, roles: ['admin', 'domiciliario'], funcion: 'domicilios' },
   { id: 'difundir', label: 'Difundir', Icon: IconDifundir, ruta: s => `/${s}/admin/difundir`, roles: ['admin'] },
-  // Configuración reúne Catálogo · Negocio · Cuentas y pagos · Apariencia · Equipo (ver AdminAjustes).
+  // Configuración es un DESPLEGABLE con sus secciones (config/ajustes.js): Catálogo, Menú del día,
+  // Negocio, Cuentas y pagos, Apariencia, Pantalla de TV, Equipo y Mi plan (pedido del usuario, 3-nov).
   { id: 'config', label: 'Configuración', Icon: IconConfig, ruta: s => `/${s}/admin/config/catalogo`, roles: ['admin'] },
 ]
 
@@ -128,6 +130,8 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
   // Categorías bajo "Catálogo": en vivo desde el panel abierto; si no estás en
   // él, las que trae el local (sin conteo).
   const categorias = (panelCatalogo?.slug === slugActual ? panelCatalogo.categorias : localActual?.categorias) || []
+  // La sección de Configuración abierta (/admin/config/<sección>), para resaltarla en el desplegable.
+  const subConfig = seccionRuta === 'config' ? (pathname.match(/\/admin\/config\/([^/]+)/)?.[1] || 'catalogo') : null
   const catActiva = seccionRuta === 'catalogo' && hash.startsWith('#cat-') ? decodeURIComponent(hash.slice(5)) : null
 
   const activa = seccionRuta
@@ -164,6 +168,16 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
   function alternarCats() {
     setAbiertos(a => {
       const n = { ...a, cats: !catsAbiertas }
+      try { localStorage.setItem(GRUPOS_KEY, JSON.stringify(n)) } catch { /* nada */ }
+      return n
+    })
+  }
+
+  // Configuración arranca PLEGADA; estando en una de sus secciones se ve abierta, y se puede plegar.
+  const confAbierta = abiertos.conf ?? (activa === 'config')
+  function alternarConf() {
+    setAbiertos(a => {
+      const n = { ...a, conf: !confAbierta }
       try { localStorage.setItem(GRUPOS_KEY, JSON.stringify(n)) } catch { /* nada */ }
       return n
     })
@@ -239,6 +253,33 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
                       <span className="prail-cat-emoji" aria-hidden="true">{c.emoji || '•'}</span>
                       <span className="prail-cat-nombre">{c.nombre}</span>
                       {typeof c.count === 'number' && <span className="prail-cat-count">{c.count}</span>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        ) : id === 'config' ? (
+          <div key={id} className={`prail-sub prail-conf ${confAbierta ? 'is-open' : ''}`}>
+            <button
+              className={`bnav-item prail-item prail-conf-head ${activa === id && !confAbierta ? 'is-active' : ''}`}
+              onClick={alternarConf}
+              aria-expanded={confAbierta}
+            >
+              <Icon /><span>{label}</span>
+              <span className="prail-sub-toggle" aria-hidden="true"><IconChevron /></span>
+            </button>
+            <div className="prail-grupo-body">
+              <ul className="prail-grupo-inner prail-cats">
+                {SECCIONES_AJUSTES.map(s => (
+                  <li key={s.id}>
+                    <button
+                      className={`prail-cat ${subConfig === s.id ? 'is-active' : ''}`}
+                      onClick={() => ir(`/${slugActual}/admin/config/${s.id}`)}
+                      aria-current={subConfig === s.id ? 'page' : undefined}
+                    >
+                      <span className="prail-cat-emoji" aria-hidden="true">{s.icono}</span>
+                      <span className="prail-cat-nombre">{s.titulo}</span>
                     </button>
                   </li>
                 ))}

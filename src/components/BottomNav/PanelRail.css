@@ -339,33 +339,6 @@
 }
 .prail-menu-btn:active { transform: scale(0.94); background: var(--brand-orange-tint); }
 
-.prail-fab {
-  position: fixed;
-  left: 16px;
-  bottom: calc(18px + env(safe-area-inset-bottom));
-  z-index: 45;
-  width: 54px;
-  height: 54px;
-  display: grid;
-  place-items: center;
-  border: none;
-  border-radius: 50%;
-  /* Con el mundo del local activo (App.jsx pone sus tokens fuera del panel). */
-  background: linear-gradient(135deg, var(--local-primary-soft), var(--local-primary) 55%, var(--local-primary-strong));
-  color: var(--local-on-primary, #fff);
-  box-shadow: 0 6px 20px color-mix(in srgb, var(--local-primary) 38%, transparent);
-  cursor: pointer;
-  animation: prailFabIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.prail-fab:active { transform: scale(0.93); }
-.prail-fab--pedido {
-  left: auto;
-  right: 16px;
-  width: 58px;
-  height: 58px;
-}
-.prail-fab--pedido .bnav-cart-badge { top: -2px; right: -2px; }
-@keyframes prailFabIn { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
 
 .prail-drawer {
   position: fixed;
@@ -506,3 +479,10 @@
 /* 🔒 Sección que el plan del local no trae (guía «Planes en la app» D18): se ve, apagadita. */
 .prail-item--candado { opacity: .62; }
 .prail-candado { margin-left: auto; font-size: 12px; }
+
+/* ⚙️ Configuración como desplegable: toda la fila abre y cierra; sus secciones cuelgan debajo. */
+.prail-conf-head { width: 100%; }
+.bnav-item.prail-conf-head > span:not(.prail-sub-toggle) { flex: 1; min-width: 0; text-align: left; }
+.bnav-item.prail-conf-head > .prail-sub-toggle { flex: none; width: 22px; height: 22px; margin-left: auto; background: none; pointer-events: none; }
+.prail-conf.is-open .prail-conf-head { color: var(--bnav-active); }
+.prail-conf .prail-cats { margin-top: 2px; margin-bottom: 4px; }

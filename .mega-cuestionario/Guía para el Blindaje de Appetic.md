@@ -7,7 +7,7 @@
   (noviembre 2026) con el código: precios sin validar, demo que se puede dañar, reglas abiertas,
   candado de plan en cuenta por mesa, detalles menores y los pendientes de la notificación.
 - **Inicio:** 3 de noviembre de 2026
-- **Estado:** 🟢 Construido y probado en local — 3 de noviembre de 2026 · falta publicar (con permiso) y las acciones del usuario (App Check, prueba del aviso en su celular)
+- **Estado:** ✅ Publicado — 3 de noviembre de 2026 (`6939a34` en Vercel + reglas e índices en Firebase) · faltan solo las acciones del usuario (App Check, prueba del aviso en su celular)
 - **Proyecto:** `Appetic/` (Vite/React + Firebase + funciones de Vercel en `api/`)
 
 ---
@@ -130,7 +130,7 @@ Ninguna. Faltan solo acciones del usuario: clave de reCAPTCHA v3 (App Check) y p
 - [x] 8 · Detalles menores (S7): QR iPhone, menú del día, aviso multi-local, `useLocation`, notificar-listo (plan, corte, grupos de 30, cajero), buscador
 - [x] 9 · App Check en la app (se prende con `VITE_RECAPTCHA_V3`) + el servidor lo mide (`APPCHECK_OBLIGATORIO=1` para exigir)
 - [x] 10a · Pruebas: `node prueba-appetic.mjs` (10 nuevas), 22 de reglas en el emulador, función contra la demo real, navegador (mesa con precio cambiado, WhatsApp, Mi pedido, Preparando en celular, candado de la Caja)
-- [ ] 10b · Publicar (con permiso): reglas + índices (TTL) a Firebase, app a Vercel
+- [x] 10b · Publicado: app a Vercel primero (confirmado en el bundle servido y en `/api/pedido`), luego reglas + índices (TTL). En producción: pedido directo sin sesión y métricas a mano → PERMISSION_DENIED; por el servidor → OK
 - [ ] 11 · Usuario: App Check (clave reCAPTCHA v3 + `VITE_RECAPTCHA_V3` en Vercel) y prueba del aviso con la app cerrada en su celular
 
 ---
