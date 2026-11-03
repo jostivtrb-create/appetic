@@ -199,3 +199,9 @@ Ninguna.
   cortesía; Pilotos pasado a Comerciante por D18 — no usaba mesas, meseros ni cocina, no pierde nada).
   Reglas a `appetic-17477` con `jostivtrb@gmail.com`. App en Vercel; el buscador de producción muestra
   los 7 locales que ya salían.
+- **2 de noviembre de 2026** — Pedido del usuario: «todos en Emprendedor, solo Pilotos en Comerciante».
+  Pasados a Emprendedor (cortesía): bon-appetit, el-monumento, fruti-tentacion, jasbury, juance,
+  la-comarca, sabor-del-dia (ninguno usaba domicilios, mesas ni equipo en los últimos 30 días).
+  La demo sigue en Empresario (D10). ⏳ **Pendiente de confirmar:** la-gran-esquina (12 domicilios en
+  30 días) y perros-criollos (2) siguen en Empresario: con Emprendedor sus clientes pierden el
+  domicilio. Se dejaron así porque el usuario apagó el PC antes de responder.
