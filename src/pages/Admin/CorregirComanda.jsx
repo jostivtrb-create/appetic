@@ -137,6 +137,8 @@ export default function CorregirComanda({ comanda, productos, api, usuario, onCe
           })}
         </ul>
 
+        {/* Un domicilio o un «recoger» de la app no se vuelve mesa: rompía su paso por la Caja y Domicilios. */}
+        {['domicilio', 'recoger'].includes(comanda.destino?.tipo) ? null : <>
         <h3 className="ms-sub">Mesa</h3>
         {!editandoMesa ? (
           <button className="cc-mesa" onClick={abrirMesa}>
@@ -145,6 +147,7 @@ export default function CorregirComanda({ comanda, productos, api, usuario, onCe
         ) : (
           <SelectorDestino inicial={comanda.destino} onCambio={setDestino} />
         )}
+        </>}
 
         {estado === 'error' && <div className="ms-error" role="alert"><strong>⚠️ No se guardó.</strong> Revisa el internet y vuelve a intentar.</div>}
         {estado === 'cerrada' && <div className="ms-error" role="alert"><strong>Esta comanda ya se entregó o se canceló.</strong> Si hay que rehacer algo, manda una comanda nueva.</div>}
@@ -193,7 +196,8 @@ function SelectorDestino({ inicial, onCambio }) {
   const emitir = (t, m, n) => {
     if (t === 'llevar') onCambio({ tipo: 'llevar', mesa: null, nombre: n.trim() || null })
     else if (t === 'nombre') onCambio(n.trim() ? { tipo: 'mesa', mesa: null, nombre: n.trim() } : null)
-    else onCambio(m ? { tipo: 'mesa', mesa: m, nombre: null } : null)
+    // Cambiar de mesa conserva el nombre (la comanda del QR es «Mesa 4 · Ana»).
+    else onCambio(m ? { tipo: 'mesa', mesa: m, nombre: inicial?.mesa ? (inicial.nombre || null) : null } : null)
   }
   return (
     <>

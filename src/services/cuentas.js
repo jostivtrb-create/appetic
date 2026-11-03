@@ -67,16 +67,25 @@ function firestoreApi(localId) {
     nuevoId: () => doc(col('ventas')).id,
 
     // 🧾 Registra una venta cobrada. Si viene de comandas, las marca cobradas en el MISMO lote.
+    // En transacción (auditoría «mesero y cocina» H3): si otra caja ya cobró o anuló alguna de esas
+    // comandas, no se registra nada. Con `datos.id` fijo, un reintento de una venta que sí llegó no
+    // la suma dos veces.
     async registrarVenta(datos, por, local) {
       const v = armarVenta(datos, por, local)
       const id = datos.id || doc(col('ventas')).id
-      const b = writeBatch(db)
-      b.set(doc(col('ventas'), id), { ...v, en: serverTimestamp() })
-      aplicar(b, v.jornada, deltaVenta(v, 1), saldosVenta(v, 1))
-      for (const c of datos.comandas || []) {
-        b.update(comandaRef(c.id), { porCobrar: false, cobradaEn: serverTimestamp(), cobradaPor: por, ventaId: id })
-      }
-      await b.commit()
+      const refVenta = doc(col('ventas'), id)
+      const refs = (datos.comandas || []).map(c => comandaRef(c.id))
+      await runTransaction(db, async tx => {
+        const [yaEsta, ...snaps] = await Promise.all([tx.get(refVenta), ...refs.map(r => tx.get(r))])
+        if (yaEsta.exists()) return
+        for (const s of snaps) {
+          if (!s.exists()) throw new Error('comanda-no-existe')
+          if (s.data().porCobrar === false) throw new Error(s.data().estado === 'cancelada' ? 'comanda-cancelada' : 'ya-cobrada')
+        }
+        tx.set(refVenta, { ...v, en: serverTimestamp() })
+        aplicar(tx, v.jornada, deltaVenta(v, 1), saldosVenta(v, 1))
+        for (const r of refs) tx.update(r, { porCobrar: false, cobradaEn: serverTimestamp(), cobradaPor: por, ventaId: id })
+      })
       return id
     },
 
@@ -208,6 +217,11 @@ function demoApi(localId) {
     async registrarVenta(datos, por, local) {
       const v = armarVenta(datos, por, local)
       const id = datos.id || nuevoId()
+      if (leer().ventas.some(x => x.id === id)) return id
+      for (const c of datos.comandas || []) {
+        const fresca = await comandas.obtener(c.id)
+        if (fresca?.porCobrar === false) throw new Error(fresca.estado === 'cancelada' ? 'comanda-cancelada' : 'ya-cobrada')
+      }
       const st = leer()
       st.ventas.push({ id, ...v, en: Date.now() })
       aplicar(st, v.jornada, deltaVenta(v, 1), saldosVenta(v, 1))
@@ -300,6 +314,10 @@ export function motivoErrorCuentas(err) {
   if (m === 'pagos-no-cuadran') return 'Los pagos no suman el total.'
   if (m === 'ya-no') return 'Esa venta ya había cambiado. Mira el historial de nuevo.'
   if (m === 'monto') return 'Escribe un valor mayor a cero.'
+  if (m === 'sin-red') return 'Sin internet: no se registró. Revisa la señal y vuelve a cobrar (no se cobra dos veces).'
+  if (m === 'ya-cobrada') return 'Esta cuenta ya la cobraron en otra caja. Mira el historial.'
+  if (m === 'comanda-cancelada') return 'Una de estas comandas la cancelaron. Revisa la cuenta.'
+  if (m === 'comanda-no-existe') return 'Una de estas comandas ya no existe. Revisa la cuenta.'
   if (c === 'permission-denied') return 'Esta cuenta no tiene permiso para hacer eso.'
   if (c === 'failed-precondition') return 'La base de datos se está preparando. Intenta en un minuto.'
   return 'No se pudo guardar. Revisa el internet e intenta de nuevo.'

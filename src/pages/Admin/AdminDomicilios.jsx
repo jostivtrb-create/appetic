@@ -8,6 +8,7 @@ import ActivarAvisos from './ActivarAvisos'
 import { useAhora, minutosSeg } from './comandaUtils'
 import { ms } from '../../services/comandas'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
+import { tocar } from '../../utils/sonido'
 import './Domicilios.css'
 
 // 🛵 PANEL DE DOMICILIOS del local (guía «Mesero y Comandas», paso 3 · D35–D41).
@@ -163,19 +164,4 @@ function Domicilio({ p, ahora, accion }) {
 
 const primero = n => String(n || '').trim().split(/\s+/)[0]
 function hora(t) { const m = ms(t); return m ? new Date(m).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' }) : '' }
-function campanita() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)()
-    const t0 = ctx.currentTime
-    ;[[784, 0], [1047, 0.18]].forEach(([f, d]) => {
-      const o = ctx.createOscillator(), g = ctx.createGain()
-      o.frequency.value = f
-      g.gain.setValueAtTime(0.0001, t0 + d)
-      g.gain.exponentialRampToValueAtTime(0.3, t0 + d + 0.02)
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.45)
-      o.connect(g).connect(ctx.destination)
-      o.start(t0 + d); o.stop(t0 + d + 0.5)
-    })
-    setTimeout(() => ctx.close().catch(() => {}), 1000)
-  } catch { /* sin audio */ }
-}
+const campanita = () => tocar([[784, 0], [1047, 0.18]], 0.3, 0.45)

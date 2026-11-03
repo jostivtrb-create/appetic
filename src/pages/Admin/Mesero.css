@@ -10,6 +10,9 @@
   animation: msParpadeo 1s ease-in-out infinite;
 }
 .ms-listo strong { font-size: 16px; }
+/* «Mesa 4» nunca se parte en dos renglones; varios destinos se separan con un punto. */
+.ms-listo-dest { white-space: nowrap; }
+.ms-listo-dest + .ms-listo-dest::before { content: "· "; }
 .ms-listo-campana { font-size: 26px; animation: msCampana 1s ease-in-out infinite; }
 .ms-listo-ok { margin-left: auto; flex-shrink: 0; font-weight: 800; background: rgba(255,255,255,0.22); padding: 7px 12px; border-radius: 999px; }
 @keyframes msParpadeo { 0%, 100% { filter: none; } 50% { filter: brightness(1.25); box-shadow: 0 0 0 6px rgba(27, 138, 75, 0.25); } }

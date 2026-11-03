@@ -193,7 +193,10 @@ async function comandaDeMesa({ res, db, FieldValue, local, localRef, id, b, limi
   const items = r.items.map(({ notas, ...it }) => ({ ...it, comentario: notas, hecho: false }))
   const ref = localRef.collection('comandas').doc(id)
   const refTurno = localRef.collection('pantalla').doc('turno')
-  const conTurno = llevaTurno(local, destino, 'qr')
+  // Sin pantalla de cocina nadie la va a entregar: nace entregada, lista para cobrar (como la del
+  // mesero, services/comandas.js · usaCocina). Si no, quedaba «en curso» para siempre.
+  const conCocina = local.usaCocina !== false && tiene(local, 'cocina')
+  const conTurno = conCocina && llevaTurno(local, destino, 'qr')
   if (!(await ref.get()).exists && !(await limitar())) return res.status(429).json(LIMITE)
 
   // Comanda y turno en la misma transacción: el número no se salta ni se repite, y un reintento
@@ -210,11 +213,14 @@ async function comandaDeMesa({ res, db, FieldValue, local, localRef, id, b, limi
     }
     tx.create(ref, {
       ...(turno ? { turno } : {}),
-      destino, items, estado: 'activa', origen: 'qr',
+      destino, origen: 'qr',
+      ...(conCocina
+        ? { items, estado: 'activa', cerradaEn: null }
+        : { items: items.map(it => ({ ...it, hecho: true })), estado: 'entregada', entregadaEn: FieldValue.serverTimestamp(), cerradaEn: FieldValue.serverTimestamp() }),
       creadaPor: { email: '', nombre: `${nombre} (desde la mesa)` },
       total: r.subtotal,
       cantidadItems: items.reduce((s, it) => s + it.cantidad, 0),
-      creadaEn: FieldValue.serverTimestamp(), cerradaEn: null, porCobrar: true,
+      creadaEn: FieldValue.serverTimestamp(), porCobrar: true,
     })
     return { turno, nuevo: true }
   })

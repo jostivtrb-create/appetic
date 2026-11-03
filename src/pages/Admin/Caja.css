@@ -323,3 +323,6 @@
 .pv-turno .btn { width: 100%; }
 @keyframes pv-turno-fondo { from { opacity: 0; } to { opacity: 1; } }
 @keyframes pv-turno-entra { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }
+
+/* 🗓️ Cuentas de otros días sin cobrar */
+.pv-viejas { margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; background: #FFF4D6; border: 1.5px solid #E8B21E; color: #4A3A08; font-size: 13.5px; }

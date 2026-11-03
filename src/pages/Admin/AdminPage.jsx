@@ -32,6 +32,7 @@ import { Candado, AvisoPago, PanelApagado, MiPlan } from './PlanAvisos'
 import { tiene, estaCortado, rolPermitido } from '../../utils/plan'
 import './Admin.css'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
+import { useEnLinea } from '../../utils/conTope'
 
 // Título de cada página del panel (va en el encabezado y en la pestaña del navegador).
 const SECCIONES = {
@@ -52,6 +53,7 @@ const MUDADAS = { comandas: 'cocina', metricas: 'cuentas' }
 export default function AdminPage() {
   const { slug, panel, sub } = useParams()
   const { rolesEn } = useAdmin()
+  const enLinea = useEnLinea()
   // ¿Tiene la barra del panel (lateral en PC, cajón ☰ en el celular)? Dueños y superadmin sí.
   // Con barra, cada sección es su propia página y NO se repiten pestañas arriba.
   const { puede: tieneBarra } = usePuedePanel()
@@ -410,6 +412,13 @@ export default function AdminPage() {
       )}
 
       {esAdmin && <AvisoPago local={local} />}
+
+      {/* 📡 Sin red, la cocina seguiría mostrando la fila vieja y el mesero creería que envió. */}
+      {!enLinea && (
+        <div className="admin-sin-red" role="alert">
+          📡 <strong>Sin conexión.</strong> Lo que ves puede no estar al día y lo que mandes sale cuando vuelva la señal.
+        </div>
+      )}
 
       {/* Dueños y superadmin navegan con la barra del panel: cada sección es una página.
           Solo la vista previa DEMO (sin barra) conserva estas pestañas para moverse. */}

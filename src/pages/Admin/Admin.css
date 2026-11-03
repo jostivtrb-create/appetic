@@ -899,3 +899,9 @@
 .dif-tv-pasos details[open] summary::after { content: '−'; }
 .dif-tv-pasos p { margin: 0 0 12px; font-size: 13.5px; line-height: 1.5; color: var(--text-soft); }
 a.dif-afiche { text-decoration: none; }
+
+/* 📡 Sin conexión (cocina, mesero, caja): que se note sin tapar nada. */
+.admin-sin-red {
+  margin: 8px 16px 0; padding: 10px 12px; border-radius: 12px;
+  background: #FDECEC; border: 1.5px solid #E5A19A; color: #8E1B14; font-size: 14px;
+}

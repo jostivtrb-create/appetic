@@ -4,6 +4,7 @@ import { useAdmin } from '../../contexts/AdminContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { comandasDe, etiquetaDestino, ms } from '../../services/comandas'
 import { isDevSlug } from '../../dev'
+import { tocar } from '../../utils/sonido'
 import './AvisoListo.css'
 
 // 🔔 «¡Pedido listo!» en CUALQUIER pantalla de la app (guía «Mesero y Comandas», D5 / paso 1f).
@@ -99,21 +100,5 @@ function AvisoDeLocal({ vigilado, conNombre }) {
   )
 }
 
-// Dos notas cortas. Si el navegador no deja sonar (nadie ha tocado la pantalla), se calla.
-function campanita() {
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext
-    const ctx = new Ctx()
-    const t0 = ctx.currentTime
-    ;[[988, 0], [1319, 0.16]].forEach(([f, d]) => {
-      const o = ctx.createOscillator(), g = ctx.createGain()
-      o.frequency.value = f
-      g.gain.setValueAtTime(0.0001, t0 + d)
-      g.gain.exponentialRampToValueAtTime(0.25, t0 + d + 0.02)
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.4)
-      o.connect(g).connect(ctx.destination)
-      o.start(t0 + d); o.stop(t0 + d + 0.45)
-    })
-    setTimeout(() => ctx.close().catch(() => {}), 900)
-  } catch { /* sin audio */ }
-}
+// Dos notas cortas, con el audio compartido de la app (utils/sonido.js: suena también en iPhone).
+const campanita = () => tocar([[988, 0], [1319, 0.16]], 0.25, 0.4)

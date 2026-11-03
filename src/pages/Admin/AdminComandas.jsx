@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { comandasDe, etiquetaDestino, ms, POR_PAGINA, motivoError } from '../../services/comandas'
+import { comandasDe, etiquetaDestino, ms, POR_PAGINA, motivoError, textoCambioComanda } from '../../services/comandas'
 import AdminEquipo from './AdminEquipo'
 import { notificarListo } from '../../services/notificaciones'
 import { pedidosDe } from '../../services/pedidos'
 import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, UMBRALES_DEFECTO, itemsTxt, claseDestino, palabraDestino } from './comandaUtils'
 import './Comandas.css'
+import { tocar, activarSonido, sonidoListo } from '../../utils/sonido'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 // 🧾 PANTALLA DE COMANDAS (cocina) — guía «Mesero y Comandas», paso 1.
@@ -78,7 +79,7 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
   // Deshacer un «entregado»: la comanda vuelve a la fila y, si es de la app y el domiciliario
   // todavía no salió, el pedido vuelve a «En cocina».
   async function deshacer(c) {
-    await api.deshacer(c)
+    try { await api.deshacer(c) } catch (e) { setError(textoCambioComanda(e) || 'No se pudo deshacer. Intenta de nuevo.'); return }
     if (!c.pedidoId) return
     const pApi = pedidosDe(local.id, { demo })
     const p = await pApi.getPedido(c.pedidoId).catch(() => null)
@@ -95,8 +96,14 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
       if (c.pedidoId) pedidosDe(local.id, { demo }).cambiarEstado(c.pedidoId, 'listo').catch(() => {})
       // 🔔 Aviso con la app cerrada: al mesero y al admin; si es domicilio, a los domiciliarios.
       if (!demo) notificarListo(local.id, c.id)
-    } catch { setError('No se pudo marcar como entregada. Intenta de nuevo.') }
+    } catch (e) { setError(textoCambioComanda(e) || 'No se pudo marcar como entregada. Intenta de nuevo.') }
   }
+
+  // Si la comanda sale de la fila (la cancelaron en otro celular) mientras la cocina tiene abierto
+  // «¿Ya se entregó todo?», se cierra la pregunta en vez de entregar algo que ya no existe.
+  useEffect(() => {
+    if (confirmar && activas && !activas.some(c => c.id === confirmar.id)) setConfirmar(null)
+  }, [activas, confirmar])
 
   return (
     <div className="km" style={colores.vars}>
@@ -152,7 +159,7 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
                   onTachar={(uid, hecho) => (hecho && avisarDemo('tachar'), api.marcarItem(c, uid, hecho)).catch(() => setError('No se pudo tachar. Revisa el internet e intenta de nuevo.'))}
                   onTacharTodo={hecho => (hecho && avisarDemo('tachar'), api.marcarTodo(c, hecho)).catch(() => setError('No se pudo tachar. Revisa el internet e intenta de nuevo.'))}
                   onEntregar={() => setConfirmar(c)}
-                  onVisto={() => api.marcarVisto(c).catch(() => setError('No se pudo marcar como visto. Intenta de nuevo.'))}
+                  onVisto={() => api.marcarVisto(c).catch(e => setError(textoCambioComanda(e) || 'No se pudo marcar como visto. Intenta de nuevo.'))}
                 />
               ))}
             </div>
@@ -285,6 +292,7 @@ function Entregadas({ api, recientes, cursor, ahora, onDeshacer }) {
   const [cur, setCur] = useState(undefined) // undefined = aún no se pidió más
   const [hayMas, setHayMas] = useState(null) // null = se deduce de la primera página
   const [cargando, setCargando] = useState(false)
+  const [errorMas, setErrorMas] = useState('')
   const lista = [...recientes, ...mas.filter(m => !recientes.some(r => r.id === m.id))]
   const siguiente = cur === undefined ? cursor : cur
   // Solo hay «más antiguas» si la última página que llegó venía llena.
@@ -292,13 +300,14 @@ function Entregadas({ api, recientes, cursor, ahora, onDeshacer }) {
 
   async function verMas() {
     if (!siguiente) return
-    setCargando(true)
+    setCargando(true); setErrorMas('')
     try {
       const { lista: l, ultimo } = await api.historial(siguiente)
       setMas(m => [...m, ...l])
       setCur(ultimo)
       setHayMas(l.length >= POR_PAGINA)
-    } finally { setCargando(false) }
+    } catch { setErrorMas('No se pudieron traer las más antiguas. Revisa el internet e intenta de nuevo.') }
+    finally { setCargando(false) }
   }
 
   if (!lista.length) return <p className="km-vacio">Todavía no hay comandas entregadas.</p>
@@ -326,6 +335,9 @@ function Entregadas({ api, recientes, cursor, ahora, onDeshacer }) {
       {siguiente && quedan && (
         <button className="km-mas" onClick={verMas} disabled={cargando}>{cargando ? 'Cargando…' : 'Ver más antiguas'}</button>
       )}
+      {errorMas && (
+        <p className="eq-error" role="alert">{errorMas}</p>
+      )}
     </div>
   )
 }
@@ -333,6 +345,14 @@ function Entregadas({ api, recientes, cursor, ahora, onDeshacer }) {
 // ⚙️ Minutos del contador (solo admin).
 function AjusteTiempos({ local, onGuardar }) {
   const [abierto, setAbierto] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [errorG, setErrorG] = useState('')
+  async function guardar() {
+    setGuardando(true); setErrorG('')
+    try { await onGuardar({ minAmarillo: amarillo, minRojo: rojo }); setAbierto(false) }
+    catch { setErrorG('No se guardó. Revisa el internet e intenta de nuevo.') }
+    finally { setGuardando(false) }
+  }
   const actual = umbralesDe(local)
   const [amarillo, setAmarillo] = useState(actual.amarillo)
   const [rojo, setRojo] = useState(actual.rojo)
@@ -358,9 +378,10 @@ function AjusteTiempos({ local, onGuardar }) {
                 <input type="number" min="2" max="240" value={rojo} onChange={e => setRojo(Number(e.target.value))} /> min</label>
             </div>
             {!valido && <p className="eq-error">El rojo tiene que ser después del amarillo.</p>}
+            {errorG && <p className="eq-error" role="alert">{errorG}</p>}
             <div className="km-tiempos-acc">
               <button className="btn btn-ghost" onClick={() => { setAmarillo(UMBRALES_DEFECTO.amarillo); setRojo(UMBRALES_DEFECTO.rojo) }}>Por defecto</button>
-              <button className="btn btn-primary" disabled={!valido} onClick={async () => { await onGuardar({ minAmarillo: amarillo, minRojo: rojo }); setAbierto(false) }}>Guardar</button>
+              <button className="btn btn-primary" disabled={!valido || guardando} onClick={guardar}>{guardando ? 'Guardando…' : 'Guardar'}</button>
             </div>
           </div>
         </div>
@@ -372,52 +393,43 @@ function AjusteTiempos({ local, onGuardar }) {
 // 🔔 Turno de cocina: el navegador solo deja sonar y mantener la pantalla encendida después de
 // que alguien toca la pantalla. «Empezar turno» hace ese toque y deja todo listo.
 function useTurno() {
-  const ctx = useRef(null)
   const lock = useRef(null)
   const [activo, setActivo] = useState(false)
+  // iPad: al bloquearse, el audio queda callado y hace falta un toque. Si no está sonando, se
+  // vuelve a mostrar «Empezar turno» para que la cocina no se quede muda sin saberlo.
+  const [mudo, setMudo] = useState(false)
 
   const pedirPantalla = async () => {
     try { if ('wakeLock' in navigator) lock.current = await navigator.wakeLock.request('screen') } catch { /* sin permiso */ }
   }
-  // Al volver a la pestaña, el navegador suelta el «no apagar»: se pide otra vez.
+  // Al volver a la pestaña, el navegador suelta el «no apagar»: se pide otra vez. Y se revisa el audio.
   useEffect(() => {
     if (!activo) return
-    const f = () => { if (document.visibilityState === 'visible') pedirPantalla() }
+    const f = () => {
+      if (document.visibilityState !== 'visible') return
+      pedirPantalla()
+      setTimeout(() => setMudo(!sonidoListo()), 600)
+    }
     document.addEventListener('visibilitychange', f)
-    return () => { document.removeEventListener('visibilitychange', f); lock.current?.release?.().catch(() => {}) }
+    const t = setInterval(() => setMudo(!sonidoListo()), 15000)
+    return () => { document.removeEventListener('visibilitychange', f); clearInterval(t); lock.current?.release?.().catch(() => {}) }
   }, [activo])
 
   return useMemo(() => ({
-    activo,
+    activo: activo && !mudo,
     async empezar() {
-      try {
-        ctx.current = ctx.current || new (window.AudioContext || window.webkitAudioContext)()
-        await ctx.current.resume()
-      } catch { /* sin audio */ }
+      await activarSonido()
       await pedirPantalla()
       setActivo(true)
-      tono(ctx.current, 0.12)
+      setMudo(false)
+      tono(0.12)
     },
-    sonar() { tono(ctx.current, 0.35) },
-  }), [activo])
+    sonar() { tono(0.35) },
+  }), [activo, mudo])
 }
 
-// «Ding-dong» corto con el sintetizador del navegador (sin archivos de audio).
-function tono(ctx, volumen) {
-  if (!ctx) return
-  try {
-    const t0 = ctx.currentTime
-    ;[[880, 0], [660, 0.22]].forEach(([f, d]) => {
-      const o = ctx.createOscillator(), g = ctx.createGain()
-      o.type = 'sine'; o.frequency.value = f
-      g.gain.setValueAtTime(0.0001, t0 + d)
-      g.gain.exponentialRampToValueAtTime(volumen, t0 + d + 0.02)
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.45)
-      o.connect(g).connect(ctx.destination)
-      o.start(t0 + d); o.stop(t0 + d + 0.5)
-    })
-  } catch { /* nada */ }
-}
+// «Ding-dong» corto con el audio compartido de la app (utils/sonido.js).
+const tono = volumen => tocar([[880, 0], [660, 0.22]], volumen, 0.45)
 
 function hora(m) { return m ? new Date(m).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' }) : '' }
 function leerLista(k) { try { return JSON.parse(localStorage.getItem(k) || '[]') } catch { return [] } }

@@ -83,6 +83,12 @@ export function AuthProvider({ children }) {
   }
 
   async function salir() {
+    // Este celular deja de recibir los «¡Pedido listo!» de quien sale (tope corto: salir nunca se traba).
+    const email = auth.currentUser?.email
+    if (email) {
+      const { olvidarAvisos } = await import('../services/notificaciones')
+      await Promise.race([olvidarAvisos(email), new Promise(r => setTimeout(r, 3000))])
+    }
     await signOut(auth)
   }
 

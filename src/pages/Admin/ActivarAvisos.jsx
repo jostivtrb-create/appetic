@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
-import { avisosSoportados, estadoAvisos, activarAvisos } from '../../services/notificaciones'
+import { avisosSoportados, estadoAvisos, activarAvisos, renovarAvisos } from '../../services/notificaciones'
 
 // 🔔 «Activar avisos en este celular»: para que el «¡Pedido listo!» llegue aunque la app esté
 // cerrada o el celular bloqueado. Se pide una vez por celular (el navegador exige un toque).
 export default function ActivarAvisos({ local, usuario }) {
   const [soporta, setSoporta] = useState(null)
-  const [estado, setEstado] = useState(() => estadoAvisos(local.id))
+  const email = usuario?.email || ''
+  const [estado, setEstado] = useState(() => estadoAvisos(local.id, email))
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => { avisosSoportados().then(setSoporta) }, [])
+  // Ya activos: se renuevan en silencio al abrir (el token cambia con el tiempo).
+  useEffect(() => { setEstado(estadoAvisos(local.id, email)); renovarAvisos(local.id, email) }, [local.id, email])
 
   if (soporta === null || estado === 'activo') return null
   if (!soporta) {
@@ -29,7 +32,7 @@ export default function ActivarAvisos({ local, usuario }) {
       await activarAvisos(local.id, usuario?.email)
       setEstado('activo')
     } catch (e) {
-      setEstado(estadoAvisos(local.id))
+      setEstado(estadoAvisos(local.id, email))
       setError(e?.message === 'bloqueado' ? 'Bloqueaste los avisos. Puedes activarlos en los permisos del sitio.' : 'No se pudo activar. Revisa el internet e intenta de nuevo.')
     } finally { setOcupado(false) }
   }

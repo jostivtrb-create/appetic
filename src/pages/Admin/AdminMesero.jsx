@@ -1,7 +1,7 @@
 import { useConMenuDelDia } from '../../utils/useMinuto'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  comandasDe, etiquetaDestino, claveMesa, ms, motivoError,
+  comandasDe, etiquetaDestino, claveMesa, ms, motivoError, textoCambioComanda,
 } from '../../services/comandas'
 import AdminEquipo from './AdminEquipo'
 import ActivarAvisos from './ActivarAvisos'
@@ -55,7 +55,7 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
           <span className="ms-listo-campana" aria-hidden="true">🔔</span>
           <span>
             <strong>{listos.pendientes.length === 1 ? '¡Pedido listo!' : `¡${listos.pendientes.length} pedidos listos!`}</strong>
-            {' '}{listos.pendientes.map(c => etiquetaDestino(c.destino)).join(' · ')}
+            {listos.pendientes.map(c => <span key={c.id} className="ms-listo-dest"> {etiquetaDestino(c.destino)}</span>)}
           </span>
           <span className="ms-listo-ok">Entendido</span>
         </button>
@@ -91,6 +91,7 @@ function EnCurso({ local, productos, api, activas, recientes, usuario, demo }) {
   const [corrigiendo, setCorrigiendo] = useState(null)   // id de la comanda en corrección
   const [cuidadoCancelar, setCuidadoCancelar] = useState(null)
   const [guardada, setGuardada] = useState(false)
+  const [errorCancelar, setErrorCancelar] = useState('')
   const [totalCambio, setTotalCambio] = useState(null) // { pedido, total } tras corregir un pedido de la app (D34)
   const enCorreccion = corrigiendo ? activas.find(c => c.id === corrigiendo) : null
 
@@ -114,7 +115,14 @@ function EnCurso({ local, productos, api, activas, recientes, usuario, demo }) {
   }
 
   async function cancelar(c) {
-    await api.cancelar(c, { email: (usuario?.email || '').toLowerCase(), nombre: usuario?.displayName || '' })
+    setErrorCancelar('')
+    try {
+      await api.cancelar(c, { email: (usuario?.email || '').toLowerCase(), nombre: usuario?.displayName || '' })
+    } catch (e) {
+      setErrorCancelar(textoCambioComanda(e) || 'No se pudo cancelar. Revisa el internet y vuelve a intentar.')
+      setCancelando(null)
+      return
+    }
     // Pedido de la app cancelado: el cliente lo ve como no atendido en «Mi pedido».
     if (c.pedidoId) pedidosDe(local.id, { demo }).cambiarEstado(c.pedidoId, 'rechazado').catch(() => {})
     setCancelando(null)
@@ -122,6 +130,7 @@ function EnCurso({ local, productos, api, activas, recientes, usuario, demo }) {
 
   return (
     <div className="ms-curso" style={colores.vars}>
+      {errorCancelar && <p className="ms-aviso-red" role="alert">{errorCancelar}</p>}
       {grupos.length === 0 && <p className="ms-vacio ms-vacio--grande">No hay pedidos en curso.</p>}
       {grupos.map(lista => (
         <section key={lista[0].id} className="ms-mesa">

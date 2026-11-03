@@ -244,6 +244,8 @@ service cloud.firestore {
         // cajero (la caja). Una cancelación del mesero sí la saca de «por cobrar». Guía «Cuenta por mesa» D6.
         allow update: if esPersonal(localId)
                       && request.resource.data.estado in ['activa', 'entregada', 'cancelada']
+                      // Anular algo YA ENTREGADO (comida servida que no se cobra) solo la caja o el dueño.
+                      && (request.resource.data.estado != 'cancelada' || resource.data.estado != 'entregada' || puedeCaja(localId))
                       && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['destino']) || mesaEnPlan(localId))
                       && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['porCobrar', 'cobradaEn', 'cobradaPor', 'ventaId'])
                           || puedeCaja(localId)

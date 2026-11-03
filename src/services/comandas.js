@@ -34,6 +34,7 @@ import { siguienteTurno, agregarListo, quitarListo, nombreCorto } from '../utils
 import { fechaBogota } from '../utils/menuDelDia'
 import { tiene } from '../utils/plan'
 
+export const POR_COBRAR_MAX = 200
 export const POR_PAGINA = 20
 
 // ¿El local usa pantalla de cocina? (guía «Cuentas del negocio» D13/S12). Sin dato = sí.
@@ -174,6 +175,35 @@ export function escucharConReintento(q, cb, onError) {
   return () => { vivo = false; clearTimeout(timer); unsub() }
 }
 
+// 🛡️ Otro celular pudo cambiar la comanda mientras esta pantalla la tenía abierta (el mesero la
+// canceló, la cocina la entregó, la caja la cobró, llegó una corrección). Cada paso revisa la comanda
+// RECIÉN LEÍDA y, si ya no está como la vio la pantalla, no escribe y avisa con un `ComandaCambio`.
+export class ComandaCambio extends Error {
+  constructor(motivo) { super(motivo); this.motivo = motivo }
+}
+export function textoCambioComanda(e) {
+  return ({
+    cancelada: 'Esta comanda ya la cancelaron en otro celular.',
+    entregada: 'Esta comanda ya se entregó. Lo entregado solo lo anula la caja.',
+    activa: 'Esta comanda volvió a la cocina.',
+    cobrada: 'Esta comanda ya se cobró.',
+    cambio: 'Acaban de corregir esta comanda: revísala antes de seguir.',
+    'no-existe': 'Esta comanda ya no existe.',
+  })[e?.motivo] || null
+}
+const mismoCambio = (c, vista) => (c.cambiadaEn ?? null) === (vista.cambiadaEn ?? null)
+const REVISAR = {
+  // Entregar: sigue en cocina y sin una corrección que la pantalla no alcanzó a mostrar.
+  entregar: (c, vista) => c.estado !== 'activa' ? c.estado : !mismoCambio(c, vista) ? 'cambio' : null,
+  // Deshacer un entregado: solo si sigue entregada y nadie la cobró.
+  deshacer: c => c.cobradaEn ? 'cobrada' : c.estado !== 'entregada' ? c.estado : null,
+  // Cancelar: lo que está en cocina. Lo ya entregado solo lo anula la caja (conEntregadas).
+  cancelar: (c, _vista, conEntregadas) => c.cobradaEn ? 'cobrada' : c.estado === 'cancelada' ? 'cancelada'
+    : c.estado === 'entregada' && !conEntregadas ? 'entregada' : null,
+  // «Visto» apaga solo el cambio que la cocina tenía en pantalla.
+  visto: (c, vista) => !mismoCambio(c, vista) ? 'cambio' : null,
+}
+
 // Lo que el TV muestra de una comanda lista: su turno y el primer nombre, nada más (S10).
 const entradaListo = c => ({ id: c.id, turno: c.turno, nombre: nombreCorto(c.destino?.nombre), en: Date.now() })
 
@@ -192,6 +222,17 @@ function firestoreApi(localId) {
     const snap = await tx.get(ref)
     if (!snap.exists()) return
     tx.update(ref, { items: fn(snap.data().items || []), ...extra })
+  })
+
+  // Como cambiarItems, pero solo si la comanda sigue como la vio la pantalla (REVISAR).
+  const cambiarSi = (vista, revisar, cambios, ...extra) => runTransaction(db, async tx => {
+    const ref = doc(col(), vista.id)
+    const snap = await tx.get(ref)
+    if (!snap.exists()) throw new ComandaCambio('no-existe')
+    const c = snap.data()
+    const motivo = revisar(c, vista, ...extra)
+    if (motivo) throw new ComandaCambio(motivo)
+    tx.update(ref, typeof cambios === 'function' ? cambios(c) : cambios)
   })
 
   return {
@@ -279,32 +320,36 @@ function firestoreApi(localId) {
     },
     // La cocina vio el cambio: se quita la franja «CAMBIÓ».
     async marcarVisto(comanda) {
-      await updateDoc(doc(col(), comanda.id), { cambioPendiente: false, vistoEn: Date.now() })
+      await cambiarSi(comanda, REVISAR.visto, { cambioPendiente: false, vistoEn: Date.now() })
     },
     async obtener(id) {
       const s = await getDoc(doc(col(), id))
       return s.exists() ? { id: s.id, ...s.data() } : null
     },
     async entregar(comanda) {
-      await cambiarItems(comanda.id, items => items.map(it => it.quitado ? it : { ...it, hecho: true }), {
+      await cambiarSi(comanda, REVISAR.entregar, c => ({
+        items: (c.items || []).map(it => it.quitado ? it : { ...it, hecho: true }),
         estado: 'entregada', entregadaEn: serverTimestamp(), cerradaEn: serverTimestamp(),
-      })
+      }))
       if (comanda.turno) await cambiarListos(prev => agregarListo(prev, entradaListo(comanda), fechaBogota()))
     },
     // Deshacer un «entregado» por error de dedo: vuelve a la fila en su lugar (por creadaEn).
     async deshacer(comanda) {
-      await updateDoc(doc(col(), comanda.id), { estado: 'activa', entregadaEn: null, cerradaEn: null })
+      await cambiarSi(comanda, REVISAR.deshacer, { estado: 'activa', entregadaEn: null, cerradaEn: null })
       if (comanda.turno) await cambiarListos(prev => quitarListo(prev, comanda.id))
     },
-    async cancelar(comanda, porQuien) {
-      await updateDoc(doc(col(), comanda.id), {
+    // `conEntregadas`: solo la caja/admin anula algo ya entregado (guía «Mesero y Comandas» · auditoría H1).
+    async cancelar(comanda, porQuien, { conEntregadas = false } = {}) {
+      await cambiarSi(comanda, REVISAR.cancelar, {
         estado: 'cancelada', canceladaEn: serverTimestamp(), cerradaEn: serverTimestamp(),
         canceladaPor: porQuien || null, porCobrar: false,
-      })
+      }, conEntregadas)
     },
     // 💵 CAJA (guía «Cuenta por mesa»): lo que falta cobrar, en orden de llegada…
+    // Con tope: un local que cobra fuera de la app acumula «por cobrar» día tras día y cada celular
+    // las leía TODAS al abrir. Las 200 más viejas bastan para ver el problema (aviso de cuentas viejas).
     escucharPorCobrar(cb, onError) {
-      const q = query(col(), where('porCobrar', '==', true), orderBy('creadaEn', 'asc'))
+      const q = query(col(), where('porCobrar', '==', true), orderBy('creadaEn', 'asc'), limit(POR_COBRAR_MAX))
       return escucharConReintento(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))), onError)
     },
     // …y el historial: las cobradas, la más reciente primero.
@@ -358,6 +403,12 @@ function demoApi(localId) {
     cobradaEn: c.cobradaEn ? ts(c.cobradaEn) : null,
   })
   const cambiar = (id, fn) => escribir(leer().map(c => c.id === id ? fn(c) : c))
+  const revisarDemo = (vista, revisar, ...extra) => {
+    const c = leer().find(x => x.id === vista.id)
+    if (!c) throw new ComandaCambio('no-existe')
+    const motivo = revisar(c, vista, ...extra)
+    if (motivo) throw new ComandaCambio(motivo)
+  }
   const suscribir = (calcular, cb) => {
     const fn = () => cb(...calcular())
     oyentes.add(fn)
@@ -426,6 +477,7 @@ function demoApi(localId) {
       return true
     },
     async marcarVisto(comanda) {
+      revisarDemo(comanda, REVISAR.visto)
       cambiar(comanda.id, c => ({ ...c, cambioPendiente: false, vistoEn: Date.now() }))
     },
     async obtener(id) {
@@ -433,6 +485,7 @@ function demoApi(localId) {
       return c ? hidratar(c) : null
     },
     async entregar(comanda) {
+      revisarDemo(comanda, REVISAR.entregar)
       const ahora = Date.now()
       if (comanda.turno) escribirListos(prev => agregarListo(prev, entradaListo(comanda), fechaBogota()))
       cambiar(comanda.id, c => ({
@@ -441,10 +494,12 @@ function demoApi(localId) {
       }))
     },
     async deshacer(comanda) {
+      revisarDemo(comanda, REVISAR.deshacer)
       if (comanda.turno) escribirListos(prev => quitarListo(prev, comanda.id))
       cambiar(comanda.id, c => ({ ...c, estado: 'activa', entregadaEn: null, cerradaEn: null }))
     },
-    async cancelar(comanda, porQuien) {
+    async cancelar(comanda, porQuien, { conEntregadas = false } = {}) {
+      revisarDemo(comanda, REVISAR.cancelar, conEntregadas)
       const ahora = Date.now()
       cambiar(comanda.id, c => ({ ...c, estado: 'cancelada', canceladaEn: ahora, cerradaEn: ahora, canceladaPor: porQuien || null, porCobrar: false }))
     },

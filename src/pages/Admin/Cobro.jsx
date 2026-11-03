@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { cop } from '../../utils/money'
 import { cuentasDe, emojiCuenta } from '../../utils/cuentasDinero'
 import { motivoErrorCuentas } from '../../services/cuentas'
+import { conTope } from '../../utils/conTope'
 import './Cobro.css'
 
 // 💵 VENTANA DE COBRO (guía «Cuentas del negocio», D11 + D27). La usan la Caja (Cobrar ya), las
@@ -66,15 +67,15 @@ export default function Cobro({ local, titulo, detalle, total, sugerida, onConfi
     setEstado('cobrando'); setError('')
     try {
       if (cambiar) {
-        await onConfirmar({ pagos, propinaCuenta: { cuenta: c1, nombre: cuenta(c1)?.nombre }, motivo })
+        await conTope(onConfirmar({ pagos, propinaCuenta: { cuenta: c1, nombre: cuenta(c1)?.nombre }, motivo }), 12000)
         return
       }
-      await onConfirmar({
+      await conTope(onConfirmar({
         pagos,
         propina: propina > 0 ? { valor: propina, cuenta: c1, nombre: cuenta(c1)?.nombre } : null,
         descuento: valorDesc > 0 ? { valor: valorDesc, cortesia: desc === 'cortesia', motivo } : null,
         recibido: efectivoParte > 0 ? numero(recibido) : 0,
-      })
+      }), 12000)
     } catch (e) {
       // El detalle va a la consola: el mensaje de pantalla es genérico y así no se sabe qué pasó.
       console.error('[cobro] no se pudo cobrar:', e?.code || '', e)

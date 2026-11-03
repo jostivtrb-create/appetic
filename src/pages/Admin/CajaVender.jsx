@@ -3,13 +3,14 @@ import { cop } from '../../utils/money'
 import { tieneOpciones, precioItem } from '../../utils/price'
 import { resumenSeleccion } from '../../utils/selectionSummary'
 import {
-  itemsDeComanda, etiquetaDestino, claveMesa, ms, nuevoIdComanda, usaCocina, itemsVivos,
+  itemsDeComanda, etiquetaDestino, claveMesa, ms, nuevoIdComanda, usaCocina, itemsVivos, textoCambioComanda, POR_COBRAR_MAX,
 } from '../../services/comandas'
 import { pedidosDe } from '../../services/pedidos'
 import { llevaTurno } from '../../utils/turnos'
 import ProductModal from '../../components/Menu/ProductModal'
 import ProductWizard from '../../components/Menu/ProductWizard'
 import { useEsEscritorio } from '../../utils/useEsEscritorio'
+import { conTope, SinRed } from '../../utils/conTope'
 import { Teclado } from './Teclado'
 import Cobro from './Cobro'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
@@ -229,7 +230,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
     setEnviando(true); setError('')
     try {
       const lista = lineas
-      const { id, turno } = await crearComanda(dest, lista)
+      const { id, turno } = await conTope(crearComanda(dest, lista))
       sumarFrec(lista)
       setGuardado(g => {
         const carts = { ...g.carts, [sel]: [] }
@@ -239,8 +240,10 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
       if (turno) setTurnoDado({ turno, nombre: dest.nombre || '' })
       else avisar(conCocina ? `✓ Enviada a cocina · ${etiquetaDestino(dest)}` : `✓ ${etiquetaDestino(dest)} queda por cobrar`)
       avisarDemo('comanda-mesero')
-    } catch {
-      setError('No se envió. Revisa el internet y vuelve a intentar: no se va a repetir.')
+    } catch (e) {
+      setError(e instanceof SinRed
+        ? 'Sin internet: la comanda todavía no llega a la cocina. Sale sola cuando vuelva la señal, o toca enviar de nuevo (no se repite).'
+        : 'No se envió. Revisa el internet y vuelve a intentar: no se va a repetir.')
     } finally { setEnviando(false) }
   }
 
@@ -250,15 +253,16 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
     try {
       await api.entregar(c)
       if (c.pedidoId) pedidos.cambiarEstado(c.pedidoId, 'listo').catch(() => {})
-    } catch { setError('No se pudo marcar. Revisa el internet.') }
+    } catch (err) { setError(textoCambioComanda(err) || 'No se pudo marcar. Revisa el internet.') }
   }
   async function cancelarComanda(c) {
     setCancelando(null)
     try {
-      await api.cancelar(c, por)
+      // Lo ya entregado solo lo anula la caja/admin; el mesero solo cancela lo que está en cocina.
+      await api.cancelar(c, por, { conEntregadas: !esMesero })
       if (c.pedidoId) pedidos.cambiarEstado(c.pedidoId, 'rechazado').catch(() => {})
       avisar(`Comanda de ${etiquetaDestino(c.destino)} cancelada`)
-    } catch { setError('No se pudo cancelar. Revisa el internet.') }
+    } catch (err) { setError(textoCambioComanda(err) || 'No se pudo cancelar. Revisa el internet.') }
   }
 
   // ── Cobrar ──
@@ -266,8 +270,10 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
   // La comanda que este cobro ya mandó a la cocina. Si después falla guardar la venta, el reintento
   // usa ESA y no manda otra (antes cada intento dejaba una comanda repetida en la cocina).
   const comandaDelCobro = useRef(null)
+  const ventaDelCobro = useRef(null)
   function abrirCobro(soloComanda = null) {
     comandaDelCobro.current = null
+    ventaDelCobro.current = null
     if (soloComanda) { setCobro({ comandas: [soloComanda], conLineas: false, titulo: etiquetaDestino(soloComanda.destino) }); return }
     if (!lineas.length && !grupo?.comandas.length) return
     if (grupo && !grupo.listo) return
@@ -295,7 +301,11 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
       ...itemsDeComanda(lista).map(it => ({ productoId: it.productoId, nombre: it.nombre, cantidad: it.cantidad, precio: it.precio, opciones: it.opciones })),
     ]
     const destino = cobro.comandas[0]?.destino || grupo?.destino || null
+    // Id fijo de esta venta mientras el cobro siga abierto: si el internet falla y se reintenta,
+    // no se registra dos veces.
+    if (!ventaDelCobro.current) ventaDelCobro.current = cuentasApi.nuevoId()
     await cuentasApi.registrarVenta({
+      id: ventaDelCobro.current,
       origen: destino?.tipo === 'mesa' ? 'mesa' : cobro.comandas.length ? 'comanda' : 'caja',
       comandas, items, destino, mesa: destino?.mesa || null,
       ...datos,
@@ -304,6 +314,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
     if (cobro.conLineas) setGuardado(g => ({ carts: { ...g.carts, [sel]: [] }, nuevas: g.nuevas.filter(n => n.key !== sel) }))
     const neto = totalCobro - (datos.descuento?.valor || 0)
     comandaDelCobro.current = null
+    ventaDelCobro.current = null
     if (turno) setTurnoDado({ turno, nombre: grupo?.destino?.nombre || '' })
     else avisar(`✓ ${cobro.titulo}: venta de ${cop(neto)} registrada`)
     avisarDemo('cobrada')
@@ -423,14 +434,16 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
             {c.envio > 0 && <div className="pv-linea ya"><div className="pv-linea-nombre">Envío</div><div className="pv-linea-sub">{cop(c.envio)}</div></div>}
             {cancelando === c.id ? (
               <div className="pv-ya-acc seguro">
-                <span>¿Cancelar esta comanda? No se cobra.</span>
+                <span>{c.estado === 'entregada' ? '¿Anular? Ya se entregó y no se va a cobrar.' : '¿Cancelar esta comanda? No se cobra.'}</span>
                 <button type="button" className="pv-link" onClick={() => setCancelando(null)}>No</button>
                 <button type="button" className="pv-link peligro" onClick={() => cancelarComanda(c)}>Sí, cancelar</button>
               </div>
             ) : (
               <div className="pv-ya-acc">
                 {c.estado === 'activa' && !e.fin && <button type="button" className="pv-link" onClick={() => yaSalio(c)}>✓ Ya salió de cocina</button>}
-                <button type="button" className="pv-link peligro" onClick={() => setCancelando(c.id)}>Cancelar comanda</button>
+                {(c.estado === 'activa' || !esMesero) && (
+                  <button type="button" className="pv-link peligro" onClick={() => setCancelando(c.id)}>{c.estado === 'entregada' ? 'Anular comanda' : 'Cancelar comanda'}</button>
+                )}
               </div>
             )}
           </div>
@@ -495,6 +508,13 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
 
   return (
     <div className="pv-vender" style={{ '--sel': selColor }}>
+
+      {/* Cuentas de días anteriores sin cerrar: se acumulan y la app solo carga las más viejas. */}
+      {!esMesero && grupos.some(g => g.vieja) && (
+        <p className="pv-viejas">
+          🗓️ Hay cuentas de días anteriores sin cobrar{(porCobrar?.length || 0) >= POR_COBRAR_MAX ? ' (y son muchas: algunas no se están mostrando)' : ''}. Cóbralas o anúlalas para que no se acumulen.
+        </p>
+      )}
 
       <nav className="pv-cuentas" aria-label="Cuentas abiertas">
         <button type="button" className={`pv-cuenta${sel === 'rapida' ? ' on' : ''}`} onClick={() => setSel('rapida')}>
