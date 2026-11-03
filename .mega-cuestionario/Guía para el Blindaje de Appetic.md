@@ -131,7 +131,9 @@ Ninguna. Faltan solo acciones del usuario: clave de reCAPTCHA v3 (App Check) y p
 - [x] 9 · App Check en la app (se prende con `VITE_RECAPTCHA_V3`) + el servidor lo mide (`APPCHECK_OBLIGATORIO=1` para exigir)
 - [x] 10a · Pruebas: `node prueba-appetic.mjs` (10 nuevas), 22 de reglas en el emulador, función contra la demo real, navegador (mesa con precio cambiado, WhatsApp, Mi pedido, Preparando en celular, candado de la Caja)
 - [x] 10b · Publicado: app a Vercel primero (confirmado en el bundle servido y en `/api/pedido`), luego reglas + índices (TTL). En producción: pedido directo sin sesión y métricas a mano → PERMISSION_DENIED; por el servidor → OK
-- [ ] 11 · Usuario: App Check (clave reCAPTCHA v3 + `VITE_RECAPTCHA_V3` en Vercel) y prueba del aviso con la app cerrada en su celular
+- [x] 11a · App Check (lo pidió hacer el usuario): reCAPTCHA **Enterprise** (no v3), clave «Appetic App Check (web)» `6Ld6dw4uAAAAAKkJEIcBvfvK6ivXhMogRsmQL3rJ` para appetic.vercel.app y localhost, registrada en App Check de la app web. Va en el código (es pública); no hizo falta Vercel. Firestore sigue SIN exigirla y el servidor solo mide
+- [ ] 11b · Usuario: prueba del aviso con la app cerrada en su celular
+- [ ] 12 · En ~1 semana: mirar en Firebase Console → App Check que casi todo el tráfico llegue verificado; entonces «Aplicar» en Firestore y `APPCHECK_OBLIGATORIO=1` en Vercel
 
 ---
 
@@ -153,4 +155,10 @@ Ninguna. Faltan solo acciones del usuario: clave de reCAPTCHA v3 (App Check) y p
     (`apiLocal`), usando la llave local. Escribe en el Firebase real: probar con la demo.
   - *Problema:* la demo vacía el carrito al entrar al menú, así que «precio viejo en el carrito» se
     probó cambiando el precio en Firebase con el plato ya en el carrito (el caso real).
+- **3-nov-2026 · App Check** — Creado por API con la sesión de firebase-tools de la cuenta dueña
+  (jostivtrb): activar `recaptchaenterprise` y `firebaseappcheck`, crear la clave (SCORE) y
+  `recaptchaEnterpriseConfig` de la app. *Problema:* los primeros minutos el canje respondía 400
+  «Unable to call the reCAPTCHA Enterprise CreateAssessment method…» con todo bien configurado: era
+  propagación (~5 min); después, token real OK y el servidor lo valida. Se cambió de
+  `ReCaptchaV3Provider` a `ReCaptchaEnterpriseProvider` (lo que recomienda Firebase hoy).
 

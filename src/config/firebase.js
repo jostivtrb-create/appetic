@@ -28,13 +28,15 @@ setPersistence(auth, browserLocalPersistence).catch(() => {})
 export default app
 
 // 🛡️ App Check (guía «Blindaje» D7 · S10): prueba de que quien escribe es ESTA app y no un script.
-// Solo se prende con la clave de reCAPTCHA v3 (VITE_RECAPTCHA_V3) puesta; sin ella todo sigue igual.
-// Se carga aparte para no pesar en el arranque.
+// reCAPTCHA Enterprise, clave «Appetic App Check (web)» creada el 3-nov-2026 para appetic.vercel.app
+// y localhost. La clave del SITIO es pública (va en el HTML de cualquier página que la use), por eso
+// vive aquí; VITE_RECAPTCHA_ENTERPRISE la cambia sin tocar código. Hoy solo se MIDE: ni Firestore
+// ni /api/pedido la exigen todavía (ver guía, S10). Se carga aparte para no pesar en el arranque.
+const CLAVE_RECAPTCHA = import.meta.env.VITE_RECAPTCHA_ENTERPRISE || '6Ld6dw4uAAAAAKkJEIcBvfvK6ivXhMogRsmQL3rJ'
 let appCheck = null
-const CLAVE_RECAPTCHA = import.meta.env.VITE_RECAPTCHA_V3
 if (CLAVE_RECAPTCHA && typeof window !== 'undefined') {
-  appCheck = import('firebase/app-check').then(({ initializeAppCheck, ReCaptchaV3Provider }) =>
-    initializeAppCheck(app, { provider: new ReCaptchaV3Provider(CLAVE_RECAPTCHA), isTokenAutoRefreshEnabled: true }),
+  appCheck = import('firebase/app-check').then(({ initializeAppCheck, ReCaptchaEnterpriseProvider }) =>
+    initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(CLAVE_RECAPTCHA), isTokenAutoRefreshEnabled: true }),
   ).catch(e => { console.warn('App Check no arrancó', e); return null })
 }
 
