@@ -74,7 +74,7 @@ export function paginarTablero(categorias, porPagina) {
 // `sinFoto` son los ids cuya foto no cargó en este TV: se sacan de la cola.
 export function colaGrande(platos, catActual, sinFoto = new Set()) {
   const sirve = p => tieneFoto(p) && !sinFoto.has(p.id)
-  const fuertes = platos.filter(p => p.destacado && sirve(p))
+  const fuertes = platos.filter(p => (p.destacado || p.esMenuDelDia) && sirve(p))
   if (fuertes.length >= 2) return fuertes
   const relleno = (catActual?.platos || []).filter(p => sirve(p) && !p.destacado)
   const cola = [...fuertes, ...relleno]

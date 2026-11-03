@@ -49,3 +49,12 @@ export async function subirImagenAnuncio(localId, anuncioId, file) {
   await uploadBytes(r, blob, { contentType: tipo })
   return await getDownloadURL(r)
 }
+
+// 🍲 Foto del MENÚ DEL DÍA (con foto pasa en grande por el TV).
+export async function subirFotoMenuDelDia(localId, file) {
+  const { blob, tipo, ext } = await comprimirImagen(file, { maxLado: 1400 })
+  const ruta = `locales/${localId}/menu-del-dia-${Date.now()}.${ext}`
+  const r = ref(storage, ruta)
+  await uploadBytes(r, blob, { contentType: tipo })
+  return await getDownloadURL(r)
+}

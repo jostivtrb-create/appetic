@@ -71,6 +71,9 @@ export const DEMO_LOCAL = {
   admins: [],
   suscripcion: { activa: false, plan: 'demo' },
   menuVersion: 1,
+  // 🍲 Menú del día (Guía para la Pantalla de TV.md, Etapa B). En la demo sale a toda hora
+  // (franja 00:00–00:00) para que el visitante lo vea entre cuando entre.
+  menuDelDia: menuDelDiaDemo(),
   // 📺 Pantalla de TV (Guía para la Pantalla de TV.md): /demo/tv
   pantalla: {
     transicion: 'zoom',
@@ -80,6 +83,55 @@ export const DEMO_LOCAL = {
       { id: 'an-martes', titulo: '2×1 en perros', texto: 'Todos los martes, en el local y para llevar', imagen: '', activo: true, dias: ['mar'], desde: '', hasta: '' },
     ],
   },
+}
+
+// ─────────────────────────── Menú del día de ejemplo ───────────────────────────
+
+function menuDelDiaDemo() {
+  const o = (id, nombre, recargo) => ({ id, nombre, ...(recargo ? { recargo } : {}) })
+  const fijo = {
+    principio: [o('pr-frijol', 'Fríjoles'), o('pr-lenteja', 'Lentejas')],
+    acompanante: [o('ac-arroz', 'Arroz blanco')],
+    ensalada: [o('en-fresca', 'Ensalada fresca')],
+  }
+  const dia = (sopa, proteinas, jugo) => ({
+    ...fijo,
+    sopa: [o(`so-${sopa.toLowerCase().replace(/\W+/g, '-')}`, sopa)],
+    proteina: proteinas,
+    jugo: [o(`ju-${jugo.toLowerCase().replace(/\W+/g, '-')}`, jugo)],
+  })
+  const pollo = o('pt-pollo', 'Pechuga a la plancha')
+  const res = o('pt-res', 'Carne asada')
+  const cerdo = o('pt-cerdo', 'Chuleta de cerdo')
+  const pescado = o('pt-mojarra', 'Mojarra frita', 4000)
+  return {
+    activo: true,
+    nombre: 'Almuerzo ejecutivo',
+    foto: '',
+    franja: { desde: '00:00', hasta: '00:00' },
+    precioMesa: 16000,
+    precioLlevar: 17000,
+    partes: [
+      { id: 'sopa', nombre: 'Sopa', emoji: '🥣', activa: true, obligatoria: true, max: 1, sePuedeQuitar: true, reemplazos: ['Huevo frito', 'Más principio'] },
+      { id: 'principio', nombre: 'Principio', emoji: '🫘', activa: true, obligatoria: false, max: 2, sePuedeQuitar: true, reemplazos: [] },
+      { id: 'proteina', nombre: 'Proteína', emoji: '🍗', activa: true, obligatoria: true, max: 1, sePuedeQuitar: false, reemplazos: [] },
+      { id: 'acompanante', nombre: 'Acompañante', emoji: '🍚', activa: true, obligatoria: false, max: 1, sePuedeQuitar: true, reemplazos: [] },
+      { id: 'ensalada', nombre: 'Ensalada', emoji: '🥗', activa: true, obligatoria: false, max: 1, sePuedeQuitar: true, reemplazos: [] },
+      { id: 'jugo', nombre: 'Jugo', emoji: '🥤', activa: true, obligatoria: true, max: 1, sePuedeQuitar: true, reemplazos: [] },
+      { id: 'extra', nombre: 'Postre', emoji: '🍮', activa: false, obligatoria: false, max: 1, sePuedeQuitar: true, reemplazos: [] },
+    ],
+    semana: {
+      lun: dia('Ajiaco', [pollo, res], 'Limonada'),
+      mar: dia('Sancocho', [pollo, cerdo], 'Jugo de mora'),
+      mie: dia('Crema de ahuyama', [res, pescado], 'Jugo de mango'),
+      jue: dia('Sopa de arroz', [pollo, res], 'Limonada'),
+      vie: dia('Mondongo', [cerdo, pescado], 'Jugo de lulo'),
+      sab: dia('Sopa de pasta', [pollo, res], 'Jugo de maracuyá'),
+      dom: dia('Sancocho trifásico', [pollo, cerdo, res], 'Limonada de coco'),
+    },
+    hoy: null,
+    agotadas: null,
+  }
 }
 
 // ─────────────────────────── Grupos reutilizables ───────────────────────────

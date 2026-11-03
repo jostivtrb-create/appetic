@@ -15,7 +15,9 @@ export default function ProductCard({ producto, onPedir }) {
       disabled={agotado}
     >
       <div className="pcard-info">
-        {producto.destacado && <span className="pcard-fuerte">⭐ Nuestro fuerte</span>}
+        {producto.esMenuDelDia
+          ? <span className="pcard-fuerte">🍲 Almuerzo de hoy</span>
+          : producto.destacado && <span className="pcard-fuerte">⭐ Nuestro fuerte</span>}
         <h3 className="pcard-nombre">{producto.nombre}</h3>
         {producto.descripcion && <p className="pcard-desc">{producto.descripcion}</p>}
         <div className="pcard-precio-row">

@@ -12,7 +12,10 @@ import './ProductWizard.css'
 // el texto del botón final.
 export default function ProductWizard({ producto, onCerrar, onAgregar, inicial, textoBoton }) {
   const [varianteId, setVarianteId] = useState(inicial?.seleccion?.varianteId ?? (producto.variantes?.length ? producto.variantes[0].id : null))
-  const [grupos, setGrupos] = useState(() => ({ ...(inicial?.seleccion?.grupos || {}) })) // { grupoId: [opcionId, ...] }
+  // `preelegida`: lo que «va incluido» llega ya marcado (el menú del día); el cliente solo sigue.
+  const [grupos, setGrupos] = useState(() => inicial?.seleccion?.grupos
+    ? { ...inicial.seleccion.grupos }
+    : Object.fromEntries((producto.gruposOpciones || []).filter(g => g.preelegida?.length).map(g => [g.id, [...g.preelegida]]))) // { grupoId: [opcionId, ...] }
   // ⊘ Los pasos que el cliente dijo que NO le pongan: { grupoId: true }.
   //
   // Esto pedía dos toques: marcar "no lo lleva" y después decir cuál era. La
@@ -373,7 +376,10 @@ function PasoGrupo({ grupo, elegidas, max, noLleva = false, onToggle, onToggleNo
               onClick={() => onToggle(grupo, opc.id)}
             >
               <span className="pw-card-foto">
-                <ImagenApp className="pw-card-foto-img" src={opc.foto} alt="" />
+                {/* Grupos sin fotos (el menú del día): un emoji grande en vez del «Cargando imagen». */}
+                {grupo.sinFotos && !opc.foto
+                  ? <span className="pw-card-emoji" aria-hidden="true">{opc.emoji || grupo.emoji || '🍽️'}</span>
+                  : <ImagenApp className="pw-card-foto-img" src={opc.foto} alt="" />}
                 {sel && <span className="pw-card-check">✓</span>}
               </span>
               <span className="pw-card-nombre">{opc.nombre}</span>

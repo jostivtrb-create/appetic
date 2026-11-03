@@ -1,3 +1,4 @@
+import { useConMenuDelDia } from '../../utils/useMinuto'
 import { useEffect, useMemo, useState } from 'react'
 import { comandasDe, motivoError } from '../../services/comandas'
 import { cuentasNegocioDe } from '../../services/cuentas'
@@ -27,6 +28,8 @@ const VISTAS = [
 const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
 
 export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) {
+  // 🍲 El almuerzo de hoy también se vende aquí, con precio de mesa o para llevar (S21).
+  const { local: localVenta, productos: productosVenta } = useConMenuDelDia(local, productos, 'personal')
   const api = useMemo(() => comandasDe(local.id, { demo }), [local.id, demo])
   const cuentasApi = useMemo(() => cuentasNegocioDe(local.id, { demo }), [local.id, demo])
   // Vista previa: historial y cuentas de ejemplo para que nada salga vacío (S8).
@@ -78,7 +81,7 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
       {errorEscucha && <p className="pv-error" role="alert">{errorEscucha}</p>}
 
       {vista === 'vender' && (
-        <CajaVender local={local} productos={productos} api={api} cuentasApi={cuentasApi} demo={demo} usuario={usuario} porCobrar={porCobrar} />
+        <CajaVender local={localVenta} productos={productosVenta} api={api} cuentasApi={cuentasApi} demo={demo} usuario={usuario} porCobrar={porCobrar} />
       )}
       {vista === 'ventas' && <CajaVentas local={local} cuentasApi={cuentasApi} usuario={usuario} esAdmin={esAdmin} />}
       {vista === 'gastos' && <CajaGastos local={local} cuentasApi={cuentasApi} usuario={usuario} esAdmin={esAdmin} />}

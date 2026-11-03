@@ -177,5 +177,46 @@ eq('dos tamaños se dicen los dos',
 eq('precio fijo', tv.preciosDelPlato({precio:12000}), {tipo:'fijo',precio:12000})
 eq('transición desconocida cae al zoom', tv.transicionDe({pantalla:{transicion:'rara'}}), 'zoom')
 
+
+// ── 🍲 Menú del día (Etapa B) ──
+const md = await import('./src/utils/menuDelDia.js')
+console.log('\n── Menú del día ──')
+const base = md.menuDelDiaNuevo()
+const M = {
+  ...base, activo: true, precioMesa: 15000, precioLlevar: 16000,
+  franja: { desde: '11:30', hasta: '15:00' },
+  semana: { ...base.semana, lun: {
+    sopa: [{id:'s1',nombre:'Ajiaco'}],
+    principio: [{id:'pr1',nombre:'Fríjoles'},{id:'pr2',nombre:'Lentejas'}],
+    proteina: [{id:'p1',nombre:'Pollo'},{id:'p2',nombre:'Mojarra',recargo:4000}],
+    jugo: [{id:'j1',nombre:'Limonada'}],
+  } },
+}
+const LUN = { dia:'lun', fecha:'2026-11-02', minutos: 12*60 }
+const alm = md.almuerzoDeHoy(M, LUN)
+eq('a las 12 del lunes hay almuerzo', !!alm, true)
+eq('por la app vale lo de llevar', alm.precio, 16000)
+eq('en la mesa vale lo de mesa', md.almuerzoDeHoy(M, {...LUN, contexto:'mesa'}).precio, 15000)
+eq('mesero y caja: los dos precios como tamaños',
+   md.almuerzoDeHoy(M, {...LUN, contexto:'personal'}).variantes.map(v=>v.precio), [15000,16000])
+eq('a las 4 p. m. ya no hay', md.almuerzoDeHoy(M, {...LUN, minutos: 16*60}), null)
+eq('el martes sin semana: falta la sopa', md.motivoSinAlmuerzo(M, {...LUN, dia:'mar'}), 'falta:sopa')
+eq('los grupos van en orden y la sopa trae su «en vez de»',
+   alm.gruposOpciones.map(g=>g.id), ['md-sopa','md-sopa-cambio','md-principio','md-proteina','md-jugo'])
+eq('el «en vez de» solo sale si dijo sin sopa', alm.gruposOpciones[1].soloSi, {grupo:'md-sopa',opciones:['sin-sopa']})
+eq('el jugo se puede quitar con «no lleva»', alm.gruposOpciones[4].permiteNoLleva, true)
+eq('la proteína no', alm.gruposOpciones[3].permiteNoLleva, undefined)
+eq('mojarra con recargo', precioUnitario(alm, sel({'md-sopa':['s1'],'md-principio':['pr1'],'md-proteina':['p2'],'md-jugo':['j1']})), 20000)
+eq('el cambio de hoy manda sobre la semana',
+   md.opcionesDelDia({...M, hoy:{fecha:'2026-11-02', opciones:{sopa:[{id:'x',nombre:'Sancocho'}]}}}, 'lun', '2026-11-02').sopa[0].nombre, 'Sancocho')
+eq('el cambio de ayer ya no cuenta',
+   md.opcionesDelDia({...M, hoy:{fecha:'2026-11-01', opciones:{}}}, 'lun', '2026-11-02').sopa[0].nombre, 'Ajiaco')
+eq('lo agotado hoy sale', md.opcionesVigentes({...M, agotadas:{fecha:'2026-11-02', ids:['p2']}}, 'lun', '2026-11-02').proteina.map(o=>o.id), ['p1'])
+eq('lo agotado ayer vuelve', md.opcionesVigentes({...M, agotadas:{fecha:'2026-11-01', ids:['p2']}}, 'lun', '2026-11-02').proteina.length, 2)
+eq('la tarjeta dice qué trae', alm.descripcion, 'Con ajiaco, fríjoles o lentejas, pollo o mojarra y limonada.')
+const con = md.conMenuDelDia({categorias:[{id:'a'}], menuDelDia: M}, [{id:'x'}], LUN)
+eq('dos principios para escoger', alm.gruposOpciones[2].max, 2)
+eq('el almuerzo va de primero, en su categoría', [con.local.categorias[0].id, con.productos[0].id], ['_menu-del-dia','menu-del-dia'])
+
 console.log(f===0 ? '\n✅ TODO PASA — los dos lados cuadran\n' : `\n❌ ${f} FALLO(S)\n`)
 process.exit(f===0?0:1)

@@ -8,6 +8,8 @@ import {
 import { cop } from '../../utils/money'
 import { esColorOscuro } from '../../utils/theme'
 import { diaBogota, minutosAhoraBogota } from '../../utils/horario'
+import { useMinuto, useConMenuDelDia } from '../../utils/useMinuto'
+import { CATEGORIA_MD } from '../../utils/menuDelDia'
 import './PantallaTV.css'
 
 // 📺 La pantalla de TV del local: appetic.vercel.app/<slug>/tv
@@ -61,7 +63,11 @@ export default function PantallaTV({ slugFijo, incrustada = false }) {
   )
 }
 
-function Pantalla({ local, productos, tam, clases, deriva, veloz = false }) {
+function Pantalla({ local: localBase, productos: productosBase, tam, clases, deriva, veloz = false }) {
+  // 🍲 El almuerzo de hoy entra de primero en el tablero y en el lugar grande, solo dentro de su
+  // franja (D19, D23). En el local se dicen los dos precios si son distintos (mesa y llevar).
+  const { local, productos } = useConMenuDelDia(localBase, productosBase, 'personal')
+  const minuto = useMinuto()
   const vertical = tam.h > tam.w
   // Unidad de medida que escala con la pantalla, como si siempre fuera 16:9 (o 9:16).
   const u = vertical ? Math.min(tam.h, tam.w * 16 / 9) / 100 : Math.min(tam.w, tam.h * 16 / 9) / 100
@@ -96,7 +102,6 @@ function Pantalla({ local, productos, tam, clases, deriva, veloz = false }) {
 
   // ── Secuencia: páginas del tablero y, cada tanto, un anuncio a pantalla completa ──
   const [paso, setPaso] = useState({ pag: 0, anuncio: null, vueltaAnuncio: 0 })
-  const minuto = useMinuto()
   const anuncios = useMemo(
     () => anunciosVigentes(local, diaBogota(), minutosAhoraBogota()),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -181,7 +186,9 @@ function Pantalla({ local, productos, tam, clases, deriva, veloz = false }) {
           </header>
 
           <div className="tvt-lista" ref={listaRef}>
-            {pagina ? (
+            {pagina?.cat.id === CATEGORIA_MD.id ? (
+              <TableroAlmuerzo key="almuerzo" plato={pagina.platos[0]} />
+            ) : pagina ? (
               <ul key={`${pagina.cat.id}-${pagina.pagina}`} className={columnas === 2 ? 'dos' : ''}>
                 {pagina.platos.map((p, i) => <FilaTablero key={p.id} plato={p} i={i} />)}
               </ul>
@@ -251,6 +258,39 @@ function PlatoGrande({ plato, estado, alFallar }) {
         <span className="tvg-precio"><Precio precio={precio} /></span>
       </div>
     </article>
+  )
+}
+
+// 🍲 La página del menú del día: el almuerzo con sus precios y, debajo, qué trae hoy cada parte.
+function TableroAlmuerzo({ plato }) {
+  const precio = preciosDelPlato(plato)
+  const partes = (plato.gruposOpciones || [])
+    .filter(g => !g.soloSi)
+    .map(g => ({ ...g, opciones: (g.opciones || []).filter(o => !String(o.id).startsWith('sin-')) }))
+    .filter(g => g.opciones.length)
+  return (
+    <div className="tvm">
+      <div className="tvm-cab">
+        <h3>{plato.nombre}</h3>
+        <span className="tvm-precio"><Precio precio={precio} /></span>
+      </div>
+      <div className="tvm-partes">
+        {partes.map((g, i) => (
+          <div key={g.id} className="tvm-parte" style={{ animationDelay: `${i * 80}ms` }}>
+            <span className="tvm-etq">{g.emoji} {g.nombre}</span>
+            <span className="tvm-ops">
+              {g.opciones.map((o, j) => (
+                <span key={o.id}>
+                  {j > 0 && <i className="tvm-o"> o </i>}
+                  {o.nombre}
+                  {o.precioExtra > 0 && <small> +{cop(o.precioExtra)}</small>}
+                </span>
+              ))}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -347,16 +387,6 @@ function useTamano() {
     return () => window.removeEventListener('resize', f)
   }, [])
   return tam
-}
-
-// Cambia cada minuto, para recalcular qué anuncios están vigentes.
-function useMinuto() {
-  const [m, setM] = useState(() => Math.floor(Date.now() / 60000))
-  useEffect(() => {
-    const t = setInterval(() => setM(Math.floor(Date.now() / 60000)), 20000)
-    return () => clearInterval(t)
-  }, [])
-  return m
 }
 
 // S12: si el aparato no mueve 40 cuadros por segundo, se bajan las animaciones pesadas.

@@ -1,3 +1,4 @@
+import { useConMenuDelDia } from '../../utils/useMinuto'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   comandasDe, etiquetaDestino, claveMesa, ms, motivoError,
@@ -23,6 +24,8 @@ import CajaVender from './CajaVender'
 //     Desde ahí se cancela una comanda. Cuando la cocina entrega una que mandó ESTE mesero,
 //     aparece arriba un aviso que parpadea hasta que lo toca.
 export default function AdminMesero({ local, productos, demo, usuario, esAdmin }) {
+  // 🍲 El almuerzo de hoy también se vende aquí, con precio de mesa o para llevar (S21).
+  const { local: localVenta, productos: productosVenta } = useConMenuDelDia(local, productos, 'personal')
   const api = useMemo(() => comandasDe(local.id, { demo }), [local.id, demo])
   const [vista, setVista] = useState('tomar') // tomar | curso
   const [activas, setActivas] = useState([])
@@ -72,8 +75,8 @@ export default function AdminMesero({ local, productos, demo, usuario, esAdmin }
       {errorEscucha && <p className="ms-aviso-red">{errorEscucha}</p>}
 
       {vista === 'tomar'
-        ? <CajaVender modo="mesero" local={local} productos={productos} api={api} demo={demo} usuario={usuario} porCobrar={porCobrar} />
-        : <div className="ms ms-curso"><EnCurso local={local} productos={productos} api={api} activas={activas} recientes={recientes} usuario={usuario} demo={demo} /></div>}
+        ? <CajaVender modo="mesero" local={localVenta} productos={productosVenta} api={api} demo={demo} usuario={usuario} porCobrar={porCobrar} />
+        : <div className="ms ms-curso"><EnCurso local={local} productos={productosVenta} api={api} activas={activas} recientes={recientes} usuario={usuario} demo={demo} /></div>}
     </div>
   )
 }

@@ -6,7 +6,7 @@ import { getProductos } from '../../services/productos'
 import {
   agregarProducto, actualizarProducto, borrarProducto, actualizarLocal, guardarFotoExterna,
 } from '../../services/adminLocal'
-import { subirFotoProducto, subirFotoOpcion, subirBanner, subirFotoExterna, subirImagenAnuncio } from '../../services/storage'
+import { subirFotoProducto, subirFotoOpcion, subirBanner, subirFotoExterna, subirImagenAnuncio, subirFotoMenuDelDia } from '../../services/storage'
 import AdminProductos from './AdminProductos'
 import AdminFotosExternas from './AdminFotosExternas'
 import AdminConfig from './AdminConfig'
@@ -22,6 +22,7 @@ import AdminCaja from './AdminCaja'
 import AdminCuentas from './AdminCuentas'
 import ConfigPagos from './ConfigPagos'
 import ConfigPantalla from './ConfigPantalla'
+import ConfigMenuDelDia from './ConfigMenuDelDia'
 import AdminDomicilios from './AdminDomicilios'
 import AdminAjustes from './AdminAjustes'
 import { EquipoEnLinea } from './AdminEquipo'
@@ -272,6 +273,12 @@ export default function AdminPage() {
     return await subirImagenAnuncio(local.id, anuncioId, file)
   }
 
+  // 🍲 Foto del menú del día.
+  async function subirFotoDelMenuDelDia(file) {
+    if (demo) return URL.createObjectURL(file)
+    return await subirFotoMenuDelDia(local.id, file)
+  }
+
   // 🍔 Demo para clientes: abre la sesión anónima sola (nada de «Entrar con Google»).
   useEffect(() => {
     if (vitrina && !authCargando && !sesion) entrarDemo()
@@ -426,6 +433,7 @@ export default function AdminPage() {
                   </div>
                 )
                 : vista === 'pagos' ? <ConfigPagos local={local} onUpdate={updateLocal} />
+                : vista === 'menu-del-dia' ? <ConfigMenuDelDia key={local.id} local={local} onUpdate={updateLocal} onSubirFoto={subirFotoDelMenuDelDia} />
                 : vista === 'pantalla' ? <ConfigPantalla local={local} productos={productos} slug={slug} onUpdate={updateLocal} onSubirImagen={subirImagenDeAnuncio} />
                 : <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} vista={vista} />}
             </AdminAjustes>

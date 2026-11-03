@@ -18,13 +18,17 @@ import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import Checkout from '../Checkout/Checkout'
 import CheckoutMesa from '../Checkout/CheckoutMesa'
 import { mesaActual } from '../../utils/mesaQR'
+import { useConMenuDelDia } from '../../utils/useMinuto'
 import './LocalSkinJet.css'
 import './LocalSkinJuance.css'
 import './LocalSkinFruti.css'
 import './LocalSkinBon.css'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 
-export default function LocalMenu({ local, productos, cerrarCapaRef }) {
+export default function LocalMenu({ local: localBase, productos: productosBase, cerrarCapaRef }) {
+  // 🍲 El almuerzo de hoy va de primero, en su propia categoría, solo dentro de su franja (S19).
+  // Por el QR de la mesa vale lo de mesa; por la app, lo de llevar (S21).
+  const { local, productos } = useConMenuDelDia(localBase, productosBase, mesaActual(localBase) ? 'mesa' : 'llevar')
   const { addItem, totalItems } = useCart()
   const { setActiveLocal, setCartCount, setLive } = useNavUI()
   const { esDueno } = useAdmin()

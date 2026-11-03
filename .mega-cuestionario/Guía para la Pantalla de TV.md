@@ -5,7 +5,7 @@
 
 - **Tarea:** Construir el punto 2 de la propuesta, «Tu menú en vivo, en tu TV», bien hecho y no como una pantalla genérica.
 - **Inicio:** 2 de noviembre de 2026
-- **Estado:** 🔵 Construyendo · ✅ Etapa A lista en la vista previa (falta publicar) · sigue la Etapa B
+- **Estado:** 🔵 Construyendo · ✅ Etapa A publicada (2-nov, `efcc2a6`) · ✅ Etapa B lista en la vista previa (sin publicar) · sigue la Etapa C
 - **Proyecto:** `Appetic/` (Vite + React + Firebase, Vercel)
 
 ---
@@ -183,12 +183,12 @@ Por etapas. Cada etapa deja algo que funciona y se puede mostrar sola.
 - [x] A8 · Reglas de Storage para las imágenes de anuncios. Probar en la vista previa (PC, TV 1080p, vertical).
 
 ### Etapa B · Menú del día (corrientazo)
-- [ ] B1 · Datos `local.menuDelDia`: activo, franja, precio de mesa y de llevar, foto, partes (D25), reemplazos permitidos, semana tipo, cambio de hoy y agotados de hoy.
-- [ ] B2 · Lógica pura: el almuerzo de hoy (Bogotá) → plato armado con un grupo por parte (S22), precio según el destino (S21), recargo por proteína (S20). Con pruebas.
-- [ ] B3 · Panel: **Productos → 🍲 Menú del día**: partes, precios, franja, semana tipo con «Copiar a toda la semana», «Hoy» y agotar una opción.
-- [ ] B4 · Cliente: tarjeta destacada arriba dentro de la franja (S19), se pide con el asistente de opciones.
-- [ ] B5 · Mesero y caja: el almuerzo aparece y toma el precio por destino.
-- [ ] B6 · TV: «Almuerzo de hoy» en el plato grande dentro de la franja (D19, D23).
+- [x] B1 · Datos `local.menuDelDia`: activo, franja, precio de mesa y de llevar, foto, partes (D25), reemplazos permitidos, semana tipo, cambio de hoy y agotados de hoy.
+- [x] B2 · Lógica pura: el almuerzo de hoy (Bogotá) → plato armado con un grupo por parte (S22), precio según el destino (S21), recargo por proteína (S20). Con pruebas.
+- [x] B3 · Panel: **Productos → 🍲 Menú del día**: partes, precios, franja, semana tipo con «Copiar a toda la semana», «Hoy» y agotar una opción.
+- [x] B4 · Cliente: tarjeta destacada arriba dentro de la franja (S19), se pide con el asistente de opciones.
+- [x] B5 · Mesero y caja: el almuerzo aparece y toma el precio por destino.
+- [x] B6 · TV: «Almuerzo de hoy» en el plato grande dentro de la franja (D19, D23).
 
 ### Etapa C · Pedidos listos con turno
 - [ ] C1 · Turno del día (contador en transacción), solo con pedidos listos prendidos (D16), en las comandas para llevar del mostrador y en las del QR de la mesa.
@@ -235,3 +235,24 @@ Por etapas. Cada etapa deja algo que funciona y se puede mostrar sola.
     pisaba el blanco). En las pruebas la foto grande se veía negra, pero era el panel del navegador oculto,
     que congela las animaciones; con las animaciones adelantadas se ve bien.
   - La Burger Demo ya trae `pantalla` con dos anuncios de ejemplo (adelanto de D1).
+- **2-nov-2026** — **Etapa A publicada** (`efcc2a6`, push a `main`; verificado leyendo el bundle de
+  appetic.vercel.app y abriendo `/demo/tv` con datos reales). Capturas HD del TV en `propuesta/img/tv/`.
+- **2-nov-2026** — **Etapa B construida y probada en la vista previa** (Burger Demo con un «Almuerzo
+  ejecutivo» de ejemplo para toda la semana). Archivos: `utils/menuDelDia.js` (lógica pura, 18 pruebas),
+  `utils/useMinuto.js` (`useMinuto` y `useConMenuDelDia`), `Admin/ConfigMenuDelDia.jsx/.css`
+  (Configuración → 🍲 Menú del día: estado de hoy, «Hoy» con agotar y «Cambiar solo hoy», semana tipo
+  con «Copiar a toda la semana», precio y horario, foto, partes con reemplazos), `subirFotoMenuDelDia`.
+  El almuerzo entra con `useConMenuDelDia` en `LocalMenu` (llevar o mesa), `AdminCaja` y `AdminMesero`
+  (los dos precios como tamaños) y el TV (página propia en el tablero + lugar grande si tiene foto).
+  - *Sobre la marcha:* lo que trae una sola opción llega ya marcado (`preelegida`, nuevo en
+    `ProductWizard`), y el cliente solo sigue o toca «Sin…»/«No lleva». Las tarjetas del almuerzo
+    muestran un emoji grande en vez del «Cargando imagen» (`sinFotos`, solo en esos grupos, para no
+    cambiar otros locales). La etiqueta de la tarjeta dice «🍲 Almuerzo de hoy». En el TV, la categoría
+    «Menú del día» es una página propia: nombre y precios en grande y cada parte con sus opciones.
+    El panel se guarda solo (0,9 s después de escribir; agotar e interruptores al instante). La
+    proteína es la única parte con recargo. La demo lleva franja 00:00–00:00 para que siempre se vea.
+  - *Falsas alarmas al probar:* el paso «mesa o para llevar» de la caja y el TV en blanco parecían
+    errores, pero eran el panel del navegador oculto (congela animaciones) y un aviso que borré a mano
+    en la prueba. No se cambió nada por eso.
+  - *Pendiente conocido:* si la franja termina con el almuerzo ya en el carrito, el cliente todavía lo
+    puede mandar. Se deja así: el local lo ve en el WhatsApp y decide.
