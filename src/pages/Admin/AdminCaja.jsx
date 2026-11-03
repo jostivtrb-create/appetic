@@ -53,7 +53,7 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
       <header className="pv-top">
         <div className="pv-marca">
           <span className="pv-marca-logo" aria-hidden="true">
-            {local.logo ? <img src={local.logo} alt="" /> : '🍽️'}
+            {local.icono || local.logo ? <img src={local.icono || local.logo} alt="" /> : '🍽️'}
           </span>
           <div>
             <b>{local.nombre}</b>

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useRef, useEffect, useMemo, useState } from 'react'
 import { cop } from '../../utils/money'
 import { motivoErrorCuentas } from '../../services/cuentas'
 import { jornadaDe, sumarDias, mesDe, mesAnterior, diasDelMes, nombreMes, nombreMesCorto } from '../../utils/jornada'
-import { cuentasDe, cuentaEfectivo, emojiCuenta } from '../../utils/cuentasDinero'
+import { conTope } from '../../utils/conTope'
+import { cuentasDe, cuentaEfectivo, emojiCuenta, cuentasParaPagar } from '../../utils/cuentasDinero'
 
 // 👥 NÓMINA (Cuentas, guía «Cuentas del negocio» D10 + S13/S14): la lista de la gente a la que se
 // le paga (use o no la app) y cada pago con LOS DÍAS QUE CUBRE, marcados en un calendario. La app
@@ -134,7 +135,10 @@ function PagarNomina({ local, api, usuario, trabajador, pagados, onCerrar }) {
     return [...Array(primero).fill(null), ...l]
   }, [mes])
   const toggle = d => setDias(s => { const n = new Set(s); n.has(d) ? n.delete(d) : n.add(d); return n })
-  const marcar = lista => setDias(new Set(lista.filter(d => d <= hoy)))
+  // Se puede pagar hasta el fin de la quincena en curso (quien paga el 30 incluye el 31, o un
+  // adelanto). Más allá, no. Auditoría «cuentas» H9.
+  const tope = (() => { const d = Number(hoy.slice(8)), dm = diasDelMes(mesDe(hoy)); return d <= 15 ? dm[14] : dm[dm.length - 1] })()
+  const marcar = lista => setDias(new Set(lista.filter(d => d <= tope)))
   const repetidos = [...dias].filter(d => yaPagado.has(d))
   // Atajos: esta semana (lunes a hoy) · quincena en curso · lo que falta por pagar desde el último pago.
   const lunes = sumarDias(hoy, -((new Date(`${hoy}T12:00:00Z`).getUTCDay() + 6) % 7))
@@ -146,20 +150,24 @@ function PagarNomina({ local, api, usuario, trabajador, pagados, onCerrar }) {
     ? Array.from({ length: Math.min(31, Math.round((Date.parse(hoy) - Date.parse(ultimoPagado)) / 86400000)) }, (_, i) => sumarDias(ultimoPagado, i + 1))
     : []
 
+  // Un id por pago, desde que se abre la ventana: tocar «Pagar» dos veces, o cerrar y volver a
+  // pagar sin red, no deja dos pagos de nómina.
+  const idPago = useRef(api.nuevoIdMovimiento())
   async function pagar() {
-    if (!numero(monto) || !dias.size) return
+    if (!numero(monto) || !dias.size || estado === 'guardando') return
     setEstado('guardando'); setError('')
     try {
-      await api.registrarMovimiento({
+      await conTope(api.registrarMovimiento({
+        id: idPago.current,
         tipo: 'nomina', cuenta, monto: numero(monto), concepto: nota,
         trabajadorId: trabajador.id, trabajador: trabajador.nombre, dias: [...dias],
-      }, { email: (usuario?.email || '').toLowerCase(), nombre: usuario?.displayName || '' }, local)
+      }, { email: (usuario?.email || '').toLowerCase(), nombre: usuario?.displayName || '' }, local), 12000)
       onCerrar()
     } catch (e) { setEstado(''); setError(motivoErrorCuentas(e)) }
   }
 
   return (
-    <div className="pv-hoja-fondo centro" onClick={onCerrar}>
+    <div className="pv-hoja-fondo centro" onClick={() => { if (estado !== 'guardando') onCerrar() }}>
       <div className="pv-hoja pv-detalle cu-pagar-hoja" role="dialog" aria-modal="true" aria-label={`Pagar a ${trabajador.nombre}`} onClick={e => e.stopPropagation()}>
         <button type="button" className="pv-hoja-x" aria-label="Cerrar" onClick={onCerrar}>✕</button>
         <h2>Pagar a {trabajador.nombre}</h2>
@@ -181,7 +189,7 @@ function PagarNomina({ local, api, usuario, trabajador, pagados, onCerrar }) {
             <div className="cu-cal-grid">
               {SEMANA.map((d, i) => <span key={i} className="cu-cal-dow">{d}</span>)}
               {celdas.map((d, i) => d === null ? <span key={`v${i}`} /> : (
-                <button type="button" key={d} disabled={d > hoy}
+                <button type="button" key={d} disabled={d > tope}
                   className={`cu-cal-dia${dias.has(d) ? ' on' : ''}${yaPagado.has(d) ? ' pagado' : ''}${d === hoy ? ' hoy' : ''}`}
                   onClick={() => toggle(d)} aria-pressed={dias.has(d)}
                   title={yaPagado.has(d) ? 'Este día ya se le pagó' : undefined}>
@@ -192,6 +200,7 @@ function PagarNomina({ local, api, usuario, trabajador, pagados, onCerrar }) {
             <p className="cu-cal-ley"><i className="on" /> Lo que pagas ahora <i className="pagado" /> Ya pagado</p>
           </div>
           {dias.size > 0 && <p className="cu-dias-txt"><b>{dias.size} {dias.size === 1 ? 'día' : 'días'}</b> · {rangoDias([...dias])}</p>}
+          {[...dias].some(d => d > hoy) && <p className="cb-aviso">🗓️ Incluye días que todavía no ha trabajado (adelanto).</p>}
           {repetidos.length > 0 && <p className="cb-aviso">⚠️ {repetidos.length === 1 ? 'Un día ya estaba pagado' : `${repetidos.length} días ya estaban pagados`}: {rangoDias(repetidos)}.</p>}
         </div>
 
@@ -200,7 +209,7 @@ function PagarNomina({ local, api, usuario, trabajador, pagados, onCerrar }) {
           <div className="cb-sec">
             <h3>Sale de</h3>
             <div className="cb-cuentas">
-              {cuentas.map(c => <button type="button" key={c.id} className={cuenta === c.id ? 'on' : ''} onClick={() => setCuenta(c.id)}><span aria-hidden="true">{emojiCuenta(c)}</span>{c.nombre}</button>)}
+              {cuentasParaPagar(local).map(c => <button type="button" key={c.id} className={cuenta === c.id ? 'on' : ''} onClick={() => setCuenta(c.id)}><span aria-hidden="true">{emojiCuenta(c)}</span>{c.nombre}</button>)}
             </div>
           </div>
         )}

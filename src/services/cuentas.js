@@ -33,7 +33,7 @@ import { db } from '../config/firebase'
 import { escucharConReintento, comandasDe } from './comandas'
 import { jornadaDe, horaDe, mesDe } from '../utils/jornada'
 import {
-  sumaPagos, deltaVenta, saldosVenta, deltaMovimiento, saldosMovimiento, deltaCambioPago, saldosCambioPago, docsResumen, limpiarPagos, propinaEn, armarVenta, armarMovimiento, sumarEn,
+  sumaPagos, deltaVenta, saldosVenta, deltaMovimiento, saldosMovimiento, deltaCambioPago, saldosCambioPago, docsResumen, esPrivado, limpiarPagos, propinaEn, armarVenta, armarMovimiento, sumarEn,
 } from '../utils/cuentasCalculo.js'
 
 export const POR_PAGINA = 20
@@ -56,9 +56,9 @@ function firestoreApi(localId) {
   const resumenRef = id => doc(db, 'locales', localId, 'resumen', id)
   const comandaRef = id => doc(db, 'locales', localId, 'comandas', id)
   // Aplica un delta al día, al mes y a los saldos dentro de un lote o transacción.
-  const aplicar = (w, jornada, delta, saldos) => {
+  const aplicar = (w, jornada, delta, saldos, privado = false) => {
     const inc = aIncrementos(delta)
-    if (Object.keys(inc).length) for (const id of docsResumen(jornada)) w.set(resumenRef(id), inc, { merge: true })
+    if (Object.keys(inc).length) for (const id of docsResumen(jornada, privado)) w.set(resumenRef(id), inc, { merge: true })
     const s = aIncrementos(saldos)
     if (Object.keys(s).length) w.set(resumenRef('saldos'), s, { merge: true })
   }
@@ -129,12 +129,17 @@ function firestoreApi(localId) {
       return escucharConReintento(q, snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() })), snap.size >= n), onError)
     },
 
+    nuevoIdMovimiento: () => doc(col('movimientos')).id,
+    // Con `datos.id` fijo (lo pone la pantalla al abrir el formulario) y en transacción: un doble
+    // toque o un reintento sin red no anota el gasto o el pago de nómina dos veces (auditoría H3).
     async registrarMovimiento(datos, por, local) {
       const m = armarMovimiento(datos, por, local)
-      const b = writeBatch(db)
-      b.set(doc(col('movimientos')), { ...m, en: serverTimestamp() })
-      aplicar(b, m.jornada, deltaMovimiento(m, 1), saldosMovimiento(m, 1))
-      await b.commit()
+      const ref = datos.id ? doc(col('movimientos'), datos.id) : doc(col('movimientos'))
+      await runTransaction(db, async tx => {
+        if ((await tx.get(ref)).exists()) return
+        tx.set(ref, { ...m, en: serverTimestamp() })
+        aplicar(tx, m.jornada, deltaMovimiento(m, 1), saldosMovimiento(m, 1), esPrivado(m))
+      })
     },
 
     async eliminarMovimiento(mov, por, motivo) {
@@ -143,7 +148,8 @@ function firestoreApi(localId) {
         const snap = await tx.get(ref)
         if (!snap.exists() || snap.data().estado !== 'ok') throw new Error('ya-no')
         const m = snap.data()
-        aplicar(tx, m.jornada, deltaMovimiento(m, -1), saldosMovimiento(m, -1))
+        // Se resta de donde se sumó: los anotados antes del 3-nov sumaron la nómina en `d_`.
+        aplicar(tx, m.jornada, deltaMovimiento(m, -1), saldosMovimiento(m, -1), !!m.enPrivado)
         tx.update(ref, { estado: 'eliminado', eliminado: { por, motivo: motivo.trim(), en: Date.now() } })
       })
     },
@@ -205,8 +211,8 @@ function demoApi(localId) {
   }
   canal?.addEventListener('message', avisar)
   const suscribir = (calcular, cb) => { const fn = () => cb(...calcular(leer())); oyentes.add(fn); fn(); return () => oyentes.delete(fn) }
-  const aplicar = (st, jornada, delta, saldos) => {
-    for (const id of docsResumen(jornada)) st.resumen[id] = sumarEn(st.resumen[id], delta)
+  const aplicar = (st, jornada, delta, saldos, privado = false) => {
+    for (const id of docsResumen(jornada, privado)) st.resumen[id] = sumarEn(st.resumen[id], delta)
     st.resumen.saldos = sumarEn(st.resumen.saldos, saldos)
   }
   const nuevoId = () => 'demo-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
@@ -254,18 +260,20 @@ function demoApi(localId) {
         return [l.slice(0, n), l.length > n]
       }, cb)
     },
+    nuevoIdMovimiento: nuevoId,
     async registrarMovimiento(datos, por, local) {
       const m = armarMovimiento(datos, por, local)
       const st = leer()
-      st.movimientos.push({ id: nuevoId(), ...m, en: Date.now() })
-      aplicar(st, m.jornada, deltaMovimiento(m, 1), saldosMovimiento(m, 1))
+      if (datos.id && st.movimientos.some(x => x.id === datos.id)) return
+      st.movimientos.push({ id: datos.id || nuevoId(), ...m, en: Date.now() })
+      aplicar(st, m.jornada, deltaMovimiento(m, 1), saldosMovimiento(m, 1), esPrivado(m))
       escribir(st)
     },
     async eliminarMovimiento(mov, por, motivo) {
       const st = leer()
       const m = st.movimientos.find(x => x.id === mov.id)
       if (!m || m.estado !== 'ok') throw new Error('ya-no')
-      aplicar(st, m.jornada, deltaMovimiento(m, -1), saldosMovimiento(m, -1))
+      aplicar(st, m.jornada, deltaMovimiento(m, -1), saldosMovimiento(m, -1), !!m.enPrivado)
       Object.assign(m, { estado: 'eliminado', eliminado: { por, motivo: motivo.trim(), en: Date.now() } })
       escribir(st)
     },
@@ -312,7 +320,7 @@ export const _internos = { deltaVenta, saldosVenta, deltaMovimiento, saldosMovim
 export function motivoErrorCuentas(err) {
   const m = err?.message || '', c = err?.code || ''
   if (m === 'pagos-no-cuadran') return 'Los pagos no suman el total.'
-  if (m === 'ya-no') return 'Esa venta ya había cambiado. Mira el historial de nuevo.'
+  if (m === 'ya-no') return 'Eso ya había cambiado (otra persona lo corrigió o eliminó). Mira la lista de nuevo.'
   if (m === 'monto') return 'Escribe un valor mayor a cero.'
   if (m === 'sin-red') return 'Sin internet: no se registró. Revisa la señal y vuelve a cobrar (no se cobra dos veces).'
   if (m === 'ya-cobrada') return 'Esta cuenta ya la cobraron en otra caja. Mira el historial.'

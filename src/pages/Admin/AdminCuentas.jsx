@@ -4,8 +4,9 @@ import { sembrarSiVacio } from '../../services/cuentasEjemplo'
 import { estadisticasEntre } from '../../services/stats'
 import { cop } from '../../utils/money'
 import {
-  jornadaDe, sumarDias, mesDe, mesAnterior, etiquetaJornada, nombreMes, nombreMesCorto,
+  jornadaDe, sumarDias, mesDe, mesAnterior, etiquetaJornada, nombreMes, nombreMesCorto, diasDelMes,
 } from '../../utils/jornada'
+import { sumarEn } from '../../utils/cuentasCalculo.js'
 import { cuentasDe, emojiCuenta } from '../../utils/cuentasDinero'
 import { urlWhatsApp } from '../../utils/whatsapp'
 import { coloresComanda } from './comandaUtils'
@@ -46,7 +47,7 @@ export default function AdminCuentas({ local, productos, demo, usuario }) {
     <div className="pv cu" style={coloresComanda(local).vars}>
       <header className="pv-top">
         <div className="pv-marca">
-          <span className="pv-marca-logo" aria-hidden="true">{local.logo ? <img src={local.logo} alt="" /> : '📊'}</span>
+          <span className="pv-marca-logo" aria-hidden="true">{local.icono || local.logo ? <img src={local.icono || local.logo} alt="" /> : '📊'}</span>
           <div>
             <b>{local.nombre}</b>
             <small>Cuentas del negocio</small>
@@ -81,8 +82,18 @@ function Dia({ local, api }) {
   const hoy = jornadaDe(Date.now(), local.horario)
   const [dia, setDia] = useState(hoy)
   const [r, setR] = useState(undefined)
+  const [errorDia, setErrorDia] = useState(false)
   const [movs, setMovs] = useState([])
-  useEffect(() => { setR(undefined); return api.escucharResumen(`d_${dia}`, setR, () => setR(null)) }, [api, dia])
+  // El día = lo de la caja (`d_`) + lo privado del dueño (`dp_`: nómina, retiros, ingresos).
+  useEffect(() => {
+    setR(undefined); setErrorDia(false)
+    const partes = { d: undefined, dp: undefined }
+    const juntar = () => { if (partes.d !== undefined && partes.dp !== undefined) setR(partes.d || partes.dp ? sumarEn(partes.d || {}, partes.dp || {}) : null) }
+    const falla = () => setErrorDia(true)
+    const u1 = api.escucharResumen(`d_${dia}`, x => { partes.d = x; setErrorDia(false); juntar() }, falla)
+    const u2 = api.escucharResumen(`dp_${dia}`, x => { partes.dp = x; juntar() }, falla)
+    return () => { u1(); u2() }
+  }, [api, dia])
   // El detalle de gastos y nómina del día (pocos documentos).
   useEffect(() => { let vivo = true; api.movimientosEntre(dia, dia).then(l => { if (vivo) setMovs(l) }).catch(() => {}); return () => { vivo = false } }, [api, dia, r])
   const cuentas = cuentasDe(local)
@@ -115,7 +126,8 @@ function Dia({ local, api }) {
         <button type="button" onClick={() => setDia(d => sumarDias(d, 1))} disabled={dia >= hoy} aria-label="Día siguiente">›</button>
       </div>
 
-      {r === undefined ? <p className="pv-vacio">Cargando…</p> : (
+      {errorDia ? <p className="pv-vacio">No se pudo cargar el día. Revisa el internet.</p>
+        : r === undefined ? <p className="pv-vacio">Cargando…</p> : (
         <div className="cu-dia">
           <section className="cu-bloque mas">
             <h3><span>+</span> Vendiste</h3>
@@ -153,16 +165,31 @@ function Dia({ local, api }) {
 function Mes({ local, api, demo }) {
   const actual = mesDe(jornadaDe(Date.now(), local.horario))
   const [mes, setMes] = useState(actual)
-  const [res, setRes] = useState(null)        // { m_…: resumen } de los últimos 6 meses
+  const [res, setRes] = useState(null)        // { m_…: resumen } de los últimos 6 meses ('error' si no cargó)
+  const [antParcial, setAntParcial] = useState(null)  // mes en curso: el anterior, solo del día 1 al de hoy
   const [app, setApp] = useState(null)        // visitas y pedidos por la app
   const [bajando, setBajando] = useState('')
   const meses = useMemo(() => { const l = [mes]; for (let i = 0; i < 5; i++) l.unshift(mesAnterior(l[0])); return l }, [mes])
   useEffect(() => {
     let vivo = true
     setRes(null)
-    api.resumenesEntre(`m_${meses[0]}`, `m_${mes}`).then(x => { if (vivo) setRes(x) }).catch(() => { if (vivo) setRes({}) })
+    api.resumenesEntre(`m_${meses[0]}`, `m_${mes}`).then(x => { if (vivo) setRes(x) }).catch(() => { if (vivo) setRes('error') })
     return () => { vivo = false }
   }, [api, meses, mes])
+  // 📊 El mes que va corriendo se compara con LOS MISMOS DÍAS del anterior (el 3-nov contra el 1–3
+  // oct), no con el mes completo: antes salía «▼ 88%» todos los primeros días de cada mes.
+  const diaHoy = Number(jornadaDe(Date.now(), local.horario).slice(8, 10))
+  useEffect(() => {
+    let vivo = true
+    setAntParcial(null)
+    if (mes !== actual) return
+    const prev = mesAnterior(mes)
+    const hasta = `${prev}-${String(Math.min(diaHoy, diasDelMes(prev).length)).padStart(2, '0')}`
+    Promise.all([api.resumenesEntre(`d_${prev}-01`, `d_${hasta}`), api.resumenesEntre(`dp_${prev}-01`, `dp_${hasta}`)])
+      .then(([a, b]) => { if (vivo) setAntParcial(Object.values({ ...a, ...b }).reduce((t, x) => sumarEn(t, x), {})) })
+      .catch(() => { if (vivo) setAntParcial({}) })
+    return () => { vivo = false }
+  }, [api, mes, actual, diaHoy])
   useEffect(() => {
     let vivo = true
     setApp(null)
@@ -171,27 +198,50 @@ function Mes({ local, api, demo }) {
     return () => { vivo = false }
   }, [local.id, mes, demo])
 
-  const r = res?.[`m_${mes}`] || null
-  const ant = res?.[`m_${mesAnterior(mes)}`] || null
+  const resOk = res && res !== 'error' ? res : {}
+  const r = resOk[`m_${mes}`] || null
+  const enCurso = mes === actual
+  // Mes cerrado: contra el anterior completo, solo si ese también fue un mes entero de uso (si el de
+  // antes no tiene datos, el anterior fue el primero, a medias, y el % sería mentira).
+  const prevCompleto = resOk[`m_${mesAnterior(mesAnterior(mes))}`] ? resOk[`m_${mesAnterior(mes)}`] : null
+  const nDias = Math.min(diaHoy, diasDelMes(mesAnterior(mes)).length)
+  // Sin los días guardados del mes anterior (datos viejos, o la demo) pero con el mes entero: a
+  // prorrata, y se dice que es aproximado.
+  const aProrrata = enCurso && antParcial && !antParcial.nVentas && prevCompleto?.nVentas
+  const ant = !enCurso ? prevCompleto
+    : aProrrata ? { nVentas: prevCompleto.nVentas, ventas: prevCompleto.ventas * nDias / diasDelMes(mesAnterior(mes)).length,
+        gastos: (prevCompleto.gastos || 0) * nDias / diasDelMes(mesAnterior(mes)).length, nomina: (prevCompleto.nomina || 0) * nDias / diasDelMes(mesAnterior(mes)).length }
+      : antParcial
   const g = ganancia(r), gAnt = ganancia(ant)
-  const cambio = ant && gAnt ? Math.round((g - gAnt) / Math.abs(gAnt) * 100) : null
+  const cambio = ant?.nVentas && gAnt ? Math.round((g - gAnt) / Math.abs(gAnt) * 100) : null
+  const contra = !enCurso ? nombreMes(mesAnterior(mes))
+    : aProrrata ? `${nombreMes(mesAnterior(mes))} a esta altura (aprox.)`
+      : `el 1–${nDias} de ${nombreMes(mesAnterior(mes))}`
   const ticket = r?.nVentas ? Math.round(r.ventas / r.nVentas) : 0
-  const ticketAnt = ant?.nVentas ? Math.round(ant.ventas / ant.nVentas) : 0
+  const antTicket = resOk[`m_${mesAnterior(mes)}`]
+  const ticketAnt = antTicket?.nVentas ? Math.round(antTicket.ventas / antTicket.nVentas) : 0
   const platos = Object.entries(r?.porPlato || {}).filter(([k, p]) => k !== '_envio' && p.n > 0).sort((a, b) => b[1].n - a[1].n).slice(0, 5)
   const horas = Object.entries(r?.porHora || {}).map(([h, v]) => [Number(h), v]).filter(([, v]) => v > 0).sort((a, b) => a[0] - b[0])
   const maxHora = Math.max(1, ...horas.map(([, v]) => v))
-  const serie = meses.map(m => ({ m, v: ganancia(res?.[`m_${m}`]), ventas: res?.[`m_${m}`]?.ventas || 0 }))
+  const serie = meses.map(m => ({ m, v: ganancia(resOk[`m_${m}`]), ventas: resOk[`m_${m}`]?.ventas || 0 }))
   const maxSerie = Math.max(1, ...serie.map(x => Math.max(x.ventas, Math.abs(x.v))))
   const tipos = r?.porTipo || {}
 
+  const [errorBajar, setErrorBajar] = useState('')
   async function bajar(tipo) {
-    setBajando(tipo)
+    setBajando(tipo); setErrorBajar('')
+    // El PDF necesita una ventana: se abre YA, en el toque (después de esperar los datos el
+    // navegador la bloquea), y se llena cuando lleguen.
+    const ventana = tipo === 'pdf' ? window.open('', '_blank') : null
     try {
       const desde = `${mes}-01`, hasta = `${mes}-31`
       const [ventas, movs] = await Promise.all([api.ventasEntre(desde, hasta), api.movimientosEntre(desde, hasta)])
       const datos = { local, mes, resumen: r || {}, ventas: ventas.filter(v => v.estado === 'ok'), movimientos: movs.filter(m => m.estado === 'ok') }
       if (tipo === 'excel') descargarExcel(datos)
-      else descargarPdf(datos)
+      else descargarPdf(datos, ventana)
+    } catch (e) {
+      ventana?.close()
+      setErrorBajar(e?.message === 'ventana-bloqueada' ? 'Permite las ventanas emergentes para descargar el PDF.' : 'No se pudo descargar. Revisa el internet e intenta de nuevo.')
     } finally { setBajando('') }
   }
 
@@ -203,17 +253,18 @@ function Mes({ local, api, demo }) {
         <button type="button" onClick={() => setMes(m => { const [y, n] = m.split('-').map(Number); return n === 12 ? `${y + 1}-01` : `${y}-${String(n + 1).padStart(2, '0')}` })} disabled={mes >= actual} aria-label="Mes siguiente">›</button>
       </div>
 
-      {res === null ? <p className="pv-vacio">Cargando…</p> : (
+      {res === 'error' ? <p className="pv-vacio">No se pudo cargar el mes. Revisa el internet.</p>
+        : res === null ? <p className="pv-vacio">Cargando…</p> : (
         <>
           <section className="pv-card cu-ganancia">
             <small>Ganancia de {nombreMes(mes)}</small>
             <b className={g < 0 ? 'neg' : ''}>{cop(g)}</b>
-            {cambio !== null && <span className={`cu-cambio ${cambio >= 0 ? 'sube' : 'baja'}`}>{cambio >= 0 ? '▲' : '▼'} {Math.abs(cambio)}% {cambio >= 0 ? 'más' : 'menos'} que {nombreMes(mesAnterior(mes))}</span>}
+            {cambio !== null && <span className={`cu-cambio ${cambio >= 0 ? 'sube' : 'baja'}`}>{cambio >= 0 ? '▲' : '▼'} {Math.abs(cambio)}% {cambio >= 0 ? 'más' : 'menos'} que {contra}</span>}
             <div className="cu-tabla">
               <span>Ventas</span><b>{cop(r?.ventas || 0)}</b>
               <span>Gastos y compras</span><b>− {cop(r?.gastos || 0)}</b>
               <span>Nómina</span><b>− {cop(r?.nomina || 0)}</b>
-              <span className="tot">Ganancia</span><b className="tot">{cop(g)}</b>
+              <span className="tot">Ganancia</span><b className={`tot${g < 0 ? ' neg' : ''}`}>{cop(g)}</b>
             </div>
             {(r?.propinas > 0 || r?.descuentos > 0) && (
               <p className="pv-nota">{r?.propinas > 0 ? `🙌 Propinas ${cop(r.propinas)} (aparte)` : ''}{r?.propinas > 0 && r?.descuentos > 0 ? ' · ' : ''}{r?.descuentos > 0 ? `🏷️ Descuentos y cortesías ${cop(r.descuentos)}` : ''}</p>
@@ -253,7 +304,7 @@ function Mes({ local, api, demo }) {
             <div className="pv-card cu-kpi">
               <small>Por la app</small>
               <b>{app ? app.visitas : '…'}</b>
-              <span className="pv-nota">👁️ visitas al menú · 🛍️ {app?.pedidos ?? '…'} pedidos por WhatsApp{app?.domicilios ? ` (🛵 ${app.domicilios} domicilios · 🥡 ${app.recoger} para recoger)` : ''}</span>
+              <span className="pv-nota">👁️ visitas al menú · 🛍️ {app?.pedidos ?? '…'} pedidos por WhatsApp{app?.domicilios && app.domicilios + app.recoger === app.pedidos ? ` (🛵 ${app.domicilios} domicilios · 🥡 ${app.recoger} para recoger)` : ''}</span>
             </div>
           </div>
 
@@ -293,6 +344,7 @@ function Mes({ local, api, demo }) {
               <button type="button" className="pv-mandar" disabled={!!bajando} onClick={() => bajar('excel')}>{bajando === 'excel' ? 'Preparando…' : '📗 Excel'}</button>
               <button type="button" className="pv-mandar" disabled={!!bajando} onClick={() => bajar('pdf')}>{bajando === 'pdf' ? 'Preparando…' : '📄 PDF'}</button>
             </div>
+            {errorBajar && <p className="pv-nota cu-error" role="alert">{errorBajar}</p>}
           </section>
         </>
       )}

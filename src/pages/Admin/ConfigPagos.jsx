@@ -17,7 +17,9 @@ export default function ConfigPagos({ local, onUpdate }) {
   const conCocina = tiene(local, 'cocina')
   const [nueva, setNueva] = useState({ nombre: '', tipo: 'transferencia', llave: '' })
   const [estado, setEstado] = useState('')
-  const originales = new Set((local.pagos || []).map(c => c.id))
+  // Las cuentas que ya existían no se borran desde aquí (sus ventas y su saldo quedarían «Cuenta
+  // borrada»). Incluye el Efectivo implícito de un local que nunca configuró cuentas (auditoría H7).
+  const originales = new Set(cuentasDe(local).map(c => c.id))
 
   const cambiar = (id, cambios) => { setLista(l => l.map(c => c.id === id ? { ...c, ...cambios } : c)); setEstado('') }
   const mover = (i, d) => setLista(l => { const n = [...l]; const [x] = n.splice(i, 1); n.splice(i + d, 0, x); return n })

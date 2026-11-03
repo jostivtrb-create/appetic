@@ -16,7 +16,10 @@ const ganancia = r => (r?.ventas || 0) - (r?.gastos || 0) - (r?.nomina || 0)
 const nombreArchivo = (local, mes, ext) => `${(local.slug || 'local')}-cuentas-${mes}.${ext}`
 
 function celda(v) {
-  const t = v == null ? '' : String(v)
+  let t = v == null ? '' : String(v)
+  // Un texto que empieza con = + - @ Excel lo ejecuta como fórmula (un gasto «=HYPERLINK(…)»):
+  // se le antepone ' para que quede como texto. Los números no pasan por aquí como texto.
+  if (typeof v === 'string' && /^[=+\-@]/.test(t)) t = `'${t}`
   return /[;"\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t
 }
 
@@ -50,9 +53,11 @@ export function descargarExcel({ local, mes, resumen: r, ventas, movimientos }) 
 
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 
-export function descargarPdf({ local, mes, resumen: r, ventas, movimientos }) {
-  const w = window.open('', '_blank')
-  if (!w) { alert('Permite las ventanas emergentes para descargar el PDF.'); return }
+export function descargarPdf({ local, mes, resumen: r, ventas, movimientos }, ventana = null) {
+  // La ventana se abre en el toque (ventana) y aquí se llena: si se abriera después de leer los
+  // datos, Safari y Chrome la bloquean.
+  const w = ventana || window.open('', '_blank')
+  if (!w) throw new Error('ventana-bloqueada')
   const color = local.tema?.primary || '#ED7D2B'
   w.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${esc(local.nombre)} · Cuentas de ${nombreMes(mes)}</title>
 <style>

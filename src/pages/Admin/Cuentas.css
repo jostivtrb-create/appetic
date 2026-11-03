@@ -16,11 +16,15 @@
 .cu-bloque h3 span { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 16px; color: #fff; }
 .cu-bloque.mas h3 span { background: #1B8A4B; }
 .cu-bloque.menos h3 span { background: var(--danger); }
-.cu-bloque.igual h3 span { background: var(--acc); }
+.cu-bloque.igual h3 span { background: #1B8A4B; }
+.cu-bloque.igual.neg h3 span { background: var(--danger); }
 .cu-grande { font-size: 30px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .cu-bloque.mas .cu-grande { color: #1B7A43; }
-.cu-bloque.igual { background: var(--acc-soft); border-color: var(--acc-line); }
-.cu-bloque.igual .cu-grande { color: var(--acc); }
+/* La plata habla en verde (ganó) o rojo (perdió), sin importar el color de la marca: en un local
+   rojo la ganancia se leía como pérdida (auditoría «cuentas» H5). */
+.cu-bloque.igual { background: #EAF6EF; border-color: #BFE3CC; }
+.cu-bloque.igual .cu-grande { color: #1B7A43; }
+.cu-bloque.igual.neg { background: #FDECEC; border-color: #F2C4BF; }
 .cu-bloque.igual.neg .cu-grande { color: var(--danger); }
 .cu-bloque small { font-size: 12.5px; color: var(--text-soft); }
 .cu-bloque ul { list-style: none; display: grid; gap: 3px; margin-top: 6px; padding-top: 8px; border-top: 1px dashed var(--border); }
@@ -34,14 +38,14 @@
 /* El mes */
 .cu-ganancia { padding: 16px 18px; display: grid; gap: 4px; }
 .cu-ganancia > small { font-size: 12px; text-transform: uppercase; letter-spacing: .07em; color: var(--text-soft); }
-.cu-ganancia > b { font-size: 38px; font-weight: 900; color: var(--acc); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.cu-ganancia > b { font-size: 38px; font-weight: 900; color: #1B7A43; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .cu-ganancia > b.neg { color: var(--danger); }
 .cu-cambio { font-size: 13.5px; font-weight: 800; }
 .cu-cambio.sube { color: #1B7A43; }
 .cu-cambio.baja { color: var(--danger); }
 .cu-tabla { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 15px; font-variant-numeric: tabular-nums; }
 .cu-tabla .tot { padding-top: 6px; border-top: 1px solid var(--border); font-weight: 900; }
-.cu-tabla b.tot { color: var(--acc); }
+.cu-tabla b.tot { color: #1B7A43; }
 
 .cu-graf { padding: 14px 16px; }
 .cu-graf h3, .cu-lista h3, .cu-bajar h3 { font-size: 15px; font-weight: 900; margin-bottom: 8px; }
@@ -151,3 +155,5 @@
 .cu-cal-ley i.on { background: var(--acc); margin-left: 0; }
 .cu-cal-ley i.pagado { background: #E4F4EA; border: 1px solid #B7E0C5; }
 .cu-dias-txt { font-size: 14px; }
+.cu-error { color: #B3261E; font-weight: 700; }
+.cu-tabla b.tot.neg { color: var(--danger); }

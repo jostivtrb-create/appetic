@@ -1,9 +1,10 @@
-import { Fragment, useEffect, useState } from 'react'
+import { useRef, Fragment, useEffect, useState } from 'react'
 import { cop } from '../../utils/money'
 import { ms } from '../../services/comandas'
 import { motivoErrorCuentas } from '../../services/cuentas'
 import { jornadaDe, etiquetaJornada, horaCorta } from '../../utils/jornada'
-import { cuentasDe, emojiCuenta } from '../../utils/cuentasDinero'
+import { cuentasDe, emojiCuenta, cuentasParaPagar } from '../../utils/cuentasDinero'
+import { conTope } from '../../utils/conTope'
 import { primerNombre } from './CajaVentas'
 
 // 💳 SALDOS (Cuentas, guía «Cuentas del negocio» D7, D24, D25): cuánto hay en cada cuenta. No se
@@ -32,9 +33,12 @@ export default function CuentasSaldos({ local, api, saldos, usuario }) {
   const hoy = jornadaDe(Date.now(), local.horario)
   const nombre = id => cuentas.find(c => c.id === id)?.nombre || 'Cuenta borrada'
 
+  const [eliminando, setEliminando] = useState(false)
   async function eliminar() {
-    if (!motivo.trim()) return
-    try { await api.eliminarMovimiento(borrando, por, motivo); setBorrando(null); setMotivo('') } catch (e) { setError(motivoErrorCuentas(e)) }
+    if (!motivo.trim() || eliminando) return
+    setEliminando(true)
+    try { await conTope(api.eliminarMovimiento(borrando, por, motivo), 12000); setBorrando(null); setMotivo('') }
+    catch (e) { setError(motivoErrorCuentas(e)) } finally { setEliminando(false) }
   }
 
   return (
@@ -89,7 +93,7 @@ export default function CuentasSaldos({ local, api, saldos, usuario }) {
             <textarea className="pv-motivo" autoFocus maxLength={140} placeholder="¿Por qué se elimina? (obligatorio)" value={motivo} onChange={e => setMotivo(e.target.value)} />
             <div className="pv-eliminar-acc">
               <button type="button" className="pv-link" onClick={() => setBorrando(null)}>Volver</button>
-              <button type="button" className="pv-peligro" disabled={!motivo.trim()} onClick={eliminar}>Sí, eliminar</button>
+              <button type="button" className="pv-peligro" disabled={!motivo.trim() || eliminando} onClick={eliminar}>{eliminando ? 'Eliminando…' : 'Sí, eliminar'}</button>
             </div>
           </div>
         </div>
@@ -101,7 +105,7 @@ export default function CuentasSaldos({ local, api, saldos, usuario }) {
 function Movimiento({ local, api, por, accion, saldos, onCerrar }) {
   const cuentas = cuentasDe(local)
   const a = ACCIONES[accion.tipo]
-  const [cuenta, setCuenta] = useState(accion.cuenta)
+  const [cuenta, setCuenta] = useState(() => accion.tipo === 'retiro' && !cuentasParaPagar(local).some(c => c.id === accion.cuenta) ? cuentasParaPagar(local)[0]?.id : accion.cuenta)
   const [destino, setDestino] = useState(cuentas.find(c => c.id !== accion.cuenta)?.id)
   const [monto, setMonto] = useState('')
   const [concepto, setConcepto] = useState('')
@@ -111,32 +115,35 @@ function Movimiento({ local, api, por, accion, saldos, onCerrar }) {
   const queda = (saldos[cuenta] || 0) + (sale ? -numero(monto) : numero(monto))
   const listo = numero(monto) > 0 && (accion.tipo !== 'traslado' || (destino && destino !== cuenta)) && estado !== 'guardando'
 
+  const idMov = useRef(api.nuevoIdMovimiento())   // mismo movimiento en un doble toque o reintento
   async function guardar(e) {
     e.preventDefault()
     if (!listo) return
     setEstado('guardando'); setError('')
     try {
-      await api.registrarMovimiento({ tipo: accion.tipo, cuenta, cuentaDestino: accion.tipo === 'traslado' ? destino : undefined, monto: numero(monto), concepto }, por, local)
+      await conTope(api.registrarMovimiento({ id: idMov.current, tipo: accion.tipo, cuenta, cuentaDestino: accion.tipo === 'traslado' ? destino : undefined, monto: numero(monto), concepto }, por, local), 12000)
       onCerrar()
     } catch (err) { setEstado(''); setError(motivoErrorCuentas(err)) }
   }
-  const Chips = ({ valor, onCambio, excluir }) => (
+  // Un retiro no sale del datáfono (solo recibe); moverlo al banco sí.
+  const deDonde = accion.tipo === 'retiro' ? cuentasParaPagar(local) : cuentas
+  const Chips = ({ valor, onCambio, excluir, lista = cuentas }) => (
     <div className="cb-cuentas">
-      {cuentas.filter(c => c.id !== excluir).map(c => (
+      {lista.filter(c => c.id !== excluir).map(c => (
         <button type="button" key={c.id} className={valor === c.id ? 'on' : ''} onClick={() => onCambio(c.id)}><span aria-hidden="true">{emojiCuenta(c)}</span>{c.nombre}</button>
       ))}
     </div>
   )
 
   return (
-    <div className="pv-hoja-fondo centro" onClick={onCerrar}>
+    <div className="pv-hoja-fondo centro" onClick={() => { if (estado !== 'guardando') onCerrar() }}>
       <form className="pv-hoja pv-detalle" role="dialog" aria-modal="true" aria-label={a.t} onClick={e => e.stopPropagation()} onSubmit={guardar}>
         <button type="button" className="pv-hoja-x" aria-label="Cerrar" onClick={onCerrar}>✕</button>
         <h2>{a.ico} {a.t}</h2>
         <p className="pv-nota">{a.ayuda}</p>
         <div className="cb-sec">
           <h3>{accion.tipo === 'ingreso' ? 'A qué cuenta' : 'De qué cuenta'}</h3>
-          <Chips valor={cuenta} onCambio={id => { setCuenta(id); if (id === destino) setDestino(cuentas.find(c => c.id !== id)?.id) }} />
+          <Chips lista={deDonde} valor={cuenta} onCambio={id => { setCuenta(id); if (id === destino) setDestino(cuentas.find(c => c.id !== id)?.id) }} />
         </div>
         {accion.tipo === 'traslado' && (
           <div className="cb-sec">

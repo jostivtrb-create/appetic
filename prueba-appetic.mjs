@@ -271,5 +271,15 @@ const rNo = pr.recalcular([{uid:'n', productoId:'d', cantidad:1, seleccion:selNo
 eq('«no lo lleva» llega a la cocina como «SIN bebida»', [rNo.cambios.length, rNo.items[0]?.opciones, rNo.items[0]?.seleccion.noLleva], [0, 'SIN bebida', { bebida:true }])
 eq('«no lo lleva» con basura no pasa', pr.recalcular([{uid:'n', productoId:'d', cantidad:1, seleccion:{ ...selNo, noLleva:['bebida', 5] }, precio:12000}], { d: desaNo }).items[0]?.seleccion.noLleva, undefined)
 
+// ── 📅 Jornada: el día del negocio corta a las 4:00 a. m. (hora de Bogotá, UTC-5) ──
+const jo = await import('./src/utils/jornada.js')
+console.log('\n── Jornada ──')
+const bog = (iso) => Date.parse(iso + '-05:00')
+eq('12:30 a. m. del 1-nov cuenta para el 31-oct', jo.jornadaDe(bog('2026-11-01T00:30:00'), { abre: '11:00', cierra: '23:00' }), '2026-10-31')
+eq('3:59 a. m. sin horario → ayer', jo.jornadaDe(bog('2026-11-03T03:59:00')), '2026-11-02')
+eq('4:00 a. m. ya es hoy', jo.jornadaDe(bog('2026-11-03T04:00:00')), '2026-11-03')
+eq('cierra 05:00: a las 4:30 sigue siendo ayer', jo.jornadaDe(bog('2026-11-03T04:30:00'), { abre: '18:00', cierra: '05:00' }), '2026-11-02')
+eq('mediodía = hoy', jo.jornadaDe(bog('2026-11-03T12:00:00'), { abre: '11:00', cierra: '23:00' }), '2026-11-03')
+
 console.log(f===0 ? '\n✅ TODO PASA — los dos lados cuadran\n' : `\n❌ ${f} FALLO(S)\n`)
 process.exit(f===0?0:1)

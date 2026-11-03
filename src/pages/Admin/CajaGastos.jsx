@@ -1,10 +1,11 @@
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { cop } from '../../utils/money'
 import { ms } from '../../services/comandas'
 import { motivoErrorCuentas } from '../../services/cuentas'
 import { jornadaDe, etiquetaJornada, horaCorta } from '../../utils/jornada'
-import { cuentasDe, cuentaEfectivo, emojiCuenta } from '../../utils/cuentasDinero'
+import { cuentasDe, cuentaEfectivo, emojiCuenta, cuentasParaPagar } from '../../utils/cuentasDinero'
 import { primerNombre } from './CajaVentas'
+import { conTope } from '../../utils/conTope'
 
 // 💸 GASTOS (Caja, guía «Cuentas del negocio» D9 + S13): concepto y valor, y de qué cuenta salió
 // la plata (por defecto el efectivo). Lista por día como las ventas. Equivocarse se arregla
@@ -13,6 +14,7 @@ const numero = t => Number(String(t).replace(/\D/g, '')) || 0
 
 export default function CajaGastos({ local, cuentasApi, usuario, esAdmin }) {
   const cuentas = cuentasDe(local)
+  const cuentasSalida = cuentasParaPagar(local)   // sin el datáfono
   const [concepto, setConcepto] = useState('')
   const [valor, setValor] = useState('')
   const [cuenta, setCuenta] = useState(cuentaEfectivo(local).id)
@@ -32,32 +34,41 @@ export default function CajaGastos({ local, cuentasApi, usuario, esAdmin }) {
     return t
   }, [lista])
 
+  // Un id por gasto que se está anotando: dos toques o un reintento escriben el MISMO gasto.
+  const idGasto = useRef(null)
+  const ocupado = useRef(false)
   async function anotar(e) {
     e.preventDefault()
-    if (!concepto.trim() || !numero(valor)) return
+    if (!concepto.trim() || !numero(valor) || ocupado.current) return
+    ocupado.current = true
+    if (!idGasto.current) idGasto.current = cuentasApi.nuevoIdMovimiento()
     setEstado('guardando'); setError('')
     try {
-      await cuentasApi.registrarMovimiento({ tipo: 'gasto', concepto, monto: numero(valor), cuenta }, por, local)
+      await conTope(cuentasApi.registrarMovimiento({ id: idGasto.current, tipo: 'gasto', concepto, monto: numero(valor), cuenta }, por, local), 12000)
+      idGasto.current = null
       setOk(`✓ ${concepto.trim()} · ${cop(numero(valor))}`)
       setTimeout(() => setOk(''), 3000)
       setConcepto(''); setValor('')
-    } catch (err) { setError(motivoErrorCuentas(err)) } finally { setEstado('') }
+    } catch (err) { setError(motivoErrorCuentas(err)) } finally { ocupado.current = false; setEstado('') }
   }
+  const [eliminando, setEliminando] = useState(false)
   async function eliminar() {
-    if (!motivo.trim()) return
-    try { await cuentasApi.eliminarMovimiento(borrando, por, motivo); setBorrando(null); setMotivo('') } catch (err) { setError(motivoErrorCuentas(err)) }
+    if (!motivo.trim() || eliminando) return
+    setEliminando(true)
+    try { await conTope(cuentasApi.eliminarMovimiento(borrando, por, motivo), 12000); setBorrando(null); setMotivo('') }
+    catch (err) { setError(motivoErrorCuentas(err)) } finally { setEliminando(false) }
   }
 
   return (
     <div className="pv-panel">
       <h2 className="pv-panel-titulo">💸 Gastos y compras</h2>
       <form className="pv-card pv-gasto" onSubmit={anotar}>
-        <input className="pv-gasto-concepto" placeholder="¿En qué se gastó? Ej: Carne y pollo" maxLength={60} value={concepto} onChange={e => setConcepto(e.target.value)} />
-        <input className="pv-gasto-valor" inputMode="numeric" placeholder="$0" value={valor ? cop(numero(valor)) : ''} onChange={e => setValor(e.target.value)} />
+        <input className="pv-gasto-concepto" placeholder="¿En qué se gastó? Ej: Carne y pollo" maxLength={60} value={concepto} onChange={e => { idGasto.current = null; setConcepto(e.target.value) }} />
+        <input className="pv-gasto-valor" inputMode="numeric" placeholder="$0" value={valor ? cop(numero(valor)) : ''} onChange={e => { idGasto.current = null; setValor(e.target.value) }} />
         {cuentas.length > 1 && (
           <div className="cb-cuentas pv-gasto-cuentas" role="radiogroup" aria-label="De dónde salió la plata">
             <small>Salió de</small>
-            {cuentas.map(c => (
+            {cuentasSalida.map(c => (
               <button type="button" key={c.id} role="radio" aria-checked={cuenta === c.id} className={cuenta === c.id ? 'on' : ''} onClick={() => setCuenta(c.id)}>
                 <span aria-hidden="true">{emojiCuenta(c)}</span>{c.nombre}
               </button>
@@ -105,7 +116,7 @@ export default function CajaGastos({ local, cuentasApi, usuario, esAdmin }) {
             <textarea className="pv-motivo" autoFocus maxLength={140} placeholder="¿Por qué se elimina? (obligatorio)" value={motivo} onChange={e => setMotivo(e.target.value)} />
             <div className="pv-eliminar-acc">
               <button type="button" className="pv-link" onClick={() => setBorrando(null)}>Volver</button>
-              <button type="button" className="pv-peligro" disabled={!motivo.trim()} onClick={eliminar}>Sí, eliminar</button>
+              <button type="button" className="pv-peligro" disabled={!motivo.trim() || eliminando} onClick={eliminar}>{eliminando ? 'Eliminando…' : 'Sí, eliminar'}</button>
             </div>
           </div>
         </div>

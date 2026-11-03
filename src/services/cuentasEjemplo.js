@@ -6,7 +6,7 @@
 //   • Los últimos 20 días: ventas con platos del menú, pagos repartidos entre las cuentas, alguna
 //     propina y algún descuento; gastos cada pocos días y la nómina semanal de dos personas.
 //   • Los 5 meses anteriores: solo su resumen (para la gráfica), con ventas parecidas.
-import { deltaVenta, saldosVenta, deltaMovimiento, saldosMovimiento, sumarEn, docsResumen } from '../utils/cuentasCalculo.js'
+import { deltaVenta, saldosVenta, deltaMovimiento, saldosMovimiento, sumarEn, docsResumen, esPrivado } from '../utils/cuentasCalculo.js'
 import { jornadaDe, horaDe, sumarDias, mesDe, mesAnterior } from '../utils/jornada.js'
 import { cuentasDe } from '../utils/cuentasDinero.js'
 
@@ -98,12 +98,12 @@ export function cuentasDeEjemplo(local, productos, ahora = Date.now()) {
 
   // Resúmenes con los mismos deltas del motor.
   const resumen = { saldos: {} }
-  const sumar = (jornada, delta, saldos) => {
-    for (const id of docsResumen(jornada)) resumen[id] = sumarEn(resumen[id], delta)
+  const sumar = (jornada, delta, saldos, privado = false) => {
+    for (const id of docsResumen(jornada, privado)) resumen[id] = sumarEn(resumen[id], delta)
     resumen.saldos = sumarEn(resumen.saldos, saldos)
   }
   for (const v of ventas) sumar(v.jornada, deltaVenta(v, 1), saldosVenta(v, 1))
-  for (const m of movimientos) sumar(m.jornada, deltaMovimiento(m, 1), saldosMovimiento(m, 1))
+  for (const m of movimientos) { if (esPrivado(m)) m.enPrivado = true; sumar(m.jornada, deltaMovimiento(m, 1), saldosMovimiento(m, 1), esPrivado(m)) }
 
   // Meses anteriores: solo la gráfica, al ritmo diario del ejemplo detallado.
   const porDia = ventas.reduce((t, v) => t + v.total, 0) / 20

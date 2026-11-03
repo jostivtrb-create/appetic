@@ -1,6 +1,7 @@
-// 📅 JORNADA de las cuentas (guía «Cuentas del negocio», S11): el «día» del negocio sigue su
-// horario, no la medianoche. Si abre 18:00 y cierra 02:00, lo vendido a la 1 a. m. cuenta para
-// la jornada que empezó el día anterior. Todo en hora de Bogotá.
+// 📅 JORNADA de las cuentas (guía «Cuentas del negocio», S11): el «día» del negocio no termina a
+// medianoche sino a las 4:00 a. m. (decisión del 3-nov): la mesa que se cobra a las 12:30 a. m.
+// cuenta para la noche de ayer. Si el horario cruza más allá (abre 18:00, cierra 05:00), manda el
+// cierre. Todo en hora de Bogotá.
 //
 //   jornadaDe(ms, horario) → 'AAAA-MM-DD'      mesDe('2026-11-02') → '2026-11'
 //   horaDe(ms) → 0…23 (para las horas pico)
@@ -24,13 +25,18 @@ export function sumarDias(fecha, n) {
   return d.toISOString().slice(0, 10)
 }
 
+export const CORTE_JORNADA = '04:00'
+
 export function jornadaDe(ms = Date.now(), horario) {
   const { fecha, h, m } = partes(ms)
+  const ahora = h * 60 + m
+  // Madrugada, antes del corte → la jornada de ayer (la última mesa se cobra después de cerrar).
+  if (ahora < aMin(CORTE_JORNADA)) return sumarDias(fecha, -1)
   const abre = horario?.abre, cierra = horario?.cierra
   if (abre && cierra) {
     const a = aMin(abre), c = aMin(cierra)
-    // Cruza la medianoche y estamos en la madrugada, antes del cierre → es la jornada de ayer.
-    if (a > c && h * 60 + m < c) return sumarDias(fecha, -1)
+    // Cruza la medianoche y cierra después del corte (ej. 05:00) → sigue siendo la jornada de ayer.
+    if (a > c && ahora < c) return sumarDias(fecha, -1)
   }
   return fecha
 }

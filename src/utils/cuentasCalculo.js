@@ -60,7 +60,11 @@ export function saldosCambioPago(antes, despues) {
   return a
 }
 
-export const docsResumen = jornada => [`d_${jornada}`, `m_${mesDe(jornada)}`]
+// Dónde suma un delta: su día y su mes. Lo PRIVADO del día (nómina, retiros e ingresos del dueño)
+// va a `dp_` en vez de `d_`, porque el cajero lee `d_` para su «Hoy» y no debe ver sueldos ni
+// ganancias (D8/D22 · auditoría «cuentas» H4). Días viejos pueden traerlo en `d_`: se suman los dos.
+export const docsResumen = (jornada, privado = false) => [`${privado ? 'dp_' : 'd_'}${jornada}`, `m_${mesDe(jornada)}`]
+export const esPrivado = m => !!m && m.tipo !== 'gasto' && m.tipo !== 'traslado'
 
 export const limpiarPagos = pagos => (pagos || []).filter(p => p.monto > 0).map(p => ({ cuenta: p.cuenta, nombre: p.nombre, monto: Math.round(p.monto) }))
 // Al cambiar el pago, la propina conserva su valor: solo puede pasar a otra cuenta.
@@ -102,6 +106,8 @@ export function armarMovimiento(datos, por, local) {
   if (!CAMPO_MOV[datos.tipo] && datos.tipo !== 'traslado') throw new Error('tipo')
   return {
     tipo: datos.tipo, jornada: jornadaDe(ahora, local?.horario), por,
+    // Marca para restarlo del mismo documento donde se sumó (ver docsResumen).
+    ...(esPrivado(datos) ? { enPrivado: true } : {}),
     cuenta: datos.cuenta, ...(datos.cuentaDestino ? { cuentaDestino: datos.cuentaDestino } : {}),
     monto, concepto: (datos.concepto || '').trim(),
     ...(datos.trabajadorId ? { trabajadorId: datos.trabajadorId, trabajador: datos.trabajador || '' } : {}),

@@ -1,6 +1,7 @@
 rules_version = '2';
 
-// Última actualización: 2026-11-03 (BLINDAJE: guía «Blindaje de Appetic»)
+// Última actualización: 2026-11-03 (auditorías: comandas, pedidos/domicilios y cuentas)
+// Anterior: 2026-11-03 (BLINDAJE: guía «Blindaje de Appetic»)
 // Cambios Blindaje: los pedidos de la app y las comandas del QR los escribe SOLO el servidor
 //   (/api/pedido, que rehace los precios con el menú; el cliente ya no los crea directo) · el turno
 //   del TV solo lo sube el personal · las métricas: el público solo suma de a uno visitas e
@@ -108,6 +109,14 @@ service cloud.firestore {
     // 💵 ¿Es cajero ACTIVO de este local? Vende, cobra y anota gastos (guía «Cuentas del negocio» D8).
     function esCajero(localId) {
       return equipoActivo(localId, 'cajero');
+    }
+
+    // 📅 La jornada ('AAAA-MM-DD') que trae una venta o un movimiento tiene que estar a ±1 día de la
+    // hora del servidor: una tablet con la fecha mal no registra ventas en otro día u otro mes.
+    function jornadaCerca(j) {
+      return j is string && j.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        && request.time > timestamp.date(int(j[0:4]), int(j[5:7]), int(j[8:10])) - duration.value(36, 'h')
+        && request.time < timestamp.date(int(j[0:4]), int(j[5:7]), int(j[8:10])) + duration.value(60, 'h');
     }
 
     // ¿Puede usar la Caja (vender, cobrar, gastos)? El que administra o el cajero.
@@ -317,7 +326,8 @@ service cloud.firestore {
                       && request.resource.data.estado == 'ok'
                       && request.resource.data.total is number
                       && request.resource.data.total >= 0
-                      && request.resource.data.pagos is list;
+                      && request.resource.data.pagos is list
+                      && jornadaCerca(request.resource.data.jornada);
         allow update: if puedeAdministrar(localId)
                       || (esCajero(localId) && reciente()
                           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pagos', 'propina', 'cambios', 'estado', 'eliminada']));
@@ -326,11 +336,13 @@ service cloud.firestore {
 
       // Gastos, nómina, retiros, ingresos y traslados. El cajero solo ve y anota GASTOS.
       match /movimientos/{movId} {
-        allow read: if puedeAdministrar(localId) || (esCajero(localId) && resource.data.tipo == 'gasto');
+        // `resource == null`: el cajero puede preguntar si un gasto ya existe (registrar con id fijo).
+        allow read: if puedeAdministrar(localId) || (esCajero(localId) && (resource == null || resource.data.tipo == 'gasto'));
         allow create: if (puedeAdministrar(localId) || (esCajero(localId) && request.resource.data.tipo == 'gasto'))
                       && request.resource.data.estado == 'ok'
                       && request.resource.data.monto is number
-                      && request.resource.data.monto > 0;
+                      && request.resource.data.monto > 0
+                      && jornadaCerca(request.resource.data.jornada);
         allow update: if puedeAdministrar(localId)
                       || (esCajero(localId) && resource.data.tipo == 'gasto' && reciente()
                           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'eliminado']));
@@ -345,9 +357,17 @@ service cloud.firestore {
 
       // Resúmenes (saldos, días y meses). Los mueve la caja con increment() al vender o anotar un
       // gasto. El cajero puede leer los días (lo vendido hoy en la cabecera), no el mes ni los saldos.
+      // Lo PRIVADO del día (nómina, retiros, ingresos) vive en `dp_…`, que el cajero no lee.
+      // El cajero solo SUMA a su día, su mes y los saldos, en los campos de vender y de gastos: no
+      // borra resúmenes ni toca la nómina (auditoría «cuentas» H4). El dueño, todo.
       match /resumen/{resId} {
         allow read: if puedeAdministrar(localId) || (esCajero(localId) && resId.matches('d_.*'));
-        allow write: if puedeCaja(localId);
+        allow write: if puedeAdministrar(localId);
+        allow create, update: if esCajero(localId)
+                              && (resId == 'saldos'
+                                  || (resId.matches('(d|m)_[0-9-]+')
+                                      && request.resource.data.diff(resource == null ? {} : resource.data).affectedKeys()
+                                           .hasOnly(['ventas', 'nVentas', 'descuentos', 'propinas', 'porCuenta', 'porPlato', 'porHora', 'porTipo', 'gastos'])));
       }
 
       match /stats/{statId} {

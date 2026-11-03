@@ -44,3 +44,10 @@ export function idCuentaNueva(nombre, existentes) {
   while (usados.has(id)) id = `${base}-${n++}`
   return id
 }
+
+// De dónde puede SALIR plata para un gasto, la nómina o un retiro: no del datáfono (solo recibe;
+// esa plata se mueve al banco con «Mover entre cuentas»). Auditoría «cuentas» H8.
+export const cuentasParaPagar = local => {
+  const l = cuentasDe(local).filter(c => c.tipo !== 'datafono')
+  return l.length ? l : cuentasDe(local)
+}
