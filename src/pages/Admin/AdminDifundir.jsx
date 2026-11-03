@@ -4,7 +4,7 @@ import { isMobileBrowser } from '../../utils/whatsapp'
 import { menuUrl, formatTel, mensajeBienvenida, qrDark, abrirAfiche } from '../../utils/compartir'
 import { construirPromptPublicidad, VARIANTES_PUBLICIDAD } from '../../utils/promptIA'
 import { abrirHojaMesas } from '../../utils/mesaQR'
-import { tiene } from '../../utils/plan'
+import { tiene, ofreceDomicilio } from '../../utils/plan'
 import { Candado } from './PlanAvisos'
 
 // Dónde se recuerda, POR LOCAL, qué estilo de publicidad tocó la última vez.
@@ -199,7 +199,8 @@ export default function AdminDifundir({ local, slug, onUpdate }) {
       {/* ---- Afiche de domicilios (PDF imprimible, plan Comerciante) ---- */}
       <section className="ac-sec">
         <h3>🖨️ Afiche de domicilios</h3>
-        {!tiene(local, 'domicilios') ? <Candado local={local} funcion="domicilios" compacto /> : <>
+        {!tiene(local, 'domicilios') ? <Candado local={local} funcion="domicilios" compacto />
+          : !local.domicilio?.activo ? <p className="ac-hint">🛵 Prende el domicilio en ⚙️ Configuración → Negocio para armar tu afiche.</p> : <>
         <p className="ac-hint">
           Un afiche con la imagen de tu local, tu QR y tu número de domicilios, listo para
           imprimir o guardar como PDF. Se arma con tus datos actuales
@@ -222,6 +223,10 @@ export default function AdminDifundir({ local, slug, onUpdate }) {
       {/* ---- Publicidad para redes sociales (imagen con IA) ---- */}
       <section className="ac-sec">
         <h3>📢 Publicidad para tus redes</h3>
+        {/* Toda la pieza anuncia «ya hacemos domicilios»: solo para quien los ofrece. */}
+        {!ofreceDomicilio(local) ? (tiene(local, 'domicilios')
+          ? <p className="ac-hint">🛵 Prende el domicilio en ⚙️ Configuración → Negocio para crear tu publicidad de domicilios.</p>
+          : <Candado local={local} funcion="domicilios" compacto />) : <>
         <p className="ac-hint">
           Una imagen épica para Instagram, Facebook o el estado de WhatsApp, anunciando que
           <strong> ya haces domicilios</strong>. Sale con tu nombre, tu número
@@ -261,6 +266,7 @@ export default function AdminDifundir({ local, slug, onUpdate }) {
             </button>
           </div>
         )}
+        </>}
       </section>
 
       {/* ---- Mensaje de bienvenida para WhatsApp ---- */}

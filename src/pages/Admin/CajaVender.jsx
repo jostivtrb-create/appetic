@@ -5,7 +5,7 @@ import { resumenSeleccion } from '../../utils/selectionSummary'
 import {
   itemsDeComanda, etiquetaDestino, claveMesa, ms, nuevoIdComanda, usaCocina, itemsVivos, textoCambioComanda, POR_COBRAR_MAX,
 } from '../../services/comandas'
-import { pedidosDe } from '../../services/pedidos'
+import { pedidosDe, EstadoPedidoError } from '../../services/pedidos'
 import { llevaTurno } from '../../utils/turnos'
 import ProductModal from '../../components/Menu/ProductModal'
 import ProductWizard from '../../components/Menu/ProductWizard'
@@ -39,7 +39,9 @@ const COLORES = ['#E0692A', '#1E6FD9', '#1B8A4B', '#9C27B0', '#C2185B', '#0F7C8C
 const DOMI = '#6A35C9'
 const uid = () => Math.random().toString(36).slice(2, 10)
 const normalizar = t => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim()
-const totalComanda = c => (Number(c.total) || 0) + (Number(c.envio) || 0)
+// `acordado`: el envío «a convenir» que la caja anota al cobrar (el pedido llegó sin ubicación).
+const envioDe = (c, acordado = {}) => Number(c.envio) || Number(acordado[c.id]) || 0
+const totalComanda = (c, acordado) => (Number(c.total) || 0) + envioDe(c, acordado)
 function precioDesde(p) {
   if (p.variantes?.length) return cop(Math.min(...p.variantes.map(v => Number(v.precio) || 0)))
   return cop(p.precio)
@@ -114,6 +116,9 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
       if (e === 'listo') return { fin: false, txt: '🛵 Esperando al domiciliario' }
       if (e === 'en-camino') return { fin: false, txt: '🛵 En camino' }
       if (c.estado === 'activa' && conCocina) return { fin: false, txt: '🔥 En cocina' }
+      // El pedido sigue «en preparación» aunque la comanda diga entregada (sin cocina, o no alcanzó
+      // a pasar a listo): todavía no ha salido, no se cobra como entregado.
+      if (e === 'en-cocina') return { fin: false, txt: '🔥 En preparación' }
       return { fin: true, txt: '✅ Entregado' }
     }
     if (c.estado === 'activa' && conCocina) {
@@ -123,6 +128,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
     return { fin: true, txt: '✅ Lista para cobrar' }
   }, [domis, conCocina])
 
+  const [envioAcordado, setEnvioAcordado] = useState({})   // { [comandaId]: pesos }
   const grupos = useMemo(() => {
     const m = new Map()
     for (const c of porCobrar || []) {
@@ -136,12 +142,12 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
       return {
         ...g,
         color: colorDe(g.key, g.destino),
-        total: g.comandas.reduce((s, c) => s + totalComanda(c), 0),
+        total: g.comandas.reduce((s, c) => s + totalComanda(c, envioAcordado), 0),
         listo: etapas.every(e => e.fin),
         vieja: g.comandas.some(c => (ms(c.creadaEn) || Date.now()) < hoy0),
       }
     })
-  }, [porCobrar, guardado.nuevas, etapa, hoy0])
+  }, [porCobrar, guardado.nuevas, etapa, hoy0, envioAcordado])
 
   // Si la ficha seleccionada desaparece (se cobró en otro dispositivo), se vuelve a Rápida.
   useEffect(() => {
@@ -252,8 +258,14 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
   async function yaSalio(c) {
     try {
       await api.entregar(c)
-      if (c.pedidoId) pedidos.cambiarEstado(c.pedidoId, 'listo').catch(() => {})
+      if (c.pedidoId) pedidos.cambiarEstado(c.pedidoId, 'listo').catch(e => {
+        if (!(e instanceof EstadoPedidoError)) setError('Se marcó, pero el pedido de la app no pasó a «listo». Revisa el internet.')
+      })
     } catch (err) { setError(textoCambioComanda(err) || 'No se pudo marcar. Revisa el internet.') }
+  }
+  async function domicilioEntregado(c) {
+    try { await pedidos.cambiarEstado(c.pedidoId, 'entregado', {}, ['en-cocina', 'listo', 'en-camino']) }
+    catch (err) { setError(err instanceof EstadoPedidoError ? 'Este domicilio ya cambió. Mira cómo va ahora.' : 'No se pudo marcar. Revisa el internet.') }
   }
   async function cancelarComanda(c) {
     setCancelando(null)
@@ -279,7 +291,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
     if (grupo && !grupo.listo) return
     setCobro({ comandas: grupo?.comandas || [], conLineas: true, titulo: grupo ? etiquetaDestino(grupo.destino) : 'Venta rápida' })
   }
-  const totalCobro = cobro ? cobro.comandas.reduce((s, c) => s + totalComanda(c), 0) + (cobro.conLineas ? totalNuevo : 0) : 0
+  const totalCobro = cobro ? cobro.comandas.reduce((s, c) => s + totalComanda(c, envioAcordado), 0) + (cobro.conLineas ? totalNuevo : 0) : 0
   const sugerida = cobro?.comandas.find(c => c.pagoSugerido)?.pagoSugerido
 
   async function confirmarCobro(datos) {
@@ -297,7 +309,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
     }
     const items = [
       ...comandas.filter(c => c.items).flatMap(c => itemsVivos(c).map(it => ({ productoId: it.productoId, nombre: it.nombre, cantidad: it.cantidad, precio: it.precio, opciones: it.opciones }))),
-      ...cobro.comandas.filter(c => c.envio > 0).map(c => ({ productoId: '_envio', nombre: 'Envío del domicilio', cantidad: 1, precio: c.envio })),
+      ...cobro.comandas.filter(c => envioDe(c, envioAcordado) > 0).map(c => ({ productoId: '_envio', nombre: 'Envío del domicilio', cantidad: 1, precio: envioDe(c, envioAcordado) })),
       ...itemsDeComanda(lista).map(it => ({ productoId: it.productoId, nombre: it.nombre, cantidad: it.cantidad, precio: it.precio, opciones: it.opciones })),
     ]
     const destino = cobro.comandas[0]?.destino || grupo?.destino || null
@@ -432,6 +444,14 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
               </div>
             ))}
             {c.envio > 0 && <div className="pv-linea ya"><div className="pv-linea-nombre">Envío</div><div className="pv-linea-sub">{cop(c.envio)}</div></div>}
+            {/* Domicilio «a convenir» (el cliente no compartió ubicación): la caja anota lo acordado. */}
+            {!c.envio && c.envioAConvenir && !esMesero && (
+              <label className="pv-linea ya pv-envio-acordado">
+                <div className="pv-linea-nombre">Envío acordado</div>
+                <input inputMode="numeric" placeholder="$0" value={envioAcordado[c.id] ? cop(envioAcordado[c.id]) : ''}
+                  onChange={e => { const n = Number(e.target.value.replace(/\D/g, '')) || 0; setEnvioAcordado(m => ({ ...m, [c.id]: n })) }} />
+              </label>
+            )}
             {cancelando === c.id ? (
               <div className="pv-ya-acc seguro">
                 <span>{c.estado === 'entregada' ? '¿Anular? Ya se entregó y no se va a cobrar.' : '¿Cancelar esta comanda? No se cobra.'}</span>
@@ -441,6 +461,11 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
             ) : (
               <div className="pv-ya-acc">
                 {c.estado === 'activa' && !e.fin && <button type="button" className="pv-link" onClick={() => yaSalio(c)}>✓ Ya salió de cocina</button>}
+                {/* Domicilio que nadie va a cerrar (sin domiciliario, o el plan ya no trae domicilios):
+                    la caja lo da por entregado para poder cobrarlo. */}
+                {!esMesero && c.destino?.tipo === 'domicilio' && c.pedidoId && !e.fin && c.estado !== 'activa' && (
+                  <button type="button" className="pv-link" onClick={() => domicilioEntregado(c)}>🛵 Ya se entregó</button>
+                )}
                 {(c.estado === 'activa' || !esMesero) && (
                   <button type="button" className="pv-link peligro" onClick={() => setCancelando(c.id)}>{c.estado === 'entregada' ? 'Anular comanda' : 'Cancelar comanda'}</button>
                 )}

@@ -15,7 +15,7 @@ import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import { useAdmin } from '../../contexts/AdminContext'
 import { esSuperadmin } from '../../config/roles'
 import { soloLocal } from '../../utils/soloLocal'
-import { tiene } from '../../utils/plan'
+import { ofreceDomicilio } from '../../utils/plan'
 import './Home.css'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -147,7 +147,7 @@ function Buscador() {
     return locales.map(l => {
       const distancia = coord ? distanciaKm(l.ubicacion, coord) : null
       // Sin domicilio en su plan (Emprendedor) no se le muestra precio de domicilio.
-      const domi = coord && tiene(l, 'domicilios') && l.domicilio?.activo !== false ? costoDomicilio(distancia, l.domicilio) : null
+      const domi = coord && ofreceDomicilio(l) ? costoDomicilio(distancia, l.domicilio) : null
       const abierto = estaAbierto(l.horario)
       const nuevo = esNuevo(l.creadoEn)
       // 🧠 Puntaje personal: favorito > pedidos previos > cercanía > prioridad comercial.

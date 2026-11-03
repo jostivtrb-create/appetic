@@ -47,13 +47,18 @@ const fmtPesos = (n) => `$${Number(n || 0).toLocaleString('es-CO')}`
 //   'negocio'    → WhatsApp, horario, entrega y domicilio por distancia
 //   'apariencia' → portada (banner) y animación del logo
 // El estado y «Guardar cambios» son los mismos: guarda todo lo del local, se vea o no.
+// ¿El tramo tiene precio? Vacío = no; «0» escrito = sí (gratis).
+const conPrecio = v => v != null && String(v).trim() !== ''
+
 export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'negocio' }) {
   const ver = v => vista === v
   const [whatsapp, setWhatsapp] = useState(local.whatsapp || '')
   const [abre, setAbre] = useState(local.horario?.abre || '11:00')
   const [cierra, setCierra] = useState(local.horario?.cierra || '22:00')
   const [dias, setDias] = useState(() => diasIniciales(local.horario?.dias))
-  const [domicilio, setDomicilio] = useState(local.domicilio?.activo !== false)
+  // Apagado si nunca se configuró: antes nacía prendido y, al guardar cualquier cosa, el local
+  // quedaba con domicilio activo y tramos en $0 (envío gratis).
+  const [domicilio, setDomicilio] = useState(local.domicilio?.activo === true)
   const [recoger, setRecoger] = useState(local.recoger !== false)
   const [maxKm, setMaxKm] = useState(String(local.domicilio?.maxKm || 5))
   const [tarifas, setTarifas] = useState(() => {
@@ -83,7 +88,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
   // Resumen de tarifas para la tarjeta que abre el modal.
   const resumenPrecios = useMemo(() => {
     if (keys.length === 0) return 'Toca para definir la distancia y los precios'
-    const precios = keys.map(k => Number(tarifas[k])).filter(n => n > 0)
+    const precios = keys.filter(k => conPrecio(tarifas[k])).map(k => Number(tarifas[k]) || 0)
     if (precios.length === 0) return `Hasta ${maxKm} km · aún sin precios`
     const min = Math.min(...precios), max = Math.max(...precios)
     const rango = min === max ? fmtPesos(min) : `${fmtPesos(min)} – ${fmtPesos(max)}`
@@ -146,7 +151,9 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
   async function guardar() {
     setGuardando(true)
     const tarifasLimpias = {}
-    for (const k of keys) tarifasLimpias[k] = Number(tarifas[k]) || 0
+    // Un tramo VACÍO no se guarda (antes quedaba en $0 = envío gratis sin querer): queda sin tarifa.
+    // Un $0 escrito a propósito sí se guarda (domicilio gratis cerca, como Pilotos y Sabor del Día).
+    for (const k of keys) if (conPrecio(tarifas[k])) tarifasLimpias[k] = Number(String(tarifas[k]).replace(/\D/g, '')) || 0
     const cambios = {
       // 🍔 En la demo para clientes, WhatsApp y horario están bloqueados (no se envían).
       ...(local.esDemo ? {} : {
@@ -392,7 +399,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
                   onChange={e => setMaxKm(e.target.value)}
                 />
               </label>
-              <p className="ac-hint">Se cobra por tramos de 0,5 km según qué tan lejos esté el cliente.</p>
+              <p className="ac-hint">Se cobra por tramos de 0,5 km según qué tan lejos esté el cliente. Escribe 0 si ese tramo es gratis.</p>
 
               <div className="ac-tarifas">
                 <div className="ac-tarifas-head">
@@ -408,8 +415,8 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
                         <span className="ac-tarifa-cur">$</span>
                         <input
                           inputMode="numeric"
-                          placeholder="0"
-                          value={tarifas[k] || ''}
+                          placeholder="sin precio"
+                          value={tarifas[k] ?? ''}
                           onChange={e => setTarifa(k, e.target.value)}
                         />
                         {mostrarFill && (
@@ -420,7 +427,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
                   )
                 })}
                 {keys.length === 0 && <p className="ac-hint">Sube la distancia máxima para definir tramos.</p>}
-                {keys.some(k => !(Number(tarifas[k]) > 0)) && (
+                {keys.some(k => !conPrecio(tarifas[k])) && (
                   <p className="ac-hint">⚠️ A un cliente en un tramo sin precio no le sale el domicilio: ponle precio a todos o baja la distancia máxima.</p>
                 )}
               </div>

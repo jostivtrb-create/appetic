@@ -326,3 +326,5 @@
 
 /* 🗓️ Cuentas de otros días sin cobrar */
 .pv-viejas { margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; background: #FFF4D6; border: 1.5px solid #E8B21E; color: #4A3A08; font-size: 13.5px; }
+.pv-envio-acordado input { width: 110px; text-align: right; padding: 6px 8px; border-radius: 8px; border: 1.5px dashed var(--border); background: var(--surface); color: var(--text); font: inherit; font-weight: 700; }
+.pv-envio-acordado input:focus { outline: none; border-style: solid; border-color: var(--brand-orange); }

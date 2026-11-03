@@ -53,6 +53,8 @@ function comandaDe(p, por) {
     creadaPor: por,
     // 💵 Caja: el domicilio se cobra con el envío incluido.
     envio: p.entrega === 'domicilio' ? (Number(p.domicilio) || 0) : 0,
+    // Sin ubicación el envío quedó «a convenir»: la Caja anota lo acordado al cobrar.
+    envioAConvenir: p.entrega === 'domicilio' && !!p.domicilioAConvenir,
     // 💳 Cuentas: con qué dijo el cliente que pagaría (al cobrar sale marcado). El pedido se borra
     // a los 2 días; la comanda no, por eso se copia aquí.
     pagoSugerido: p.metodoPago || null,
@@ -65,6 +67,35 @@ function comandaDe(p, por) {
 export class YaAtendidoError extends Error {
   constructor(pedido) { super('ya-atendido'); this.pedido = pedido }
 }
+
+// 🛡️ El pedido solo AVANZA en orden (auditoría «domicilios» H2). Antes cada cambio se escribía a
+// ciegas: un domicilio entregado volvía a «Listo para salir» si la cocina deshacía y re-entregaba,
+// o pasaba a «no podemos atenderlo» con el domiciliario en ruta. De dónde puede venir cada estado:
+export const DESDE = {
+  'listo': ['en-cocina'],
+  'en-cocina': ['listo'],                 // la cocina deshizo un «entregado» antes de que saliera
+  'en-camino': ['listo'],
+  'entregado': ['en-camino'],
+  'rechazado': ['nuevo', 'en-cocina', 'listo'],   // ya en la calle, no se rechaza
+}
+export class EstadoPedidoError extends Error {
+  constructor(estado) { super('estado-pedido'); this.estado = estado }
+}
+export function textoEstadoPedido(e) {
+  if (!(e instanceof EstadoPedidoError)) return null
+  return ({
+    'en-camino': 'Este domicilio ya va en camino.',
+    entregado: 'Este domicilio ya se entregó.',
+    rechazado: 'Este pedido ya no se va a atender.',
+    'en-cocina': 'Este domicilio volvió a la cocina.',
+    listo: 'Este domicilio ya está listo para salir.',
+  })[e.estado] || 'Este domicilio cambió. Mira cómo va ahora.'
+}
+
+// Sin pantalla de cocina: lo de recoger queda «listo» de una, pero un domicilio queda «en-cocina»
+// (en preparación) hasta que alguien toca «Ya está listo» en Domicilios — así el cliente no ve
+// «Listo» con la comida sin hacer y al domiciliario le llega el aviso (decisión del 3-nov).
+const estadoAlConfirmar = (p, sinCocina) => sinCocina && p.entrega !== 'domicilio' ? 'listo' : 'en-cocina'
 
 // ─────────────────────────────── Motor Firestore ───────────────────────────────
 
@@ -100,9 +131,6 @@ function firestoreApi(localId) {
     escucharPedido(id, cb, onError) {
       return onSnapshot(doc(col(), id), s => cb(s.exists() ? { id: s.id, ...s.data() } : null), onError)
     },
-    escucharPorConfirmar(cb, onError) {
-      return lista(query(col(), where('estado', '==', 'nuevo'), orderBy('createdAt', 'asc')), cb, onError)
-    },
     escucharDomicilios(cb, onError) {
       return lista(query(col(), where('entrega', '==', 'domicilio'), where('estado', 'in', ESTADOS_VIVOS_DOMICILIO), orderBy('createdAt', 'asc')), cb, onError)
     },
@@ -119,7 +147,7 @@ function firestoreApi(localId) {
         if (!snap.exists()) throw new Error('no-existe')
         const p = { id: snap.id, ...snap.data() }
         if (p.estado !== 'nuevo') throw new YaAtendidoError(p)
-        const estado = sinCocina ? 'listo' : 'en-cocina'
+        const estado = estadoAlConfirmar(p, sinCocina)
         tx.set(comandaRef(id), {
           ...comandaDe(p, por), creadaEn: serverTimestamp(),
           ...(sinCocina ? { estado: 'entregada', entregadaEn: serverTimestamp(), cerradaEn: serverTimestamp() } : { estado: 'activa', cerradaEn: null }),
@@ -141,8 +169,18 @@ function firestoreApi(localId) {
         return p
       })
     },
-    async cambiarEstado(id, estado, extra = {}) {
-      await actualizar(id, { estado, ...extra }, { estado })
+    // Solo si el pedido está en uno de los estados `desde` (DESDE[estado] por defecto).
+    async cambiarEstado(id, estado, extra = {}, desde = DESDE[estado]) {
+      await runTransaction(db, async tx => {
+        const ref = doc(col(), id)
+        const snap = await tx.get(ref)
+        if (!snap.exists()) throw new Error('no-existe')
+        const actual = snap.data().estado
+        if (actual === estado) throw new EstadoPedidoError(actual)
+        if (desde && !desde.includes(actual)) throw new EstadoPedidoError(actual)
+        tx.update(ref, { estado, ...extra, actualizadoEn: serverTimestamp() })
+        tx.update(pub(id), { estado, actualizadoEn: serverTimestamp() })
+      })
     },
     // Tras corregir la comanda (paso 2): el pedido queda con los mismos platos y el total nuevo.
     async sincronizarConComanda(comanda) {
@@ -193,7 +231,6 @@ function demoApi(localId) {
     },
     escucharPublico(id, cb) { return suscribir(() => { const p = uno(id); return p ? { id, ...publicoDe(p), createdAt: ts(p.createdAt) } : null }, cb) },
     escucharPedido(id, cb) { return suscribir(() => { const p = uno(id); return p ? hidratar(p) : null }, cb) },
-    escucharPorConfirmar(cb) { return suscribir(() => leer().filter(p => p.estado === 'nuevo').sort((a, b) => a.createdAt - b.createdAt).map(hidratar), cb) },
     escucharDomicilios(cb) { return suscribir(() => leer().filter(p => p.entrega === 'domicilio' && ESTADOS_VIVOS_DOMICILIO.includes(p.estado)).sort((a, b) => a.createdAt - b.createdAt).map(hidratar), cb) },
     escucharEntregados(cb) { return suscribir(() => leer().filter(p => p.entrega === 'domicilio' && p.estado === 'entregado').sort((a, b) => b.actualizadoEn - a.actualizadoEn).slice(0, 10).map(hidratar), cb) },
     async confirmar(id, por, { sinCocina = false } = {}) {
@@ -209,7 +246,7 @@ function demoApi(localId) {
         try { localStorage.setItem(KEY_COM, JSON.stringify(coms)) } catch { /* nada */ }
         canalCom?.postMessage('cambio')
       }
-      cambiar(id, x => ({ ...x, estado: sinCocina ? 'listo' : 'en-cocina', confirmadoPor: por }))
+      cambiar(id, x => ({ ...x, estado: estadoAlConfirmar(p, sinCocina), confirmadoPor: por }))
       return hidratar(p)
     },
     async rechazar(id, por) {
@@ -219,7 +256,12 @@ function demoApi(localId) {
       cambiar(id, x => ({ ...x, estado: 'rechazado', rechazadoPor: por }))
       return hidratar(p)
     },
-    async cambiarEstado(id, estado, extra = {}) { cambiar(id, x => ({ ...x, estado, ...extra })) },
+    async cambiarEstado(id, estado, extra = {}, desde = DESDE[estado]) {
+      const p = uno(id)
+      if (!p) throw new Error('no-existe')
+      if (p.estado === estado || (desde && !desde.includes(p.estado))) throw new EstadoPedidoError(p.estado)
+      cambiar(id, x => ({ ...x, estado, ...extra }))
+    },
     async sincronizarConComanda(comanda) {
       const p = uno(comanda.pedidoId)
       if (!p) return null

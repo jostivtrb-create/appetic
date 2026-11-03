@@ -35,22 +35,25 @@ export default async function handler(req, res) {
 
     const db = getFirestore()
     const localRef = db.collection('locales').doc(String(localId))
-    const [localSnap, comandaSnap, cocinaSnap, meseroSnap, cajeroSnap] = await Promise.all([
+    const [localSnap, comandaSnap, cocinaSnap, meseroSnap, cajeroSnap, domiSnap] = await Promise.all([
       localRef.get(),
       localRef.collection('comandas').doc(String(comandaId)).get(),
       localRef.collection('equipo').doc(`cocina:${email}`).get(),
       localRef.collection('equipo').doc(`mesero:${email}`).get(),
       localRef.collection('equipo').doc(`cajero:${email}`).get(),
+      // Sin pantalla de cocina (plan Comerciante), el domiciliario mismo marca «Ya está listo».
+      localRef.collection('equipo').doc(`domiciliario:${email}`).get(),
     ])
     if (!localSnap.exists || !comandaSnap.exists) return res.status(404).json({ error: 'No existe' })
     const local = localSnap.data()
     // Un local apagado por no pago no manda avisos (espejo de localVivo() en las reglas).
     if (estadoPago(local).estado === 'cortado' && !SUPERADMINS.includes(email)) return res.status(403).json({ error: 'Local fuera de servicio' })
     const admins = (local.admins || []).map(e => String(e).toLowerCase())
-    // (Solo el personal que mueve comandas puede pedir el aviso: admin, cocina, mesero o caja.)
+    // (Solo el personal que mueve comandas o domicilios puede pedir el aviso: admin, cocina, mesero,
+    // caja o domiciliario.)
     const activo = s => s.exists && s.data().activo
     const esPersonal = SUPERADMINS.includes(email) || admins.includes(email)
-      || activo(cocinaSnap) || activo(meseroSnap) || activo(cajeroSnap)
+      || activo(cocinaSnap) || activo(meseroSnap) || activo(cajeroSnap) || activo(domiSnap)
     if (!esPersonal) return res.status(403).json({ error: 'No autorizado' })
 
     const comanda = comandaSnap.data()

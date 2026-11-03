@@ -190,8 +190,26 @@ service cloud.firestore {
                       && request.resource.data.estado == 'nuevo'
                       && localVivo(localId)
                       && (request.resource.data.get('entrega', 'recoger') != 'domicilio' || nivelPlan(localId) >= 2);
-        // El personal del local lo lee y lo mueve (confirmar, rechazar, en camino, entregado…).
-        allow read, update: if puedeVerPedidos(localId);
+        // El personal del local (admin, mesero, cocina, caja) lo lee completo. El DOMICILIARIO solo
+        // ve domicilios ya confirmados: nada de recoger, sin confirmar ni rechazados (teléfono y
+        // dirección de clientes que no le tocan). Auditoría «domicilios» H4.
+        allow read: if esPersonal(localId)
+                    || (equipoActivo(localId, 'domiciliario')
+                        && resource.data.get('entrega', '') == 'domicilio'
+                        && resource.data.get('estado', '') in ['en-cocina', 'listo', 'en-camino', 'entregado']);
+        // Moverlo: solo los campos del recorrido (no el cliente ni la dirección). Salir de «nuevo»
+        // hacia la cocina exige que la comanda nazca en la misma escritura (confirmar). El
+        // domiciliario solo cambia el estado, y solo hacia adelante.
+        allow update: if (esPersonal(localId)
+                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'actualizadoEn', 'confirmadoPor', 'confirmadoEn', 'rechazadoPor', 'items', 'subtotal', 'total', 'cantidadItems'])
+                          && (resource.data.estado != 'nuevo' || request.resource.data.estado in ['nuevo', 'rechazado']
+                              || existsAfter(/databases/$(database)/documents/locales/$(localId)/comandas/$(pedidoId))))
+                      || (equipoActivo(localId, 'domiciliario')
+                          && resource.data.get('entrega', '') == 'domicilio'
+                          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'actualizadoEn'])
+                          && ((resource.data.estado == 'en-cocina' && request.resource.data.estado == 'listo')
+                              || (resource.data.estado == 'listo' && request.resource.data.estado == 'en-camino')
+                              || (resource.data.estado == 'en-camino' && request.resource.data.estado == 'entregado')));
         allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
 
@@ -205,7 +223,9 @@ service cloud.firestore {
                       && request.resource.data.estado == 'nuevo'
                       && !('telefono' in request.resource.data)
                       && !('direccion' in request.resource.data);
-        allow update: if puedeVerPedidos(localId);
+        // Solo el recorrido y los totales: nadie le agrega teléfono ni dirección a lo que es público.
+        allow update: if puedeVerPedidos(localId)
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'actualizadoEn', 'items', 'subtotal', 'total']);
         allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
 

@@ -16,7 +16,7 @@ import './Checkout.css'
 import { crearPedidoLaGranEsquina } from '../../services/pedidoLaGranEsquina'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 import { Link } from 'react-router-dom'
-import { tiene } from '../../utils/plan'
+import { ofreceDomicilio } from '../../utils/plan'
 import { useFavoritos } from '../../contexts/FavoritosContext'
 
 // Dónde vive la app de La Gran Esquina, para armar el link de la comanda.
@@ -52,7 +52,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
   // puede calcular la distancia). Hasta que el admin la fije, solo "Recoger".
   const tieneUbicacionLocal = local.ubicacion?.lat != null && local.ubicacion?.lng != null
   // 💳 A domicilio solo desde el plan Comerciante (guía «Planes en la app»).
-  const conDomicilio = local.domicilio?.activo && tiene(local, 'domicilios')
+  const conDomicilio = ofreceDomicilio(local)
   const domicilioPendiente = conDomicilio && !tieneUbicacionLocal
   const permiteDomicilio = conDomicilio && tieneUbicacionLocal
   // Si no hay domicilio, recoger siempre se puede (si no, no habría cómo pedir).

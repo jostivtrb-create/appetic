@@ -31,9 +31,12 @@
 .dm-cobro b { font-size: 16px; }
 .dm-nota { font-size: 14px; background: #FFF6D8; padding: 8px 10px; border-radius: 10px; }
 .dm-tiempo { font-size: 13px; color: var(--text-faint); }
-.dm-salir, .dm-entregado { width: 100%; padding: 17px; border-radius: 16px; font-size: 18px; font-weight: 900; color: #fff; }
+.dm-salir, .dm-entregado, .dm-listo { width: 100%; padding: 17px; border-radius: 16px; font-size: 18px; font-weight: 900; color: #fff; }
 .dm-salir { background: #1E6FD9; box-shadow: 0 10px 24px rgba(30, 111, 217, 0.3); }
 .dm-entregado { background: #1B8A4B; box-shadow: 0 10px 24px rgba(27, 138, 75, 0.3); }
+/* «Ya está listo» (sin pantalla de cocina): menos fuerte que salir, para no confundirlos. */
+.dm-listo { background: #FFF1C9; color: #6B4A00; border: 2px solid #E8B21E; }
+.dm-salir:disabled, .dm-entregado:disabled, .dm-listo:disabled { opacity: 0.6; }
 .dm-hist { list-style: none; display: grid; gap: 6px; }
 .dm-hist li { display: flex; justify-content: space-between; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--surface); border: 1px solid var(--border); font-size: 14.5px; }
 .dm-hist span { color: var(--text-soft); }

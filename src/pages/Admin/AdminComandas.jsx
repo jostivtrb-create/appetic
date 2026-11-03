@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { comandasDe, etiquetaDestino, ms, POR_PAGINA, motivoError, textoCambioComanda } from '../../services/comandas'
 import AdminEquipo from './AdminEquipo'
 import { notificarListo } from '../../services/notificaciones'
-import { pedidosDe } from '../../services/pedidos'
+import { pedidosDe, EstadoPedidoError } from '../../services/pedidos'
 import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, UMBRALES_DEFECTO, itemsTxt, claseDestino, palabraDestino } from './comandaUtils'
 import './Comandas.css'
 import { tocar, activarSonido, sonidoListo } from '../../utils/sonido'
@@ -83,6 +83,7 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
     if (!c.pedidoId) return
     const pApi = pedidosDe(local.id, { demo })
     const p = await pApi.getPedido(c.pedidoId).catch(() => null)
+    // Solo vuelve si seguía «listo» (DESDE en pedidos.js): uno ya en camino no se devuelve.
     if (p?.estado === 'listo') pApi.cambiarEstado(c.pedidoId, 'en-cocina').catch(() => {})
   }
 
@@ -93,7 +94,11 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
       avisarDemo('comanda-entregada')
       // Pedido de la app: pasa a «listo» (el cliente lo ve en «Mi pedido» y el domicilio aparece
       // como listo para salir en el panel de Domicilios).
-      if (c.pedidoId) pedidosDe(local.id, { demo }).cambiarEstado(c.pedidoId, 'listo').catch(() => {})
+      // Si el pedido ya iba más adelante (en camino, entregado) no se toca. Si falla por otra cosa
+      // (internet, permisos) se dice: si no, el domicilio quedaba pegado «En cocina» sin aviso.
+      if (c.pedidoId) pedidosDe(local.id, { demo }).cambiarEstado(c.pedidoId, 'listo').catch(e => {
+        if (!(e instanceof EstadoPedidoError)) setError('La comanda se entregó, pero el pedido de la app no pasó a «listo». El dueño puede marcarlo en Domicilios → «Ya está listo».')
+      })
       // 🔔 Aviso con la app cerrada: al mesero y al admin; si es domicilio, a los domiciliarios.
       if (!demo) notificarListo(local.id, c.id)
     } catch (e) { setError(textoCambioComanda(e) || 'No se pudo marcar como entregada. Intenta de nuevo.') }

@@ -44,7 +44,7 @@ export default function MiPedido() {
   }, [vitrina, authCargando, sesion]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const email = (user?.email || '').toLowerCase()
-  const esPersonal = !!local && local !== 'error' && (puedeAdministrarLocal(email, local) || rolesEn(slug).includes('mesero') || (demo && devSuper()))
+  const esPersonal = !!local && local !== 'error' && (puedeAdministrarLocal(email, local) || rolesEn(slug).includes('mesero') || rolesEn(slug).includes('cajero') || (demo && devSuper()))
 
   if (local === undefined || (!demo && authCargando)) return <Centro>Cargando pedido…</Centro>
   if (local === 'error') return (

@@ -49,6 +49,7 @@ export function armarPedido(local, pedido, codigo) {
     domicilioAConvenir: !!pedido.domicilioAConvenir,
     metodoPago: pedido.pago?.id || null,
     metodoPagoNombre: pedido.pago?.nombre || '',
+    metodoPagoTipo: pedido.pago?.tipo || '',
     efectivoCon: pedido.pago?.tipo === 'efectivo' ? (pedido.pago?.cashAmount || 0) : 0,
     total: pedido.total || 0,
     cantidadItems: items.reduce((s, it) => s + it.cantidad, 0),

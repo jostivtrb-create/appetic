@@ -190,3 +190,8 @@ export function calcularDiferencia(local, planNuevo, ahora = Date.now()) {
   const dif = PLANES[planNuevo].precio - PLANES[planDe(local)].precio
   return { dias, monto: Math.max(0, redondear100((dif / 30) * dias)) }
 }
+
+// 🛵 ¿Este local ofrece domicilio de verdad? Plan con domicilios (Comerciante o más) Y el domicilio
+// prendido en Configuración. La misma regla para el checkout, el buscador, el afiche y los textos
+// (antes cada uno miraba una cosa distinta y había textos que prometían domicilios a quien no los tiene).
+export const ofreceDomicilio = local => tiene(local, 'domicilios') && local?.domicilio?.activo === true
