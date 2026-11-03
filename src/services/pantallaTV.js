@@ -1,17 +1,22 @@
 // 📺 El menú en vivo para la pantalla de TV.
 //
-// Costo (S2 de la guía): UN listener sobre el documento del local. Los productos se
-// vuelven a leer solo cuando sube `menuVersion` (y getProductos los saca de la caché del
-// aparato si ya los tiene). Un TV prendido 12 horas sin cambios no gasta lecturas.
+// Costo (S2 de la guía): una escucha sobre el documento del local y otra sobre sus platos. Al
+// prender se leen los platos una vez; después solo llega lo que cambia (antes cada precio que
+// tocaba el dueño hacía que cada TV releyera el menú completo — auditoría «pantalla de TV» H8).
 //
-// Sin internet (S6): se guarda en el aparato lo último que se mostró. Si el TV se reinicia
-// sin red, arranca con eso; el listener de Firestore se reconecta solo cuando vuelve.
+// Sin internet (S6): se guarda en el aparato lo último que se mostró. Si el TV prende antes que el
+// Wi-Fi, arranca con eso y REINTENTA solo (5 s, 15 s, 1 min… y apenas vuelve la red). Las escuchas
+// se reconectan solas si Firestore las corta (H2, H5).
 
-import { doc, onSnapshot } from 'firebase/firestore'
+import { doc, collection } from 'firebase/firestore'
 import { db } from '../config/firebase'
 import { getLocalBySlug } from './locales'
-import { getProductos } from './productos'
 import { getMenuExterno } from './menuExterno'
+import { escucharConReintento } from './comandas'
+
+// Esperas entre intentos de arranque: rápido al principio (el Wi-Fi del TV tarda segundos).
+const ESPERAS = [5000, 15000, 60000, 120000, 300000]
+const ordenar = l => l.sort((a, b) => (a.orden ?? Infinity) - (b.orden ?? Infinity))
 
 const CLAVE = slug => `appetic_tv_${slug}`
 // Un menú externo (La Gran Esquina) no tiene `menuVersion`: se relee cada 10 minutos.
@@ -37,7 +42,6 @@ export function escucharPantalla(slug, alCambiar, alError) {
   let vivo = true
   let soltar = () => {}
   let reloj = null
-  let version = Symbol('ninguna')
   let productos = null
 
   async function arrancar() {
@@ -52,45 +56,76 @@ export function escucharPantalla(slug, alCambiar, alError) {
       }
     }
 
-    const local = await getLocalBySlug(slug)
-    if (!vivo) return
-    if (!local) { alError?.('no-existe'); return }
+    // Arranque con reintentos: sin red, getLocalBySlug falla (o responde vacío) y antes el TV se
+    // quedaba así para siempre. Un «no existe» con red se cree; sin red, se sigue intentando.
+    let local = null
+    for (let i = 0; vivo; i++) {
+      try {
+        local = await getLocalBySlug(slug)
+        if (local) break
+        if (navigator.onLine !== false) { alError?.('no-existe'); return }
+      } catch (e) { console.warn('TV: sin conexión al arrancar, reintentando', e?.code || e) }
+      if (i === 0) alError?.('sin-red')
+      await esperar(ESPERAS[Math.min(i, ESPERAS.length - 1)])
+    }
+    if (!vivo || !local) return
 
     if (local.menuExterno) {
+      // Menú de otra app (La Gran Esquina): se relee cada 10 min. Una lista VACÍA cuando antes había
+      // platos es un fallo de red, no un menú vacío: se conserva lo que había (H6).
       const leer = async l => {
         const res = await getMenuExterno(l.menuExterno, l)
-        productos = res.productos || []
+        const nuevos = res.productos || []
+        if (nuevos.length || !productos?.length) productos = nuevos
         return productos
       }
       await leer(local)
       if (!vivo) return
       alCambiar({ local, productos })
-      guardar(slug, { local, productos })
+      if (productos.length) guardar(slug, { local, productos })
+      // El documento del local también se escucha: anuncios, transición, menú del día, cortes.
+      soltar = escucharConReintento(doc(db, 'locales', local.id), snap => {
+        if (!vivo || !snap.exists()) return
+        local = { id: snap.id, ...snap.data() }
+        alCambiar({ local, productos })
+      }, e => console.warn('TV: escucha del local', e?.code || e))
       reloj = setInterval(async () => {
         try {
           const ps = await leer(local)
-          if (vivo) { alCambiar({ local, productos: ps }); guardar(slug, { local, productos: ps }) }
+          if (vivo) { alCambiar({ local, productos: ps }); if (ps.length) guardar(slug, { local, productos: ps }) }
         } catch (e) { console.warn('TV: no se pudo releer el menú externo', e) }
       }, CADA_EXTERNO)
       return
     }
 
-    soltar = onSnapshot(doc(db, 'locales', local.id), async snap => {
-      if (!vivo || !snap.exists()) return
-      const l = { id: snap.id, ...snap.data() }
-      if (l.menuVersion !== version || !productos) {
-        version = l.menuVersion
-        try {
-          productos = await getProductos(l.id, l.menuVersion)
-        } catch (e) {
-          console.warn('TV: no se pudieron leer los productos', e)
-          if (!productos) return
-        }
-      }
-      if (!vivo) return
+    let l = local
+    const avisar = () => {
+      if (!vivo || !productos) return
       alCambiar({ local: l, productos })
       guardar(slug, { local: l, productos })
-    }, err => console.warn('TV: listener del local', err))
+    }
+    const s1 = escucharConReintento(doc(db, 'locales', local.id), snap => {
+      if (!vivo || !snap.exists()) return
+      l = { id: snap.id, ...snap.data() }
+      avisar()
+    }, e => console.warn('TV: escucha del local', e?.code || e))
+    // Los platos en vivo. Sin red, una respuesta vacía de la caché no borra el tablero.
+    const s2 = escucharConReintento(collection(db, 'locales', local.id, 'productos'), snap => {
+      if (!vivo) return
+      if (snap.empty && snap.metadata?.fromCache && productos?.length) return
+      productos = ordenar(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+      avisar()
+    }, e => console.warn('TV: escucha de los platos', e?.code || e))
+    soltar = () => { s1(); s2() }
+  }
+
+  // Espera que también termina apenas vuelve el internet (para no esperar el minuto entero).
+  function esperar(ms) {
+    return new Promise(res => {
+      const t = setTimeout(fin, ms)
+      function fin() { clearTimeout(t); window.removeEventListener('online', fin); res() }
+      window.addEventListener('online', fin)
+    })
   }
 
   arrancar().catch(err => {

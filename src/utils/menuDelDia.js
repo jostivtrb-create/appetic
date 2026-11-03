@@ -12,7 +12,7 @@
 // Cada día se convierte en un plato «armado» (`almuerzoDeHoy`) con un grupo de opciones por
 // parte: así el carrito, el WhatsApp, las comandas, la caja y las cuentas no cambian (S22).
 
-import { aMinutos, diaBogota, minutosAhoraBogota } from './horario.js'
+import { aMinutos, diaBogota, minutosAhoraBogota, enBogota } from './horario.js'
 
 export const DIAS_MD = [
   { k: 'lun', c: 'Lun', full: 'Lunes' }, { k: 'mar', c: 'Mar', full: 'Martes' },
@@ -53,7 +53,7 @@ export function menuDelDiaNuevo() {
 
 // La fecha de hoy en Bogotá, 'AAAA-MM-DD'.
 export function fechaBogota(ahora = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' }).format(ahora)
+  return enBogota(ahora.getTime()).toISOString().slice(0, 10)   // sin Intl (ver utils/horario.js)
 }
 
 // El momento actual en Bogotá, como lo piden `almuerzoDeHoy` y `conMenuDelDia`.

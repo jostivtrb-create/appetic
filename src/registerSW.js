@@ -62,3 +62,11 @@ const actualizar = registerSW({
     })
   },
 })
+
+// 📺 El TV nunca se va a segundo plano: su recarga de las 4 a. m. llama esto para que la versión
+// nueva entre (una recarga normal no activa el service worker que espera). true = ya se aplicó.
+export function aplicarVersionNueva() {
+  if (!hayVersionNueva) return false
+  actualizar(true)
+  return true
+}

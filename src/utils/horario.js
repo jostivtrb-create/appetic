@@ -1,17 +1,16 @@
 // 🕒 Horario del local (D25/K4): el cliente ve el menú pero solo puede pedir
 // dentro del horario Y los días de atención. Todo se evalúa en hora de Bogotá.
 
+// ⏰ Hora de Bogotá SIN Intl: Colombia es UTC−5 fijo todo el año (sin horario de verano desde 1993).
+// Así funciona igual en los navegadores viejos de los Smart TV (Intl.formatToParts llegó en Chrome 57)
+// y no depende de la zona horaria que tenga configurada el aparato.
+const BOGOTA_MS = -5 * 3600000
+export const enBogota = (ms = Date.now()) => new Date(Number(ms) + BOGOTA_MS)   // leer con getUTC…
+
 // Minutos transcurridos desde medianoche, ahora mismo, en Bogotá.
 export function minutosAhoraBogota() {
-  const partes = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Bogota',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).formatToParts(new Date())
-  const h = Number(partes.find(p => p.type === 'hour')?.value || 0) % 24
-  const m = Number(partes.find(p => p.type === 'minute')?.value || 0)
-  return h * 60 + m
+  const d = enBogota()
+  return d.getUTCHours() * 60 + d.getUTCMinutes()
 }
 
 export function aMinutos(hhmm) {
@@ -25,13 +24,10 @@ const NOMBRE_DIA = {
   dom: 'domingo', lun: 'lunes', mar: 'martes', mie: 'miércoles',
   jue: 'jueves', vie: 'viernes', sab: 'sábado',
 }
-const MAP_WD = { Sun: 'dom', Mon: 'lun', Tue: 'mar', Wed: 'mie', Thu: 'jue', Fri: 'vie', Sat: 'sab' }
 
 // Clave del día en Bogotá, con un desfase opcional en días (para cruces de medianoche).
 export function diaBogota(offsetDias = 0) {
-  const base = new Date(Date.now() + offsetDias * 86400000)
-  const wd = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Bogota', weekday: 'short' }).format(base)
-  return MAP_WD[wd] || 'lun'
+  return CLAVES_DIA[enBogota(Date.now() + offsetDias * 86400000).getUTCDay()]
 }
 
 // Devuelve un Set con los días activos, o null si "abre todos los días"

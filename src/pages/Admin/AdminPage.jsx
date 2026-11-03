@@ -202,9 +202,15 @@ export default function AdminPage() {
     await sincronizarDestacadosHome(nuevos)
     await podarCategoriasVacias(nuevos)
   }
-  async function updateLocal(cambios) {
+  // `campos` (opcional): lo que de verdad se escribe en Firestore, por ruta ('pantalla.anuncios'),
+  // para no pisar lo que otro aparato cambió en el mismo objeto. Si falla, se deshace en pantalla
+  // y el error sube a quien llamó (para que lo diga).
+  async function updateLocal(cambios, campos = null) {
+    const antes = local
     setLocal(l => ({ ...l, ...cambios }))
-    if (!demo) await actualizarLocal(local.id, cambios)
+    if (demo) return
+    try { await actualizarLocal(local.id, campos || cambios) }
+    catch (e) { setLocal(antes); throw e }
   }
 
   // Crea una categoría nueva (nombre + emoji opcional) y la agrega al local.

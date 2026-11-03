@@ -49,6 +49,10 @@
   content: "";
   position: absolute;
   inset: 0;
+  /* Respaldo para TV con Chrome < 111 (sin color-mix): degradado a negro, el texto sigue legible. */
+  background:
+    linear-gradient(90deg, transparent 58%, var(--tv-bg) 100%),
+    linear-gradient(180deg, rgba(0,0,0,.28) 0%, transparent 22%, transparent 42%, rgba(0,0,0,.85) 86%);
   background:
     linear-gradient(90deg, transparent 58%, var(--tv-bg) 100%),
     linear-gradient(180deg, rgba(0,0,0,.28) 0%, transparent 22%, transparent 42%, color-mix(in srgb, var(--tv-bg) 92%, transparent) 86%);
@@ -312,6 +316,7 @@
   position: absolute; z-index: 5; left: 0; right: 0; bottom: 0; height: calc(var(--u) * 6.4);
   display: flex; align-items: center; gap: calc(var(--u) * 1.6);
   padding: 0 calc(var(--u) * 3);
+  background: var(--tv-primario);   /* respaldo sin color-mix */
   background: color-mix(in srgb, var(--tv-primario) 88%, #000);
   color: var(--tv-sobre-primario);
   animation: tvl-sube .6s cubic-bezier(.2,.8,.2,1) both;
@@ -333,6 +338,8 @@
 .tvl-llamado {
   position: absolute; inset: 0; z-index: 15;
   display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  background: var(--tv-bg);   /* respaldo sin color-mix: el llamado nunca queda transparente */
+  background: radial-gradient(circle at 50% 45%, var(--tv-primario) 0%, var(--tv-bg) 70%);
   background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--tv-primario) 75%, #000) 0%, color-mix(in srgb, var(--tv-primario) 30%, var(--tv-bg)) 70%);
   color: var(--tv-sobre-primario);
   animation: tv-aparece .4s ease both;
@@ -357,6 +364,7 @@
   align-items: center;
   justify-content: center;
   text-align: center;
+  background: var(--tv-bg);   /* respaldo sin color-mix */
   background:
     radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--tv-primario) 38%, var(--tv-bg)) 0%, var(--tv-bg) 72%);
   animation: tv-aparece .9s ease both;
@@ -419,7 +427,9 @@
   letter-spacing: .02em;
 }
 .tv-marca b { color: var(--tv-suave); }
-.tv-mensaje, .tv-cargando { display: flex; align-items: center; justify-content: center; text-align: center; --u: min(1vw, 1.78vh); }
+.tv-mensaje, .tv-cargando { display: flex; align-items: center; justify-content: center; text-align: center; --u: 1vw; }
+/* min() llegó en Chrome 79: los TV viejos se quedan con 1vw (la pantalla principal mide en JS). */
+@supports (width: min(1px, 2px)) { .tv-mensaje, .tv-cargando { --u: min(1vw, 1.78vh); } }
 .tv-mensaje h1 { font-family: var(--tv-serif); font-size: calc(var(--u) * 4); margin: 0; }
 .tv-mensaje p { font-size: calc(var(--u) * 1.6); color: var(--tv-suave); }
 .tv-spinner {

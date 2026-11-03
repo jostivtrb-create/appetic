@@ -25,7 +25,15 @@ export function linkDelTV(slug) {
 
 export default function ConfigPantalla({ local, productos, slug, onUpdate, onSubirImagen }) {
   const pantalla = local.pantalla || {}
-  const guardar = cambios => onUpdate({ pantalla: { ...pantalla, ...cambios } })
+  const [errorGuardar, setErrorGuardar] = useState('')
+  // Campo por campo ('pantalla.anuncios'…): dos aparatos editando a la vez no se pisan lo demás.
+  // Si no se guardó, se dice (antes se veía guardado y el TV nunca se enteraba).
+  const guardar = cambios => {
+    setErrorGuardar('')
+    const campos = Object.fromEntries(Object.entries(cambios).map(([k, v]) => [`pantalla.${k}`, v]))
+    return Promise.resolve(onUpdate({ pantalla: { ...pantalla, ...cambios } }, campos))
+      .catch(() => setErrorGuardar('No se guardó. Revisa el internet e intenta de nuevo.'))
+  }
 
   const transicion = transicionDe(local)
   const ocultas = new Set(pantalla.categoriasOcultas || [])
@@ -63,6 +71,7 @@ export default function ConfigPantalla({ local, productos, slug, onUpdate, onSub
 
   return (
     <div className="cpt">
+      {errorGuardar && <p className="ac-ubic-warn" role="alert">⚠️ {errorGuardar}</p>}
       <section className="ac-sec">
         <h3>👀 Así se ve tu TV ahora</h3>
         <Suspense fallback={<div className="cpt-vista-cargando" />}>

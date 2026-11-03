@@ -274,8 +274,9 @@ function firestoreApi(localId) {
       return n
     },
     // Lo que muestra el TV: un solo documento público.
+    // Se reconecta sola si Firestore corta la escucha (antes el TV dejaba de llamar pedidos).
     escucharListos(cb) {
-      return onSnapshot(refPantalla('listos'), s => cb(s.exists() ? s.data() : null), e => console.warn('TV: listos', e?.code || e))
+      return escucharConReintento(refPantalla('listos'), s => cb(s.exists() ? s.data() : null), e => console.warn('TV: listos', e?.code || e))
     },
     async crear({ id, destino, items, creadaPor, origen = 'mesero', entregada = false, turno = null }) {
       const data = {

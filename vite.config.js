@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import legacy from '@vitejs/plugin-legacy'
 import { existsSync, readFileSync } from 'node:fs'
 
 // 🧪 En desarrollo, /api/* lo atienden las mismas funciones de Vercel (api/*.js), para probar el
@@ -35,9 +36,20 @@ function apiLocal() {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // CSS para los mismos TV viejos: esbuild traduce lo que se pueda (ej. `inset` → top/right/bottom/
+  // left, que sostiene las capas del TV). Lo que no tiene traducción (gap en flex) solo se ve más junto.
+  build: { cssTarget: ['chrome61', 'safari11'] },
   plugins: [
     react(),
     apiLocal(),
+    // 📺 El TV que el local ya tiene (Samsung 2018, LG webOS 4, TV Box viejos) trae un navegador de
+    // Chrome 53–79 que no entiende el código moderno y mostraba la pantalla en negro. Esto genera
+    // una COPIA compatible que solo descargan esos navegadores; los modernos no cambian, solo reciben
+    // los rellenos que les falten (modernPolyfills). Auditoría «pantalla de TV» H1.
+    legacy({
+      targets: ['chrome >= 53', 'safari >= 11', 'firefox >= 60', 'samsung >= 6'],
+      modernPolyfills: true,
+    }),
     VitePWA({
       // 'prompt': la versión nueva espera y entra cuando src/registerSW.js lo decide (nunca en
       // mitad de una comanda o de un pedido).
@@ -50,6 +62,9 @@ export default defineConfig({
         // quien la está usando ni corta la sesión de Firebase Auth (ver src/registerSW.js).
         // Las cachés viejas se borran cuando la nueva entra.
         cleanupOutdatedCaches: true,
+        // La copia para TV viejos (-legacy) no se guarda de antemano en todos los celulares: la
+        // descargan solo esos navegadores, cuando la piden.
+        globIgnores: ['**/*-legacy-*.js', '**/polyfills-legacy-*.js'],
         // La cartilla es un archivo real: que el SW no la desvíe al index.html.
         // La ruta vieja sigue en la lista porque hay enlaces sueltos que aún la
         // usan; el redirect de vercel.json los manda a la cartilla.

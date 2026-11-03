@@ -41,6 +41,12 @@ export function quitarListo(previo, id) {
 }
 
 // Lo que todavía se muestra en la franja: lo de los últimos minutos, el más nuevo primero.
+// La hora `en` la pone el aparato de la COCINA; `ahora` es la del TV. Si el reloj del TV está muy
+// descuadrado (TV Box sin hora que arranca en otro año), se mide contra el pedido más reciente para
+// que la franja no se quede llena para siempre ni vacía (auditoría «pantalla de TV» H10).
 export function listosVigentes(docListos, ahora = Date.now(), minutos = MINUTOS_EN_FRANJA) {
-  return (docListos?.items || []).filter(x => ahora - Number(x.en || 0) < minutos * 60000)
+  const items = docListos?.items || []
+  const ultimo = Math.max(0, ...items.map(x => Number(x.en || 0)))
+  const ref = Math.abs(ahora - ultimo) < 6 * 3600000 ? Math.max(ahora, ultimo) : ultimo
+  return items.filter(x => ref - Number(x.en || 0) < minutos * 60000)
 }

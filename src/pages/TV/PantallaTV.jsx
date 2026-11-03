@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Component, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { escucharPantalla, ultimoGuardado } from '../../services/pantallaTV'
 import {
@@ -13,6 +13,7 @@ import { CATEGORIA_MD } from '../../utils/menuDelDia'
 import { listosVigentes } from '../../utils/turnos'
 import { comandasDe } from '../../services/comandas'
 import { estaCortado } from '../../utils/plan'
+import { vigilarTV, recargarPronto } from './vigilanteTV'
 import './PantallaTV.css'
 
 // 📺 La pantalla de TV del local: appetic.vercel.app/<slug>/tv
@@ -22,7 +23,11 @@ import './PantallaTV.css'
 // que va rotando (D1). Entre páginas entran los anuncios del dueño a pantalla completa (D20).
 // Un link fijo, sin sesión ni activación (D13); en vertical se acomoda sola (S9).
 
-export default function PantallaTV({ slugFijo, incrustada = false }) {
+export default function PantallaTV(props) {
+  return <RedTV recargar={!props.incrustada}><PantallaTVInterna {...props} /></RedTV>
+}
+
+function PantallaTVInterna({ slugFijo, incrustada = false }) {
   const params = useParams()
   const slug = slugFijo || params.slug
   const [datos, setDatos] = useState(() => ultimoGuardado(slug))
@@ -37,7 +42,7 @@ export default function PantallaTV({ slugFijo, incrustada = false }) {
   }, [slug])
 
   const tam = useTamano()
-  const liviano = useModoLiviano()
+  const liviano = useModoLiviano(!!datos)
   useAguanteSolo(!incrustada)
   const deriva = useDeriva()
   const cursorOculto = useCursorOculto(!incrustada)
@@ -111,10 +116,9 @@ function Pantalla({ local: localBase, productos: productosBase, tam, clases, der
   useEffect(() => {
     const el = listaRef.current
     if (!el) return
-    const ro = new ResizeObserver(() => setAltoLista(el.clientHeight))
-    ro.observe(el)
+    const fin = observarTamano(el, () => setAltoLista(el.clientHeight))
     setAltoLista(el.clientHeight)
-    return () => ro.disconnect()
+    return fin
   }, [hayGrande, vertical])
   const columnas = !hayGrande && !vertical ? 2 : 1
   const porPagina = Math.max(3, Math.floor((altoLista || tam.h * 0.6) / fila)) * columnas
@@ -263,6 +267,18 @@ function Pantalla({ local: localBase, productos: productosBase, tam, clases, der
 // 👀 «Ver cómo queda» (D18): la misma pantalla dentro del panel, del tamaño de su caja y con
 // lo que el dueño tiene en pantalla aunque no lo haya guardado. El plato grande pasa más rápido
 // para que se alcance a ver la transición.
+// Avisa cuando cambia el tamaño de `el`. Los TV con Chrome < 64 no tienen ResizeObserver: ahí basta
+// el cambio de tamaño de la ventana (en un TV es lo único que cambia). Devuelve cómo dejar de oír.
+function observarTamano(el, fn) {
+  if (typeof ResizeObserver !== 'undefined') {
+    const ro = new ResizeObserver(fn)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }
+  window.addEventListener('resize', fn)
+  return () => window.removeEventListener('resize', fn)
+}
+
 export function VistaTV({ local, productos }) {
   const ref = useRef(null)
   const [tam, setTam] = useState(null)
@@ -270,10 +286,9 @@ export function VistaTV({ local, productos }) {
     const el = ref.current
     if (!el) return
     const medir = () => setTam({ w: el.clientWidth, h: el.clientHeight })
-    const ro = new ResizeObserver(medir)
-    ro.observe(el)
+    const fin = observarTamano(el, medir)
     medir()
-    return () => ro.disconnect()
+    return fin
   }, [])
   return (
     <div ref={ref} className="tv-vista">
@@ -336,7 +351,12 @@ function TableroAlmuerzo({ plato }) {
 }
 
 function FilaTablero({ plato, i }) {
-  const precio = preciosDelPlato(plato)
+  const p0 = preciosDelPlato(plato)
+  // Con 3 tamaños o más, los precios uno al lado del otro dejaban el nombre en «Hambur…»: en el
+  // tablero va el rango (el detalle está en el menú del celular). Auditoría H13.
+  const precio = p0.tipo === 'tamanos' && p0.tamanos.length >= 3
+    ? { tipo: 'rango', min: Math.min(...p0.tamanos.map(t => t.precio)), max: Math.max(...p0.tamanos.map(t => t.precio)) }
+    : p0
   return (
     <li className="tvt-fila" style={{ animationDelay: `${i * 60}ms` }}>
       <div className="tvt-txt">
@@ -421,7 +441,8 @@ function useListos(local, minuto) {
     const items = docListos?.items || []
     // Lo que ya estaba al abrir la pantalla no se vuelve a llamar.
     if (vistos.current === null) { vistos.current = new Set(items.map(x => x.id)); return }
-    const nuevos = items.filter(x => !vistos.current.has(x.id) && Date.now() - Number(x.en || 0) < 120000).reverse()
+    // Nuevo = no estaba antes, sin mirar el reloj del TV (si iba adelantado no llamaba a nadie).
+    const nuevos = items.filter(x => !vistos.current.has(x.id)).reverse()
     nuevos.forEach(x => vistos.current.add(x.id))
     if (nuevos.length) setCola(c => [...c, ...nuevos])
   }, [docListos, activo])
@@ -472,52 +493,35 @@ function useTamano() {
 }
 
 // S12: si el aparato no mueve 40 cuadros por segundo, se bajan las animaciones pesadas.
-function useModoLiviano() {
+// Se mide con el MENÚ ya en pantalla (no mientras gira la carga, que es liviana y daba 60 cuadros
+// en un TV que después se traba) y otra vez cada media hora. Una vez liviano, se queda liviano.
+function useModoLiviano(listo = true) {
   const [liviano, setLiviano] = useState(() =>
     window.matchMedia?.('(prefers-reduced-motion: reduce)').matches || false)
   useEffect(() => {
-    let cuadros = 0
+    if (!listo || liviano) return
     let id
-    const inicio = performance.now()
-    const contar = ahora => {
-      cuadros++
-      if (ahora - inicio < 4000) { id = requestAnimationFrame(contar); return }
-      if (cuadros / ((ahora - inicio) / 1000) < 40) setLiviano(true)
+    const medir = () => {
+      let cuadros = 0
+      const inicio = performance.now()
+      const contar = ahora => {
+        cuadros++
+        if (ahora - inicio < 4000) { id = requestAnimationFrame(contar); return }
+        if (cuadros / ((ahora - inicio) / 1000) < 40) setLiviano(true)
+      }
+      id = requestAnimationFrame(contar)
     }
-    // Se mide después de que cargue lo primero, que siempre es más lento.
-    const t = setTimeout(() => { id = requestAnimationFrame(contar) }, 2500)
-    return () => { clearTimeout(t); cancelAnimationFrame(id) }
-  }, [])
+    const t = setTimeout(medir, 2500)
+    const cada = setInterval(medir, 30 * 60000)
+    return () => { clearTimeout(t); clearInterval(cada); cancelAnimationFrame(id) }
+  }, [listo, liviano])
   return liviano
 }
 
 // S6: pantalla siempre encendida y una recarga de madrugada para tomar la versión nueva.
+// La recarga de las 4 a. m. y la pantalla despierta viven en vigilanteTV.js (fuera de React).
 function useAguanteSolo(activo) {
-  useEffect(() => {
-    if (!activo) return
-    let candado = null
-    const pedir = async () => {
-      try { candado = await navigator.wakeLock?.request('screen') } catch { /* no lo soporta */ }
-    }
-    pedir()
-    const alVolver = () => { if (document.visibilityState === 'visible') pedir() }
-    document.addEventListener('visibilitychange', alVolver)
-
-    const arranque = Date.now()
-    const reloj = setInterval(() => {
-      const min = minutosAhoraBogota()
-      // Entre las 4:00 y las 4:10 a. m., si lleva más de una hora prendida.
-      if (min >= 240 && min < 250 && Date.now() - arranque > 3600000 && navigator.onLine !== false) {
-        window.location.reload()
-      }
-    }, 5 * 60 * 1000)
-
-    return () => {
-      document.removeEventListener('visibilitychange', alVolver)
-      clearInterval(reloj)
-      candado?.release?.().catch(() => {})
-    }
-  }, [activo])
+  useEffect(() => { if (activo) vigilarTV() }, [activo])
 }
 
 // Anti-quemado: todo se corre unos pocos píxeles cada 7 minutos.
@@ -571,4 +575,13 @@ function useCursorOculto(activo) {
     return () => { window.removeEventListener('mousemove', mover); clearTimeout(t) }
   }, [activo])
   return oculto
+}
+
+// 🛟 Red de seguridad: si algo de la pantalla se rompe (un dato raro del menú), se muestra el fondo
+// y se recarga sola al minuto, en vez de quedarse negra todo el día (auditoría H7).
+export class RedTV extends Component {
+  constructor(p) { super(p); this.state = { caida: false } }
+  static getDerivedStateFromError() { return { caida: true } }
+  componentDidCatch(e) { console.error('TV: la pantalla se cayó', e); if (this.props.recargar) recargarPronto() }
+  render() { return this.state.caida ? <div className="tv tv-cargando"><div className="tv-spinner" /></div> : this.props.children }
 }

@@ -239,6 +239,7 @@ eq('no repite la misma comanda', tu.agregarListo(l2, {id:'a', turno:1, en:3}, '2
 eq('lo de ayer se borra', tu.agregarListo({fecha:'2026-11-01', items:[{id:'z'}]}, {id:'a'}, '2026-11-02').items.map(x=>x.id), ['a'])
 eq('deshacer lo saca', tu.quitarListo(l2, 'b').items.map(x=>x.id), ['a'])
 eq('a los 12 minutos sale de la franja', tu.listosVigentes({items:[{en:0},{en:600000}]}, 12*60000).length, 1)
+eq('TV con el reloj en otro año: igual muestra los recientes', tu.listosVigentes({items:[{en:1793700000000},{en:1793700000000-20*60000}]}, 0).length, 1)
 
 
 // ── 🛡️ Precios del servidor (guía «Blindaje» D1, D2) ──

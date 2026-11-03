@@ -6,14 +6,10 @@
 //   jornadaDe(ms, horario) → 'AAAA-MM-DD'      mesDe('2026-11-02') → '2026-11'
 //   horaDe(ms) → 0…23 (para las horas pico)
 
-const PARTES = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit',
-  hour: '2-digit', minute: '2-digit', hour12: false,
-})
-
+// Bogotá es UTC−5 fijo (sin horario de verano): la cuenta directa sirve en cualquier navegador.
 function partes(ms) {
-  const p = Object.fromEntries(PARTES.formatToParts(new Date(ms)).map(x => [x.type, x.value]))
-  return { fecha: `${p.year}-${p.month}-${p.day}`, h: Number(p.hour) % 24, m: Number(p.minute) }
+  const d = new Date(Number(ms) - 5 * 3600000)
+  return { fecha: d.toISOString().slice(0, 10), h: d.getUTCHours(), m: d.getUTCMinutes() }
 }
 
 const aMin = hhmm => { const [h, m] = String(hhmm || '').split(':').map(Number); return (h || 0) * 60 + (m || 0) }
