@@ -76,6 +76,8 @@ export default function Cobro({ local, titulo, detalle, total, sugerida, onConfi
         recibido: efectivoParte > 0 ? numero(recibido) : 0,
       })
     } catch (e) {
+      // El detalle va a la consola: el mensaje de pantalla es genérico y así no se sabe qué pasó.
+      console.error('[cobro] no se pudo cobrar:', e?.code || '', e)
       setEstado('error'); setError(motivoErrorCuentas(e))
     }
   }

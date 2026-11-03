@@ -263,7 +263,11 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
 
   // ── Cobrar ──
   const [cobro, setCobro] = useState(null)   // { comandas, conLineas, titulo }
+  // La comanda que este cobro ya mandó a la cocina. Si después falla guardar la venta, el reintento
+  // usa ESA y no manda otra (antes cada intento dejaba una comanda repetida en la cocina).
+  const comandaDelCobro = useRef(null)
   function abrirCobro(soloComanda = null) {
+    comandaDelCobro.current = null
     if (soloComanda) { setCobro({ comandas: [soloComanda], conLineas: false, titulo: etiquetaDestino(soloComanda.destino) }); return }
     if (!lineas.length && !grupo?.comandas.length) return
     if (grupo && !grupo.listo) return
@@ -276,10 +280,14 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
     const lista = cobro.conLineas ? lineas : []
     const comandas = [...cobro.comandas]
     // Lo nuevo, si hay cocina, también tiene que llegarle (ya pagado).
+    // (crearComanda devuelve { id, turno }: antes se guardaba el objeto entero como id y la venta
+    // fallaba con «No se pudo guardar» en todo local con cocina — reporte del 3-nov.)
+    let turno = null
     if (lista.length && conCocina) {
       const destino = grupo?.destino || { tipo: 'llevar', mesa: null, nombre: null }
-      const id = await crearComanda(destino, lista)
-      comandas.push({ id })
+      if (!comandaDelCobro.current) comandaDelCobro.current = await crearComanda(destino, lista)
+      comandas.push({ id: comandaDelCobro.current.id })
+      turno = comandaDelCobro.current.turno
     }
     const items = [
       ...comandas.filter(c => c.items).flatMap(c => itemsVivos(c).map(it => ({ productoId: it.productoId, nombre: it.nombre, cantidad: it.cantidad, precio: it.precio, opciones: it.opciones }))),
@@ -295,7 +303,9 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
     if (lista.length) sumarFrec(lista)
     if (cobro.conLineas) setGuardado(g => ({ carts: { ...g.carts, [sel]: [] }, nuevas: g.nuevas.filter(n => n.key !== sel) }))
     const neto = totalCobro - (datos.descuento?.valor || 0)
-    avisar(`✓ ${cobro.titulo}: venta de ${cop(neto)} registrada`)
+    comandaDelCobro.current = null
+    if (turno) setTurnoDado({ turno, nombre: grupo?.destino?.nombre || '' })
+    else avisar(`✓ ${cobro.titulo}: venta de ${cop(neto)} registrada`)
     avisarDemo('cobrada')
     onVenta?.()
     setCobro(null)
