@@ -12,6 +12,7 @@ import { useMinuto, useConMenuDelDia } from '../../utils/useMinuto'
 import { CATEGORIA_MD } from '../../utils/menuDelDia'
 import { listosVigentes } from '../../utils/turnos'
 import { comandasDe } from '../../services/comandas'
+import { estaCortado } from '../../utils/plan'
 import './PantallaTV.css'
 
 // 📺 La pantalla de TV del local: appetic.vercel.app/<slug>/tv
@@ -41,6 +42,18 @@ export default function PantallaTV({ slugFijo, incrustada = false }) {
   const deriva = useDeriva()
   const cursorOculto = useCursorOculto(!incrustada)
   const avisoCompleta = usePantallaCompleta(!incrustada)
+  // 💳 Local apagado por falta de pago: el TV lo dice y se recarga solo cada 10 min por si ya pagaron.
+  const cortado = !!datos && estaCortado(datos.local)
+  const [, setTic] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setTic(n => n + 1), 60000)
+    return () => clearInterval(t)
+  }, [])
+  useEffect(() => {
+    if (!cortado || incrustada) return
+    const t = setTimeout(() => window.location.reload(), 10 * 60000)
+    return () => clearTimeout(t)
+  }, [cortado, incrustada])
 
   if (error === 'no-existe') {
     return <Mensaje titulo="Este local no existe" texto={`Revisa el link: /${slug}/tv`} />
@@ -49,6 +62,10 @@ export default function PantallaTV({ slugFijo, incrustada = false }) {
     return error
       ? <Mensaje titulo="No hay conexión" texto="Revisa el internet del TV. La pantalla vuelve sola." />
       : <div className="tv tv-cargando"><div className="tv-spinner" /></div>
+  }
+
+  if (cortado) {
+    return <Mensaje titulo={`${datos.local.nombre} está temporalmente fuera de servicio`} texto="La pantalla vuelve sola apenas el local esté de nuevo en línea." />
   }
 
   return (

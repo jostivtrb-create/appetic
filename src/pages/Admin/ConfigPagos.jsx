@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { TIPOS_CUENTA, cuentasDe, emojiCuenta, idCuentaNueva } from '../../utils/cuentasDinero'
-import { usaCocina } from '../../services/comandas'
+import { tiene } from '../../utils/plan'
+import { Candado } from './PlanAvisos'
 import './ConfigPagos.css'
 
 // 💳 CONFIGURACIÓN → CUENTAS Y PAGOS (guía «Cuentas del negocio» D7, D21, D13/S12).
@@ -11,7 +12,9 @@ import './ConfigPagos.css'
 //   • ¿Usa pantalla de cocina? Sin cocina, las comandas nacen listas para cobrar.
 export default function ConfigPagos({ local, onUpdate }) {
   const [lista, setLista] = useState(() => cuentasDe(local).map(c => ({ ...c })))
-  const [cocina, setCocina] = useState(usaCocina(local))
+  // Lo que el dueño eligió (sin mirar el plan): si sube al Empresario, su elección sigue ahí.
+  const [cocina, setCocina] = useState(local?.usaCocina !== false)
+  const conCocina = tiene(local, 'cocina')
   const [nueva, setNueva] = useState({ nombre: '', tipo: 'transferencia', llave: '' })
   const [estado, setEstado] = useState('')
   const originales = new Set((local.pagos || []).map(c => c.id))
@@ -87,10 +90,10 @@ export default function ConfigPagos({ local, onUpdate }) {
 
       <section className="cp-card">
         <h3>Cocina</h3>
-        <label className="cp-switch">
+        {!conCocina ? <Candado local={local} funcion="cocina" compacto /> : <label className="cp-switch">
           <input type="checkbox" checked={cocina} onChange={e => { setCocina(e.target.checked); setEstado('') }} />
           <span><b>Usamos la pantalla de cocina</b><small>Los pedidos pasan por la Cocina y se cobran cuando salen. Si la apagas, cada pedido queda listo para cobrar apenas se toma (ideal para un tráiler o un mostrador).</small></span>
-        </label>
+        </label>}
       </section>
 
       <div className="cp-guardar">

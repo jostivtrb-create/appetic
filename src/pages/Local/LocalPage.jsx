@@ -13,11 +13,16 @@ import { yaVioBienvenida } from '../../components/Demo/demoUtils'
 import { AVISO_BIENVENIDA } from '../../components/Demo/Recorrido'
 import './LocalPage.css'
 import { atrasEsDelCajon } from '../../utils/cajonPanel'
+import { estaCortado } from '../../utils/plan'
+import { recordarLocal, soltarLocal, soloLocal } from '../../utils/soloLocal'
+import { useAuth } from '../../contexts/AuthContext'
+import { esSuperadmin } from '../../config/roles'
 
 export default function LocalPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
-  const { rolesEn } = useAdmin()
+  const { rolesEn, tienePanel } = useAdmin()
+  const { user } = useAuth()
   const [estado, setEstado] = useState('cargando') // cargando | ok | no-existe | error
   const [local, setLocal] = useState(null)
   const [productos, setProductos] = useState([])
@@ -117,6 +122,15 @@ export default function LocalPage() {
     return () => { activo = false }
   }, [slug])
 
+  // 🔒 ¿Este local sale en el buscador? Si no, el cliente se queda en él (D13). Al apagarse por
+  // falta de pago se suelta: ya no hay menú en el que quedarse.
+  const cortado = estado === 'ok' && estaCortado(local)
+  useEffect(() => {
+    if (estado !== 'ok' || !local) return
+    if (cortado) { if (soloLocal()?.id === local.id) soltarLocal(); return }
+    recordarLocal(local, { conPanel: tienePanel || esSuperadmin(user?.email) })
+  }, [estado, local, cortado, tienePanel, user])
+
   if (estado === 'cargando') {
     return (
       <div className="local-loading">
@@ -148,13 +162,26 @@ export default function LocalPage() {
     )
   }
 
+  // 💳 Se venció y pasaron los días de gracia: fuera de servicio, sin decir por qué (S10).
+  if (cortado) {
+    return (
+      <div className="local-msg">
+        <div className="local-msg-emoji">🔌</div>
+        <h2>{local.nombre} está temporalmente fuera de servicio</h2>
+        <p>Por ahora no está recibiendo pedidos por aquí. Vuelve a intentarlo más tarde.</p>
+        {rolesEn(local.slug).length > 0 && <Link to={`/${local.slug}/admin`} className="btn btn-primary">Ir a mi panel</Link>}
+        <Link to="/" className="btn btn-ghost">Ver otros locales</Link>
+      </div>
+    )
+  }
+
   if (avisoVacio && productos.length === 0) {
     return (
       <div className="local-msg">
         <div className="local-msg-emoji">{avisoVacio.emoji}</div>
         <h2>{avisoVacio.titulo}</h2>
         <p>{avisoVacio.detalle}</p>
-        <Link to="/" className="btn btn-ghost">Ver otros locales</Link>
+        {soloLocal()?.id !== local.id && <Link to="/" className="btn btn-ghost">Ver otros locales</Link>}
       </div>
     )
   }

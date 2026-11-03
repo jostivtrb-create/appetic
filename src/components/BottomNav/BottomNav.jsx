@@ -7,6 +7,7 @@ import { esColorOscuro, localThemeVars } from '../../utils/theme'
 import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import logoAppetic from '../../assets/appetic-logo.png'
 import ConfirmSalirMenu from '../ConfirmSalirMenu/ConfirmSalirMenu'
+import { soloLocal } from '../../utils/soloLocal'
 import PanelRail, { devSuper } from './PanelRail'
 import { PanelMenuFlotante } from './PanelMenuBoton'
 import { esSuperadmin } from '../../config/roles'
@@ -114,13 +115,16 @@ export default function BottomNav() {
   const activa = enLocal ? 'menu'
     : pathname === '/' ? 'buscar'
       : pathname.startsWith('/favoritos') ? 'favoritos'
-        : (pathname.startsWith('/cuenta') || pathname.startsWith('/pedidos') || pathname.startsWith('/datos')) ? 'cuenta'
+        : (pathname.startsWith('/cuenta') || (pathname.startsWith('/pedidos') && !soloLocal()) || pathname.startsWith('/datos')) ? 'cuenta'
           : ''
+
+  // 🔒 Local que no sale en el buscador: su cliente no tiene botón de buscar (D13).
+  const encerrado = soloLocal()
 
   function irAMenu() {
     if (live) return live.onMenu()
     if (activeLocal) return navigate(`/${activeLocal.slug}`)
-    navigate('/')
+    navigate(encerrado ? `/${encerrado.slug}` : '/')
   }
   function irACarrito() {
     if (live) return live.onCarrito()
@@ -152,7 +156,7 @@ export default function BottomNav() {
           logo={activeLocal?.icono || activeLocal?.logo || logoAppetic}
           nombre={activeLocal?.nombre || 'Appetic'}
           rol={activeLocal ? 'Estás en su menú' : 'El menú de tu barrio'}
-          onClick={() => (activeLocal ? irAMenu() : navigate('/'))}
+          onClick={() => (activeLocal || encerrado ? irAMenu() : navigate('/'))}
         />
         <button className={`bnav-item bnav-item--menu ${activa === 'menu' ? 'is-active' : ''}`} onClick={irAMenu}>
           <IconMenu /><span>Menú</span>
@@ -170,9 +174,16 @@ export default function BottomNav() {
         <button className={`bnav-item bnav-item--favoritos ${activa === 'favoritos' ? 'is-active' : ''}`} onClick={() => navigate('/favoritos')}>
           <IconHeart /><span>Favoritos</span>
         </button>
-        <button className={`bnav-item bnav-item--buscar ${activa === 'buscar' ? 'is-active' : ''}`} onClick={irABuscar}>
-          <IconSearch /><span>Buscar</span>
-        </button>
+        {/* Sin buscador, su lugar lo toma «Mis pedidos» (así el botón del pedido sigue al centro). */}
+        {encerrado ? (
+          <button className={`bnav-item bnav-item--pedidos ${pathname.startsWith('/pedidos') ? 'is-active' : ''}`} onClick={() => navigate('/pedidos')}>
+            <IconRecibo /><span>Mis pedidos</span>
+          </button>
+        ) : (
+          <button className={`bnav-item bnav-item--buscar ${activa === 'buscar' ? 'is-active' : ''}`} onClick={irABuscar}>
+            <IconSearch /><span>Buscar</span>
+          </button>
+        )}
       </nav>
 
       <ConfirmSalirMenu
@@ -220,6 +231,9 @@ function IconBag() {
 }
 function IconSearch() {
   return <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><circle {...sw} cx="11" cy="11" r="7" /><path {...sw} d="M16.5 16.5 21 21" /></svg>
+}
+function IconRecibo() {
+  return <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><path {...sw} d="M6 3h12v18l-3-2-3 2-3-2-3 2z" /><path {...sw} d="M9 8h6M9 12h6M9 16h3" /></svg>
 }
 function IconUser() {
   return <svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><circle {...sw} cx="12" cy="8" r="3.4" /><path {...sw} d="M5 20a7 7 0 0 1 14 0" /></svg>

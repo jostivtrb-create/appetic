@@ -2,13 +2,16 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getHistorial, borrarHistorial } from '../../services/historial'
 import { cop } from '../../utils/money'
+import { soloLocal } from '../../utils/soloLocal'
 import './Pedidos.css'
 
 // 🧾 "Mis pedidos": el historial guardado en este dispositivo. Cada pedido
 // enviado por WhatsApp queda aquí para verlo y volver a pedir en un toque.
 export default function Pedidos() {
   const navigate = useNavigate()
-  const [pedidos, setPedidos] = useState(() => getHistorial())
+  // 🔒 Cliente de un local que no sale en el buscador: solo ve los pedidos de ese local (D13).
+  const encerrado = soloLocal()
+  const [pedidos, setPedidos] = useState(() => getHistorial().filter(p => !encerrado || p.localSlug === encerrado.slug))
 
   const fmtFecha = useMemo(
     () => new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
@@ -24,7 +27,7 @@ export default function Pedidos() {
   return (
     <div className="pedidos">
       <header className="pedidos-top">
-        <Link to="/cuenta" className="pedidos-volver" aria-label="Volver a mi cuenta">‹</Link>
+        <Link to={encerrado ? `/${encerrado.slug}` : '/cuenta'} className="pedidos-volver" aria-label={encerrado ? 'Volver al menú' : 'Volver a mi cuenta'}>‹</Link>
         <h1>Mis pedidos</h1>
         {pedidos.length > 0 && (
           <button className="pedidos-limpiar" onClick={limpiar}>Borrar</button>
@@ -36,7 +39,7 @@ export default function Pedidos() {
           <div className="pedidos-vacio-emoji">🧾</div>
           <h2>Aún no tienes pedidos</h2>
           <p>Cuando envíes un pedido por WhatsApp, aquí quedará guardado para que lo repitas fácil.</p>
-          <Link to="/" className="btn btn-primary">Explorar locales</Link>
+          <Link to={encerrado ? `/${encerrado.slug}` : '/'} className="btn btn-primary">{encerrado ? 'Ver el menú' : 'Explorar locales'}</Link>
         </div>
       ) : (
         <ul className="pedidos-lista">

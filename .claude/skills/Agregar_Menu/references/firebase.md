@@ -62,20 +62,22 @@ Si siembras antes, el local aparece con **todas las fotos rotas (404)** hasta qu
 
 ---
 
-## 3) 🚩 ANTES de sembrar: `suscripcion.activa` y el WhatsApp
+## 3) 🚩 ANTES de sembrar: el plan, el buscador y el WhatsApp
 
-`suscripcion.activa: true` hace que el local **salga en el buscador del inicio para cualquier
-cliente**.
+Desde la guía «Planes en la app» (nov-2026) el local nace así (ya viene en la plantilla):
+`suscripcion: { plan: '<emprendedor|comerciante|empresario>', estado: 'montaje' }` y `enBuscador: false`.
+
+- **Montaje = 7 días.** El seed, al crear el local, le pone `montajeDesde` y `corteEn` (ahora + 7 días).
+  Funciona completo; si en esos días no se registra el primer pago en `/superadmin`, **se apaga solo**
+  (menú «temporalmente fuera de servicio»). Si el montaje se alarga, en `/superadmin` → 💳 → «Montaje
+  (7 días)» vuelve a contar desde hoy. Para un local de muestra que no paga: «Cortesía».
+- **El buscador lo prende el DUEÑO** (Configuración → Negocio → «Salir en el buscador»), y solo sale si
+  está al día. Ya no hay toggle en el superadmin.
 
 **Nunca publiques un local con `whatsapp: ''`**: el cliente arma el pedido y el botón no tiene
 destino. Por eso el default es **`'573208435143'`** (ver SKILL.md §Paso 1), que deja el checkout
-funcionando desde el minuto uno aunque el dueño aún no haya dado su número.
-
-- **Con el WhatsApp por defecto** (los pedidos llegan a NUESTRO número, no al del local) →
-  `suscripcion: { activa: false, plan: 'piloto' }`. Se ve en `/superadmin` y por link directo, pero
-  **no** en el buscador público. El usuario lo enciende con el toggle cuando el local ya tenga su
-  número y dé el visto bueno.
-- **Con el WhatsApp real del local y visto bueno del dueño** → `activa: true`.
+funcionando desde el minuto uno aunque el dueño aún no haya dado su número. Con ese número por
+defecto, no le prendas el buscador al local.
 
 ---
 
@@ -91,8 +93,8 @@ Salida esperada:
 ```
 
 ### Qué pasa al RE-correrlo (importante)
-No duplica: hace `merge`. Pero **solo protege tres campos** del dueño —
-`CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario']`, y los protege **por valor**
+No duplica: hace `merge`. Pero **solo protege estos campos** —
+`CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario', 'suscripcion', 'enBuscador']`, y los protege **por valor**
 (`if (data[campo])`), no por `!= null`.
 
 > 🐛 **Fallo que ya se corrigió — no lo reintroduzcas.** La plantilla comprobaba
@@ -103,9 +105,8 @@ No duplica: hace `merge`. Pero **solo protege tres campos** del dueño —
 
 Todo lo demás **se pisa con lo que diga `src/dev/<file>.js`**. En particular:
 
-- ⚠️ **`suscripcion.activa` SE PISA.** Si el dueño encendió el local en el panel y luego re-corres
-  el seed con `activa:false` en el archivo, **lo apagas sin querer**. Antes de re-sembrar un local
-  que ya está vivo, pon en el archivo el valor que debe quedar.
+- ✅ **`suscripcion` y `enBuscador` NO se pisan** (plan, pagos y buscador). Antes se pisaban y un
+  re-seed podía regalar el plan o apagar el buscador.
 - ⚠️ **`admins` SE PISA.** Es justo lo que quieres cuando cambias el correo del dueño (ver §6).
 - Los **productos** se actualizan por id. Un producto que borres del archivo **NO se borra** de
   Firestore (queda huérfano): hay que quitarlo desde el panel o a mano.
@@ -158,7 +159,7 @@ const db = getFirestore()
   console.log('nombre  :', d.nombre)
   console.log('admins  :', d.admins)
   console.log('whatsapp:', JSON.stringify(d.whatsapp))
-  console.log('activa  :', d.suscripcion?.activa)
+  console.log('plan    :', d.suscripcion?.plan, d.suscripcion?.estado, '· buscador:', d.enBuscador)
   const ps = await db.collection('locales').doc('<slug>').collection('productos').get()
   console.log('productos:', ps.size)
   process.exit(0)

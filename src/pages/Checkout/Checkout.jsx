@@ -15,6 +15,8 @@ import './Checkout.css'
 import { crearPedidoLaGranEsquina } from '../../services/pedidoLaGranEsquina'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 import { Link } from 'react-router-dom'
+import { tiene } from '../../utils/plan'
+import { useFavoritos } from '../../contexts/FavoritosContext'
 
 // Dónde vive la app de La Gran Esquina, para armar el link de la comanda.
 const LA_GRAN_ESQUINA_WEB = 'https://la-gran-esquina-lyart.vercel.app'
@@ -36,9 +38,13 @@ export default function Checkout({ local, onClose, abierto = true }) {
   // El domicilio solo se ofrece si el local registró su ubicación (sin ella no se
   // puede calcular la distancia). Hasta que el admin la fije, solo "Recoger".
   const tieneUbicacionLocal = local.ubicacion?.lat != null && local.ubicacion?.lng != null
-  const domicilioPendiente = local.domicilio?.activo && !tieneUbicacionLocal
-  const permiteDomicilio = local.domicilio?.activo && tieneUbicacionLocal
-  const permiteRecoger = local.recoger !== false
+  // 💳 A domicilio solo desde el plan Comerciante (guía «Planes en la app»).
+  const conDomicilio = local.domicilio?.activo && tiene(local, 'domicilios')
+  const domicilioPendiente = conDomicilio && !tieneUbicacionLocal
+  const permiteDomicilio = conDomicilio && tieneUbicacionLocal
+  // Si no hay domicilio, recoger siempre se puede (si no, no habría cómo pedir).
+  const permiteRecoger = local.recoger !== false || !permiteDomicilio
+  const { agregarFavorito } = useFavoritos()
 
   const [entrega, setEntrega] = useState(permiteDomicilio ? 'domicilio' : 'recoger')
   const [coord, setCoord] = useState(null)
@@ -177,6 +183,8 @@ export default function Checkout({ local, onClose, abierto = true }) {
 
     // Guarda el pedido en el historial de ESTE dispositivo (para "Mis pedidos").
     guardarEnHistorial(local, pedido)
+    // ❤️ Donde pide, le queda de favorito (D14).
+    agregarFavorito(local)
 
     // Recordar datos para la próxima: siempre en el dispositivo (invitados) y,
     // si inició sesión, además en su perfil.

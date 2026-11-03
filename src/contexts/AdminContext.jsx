@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext'
 import { getLocalesDeAdmin, getLocalById } from '../services/locales'
 import { getRolesDeEquipo } from '../services/equipo'
 import { DEMO_SLUG } from '../config/demo'
+import { rolPermitido } from '../utils/plan'
 
 // 🏪 Estado de administración: qué locales administra el usuario (dueño) y cuál
 // está "seleccionado" para administrar. Alimenta la barra de admin.
@@ -133,17 +134,20 @@ export function AdminProvider({ children }) {
   const esDueno = locales.length > 0
   const localSel = locales.find(l => l.slug === slug) || null
   // ¿Tiene barra del panel? Dueño o parte del equipo de algún local (el superadmin se suma aparte).
-  const tienePanel = esDueno || equipo.length > 0
+  // 💳 Del equipo solo cuenta lo que el plan de cada local trae (un mesero no entra si el local bajó
+  // a Comerciante: su registro sigue ahí y vuelve a servir si sube).
+  const equipoPlan = useMemo(() => equipo.filter(e => rolPermitido(e.local, e.rol)), [equipo])
+  const tienePanel = esDueno || equipoPlan.length > 0
   // Locales del equipo (sin repetir), para el selector de la barra.
-  const localesEquipo = [...new Map(equipo.map(e => [e.local.slug, e.local])).values()]
+  const localesEquipo = [...new Map(equipoPlan.map(e => [e.local.slug, e.local])).values()]
 
   // Qué puede hacer en un local: ['admin'] si lo administra; si no, sus roles de equipo.
   const rolesEn = useCallback((s, { esSuper = false } = {}) => {
     if (!s) return []
     if (esSuper || locales.some(l => l.slug === s)) return ['admin']
-    return equipo.filter(e => e.local.slug === s).map(e => e.rol)
-  }, [locales, equipo])
+    return equipoPlan.filter(e => e.local.slug === s).map(e => e.rol)
+  }, [locales, equipoPlan])
 
-  const value = { locales, cargando, esDueno, slug, localSel, setSlug, equipo, localesEquipo, tienePanel, rolesEn }
+  const value = { locales, cargando, esDueno, slug, localSel, setSlug, equipo: equipoPlan, localesEquipo, tienePanel, rolesEn }
   return <AdminContext.Provider value={value}>{children}</AdminContext.Provider>
 }

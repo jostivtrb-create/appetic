@@ -25,7 +25,8 @@ const db = getFirestore()
 // Ojo: se comprueba por VALOR, no por != null. Un campo VACÍO ("") no es "configurado por el
 // dueño" — es que falta —, así que el seed sí debe poder rellenarlo.
 
-const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario']
+// suscripcion y enBuscador: el plan, el pago y el buscador los manejan el superadmin y el dueño (guía «Planes en la app»).
+const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario', 'suscripcion', 'enBuscador']
 
 async function run() {
   const { id, ...localData } = JASBURY_LOCAL

@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useNavUI } from '../../contexts/NavUIContext'
 import { listarTodosLocales } from '../../services/superadmin'
 import logoAppetic from '../../assets/appetic-logo.png'
+import { tiene } from '../../utils/plan'
 import './PanelRail.css'
 
 // 🖥️ Barra lateral del PANEL (solo escritorio). Reemplaza en PC a la barra de
@@ -49,9 +50,10 @@ const SECCIONES = [
   { id: 'caja', label: 'Caja', Icon: IconCaja, ruta: s => `/${s}/admin/caja`, roles: ['admin', 'cajero'] },
   { id: 'cuentas', label: 'Cuentas', Icon: IconMetricas, ruta: s => `/${s}/admin/cuentas`, roles: ['admin'] },
   { id: 'menu', label: 'Ver menú', Icon: IconMenu, ruta: s => `/${s}`, roles: ['admin', 'mesero', 'cajero'] },
-  { id: 'mesero', label: 'Mesero', Icon: IconMesero, ruta: s => `/${s}/admin/mesero`, roles: ['admin', 'mesero'] },
-  { id: 'cocina', label: 'Cocina', Icon: IconCocina, ruta: s => `/${s}/admin/cocina`, roles: ['admin', 'cocina'] },
-  { id: 'domicilios', label: 'Domicilios', Icon: IconMoto, ruta: s => `/${s}/admin/domicilios`, roles: ['admin', 'domiciliario'] },
+  // `funcion`: lo que pide del plan. Al dueño le sale con candado si su plan no lo trae (D18).
+  { id: 'mesero', label: 'Mesero', Icon: IconMesero, ruta: s => `/${s}/admin/mesero`, roles: ['admin', 'mesero'], funcion: 'mesero' },
+  { id: 'cocina', label: 'Cocina', Icon: IconCocina, ruta: s => `/${s}/admin/cocina`, roles: ['admin', 'cocina'], funcion: 'cocina' },
+  { id: 'domicilios', label: 'Domicilios', Icon: IconMoto, ruta: s => `/${s}/admin/domicilios`, roles: ['admin', 'domiciliario'], funcion: 'domicilios' },
   { id: 'difundir', label: 'Difundir', Icon: IconDifundir, ruta: s => `/${s}/admin/difundir`, roles: ['admin'] },
   // Configuración reúne Catálogo · Negocio · Cuentas y pagos · Apariencia · Equipo (ver AdminAjustes).
   { id: 'config', label: 'Configuración', Icon: IconConfig, ruta: s => `/${s}/admin/config/catalogo`, roles: ['admin'] },
@@ -113,6 +115,12 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
   // Lo que este usuario puede abrir en el local en curso (admin · mesero · cocina).
   const misRoles = rolesEn(slugActual, { esSuper })
   const secciones = SECCIONES.filter(sec => sec.roles.some(r => misRoles.includes(r)))
+  // 💳 Candado a lo que el plan del local no trae (D18). Solo lo ve el dueño: al equipo, rolesEn ya
+  // le quitó los roles que el plan no tiene.
+  const bloqueada = id => {
+    const f = SECCIONES.find(s => s.id === id)?.funcion
+    return !!(localActual && f && !tiene(localActual, f))
+  }
   const esSoloEquipo = !misRoles.includes('admin')
   // Adonde lleva el logo: Catálogo para el admin, su única sección para el mesero o la cocina.
   const inicio = secciones.find(s => s.id !== 'menu') || null
@@ -238,8 +246,9 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
             </div>
           </div>
         ) : (
-          <button key={id} className={`bnav-item prail-item ${activa === id ? 'is-active' : ''}`} onClick={() => ir(ruta(slugActual))}>
+          <button key={id} className={`bnav-item prail-item ${activa === id ? 'is-active' : ''} ${bloqueada(id) ? 'prail-item--candado' : ''}`} onClick={() => ir(ruta(slugActual))}>
             <Icon /><span>{label}</span>
+            {bloqueada(id) && <span className="prail-candado" aria-label="No está en tu plan">🔒</span>}
           </button>
         )) : <p className="prail-hint">Elige un local arriba para administrarlo.</p>}
       </Grupo>

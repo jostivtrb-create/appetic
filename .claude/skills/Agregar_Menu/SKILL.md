@@ -161,13 +161,15 @@ Sigue **`references/firebase.md`**. Los cuatro puntos que NO puedes saltarte:
   `node scripts/seed-<slug>.mjs` en su PC. **Nunca pidas la llave por chat** (es un secreto).
 - **Deploy ANTES del seed.** (Las fotos las sube el dueño luego desde el panel; no hay que
   verificarlas con `curl` — las tarjetas muestran el placeholder de marca hasta que él las cargue.)
-- **`suscripcion.activa: false` mientras no haya WhatsApp** — con `true` el local sale en el
-  buscador público y un cliente podría pedir sin que el pedido llegue a ningún lado. El usuario lo
-  enciende con el toggle del panel.
+- **Plan y buscador (guía «Planes en la app»):** el local nace `suscripcion: { plan, estado: 'montaje' }`
+  y `enBuscador: false`. Pregunta el **plan** (emprendedor · comerciante · empresario) y ponlo en
+  `[[PLAN]]`. El seed arranca el reloj de **7 días de montaje**: si en ese tiempo no se registra el
+  primer pago en `/superadmin`, el local se apaga solo. Salir en el buscador lo decide el dueño en
+  Configuración → Negocio.
 - **Verifica leyendo Firestore de vuelta**, no te fíes del `✓` del script.
 
-Ojo al re-correr el seed: solo protege `ubicacion`, `whatsapp` y `horario`. **`suscripcion.activa`
-y `admins` se pisan** con lo que diga el archivo de datos.
+Ojo al re-correr el seed: protege `ubicacion`, `whatsapp`, `horario`, **`suscripcion` y `enBuscador`**
+(el plan y los pagos nunca se pisan). **`admins` sí se pisa** con lo que diga el archivo de datos.
 
 Explícale al usuario este tramo al final, claro y en orden. **Al poner el WhatsApp**, recuérdale que
 ese número es también el de **domicilios** del afiche (pestaña 📣 Difundir) y que el afiche lo toma

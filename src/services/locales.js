@@ -3,6 +3,7 @@
 //   locales/{localId} -> { nombre, slug, whatsapp, tema, horario, ... , suscripcion }
 import { collection, query, where, limit, getDocs, doc, getDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
+import { apareceEnBuscador } from '../utils/plan'
 
 /**
  * Busca un local por su slug (el del link: appetic.app/su-negocio).
@@ -23,13 +24,14 @@ export async function getLocalBySlug(slug) {
 }
 
 /**
- * Locales visibles en el buscador del inicio (Capa 2): solo los que tienen
- * suscripción activa. 1 sola lectura, sin listeners (cuida costos D32).
+ * Locales visibles en el buscador del inicio (Capa 2): los que el dueño quiere mostrar
+ * (enBuscador) y están al día con el pago (guía «Planes en la app» D6, D7, D9).
+ * 1 sola lectura, sin listeners (cuida costos D32).
  */
 export async function getLocalesExplorador() {
-  const q = query(collection(db, 'locales'), where('suscripcion.activa', '==', true))
+  const q = query(collection(db, 'locales'), where('enBuscador', '==', true))
   const snap = await getDocs(q)
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(l => apareceEnBuscador(l))
 }
 
 /**

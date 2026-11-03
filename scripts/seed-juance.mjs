@@ -21,7 +21,8 @@ const db = getFirestore()
 
 // Campos que el DUEÑO configura desde el panel: si el local ya existe con ellos,
 // el seed NO los pisa (la ubicación, el WhatsApp y el horario son suyos).
-const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario']
+// suscripcion y enBuscador: el plan, el pago y el buscador los manejan el superadmin y el dueño (guía «Planes en la app»).
+const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario', 'suscripcion', 'enBuscador']
 
 async function run() {
   const { id, ...localData } = JUANCE_LOCAL

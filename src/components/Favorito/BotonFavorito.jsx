@@ -1,20 +1,15 @@
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../contexts/AuthContext'
 import { useFavoritos } from '../../contexts/FavoritosContext'
 import './BotonFavorito.css'
 
 // ❤️ Corazón reutilizable para guardar/quitar un local de favoritos.
-// Si no hay sesión, lleva a iniciar sesión (los favoritos viven en el perfil).
+// Sin sesión se guarda en este aparato y pasa a su cuenta cuando inicie sesión.
 export default function BotonFavorito({ local, variante = '' }) {
-  const { user } = useAuth()
   const { esFavorito, toggleFavorito } = useFavoritos()
-  const navigate = useNavigate()
   const activo = esFavorito(local.id)
 
   function click(e) {
     e.preventDefault()
     e.stopPropagation()
-    if (!user) { navigate('/cuenta'); return }
     toggleFavorito(local)
   }
 

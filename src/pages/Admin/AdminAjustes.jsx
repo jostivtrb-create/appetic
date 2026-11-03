@@ -4,7 +4,7 @@ import './Ajustes.css'
 
 // ⚙️ CONFIGURACIÓN como panel de ajustes de verdad: un menú de secciones (a la izquierda en el PC,
 // arriba como pestañas en el celular) y el contenido de la sección a la derecha.
-//   Catálogo · Menú del día · Negocio y horario · Cuentas y pagos · Apariencia · Pantalla de TV · Equipo
+//   Catálogo · Menú del día · Negocio y horario · Cuentas y pagos · Apariencia · Pantalla de TV · Equipo · Mi plan
 // Cada sección es su propia página (/:slug/admin/config/<sección>).
 export const SECCIONES_AJUSTES = [
   { id: 'catalogo', icono: '🍔', titulo: 'Catálogo', desc: 'Productos, precios, fotos y categorías' },
@@ -14,6 +14,7 @@ export const SECCIONES_AJUSTES = [
   { id: 'apariencia', icono: '🎨', titulo: 'Apariencia', desc: 'Portada y animación del logo' },
   { id: 'pantalla', icono: '📺', titulo: 'Pantalla de TV', desc: 'Tu menú en vivo en el TV, y tus anuncios' },
   { id: 'equipo', icono: '👥', titulo: 'Equipo', desc: 'Cajeros, meseros, cocina y domiciliarios' },
+  { id: 'plan', icono: '💳', titulo: 'Mi plan', desc: 'Tu plan, hasta cuándo está pago y cómo subir' },
 ]
 
 export default function AdminAjustes({ slug, sub, children }) {

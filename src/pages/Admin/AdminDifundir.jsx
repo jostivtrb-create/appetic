@@ -4,6 +4,8 @@ import { isMobileBrowser } from '../../utils/whatsapp'
 import { menuUrl, formatTel, mensajeBienvenida, qrDark, abrirAfiche } from '../../utils/compartir'
 import { construirPromptPublicidad, VARIANTES_PUBLICIDAD } from '../../utils/promptIA'
 import { abrirHojaMesas } from '../../utils/mesaQR'
+import { tiene } from '../../utils/plan'
+import { Candado } from './PlanAvisos'
 
 // Dónde se recuerda, POR LOCAL, qué estilo de publicidad tocó la última vez.
 const claveVariante = slug => `appetic_pub_variante_${slug}`
@@ -168,9 +170,10 @@ export default function AdminDifundir({ local, slug, onUpdate }) {
         </Link>
       </section>
 
-      {/* ---- Afiche de domicilios (PDF imprimible) ---- */}
+      {/* ---- QR por mesa (plan Empresario) ---- */}
       <section className="ac-sec">
         <h3>🪑 QR por mesa</h3>
+        {!tiene(local, 'mesas') ? <Candado local={local} funcion="mesas" compacto /> : <>
         <p className="ac-hint">Un QR en cada mesa: el cliente escanea, pide y la comanda llega a la cocina como «MESA 4», con su nombre. Cuando sale, les avisa a los meseros para que la lleven.</p>
         <label className="dif-mesas">
           ¿Cuántas mesas tienes?
@@ -184,10 +187,13 @@ export default function AdminDifundir({ local, slug, onUpdate }) {
           <span className="dif-afiche-txt"><strong>Imprimir los QR de las mesas</strong><small>{mesas ? `${mesas} QR, uno por mesa, con tu logo y el número` : 'Primero pon cuántas mesas tienes'}</small></span>
           <span className="dif-afiche-arrow">→</span>
         </button>
+        </>}
       </section>
 
+      {/* ---- Afiche de domicilios (PDF imprimible, plan Comerciante) ---- */}
       <section className="ac-sec">
         <h3>🖨️ Afiche de domicilios</h3>
+        {!tiene(local, 'domicilios') ? <Candado local={local} funcion="domicilios" compacto /> : <>
         <p className="ac-hint">
           Un afiche con la imagen de tu local, tu QR y tu número de domicilios, listo para
           imprimir o guardar como PDF. Se arma con tus datos actuales
@@ -204,6 +210,7 @@ export default function AdminDifundir({ local, slug, onUpdate }) {
           </span>
           <span className="dif-afiche-arrow">→</span>
         </button>
+        </>}
       </section>
 
       {/* ---- Publicidad para redes sociales (imagen con IA) ---- */}

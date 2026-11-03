@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { initializeApp, cert } from 'firebase-admin/app'
-import { getFirestore, FieldValue } from 'firebase-admin/firestore'
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore'
 import { SLUG, ADMIN_EMAIL, [[CONST]]_LOCAL, [[CONST]]_PRODUCTOS } from '../src/dev/[[FILE]].js'
 import { computeDestacadosHome } from '../src/utils/destacadosHome.js'
 
@@ -24,7 +24,8 @@ const db = getFirestore()
 // Ojo: se comprueba por VALOR, no por != null. Un campo VACÍO ("") no es "configurado por el
 // dueño" — es que falta —, así que el seed sí debe poder rellenarlo.
 
-const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario']
+// suscripcion y enBuscador: el plan, el pago y el buscador los manejan el superadmin y el dueño (guía «Planes en la app»).
+const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario', 'suscripcion', 'enBuscador']
 
 async function run() {
   const { id, ...localData } = [[CONST]]_LOCAL
@@ -42,6 +43,11 @@ async function run() {
   localData.destacadosHome = computeDestacadosHome([[CONST]]_PRODUCTOS)
   // 🆕 Fecha de alta: solo la primera vez (el badge 'Nuevo' del inicio dura 14 dias).
   if (!prev.exists) localData.creadoEn = FieldValue.serverTimestamp()
+  // 🛠️ Alta nueva: arranca el reloj del montaje (7 días; si no se registra el pago se apaga solo).
+  if (!prev.exists && localData.suscripcion?.estado === 'montaje') {
+    const ahora = Date.now()
+    localData.suscripcion = { ...localData.suscripcion, montajeDesde: Timestamp.fromMillis(ahora), corteEn: Timestamp.fromMillis(ahora + 7 * 86400000) }
+  }
 
   await localRef.set(localData, { merge: true })
   console.log(`✓ Local ${prev.exists ? 'actualizado' : 'creado'}: locales/${SLUG} ([[NOMBRE]])`)

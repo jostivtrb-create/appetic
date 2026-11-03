@@ -9,7 +9,7 @@
 // Es un local de verdad en Firestore (slug `demo`, `esDemo: true`), compartido por todos los
 // visitantes: entran sin cuenta (sesión anónima) y lo administran como dueños. Por eso:
 //   • WhatsApp, link y horario quedan BLOQUEADOS (D16): los pedidos de prueba van al WhatsApp de ventas.
-//   • No sale en el buscador (suscripcion.activa: false · D9).
+//   • No sale en el buscador (enBuscador: false · D9) y es plan Empresario en cortesía (guía «Planes en la app»).
 //
 // 📷 FOTOS: archivos fijos en public/locales/demo/ (generados con IA, prompts en
 //    .prompts-imagenes/burger-demo.md). Mientras no existan, el menú muestra el marcador de «sin foto».
@@ -69,7 +69,9 @@ export const DEMO_LOCAL = {
   ],
   etiquetas: ['hamburguesas', 'comida-rapida'],
   admins: [],
-  suscripcion: { activa: false, plan: 'demo' },
+  // Demo: plan Empresario (lo trae todo, D10) y en cortesía (nunca vence). Nunca en el buscador.
+  suscripcion: { plan: 'empresario', estado: 'cortesia' },
+  enBuscador: false,
   menuVersion: 1,
   // 🍲 Menú del día (Guía para la Pantalla de TV.md, Etapa B). En la demo sale a toda hora
   // (franja 00:00–00:00) para que el visitante lo vea entre cuando entre.

@@ -28,6 +28,8 @@ import AdminAjustes from './AdminAjustes'
 import { EquipoEnLinea } from './AdminEquipo'
 import { useNavUI } from '../../contexts/NavUIContext'
 import PanelMenuBoton, { usePuedePanel } from '../../components/BottomNav/PanelMenuBoton'
+import { Candado, AvisoPago, PanelApagado, MiPlan } from './PlanAvisos'
+import { tiene, estaCortado, rolPermitido } from '../../utils/plan'
 import './Admin.css'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 
@@ -347,6 +349,14 @@ export default function AdminPage() {
     )
   }
 
+  // 💳 Se cortó por falta de pago: el panel solo muestra el aviso (D2). El superadmin sí entra, para dar soporte.
+  if (estaCortado(local) && !esSuperadmin(usuario?.email)) {
+    return <PanelApagado local={local} esAdmin={esAdmin} />
+  }
+  // Sección que el plan no trae → candado para el dueño (D18).
+  const funcionSeccion = { mesero: 'mesero', cocina: 'cocina', domicilios: 'domicilios' }[seccion]
+  const sinPlan = funcionSeccion && !tiene(local, funcionSeccion)
+
   // El catálogo (se muestra en Configuración → Catálogo).
   const catalogo = local.menuExterno ? (
                 // El menú vive en la app del negocio: aquí no hay productos que
@@ -398,6 +408,8 @@ export default function AdminPage() {
         </div>
       )}
 
+      {esAdmin && <AvisoPago local={local} />}
+
       {/* Dueños y superadmin navegan con la barra del panel: cada sección es una página.
           Solo la vista previa DEMO (sin barra) conserva estas pestañas para moverse. */}
       {!tieneBarra && (
@@ -415,7 +427,8 @@ export default function AdminPage() {
       <main className="admin-body">
         {/* key={local.id}: al cambiar de local desde la barra, Mesero y Comandas arrancan de cero
             (sin esto el pedido a medio armar de un local se pasaba al otro). */}
-        {seccion === 'mesero' ? <AdminMesero key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
+        {sinPlan ? <Candado local={local} funcion={funcionSeccion} />
+          : seccion === 'mesero' ? <AdminMesero key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'cocina' ? <AdminComandas key={local.id} local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
           : seccion === 'caja' ? <AdminCaja key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'cuentas' ? <AdminCuentas key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} />
@@ -426,13 +439,15 @@ export default function AdminPage() {
               {vista => vista === 'catalogo' ? catalogo
                 : vista === 'equipo' ? (
                   <div className="aj-equipo">
-                    <EquipoEnLinea local={local} rol="cajero" demo={demo} />
-                    <EquipoEnLinea local={local} rol="mesero" demo={demo} />
-                    <EquipoEnLinea local={local} rol="cocina" demo={demo} />
-                    <EquipoEnLinea local={local} rol="domiciliario" demo={demo} />
+                    {/* 💳 Solo los roles que el plan trae; los otros, con candado. */}
+                    {['cajero', 'mesero', 'cocina', 'domiciliario'].map(rol => rolPermitido(local, rol)
+                      ? <EquipoEnLinea key={rol} local={local} rol={rol} demo={demo} />
+                      : rol === 'cocina' ? null   // va junto con el mesero: los dos son del Empresario
+                        : <Candado key={rol} local={local} funcion={rol} compacto titulo={rol === 'mesero' ? 'Meseros y cocina' : undefined} />)}
                   </div>
                 )
                 : vista === 'pagos' ? <ConfigPagos local={local} onUpdate={updateLocal} />
+                : vista === 'plan' ? <MiPlan local={local} />
                 : vista === 'menu-del-dia' ? <ConfigMenuDelDia key={local.id} local={local} onUpdate={updateLocal} onSubirFoto={subirFotoDelMenuDelDia} />
                 : vista === 'pantalla' ? <ConfigPantalla local={local} productos={productos} slug={slug} onUpdate={updateLocal} onSubirImagen={subirImagenDeAnuncio} />
                 : <AdminConfig local={local} onUpdate={updateLocal} onSubirBanner={subirBannerYGuardar} vista={vista} />}

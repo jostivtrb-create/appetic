@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { LOGO_ANIMS, resolverLogoAnim } from '../../utils/logoAnim'
 import MuestraLogo from './MuestraLogo'
+import { Candado, SalirEnBuscador } from './PlanAvisos'
+import { tiene } from '../../utils/plan'
 import { construirPromptImagenIA } from '../../utils/promptIA'
 
 // 🛵 Cuánto sube el domicilio por cada medio kilómetro cuando el dueño usa el
@@ -279,12 +281,17 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
         </fieldset>
       </section>}
 
+      {ver('negocio') && <SalirEnBuscador local={local} onUpdate={onUpdate} />}
+
       {ver('negocio') && <section className="ac-sec">
         <h3>🛍️ Entrega</h3>
-        <label className="ac-switch">
-          <span>🛵 Domicilio disponible</span>
-          <input type="checkbox" checked={domicilio} onChange={e => setDomicilio(e.target.checked)} />
-        </label>
+        {/* 💳 El domicilio es del plan Comerciante en adelante. */}
+        {tiene(local, 'domicilios') ? (
+          <label className="ac-switch">
+            <span>🛵 Domicilio disponible</span>
+            <input type="checkbox" checked={domicilio} onChange={e => setDomicilio(e.target.checked)} />
+          </label>
+        ) : <Candado local={local} funcion="domicilios" compacto />}
         <label className="ac-switch">
           <span>🏪 Recoger en el local</span>
           <input type="checkbox" checked={recoger} onChange={e => setRecoger(e.target.checked)} />
@@ -331,7 +338,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
       )}
 
       {/* Domicilio por radio: ubicación + tarifas por distancia */}
-      {ver('negocio') && domicilio && (
+      {ver('negocio') && domicilio && tiene(local, 'domicilios') && (
         <section className="ac-sec">
           <h3>🛵 Domicilio por distancia</h3>
           <p className="ac-hint">

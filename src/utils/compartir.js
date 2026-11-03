@@ -4,6 +4,7 @@
 //   • Mensaje de bienvenida para WhatsApp (emojis a prueba de rombos: se escriben
 //     como escapes \u para que el archivo quede ASCII y el emoji nunca se corrompa).
 //   • HTML del afiche imprimible ("DOMICILIOS" + QR), con la estética del local.
+import { tiene } from './plan'
 
 // 🌐 Dominio PÚBLICO de Appetic. Se cambia sin tocar código con la variable
 // VITE_PUBLIC_URL (para el día que se pase a un dominio propio, ej. appetic.app).
@@ -40,7 +41,7 @@ function emojiLocal(local) {
 // Con emojis alusivos SIN saturar y explicando que desde el link piden lo que quieran.
 export function mensajeBienvenida(local, url) {
   const comida = emojiLocal(local)
-  const dom = local?.domicilio?.activo !== false
+  const dom = local?.domicilio?.activo !== false && tiene(local, 'domicilios')
   const rec = local?.recoger !== false
   const L = []
   L.push(`\u{00A1}Hola! \u{1F44B} Bienvenido a *${local?.nombre || ''}* ${comida}`)

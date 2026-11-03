@@ -89,7 +89,11 @@ export const [[CONST]]_LOCAL = {
   // ⭐ prioridad: (opcional) NO la pongas — es el boost comercial del inicio y lo maneja
   //    el superadmin (solo el local bandera la tiene).
   admins: [ADMIN_EMAIL],
-  suscripcion: { activa: true, plan: 'piloto' },  // activa:true → aparece en el buscador del inicio
+  // 💳 Plan y pago (guía «Planes en la app»): nace EN MONTAJE (7 días; el seed pone el reloj) y SIN
+  //    salir en el buscador — eso lo prende el dueño en Configuración → Negocio. El plan real y los
+  //    pagos se manejan en /superadmin. Al re-sembrar, el seed NO pisa estos dos campos.
+  suscripcion: { plan: '[[PLAN]]', estado: 'montaje' },  // [[PLAN]] = emprendedor | comerciante | empresario
+  enBuscador: false,
   menuVersion: 1,  // súbelo (2, 3…) cada vez que cambies la CARTA FIJA para invalidar la caché del cliente
 }
 

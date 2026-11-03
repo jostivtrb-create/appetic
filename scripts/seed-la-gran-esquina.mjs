@@ -35,7 +35,8 @@ const db = getFirestore()
 // el seed NO los pisa (la ubicación, el WhatsApp y el horario son suyos).
 // Se comprueba por VALOR: un campo vacío no es "configurado por el dueño", es
 // que falta, y ahí el seed sí debe poder rellenarlo.
-const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario']
+// suscripcion y enBuscador: el plan, el pago y el buscador los manejan el superadmin y el dueño (guía «Planes en la app»).
+const CAMPOS_DEL_DUENO = ['ubicacion', 'whatsapp', 'horario', 'suscripcion', 'enBuscador']
 
 async function run() {
   const { id, ...localData } = LGE_LOCAL

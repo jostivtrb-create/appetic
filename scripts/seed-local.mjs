@@ -45,9 +45,10 @@ const LOCAL = {
     { id: 'bebidas', nombre: 'Bebidas', emoji: '🧃' },
   ],
   admins: [ADMIN_EMAIL],
-  // Suscripción (Capa 2): controla si aparece en el buscador del inicio.
-  // Lo activas/desactivas desde /superadmin. true = visible en el explorador.
-  suscripcion: { activa: true, plan: 'piloto' },
+  // Plan y pago (guía «Planes en la app»): local de muestra → Empresario en cortesía (no vence).
+  // enBuscador lo prende el dueño en Configuración → Negocio.
+  suscripcion: { plan: 'empresario', estado: 'cortesia' },
+  enBuscador: true,
   menuVersion: 1,
 }
 

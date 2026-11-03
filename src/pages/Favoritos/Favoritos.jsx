@@ -2,15 +2,19 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useFavoritos } from '../../contexts/FavoritosContext'
 import { useNavUI } from '../../contexts/NavUIContext'
+import { soloLocal } from '../../utils/soloLocal'
 import './Favoritos.css'
 
-// ❤️ Mis favoritos: todos los locales que el cliente marcó. Requiere sesión
-// (se guardan en su cuenta). Tocar uno entra a su menú — con el aviso de
+// ❤️ Mis favoritos: los locales que el cliente marcó o donde pidió (D14). Con sesión van en su
+// cuenta; sin sesión, en este aparato. Tocar uno entra a su menú — con el aviso de
 // "perderás el carrito" si venías con un pedido de otro local.
+// 🔒 Cliente de un local que no sale en el buscador: solo ve ese local (guía «Planes en la app» D13).
 export default function Favoritos() {
   const navigate = useNavigate()
   const { user, cargando, entrar, errorLogin } = useAuth()
-  const { favoritos, toggleFavorito } = useFavoritos()
+  const { favoritos: todos, toggleFavorito } = useFavoritos()
+  const encerrado = soloLocal()
+  const favoritos = encerrado ? todos.filter(f => f.id === encerrado.id) : todos
   const { irAOtroLocal } = useNavUI()
 
   function irALocal(fav) {
@@ -24,15 +28,15 @@ export default function Favoritos() {
   return (
     <div className="favs">
       <header className="favs-top">
-        <Link to="/" className="favs-volver" aria-label="Volver al inicio">‹</Link>
+        <Link to={encerrado ? `/${encerrado.slug}` : '/'} className="favs-volver" aria-label="Volver">‹</Link>
         <h1>Mis favoritos</h1>
       </header>
 
-      {!user ? (
+      {!user && favoritos.length === 0 ? (
         <div className="favs-vacio">
           <div className="favs-vacio-emoji">❤️</div>
           <h2>Guarda tus locales favoritos</h2>
-          <p>Inicia sesión para marcar tus locales de siempre y tenerlos aquí a la mano.</p>
+          <p>Los locales donde pidas quedan aquí solos. Inicia sesión para tenerlos también en tus otros aparatos.</p>
           <button className="btn btn-primary" onClick={entrar}>Iniciar sesión</button>
           {errorLogin && (
             <p role="alert" style={{
@@ -47,7 +51,7 @@ export default function Favoritos() {
           <div className="favs-vacio-emoji">🤍</div>
           <h2>Aún no tienes favoritos</h2>
           <p>Toca el corazón ❤️ en la portada de un local para guardarlo aquí.</p>
-          <Link to="/" className="btn btn-primary">Explorar locales</Link>
+          <Link to={encerrado ? `/${encerrado.slug}` : '/'} className="btn btn-primary">{encerrado ? 'Ver el menú' : 'Explorar locales'}</Link>
         </div>
       ) : (
         <ul className="favs-lista">

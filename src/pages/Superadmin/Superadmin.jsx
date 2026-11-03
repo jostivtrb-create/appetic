@@ -1,10 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
-import { listarTodosLocales, setSuscripcion, setAdminEmails, setEtiquetas, setPrioridad } from '../../services/superadmin'
+import { listarTodosLocales, listarPagos, setAdminEmails, setEtiquetas, setPrioridad } from '../../services/superadmin'
+import { ChipPago, PlanLocal, TableroCobros } from './PlanSuper'
+import { apareceEnBuscador } from '../../utils/plan'
 import { CATEGORIAS_LOCALES } from '../../config/categoriasLocales'
 import PanelMenuBoton from '../../components/BottomNav/PanelMenuBoton'
+import { devSuper } from '../../components/BottomNav/PanelRail'
 import DemoTarjeta from './DemoTarjeta'
 import './Superadmin.css'
 
@@ -77,7 +80,10 @@ function EtiquetasEditor({ local, onChange }) {
 
 export default function Superadmin() {
   const { user, cargando, entrar } = useAuth()
-  const superadmin = esSuperadmin(user?.email)
+  // 🧪 DEV: /superadmin?super=1 lo muestra con locales de muestra y pagos inventados, sin iniciar
+  // sesión (para revisar la pantalla; guardar falla porque no hay sesión). No existe en producción.
+  const simulado = devSuper()
+  const superadmin = simulado || esSuperadmin(user?.email)
   const { hash } = useLocation()
 
   // El router no baja solo a un ancla (#…): lo hacemos aquí (y arriba del todo sin ancla).
@@ -92,7 +98,6 @@ export default function Superadmin() {
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [locales, setLocales] = useState([])
   const [busqueda, setBusqueda] = useState('')
-  const [guardandoId, setGuardandoId] = useState(null)
   const [adminEdits, setAdminEdits] = useState({}) // localId -> [correo1, correo2] en edición
   const [adminMsg, setAdminMsg] = useState({})     // localId -> 'guardando' | 'ok' | 'err' | 'dup'
 
@@ -140,7 +145,7 @@ export default function Superadmin() {
   useEffect(() => {
     if (!superadmin) return
     let activo = true
-    listarTodosLocales()
+    ;(simulado ? import('./superSimulado').then(m => m.localesSimulados()) : listarTodosLocales())
       .then(ls => { if (activo) { setLocales(ls); setEstado('ok') } })
       .catch(() => { if (activo) setEstado('error') })
     return () => { activo = false }
@@ -153,33 +158,23 @@ export default function Superadmin() {
       l.nombre?.toLowerCase().includes(q) || l.slug?.toLowerCase().includes(q))
   }, [locales, busqueda])
 
-  const activos = useMemo(() => locales.filter(l => l.suscripcion?.activa).length, [locales])
+  // 🔎 El buscador ya no se prende aquí: lo decide el dueño en su Configuración y solo sale si está al
+  // día (guía «Planes en la app» D6, D7). Aquí se maneja el plan y el pago de cada local.
+  const enBuscador = useMemo(() => locales.filter(l => apareceEnBuscador(l)).length, [locales])
 
-  async function alternar(local) {
-    const nuevoValor = !local.suscripcion?.activa
-    setGuardandoId(local.id)
-    // Optimista
-    setLocales(ls => ls.map(l => l.id === local.id
-      ? { ...l, suscripcion: { ...(l.suscripcion || {}), activa: nuevoValor } }
-      : l))
-    try {
-      await setSuscripcion(local.id, nuevoValor)
-    } catch (err) {
-      // Revertir si falla
-      setLocales(ls => ls.map(l => l.id === local.id
-        ? { ...l, suscripcion: { ...(l.suscripcion || {}), activa: !nuevoValor } }
-        : l))
-      alert('No se pudo guardar. Revisa que las reglas de Firestore estén desplegadas.')
-    } finally {
-      setGuardandoId(null)
-    }
-  }
+  // 💳 Historial de pagos de todos los locales (para el tablero y cada local).
+  const [pagos, setPagos] = useState([])
+  const cargarPagos = useCallback(() => {
+    ;(simulado ? import('./superSimulado').then(m => m.pagosSimulados()) : listarPagos()).then(setPagos).catch(() => setPagos([]))
+  }, [simulado])
+  useEffect(() => { if (superadmin) cargarPagos() }, [superadmin, cargarPagos])
+  const cambiarSuscripcion = (id, suscripcion) => setLocales(ls => ls.map(l => l.id === id ? { ...l, suscripcion } : l))
 
-  if (cargando) {
+  if (cargando && !simulado) {
     return <div className="local-loading"><div className="local-spinner" /><p>Cargando…</p></div>
   }
 
-  if (!user) {
+  if (!user && !simulado) {
     return (
       <div className="local-msg">
         <div className="local-msg-emoji">🔐</div>
@@ -209,12 +204,12 @@ export default function Superadmin() {
         <PanelMenuBoton />
         <div>
           <span className="sa-eyebrow">👑 Superadmin</span>
-          <h1>Suscripciones</h1>
+          <h1>Locales y planes</h1>
         </div>
       </header>
 
       <div className="sa-resumen">
-        <strong>{activos}</strong> de <strong>{locales.length}</strong> locales activos en el buscador
+        <strong>{enBuscador}</strong> de <strong>{locales.length}</strong> locales salen en el buscador
       </div>
 
       {/* La propuesta comercial ya no vive aquí: desde el 27-oct-2026 las propuestas
@@ -234,6 +229,8 @@ export default function Superadmin() {
 
       <DemoTarjeta />
 
+      {estado === 'ok' && <TableroCobros locales={locales.filter(l => !l.esDemo)} pagos={pagos} />}
+
       <div className="sa-search">
         <span>🔎</span>
         <input placeholder="Buscar local…" value={busqueda} onChange={e => setBusqueda(e.target.value)} />
@@ -245,7 +242,6 @@ export default function Superadmin() {
       {estado === 'ok' && (
         <ul className="sa-lista">
           {filtrados.map(l => {
-            const activa = !!l.suscripcion?.activa
             const adminsActuales = normalizar(l.admins || [])
             const valoresAdmin = adminEdits[l.id] ?? casillas(l.admins)
             const cambiado = normalizar(valoresAdmin).join('|') !== adminsActuales.join('|')
@@ -260,14 +256,7 @@ export default function Superadmin() {
                     <strong>{l.nombre}</strong>
                     <span>/{l.slug}</span>
                   </div>
-                  <button
-                    className={`sa-toggle ${activa ? 'on' : ''}`}
-                    onClick={() => alternar(l)}
-                    disabled={guardandoId === l.id}
-                    aria-label={activa ? 'Desactivar' : 'Activar'}
-                  >
-                    <span className="sa-toggle-knob" />
-                  </button>
+                  <ChipPago local={l} />
                 </div>
 
                 {/* 👤 Hasta DOS correos de admin: el dueño y (opcional) su socio o
@@ -314,6 +303,12 @@ export default function Superadmin() {
                   </p>
                 )}
                 {!adminsActuales.length && msg !== 'ok' && <p className="sa-admin-hint warn">Sin admin asignado.</p>}
+
+                {/* 💳 Plan, pagos e historial */}
+                {!l.esDemo && (
+                  <PlanLocal local={l} pagos={pagos.filter(x => x.localId === l.id)}
+                    onCambio={sus => cambiarSuscripcion(l.id, sus)} onPago={cargarPagos} />
+                )}
 
                 {/* 🗂️ Etiquetas del inicio + ⭐ prioridad */}
                 <EtiquetasEditor

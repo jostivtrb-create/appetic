@@ -34,12 +34,14 @@ import { precioItem } from '../utils/price'
 import { resumenSeleccion } from '../utils/selectionSummary'
 import { siguienteTurno, agregarListo, quitarListo, nombreCorto } from '../utils/turnos'
 import { fechaBogota } from '../utils/menuDelDia'
+import { tiene } from '../utils/plan'
 
 export const POR_PAGINA = 20
 
 // ¿El local usa pantalla de cocina? (guía «Cuentas del negocio» D13/S12). Sin dato = sí.
 // Sin cocina, las comandas nacen entregadas y todo lo que esté por cobrar se puede cobrar ya.
-export const usaCocina = local => local?.usaCocina !== false
+// Sin pantalla de cocina en su plan (Emprendedor y Comerciante) es como si la hubiera apagado.
+export const usaCocina = local => local?.usaCocina !== false && tiene(local, 'cocina')
 
 // Convierte los ítems del carrito del mesero al formato de la comanda.
 export function itemsDeComanda(carrito) {

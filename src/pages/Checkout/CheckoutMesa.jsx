@@ -8,6 +8,7 @@ import { llevaTurno } from '../../utils/turnos'
 import { registrarPedidoStats } from '../../services/stats'
 import { isDevSlug } from '../../dev'
 import './Checkout.css'
+import { useFavoritos } from '../../contexts/FavoritosContext'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 // 🪑 Pedir DESDE LA MESA (QR por mesa). Reemplaza al checkout normal cuando el cliente entró por
@@ -24,6 +25,7 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
   const [listo, setListo] = useState(null)   // { nombre, turno } con el que salió
   const idRef = useRef(null)                 // mismo id en los reintentos → nunca se duplica
   const valido = abierto && items.length > 0 && nombre.trim().length >= 2
+  const { agregarFavorito } = useFavoritos()
 
   async function enviar() {
     if (!valido || estado === 'enviando') return
@@ -44,6 +46,7 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
       if (!demo) registrarPedidoStats(local.id, subtotal, 'mesa')
       try { localStorage.setItem(NOMBRE_KEY, JSON.stringify({ ...(JSON.parse(localStorage.getItem(NOMBRE_KEY)) || {}), nombre: quien })) } catch { /* nada */ }
       idRef.current = null
+      agregarFavorito(local)   // ❤️ D14
       clear()
       setListo({ nombre: quien, turno })
       avisarDemo('pedido-mesa')

@@ -4,6 +4,8 @@
 // mientras el cliente navega el menú (sessionStorage, 4 horas) y el pedido sale como comanda
 // «MESA 4 · Ana» DIRECTO a la cocina (sin WhatsApp, sin dirección ni forma de pago: la cuenta la
 // cobra el local). Solo funciona si el local activó sus mesas (local.mesas > 0, en Difundir).
+import { tiene } from './plan'
+
 const VIDA_MS = 4 * 60 * 60 * 1000
 const clave = slug => `appetic_mesa_${slug}`
 
@@ -15,7 +17,8 @@ export function mesaDeLaUrl() {
 
 // La mesa en la que está sentado el cliente en ESTE local (o null).
 export function mesaActual(local) {
-  if (!local?.slug || !(Number(local.mesas) > 0)) return null
+  // El QR por mesa es del plan Empresario: en los otros, el cliente pide como siempre (al WhatsApp).
+  if (!local?.slug || !(Number(local.mesas) > 0) || !tiene(local, 'mesas')) return null
   const deUrl = mesaDeLaUrl()
   try {
     if (deUrl && Number(deUrl) >= 1 && Number(deUrl) <= Number(local.mesas)) {

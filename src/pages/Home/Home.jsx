@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import logo from '../../assets/appetic-logo.png'
 import { getLocalesExplorador, getLocalesDeAdmin } from '../../services/locales'
 import { getHistorial } from '../../services/historial'
@@ -12,6 +12,10 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useFavoritos } from '../../contexts/FavoritosContext'
 import { useNavUI } from '../../contexts/NavUIContext'
 import { useEsEscritorio } from '../../utils/useEsEscritorio'
+import { useAdmin } from '../../contexts/AdminContext'
+import { esSuperadmin } from '../../config/roles'
+import { soloLocal } from '../../utils/soloLocal'
+import { tiene } from '../../utils/plan'
 import './Home.css'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -49,7 +53,18 @@ function esNuevo(creadoEn) {
   } catch { return false }
 }
 
+// 🔒 Quien llegó por el link de un local que no sale en el buscador vuelve a su menú (D13).
 export default function Home() {
+  const { user, cargando: authCargando } = useAuth()
+  const { tienePanel, cargando: adminCargando } = useAdmin()
+  const encerrado = soloLocal()
+  if (encerrado && !authCargando && !adminCargando && !tienePanel && !esSuperadmin(user?.email)) {
+    return <Navigate to={`/${encerrado.slug}`} replace />
+  }
+  return <Buscador />
+}
+
+function Buscador() {
   const { user, cargando: authCargando } = useAuth()
   const { favoritos } = useFavoritos()
   const { irAOtroLocal } = useNavUI()
@@ -131,7 +146,8 @@ export default function Home() {
   const enriquecidos = useMemo(() => {
     return locales.map(l => {
       const distancia = coord ? distanciaKm(l.ubicacion, coord) : null
-      const domi = coord ? costoDomicilio(distancia, l.domicilio) : null
+      // Sin domicilio en su plan (Emprendedor) no se le muestra precio de domicilio.
+      const domi = coord && tiene(l, 'domicilios') && l.domicilio?.activo !== false ? costoDomicilio(distancia, l.domicilio) : null
       const abierto = estaAbierto(l.horario)
       const nuevo = esNuevo(l.creadoEn)
       // 🧠 Puntaje personal: favorito > pedidos previos > cercanía > prioridad comercial.

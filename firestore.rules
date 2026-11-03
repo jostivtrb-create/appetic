@@ -1,6 +1,11 @@
 rules_version = '2';
 
-// Última actualización: 2026-11-02 (Pantalla de TV: turno del día y pedidos listos en locales/{id}/pantalla)
+// Última actualización: 2026-11-02 (PLANES Y PAGO: guía «Planes en la app»)
+// Cambios Planes: el local se APAGA solo al vencer (suscripcion.corteEn) · cada plan abre lo suyo
+//   (domicilios desde Comerciante; mesero, cocina y QR por mesa en Empresario) · el dueño ya NO puede
+//   tocar suscripcion, admins, esDemo, prioridad ni etiquetas (antes podía ponerse solo en el
+//   buscador) · pagos/ (el historial de cobros de Appetic) solo el superadmin.
+// Última actualización anterior: 2026-11-02 (Pantalla de TV: turno del día y pedidos listos en locales/{id}/pantalla)
 // Cambios Cuentas: rol CAJERO por local (vende, cobra y anota gastos; no ve saldos ni ganancia) ·
 //   ventas/, movimientos/, trabajadores/ y resumen/ PRIVADOS del local (ver services/cuentas.js) ·
 //   las comandas pueden nacer «entregada» si el local no usa cocina · el cobro (porCobrar,
@@ -58,7 +63,30 @@ service cloud.firestore {
     // Va primero la demo: a la sesión anónima le falta el correo y las otras dos darían error.
     // Espejo de puedeAdministrarLocal() en src/config/roles.js: si cambias uno, cambia el otro.
     function puedeAdministrar(localId) {
-      return esVisitanteDemo(localId) || esAdminDe(localId) || esSuperadmin();
+      return esVisitanteDemo(localId) || (esAdminDe(localId) && localVivo(localId)) || esSuperadmin();
+    }
+
+    // 💳 PLAN Y PAGO (guía «Planes en la app»). Espejo de src/utils/plan.js: si cambias uno, el otro.
+    function susDe(localId) {
+      return get(/databases/$(database)/documents/locales/$(localId)).data.get('suscripcion', {});
+    }
+    // Emprendedor 1 · Comerciante 2 · Empresario 3 (sin plan cuenta como Empresario: datos viejos).
+    function nivelPlan(localId) {
+      return {'emprendedor': 1, 'comerciante': 2}.get(susDe(localId).get('plan', 'empresario'), 3);
+    }
+    // ¿Está prendido? Cortesía (muestras, demo, datos viejos) siempre; montaje y activo hasta su
+    // corteEn (vence + 3 días de gracia, o montaje + 7 días). Al cortarse, el dueño y su equipo no
+    // pueden trabajar y los clientes no pueden pedir. El superadmin siempre puede.
+    function localVivo(localId) {
+      let s = susDe(localId);
+      return s.get('estado', 'cortesia') == 'cortesia'
+        || (s.get('corteEn', null) == null ? s.get('estado', '') == 'montaje' : request.time < s.corteEn);
+    }
+    // ¿El plan trae este rol del equipo? Domiciliario desde Comerciante; mesero y cocina, Empresario.
+    function rolEnPlan(localId, rol) {
+      return rol == 'cajero'
+        || (rol == 'domiciliario' && nivelPlan(localId) >= 2)
+        || ((rol == 'mesero' || rol == 'cocina') && nivelPlan(localId) >= 3);
     }
 
 
@@ -66,6 +94,7 @@ service cloud.firestore {
     // Espejo de getRolesDeEquipo() en src/services/equipo.js.
     function equipoActivo(localId, rol) {
       return request.auth != null
+        && localVivo(localId) && rolEnPlan(localId, rol)
         && exists(/databases/$(database)/documents/locales/$(localId)/equipo/$(rol + ':' + request.auth.token.email.lower()))
         && get(/databases/$(database)/documents/locales/$(localId)/equipo/$(rol + ':' + request.auth.token.email.lower())).data.activo == true;
     }
@@ -110,11 +139,14 @@ service cloud.firestore {
       allow read: if true;
       // En la demo, el visitante NO toca lo que la rompería para el siguiente (D16): WhatsApp,
       // link, horario, ni las marcas de demo, dueños o suscripción. El superadmin sí (reiniciar).
+      // Nadie más que el superadmin toca el plan y el pago, los dueños ni las marcas del buscador.
       allow update: if esSuperadmin()
                     || (puedeAdministrar(localId)
+                        && !request.resource.data.diff(resource.data).affectedKeys()
+                              .hasAny(['suscripcion', 'admins', 'esDemo', 'prioridad', 'etiquetas'])
                         && !(esLocalDemo(localId)
                              && request.resource.data.diff(resource.data).affectedKeys()
-                                  .hasAny(['whatsapp', 'slug', 'horario', 'esDemo', 'admins', 'suscripcion'])));
+                                  .hasAny(['whatsapp', 'slug', 'horario', 'enBuscador'])));
       // Los locales se crean desde la consola/seed; la única excepción es la demo, que el
       // superadmin puede volver a crear desde «Reiniciar demo».
       allow create: if esSuperadmin() && request.resource.data.esDemo == true;
@@ -127,9 +159,12 @@ service cloud.firestore {
 
       match /pedidos/{pedidoId} {
         // El cliente (con o sin login) CREA su pedido; se exige un total válido y que nazca «nuevo».
+        // Solo si el local está prendido, y a domicilio solo si su plan lo trae (Comerciante o más).
         allow create: if request.resource.data.total is number
                       && request.resource.data.total >= 0
-                      && request.resource.data.estado == 'nuevo';
+                      && request.resource.data.estado == 'nuevo'
+                      && localVivo(localId)
+                      && (request.resource.data.get('entrega', 'recoger') != 'domicilio' || nivelPlan(localId) >= 2);
         // El personal del local lo lee y lo mueve (confirmar, rechazar, en camino, entregado…).
         allow read, update: if puedeVerPedidos(localId);
         allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
@@ -154,7 +189,9 @@ service cloud.firestore {
       match /equipo/{docId} {
         allow read: if puedeAdministrar(localId)
                     || (request.auth != null && resource.data.email == request.auth.token.email.lower());
+        // Solo se AGREGA un rol que el plan trae; desactivar o borrar se puede siempre (tras bajar de plan).
         allow create, update: if puedeAdministrar(localId)
+                              && (resource != null || rolEnPlan(localId, request.resource.data.rol))
                               && request.resource.data.rol in ['mesero', 'cocina', 'domiciliario', 'cajero']
                               && request.resource.data.email is string
                               && request.resource.data.localId == localId
@@ -178,6 +215,7 @@ service cloud.firestore {
                       && (
                         puedeAdministrar(localId) || equipoActivo(localId, 'mesero') || esCajero(localId)
                         || (request.resource.data.origen == 'qr' && request.resource.data.estado == 'activa'
+                            && localVivo(localId) && nivelPlan(localId) >= 3
                             && request.resource.data.destino.tipo == 'mesa'
                             && get(/databases/$(database)/documents/locales/$(localId)).data.get('mesas', 0) > 0
                             && int(request.resource.data.destino.mesa) >= 1
@@ -277,6 +315,11 @@ service cloud.firestore {
         allow write: if request.resource.data.keys().hasOnly(['fecha', 'visitas', 'pedidos', 'monto', 'interesados', 'domicilios', 'recoger', 'mesaQR']);
         allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
+    }
+
+    // 💳 Historial de pagos de los locales a Appetic (guía «Planes en la app» D4). Solo nosotros.
+    match /pagos/{pagoId} {
+      allow read, write: if esSuperadmin();
     }
 
     // Lectura de pedidos por GRUPO de colecciones (collectionGroup): solo el superadmin
