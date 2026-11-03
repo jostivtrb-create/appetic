@@ -6,7 +6,7 @@
 - **Tarea:** que la app respete los planes Emprendedor · Comerciante · Empresario, controle el pago de
   cada local y se apague de verdad cuando no pagan, como promete la propuesta.
 - **Inicio:** 2 de noviembre de 2026
-- **Estado:** 🔵 Construyendo
+- **Estado:** ✅ **Terminada y publicada** — 2 de noviembre de 2026 (`aad6b96`)
 - **Proyecto:** `/home/zevenoficial07/Apps Zeven/Swiftfly Solutions/Appetic`
 - **Viene de:** `Guía para los planes por tipo de negocio.md` (qué trae cada plan, D1–D18). Los socios ya
   aceptaron los planes (2-nov-2026), así que se levanta la pausa de su D16.
@@ -59,6 +59,7 @@ lo que esté mal hecho en vez de ignorarlo por viejo.
 | D14 | **Todo negocio donde el cliente haga un pedido le queda solo en Favoritos.** | R2, obs.: *"que cualquier negocio donde hagan un pedido automáticamente les quede en favoritos"*. |
 | D15 | **Un local nuevo arranca SIN salir en el buscador;** el dueño lo prende. | R3. |
 | D16 | **Subir de plan:** se activa ya y se cobra la diferencia de los días que faltan (la app la calcula). **Bajar:** queda programado y se aplica cuando se acaba lo pagado. | R4, la recomendada. |
+| D18 | **Pilotos queda en Comerciante (cortesía)**: fue el primer cliente y se le vendió con domicilios, sin límite. El usuario le va a ofrecer más de Appetic. | Pedido explícito al publicar. |
 | D17 | **Pago después del corte:** el mes nuevo cuenta **desde el día que paga**. Dentro de la gracia, cuenta desde la fecha vencida. | R5, la recomendada. |
 
 ---
@@ -161,9 +162,9 @@ Ninguna.
 - [x] 4 · Panel del dueño: secciones según plan con candado (D18) · aviso 5 días antes y en gracia · panel cortado con solo el aviso de pago · «Mi plan» en Configuración · interruptor «Salir en el buscador».
 - [x] 5 · Cliente: menú y TV «temporalmente fuera de servicio» al cortar · checkout sin Domicilio en Emprendedor · QR por mesa solo Empresario · roles del equipo según plan.
 - [x] 6 · Buscador: solo `enBuscador` y al día · modo «solo este local» (D13) · favorito automático al pedir (D14).
-- [x] 7 · Migración escrita (`scripts/migrar-planes.mjs`, probada en seco: 11 locales) y la demo/seeds al formato nuevo. ⏳ **Falta correrla con `--aplicar`** (con permiso del usuario).
+- [x] 7 · Migración (`scripts/migrar-planes.mjs --aplicar`, respaldo en `scripts/.seed-backups/`) y la demo/seeds al formato nuevo.
 - [x] 8a · Probado: vista previa (cada plan y estado, móvil y escritorio) y reglas en el emulador (25 de 25).
-- [ ] 8b · ⏳ Publicar, en este orden y con permiso: migración → reglas → app (push a Vercel).
+- [x] 8b · Publicado el 2-nov-2026: migración (11 locales) → reglas → app (`aad6b96`), verificado en el sitio.
 
 ---
 
@@ -194,3 +195,7 @@ Ninguna.
   - Simulación en DEV para revisar cualquier pantalla: `?plan=emprendedor&pago=gracia`
     (pago: montaje · al-dia · por-vencer · gracia · cortado; `=0` lo quita).
   - Reglas probadas en el emulador con 25 casos (pedidos, domicilio, QR, equipo, corte, pago, hueco S2): todos bien.
+- **2 de noviembre de 2026** — Publicado. Migración aplicada a los 11 locales (todos Empresario en
+  cortesía; Pilotos pasado a Comerciante por D18 — no usaba mesas, meseros ni cocina, no pierde nada).
+  Reglas a `appetic-17477` con `jostivtrb@gmail.com`. App en Vercel; el buscador de producción muestra
+  los 7 locales que ya salían.
