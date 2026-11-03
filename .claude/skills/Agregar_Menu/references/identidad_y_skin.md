@@ -22,15 +22,40 @@ Antes de tocar colores, **lee el logo y el PDF** y extrae:
 **La estética se construye desde ESE ADN.** Dos locales nunca deben verse igual, y ninguno debe
 verse como Pilotos "porque quedó bien". Quedó bien **para Pilotos**.
 
-## 2) ¿Alcanza con el tema (5 colores) o la marca pide más profundidad?
-El motor aplica por defecto un look **claro** y recolorea con `tema` (`primary`, `primarySoft`,
-`accent`, `bg`…). Para muchas marcas (cálidas/caseras) **con eso basta** — solo elige BIEN los
-colores de su logo. Ej. Perros Criiollos, Sabor del Día.
+## 2) 🚫 Prohibido el "todo crema" — el color de la MARCA tiene que mandar
+**Error repetido (oct-2026):** varios locales salieron casi iguales — fondo crema, degradado durazno
+y solo los botones con el color de la marca. Eso NO es personalizar: entrecerrando los ojos no se
+sabe de qué negocio es. El dueño lo nota y se siente plantilla.
 
-Pero algunas marcas piden más que recolorear: **fondo oscuro, tipografía propia, tratamiento
-especial de los títulos, iconografía en vez de emojis**. Ahí el recoloreado del template claro se
-queda corto y **traiciona la marca** (le pasó a Pilotos: sobre crema perdía su identidad). Para esos
-casos el motor soporta un **SKIN propio por local**.
+Reglas, para TODA marca (también las "cálidas y caseras"):
+- **`bg` sale del color de la marca, no de la crema por defecto.** Un tinte claro de SU color
+  dominante o secundario (verde salvia si su logo es verde, rosado pálido si es rosa, azul hielo si
+  es azul…). Crema SOLO si la marca de verdad es crema (su carta/fachada lo es Y no tiene otro
+  color fuerte). Si dudas, NO es crema.
+- **La cabecera (hero) lleva un color FUERTE de la marca**, no un degradado pálido hacia el fondo.
+  Si el logo no contrasta sobre ese color, se pone en una **placa/letrero** (como Bon Appétit) o se
+  usa una versión del logo recoloreada — nunca se baja el color del hero para que "se lea".
+- **Reparte los colores del logo con un ROL cada uno** — no todo en `primary`:
+  acción (botones/carrito) · muro de marca (hero, chip activo, títulos) · firma (precios — mira de
+  qué color van los precios en SU carta) · fondo (tinte claro).
+- **Tipografía**: si el logo/carta usa letra condensada, redonda, script… los títulos y nombres de
+  plato la imitan (fuentes ya cargadas en `index.html`: Oswald, Barlow Condensed, Anton, Fredoka,
+  Nunito, Saira Stencil; agregar una nueva es una línea).
+- **Por eso, casi todo local lleva SKIN propio** (`tema.skin`), claro u oscuro. El `tema` de 5
+  colores solo NO alcanza para lo anterior: el motor pinta el hero con `primarySoft → bg` y deja
+  títulos, chips y precios genéricos.
+- `navSolid: true` pinta la barra inferior/lateral con el `primary` sólido: úsalo cuando el color
+  de acción sea fuerte (Jasbury rojo, Bon Appétit naranja).
+
+**Ejemplo CLARO trabajado — `skin:'bon'` (Bon Appétit, `LocalSkinBon.css`):** logo naranja + verde
+bosque + pizza roja; carta con precios en rojo. → hero muro verde bosque con el logo en placa
+crema, fondo salvia (no crema), chips activos y títulos verdes en Oswald, precios rojo tomate,
+botones y barra naranjas. Molde técnico para pieles claras; como siempre, NO para calcar.
+
+**Prueba del entrecierre (antes de entregar):** mira la captura con los ojos entrecerrados al lado
+de la de otro local. Si se parecen, falta marca.
+
+Marcas oscuras/dramáticas (Pilotos `jet`, Juance) llevan además superficies oscuras — ver §3.
 
 ## 3) El mecanismo reusable: un SKIN por local (esto es lo que se reaprovecha, NO el estilo)
 Lo que quedó en el motor y **sí** se reutiliza es el **mecanismo**, no la piel de Pilotos:
@@ -83,7 +108,8 @@ adapta al skin del local. Menús cortos no lo muestran.
 - ¿La estética salió del **ADN de ESTA marca** (su logo/PDF/rubro), o la copié de otro local?
 - ¿Se ve **de ESE negocio** y **distinta** a los demás locales?
 - ¿El **logo flota** limpio (transparente), grande, sin recuadro?
-- ¿Elegí bien entre **tema (5 colores)** y **skin propio** según lo que la marca pedía — sin
-  imponer un skin que no le va?
+- ¿El fondo y la cabecera llevan el color de LA MARCA (no crema por defecto)? ¿Cada color del logo
+  tiene su rol (acción · muro · precios · fondo)? ¿Pasa la prueba del entrecierre?
+- ¿El skin expresa ESTA marca, sin calcar el de otro local?
 
 Si algo es "no", ajústalo. **Adaptar a la medida, nunca calcar.**

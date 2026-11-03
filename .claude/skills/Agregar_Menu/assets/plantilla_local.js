@@ -43,7 +43,7 @@ export const [[CONST]]_LOCAL = {
     primarySoft:   '[[PRIMARY_SOFT]]',  // variante clara/acento del primary (degradado del hero)
     onPrimary:     '#FFFFFF',           // texto SOBRE el primary (#fff si el primary es oscuro)
     accent:        '[[ACCENT]]',        // acento secundario
-    bg:            '[[BG]]',            // fondo del "mundo" del local (crema/tinte de la marca)
+    bg:            '[[BG]]',            // fondo del "mundo": tinte claro del color de LA MARCA (NO crema por defecto)
     // hero: 'logo',   // (opcional) hero con el LOGO grande (para logos que traen el nombre / emblema).
     //                 // Con skin oscuro va perfecto con un logo TRANSPARENTE (ver identidad_y_skin.md).
     //                 // Si el logo NO trae el nombre, NO lo pongas: usa el hero por defecto (banner + nombre).

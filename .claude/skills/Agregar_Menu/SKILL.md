@@ -81,7 +81,9 @@ Con el material en mano, define la identidad:
   skin oscuro: `tema.hero:'logo'` + categorías **sin emoji**. Detalle en
   **`references/identidad_y_skin.md`**. **Adapta a la medida, no copies** el estilo de otro.
 - **Paleta ÚNICA** (`tema`): saca `primary`/`primaryStrong`/`primarySoft`/`accent` del **logo** del
-  negocio, y un `bg` (fondo del "mundo") con un tinte de esa marca. `onPrimary` = texto sobre el
+  negocio, y un `bg` (fondo del "mundo") con un tinte de SU color — **nunca crema por defecto**
+  (ver `references/identidad_y_skin.md` §2: hero con color fuerte de la marca, cada color del logo
+  con un rol, casi siempre con skin propio; ejemplo claro: `skin:'bon'`). `onPrimary` = texto sobre el
   primary (#fff si es oscuro). Que NO se parezca a los locales que ya existen.
 - **Categorías** y los **productos** (categorías con emoji en look claro; **sin emoji** en skin
   oscuro). Aquí **modelas fiel al cliente**: para cada ítem
