@@ -88,7 +88,16 @@
 .demo-bienv-txt b { font-size: 15px; }
 .demo-bienv-txt small { font-size: 12.5px; opacity: .8; line-height: 1.35; }
 .demo-bienv-ir { font-size: 12px; opacity: .8; }
-.demo-bienv-pie { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 10px; }
+/* H6 de la auditoría: el pie queda pegado abajo, siempre a la vista en el celular (sin bajar). */
+.demo-bienv-pie {
+  position: sticky; bottom: -20px; z-index: 1; margin: 6px -16px -20px; padding: 18px 16px 16px;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: linear-gradient(180deg, rgba(30,27,26,0) 0%, #1E1B1A 34%);
+}
+.demo-bienv-pie .demo-bienv-quiero {
+  margin-top: 0; text-decoration: none; padding: 11px 20px; border-radius: 999px;
+  background: #F2A900; color: #1E1B1A; box-shadow: 0 8px 22px rgba(242,169,0,.28);
+}
 .demo-bienv-mirar { border: 0; background: none; color: #FFF4E0; opacity: .75; font: inherit; font-size: 14px; cursor: pointer; padding: 6px; }
 /* El logo lleva letras oscuras: va sobre una placa crema para que se lea en el fondo oscuro. */
 .demo-bienv-logo { background: #FFF4E0; padding: 8px 14px; border-radius: 16px; box-sizing: content-box; }

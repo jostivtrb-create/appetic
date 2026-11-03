@@ -10,6 +10,7 @@ import { coloresComanda } from './comandaUtils'
 import CajaVender from './CajaVender'
 import CajaVentas from './CajaVentas'
 import CajaGastos from './CajaGastos'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 import './Cobro.css'
 import './Caja.css'
 
@@ -71,7 +72,7 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
       <nav className={`pv-vistas${vista === 'vender' ? ' con-cobro' : ''}`} aria-label="Secciones de la caja">
         {VISTAS.map(t => (
           <button key={t.id} type="button" className={vista === t.id ? 'on' : ''} aria-current={vista === t.id ? 'page' : undefined}
-            onClick={() => { setVista(t.id); window.scrollTo?.({ top: 0, behavior: 'smooth' }) }}>
+            onClick={() => { setVista(t.id); avisarDemo(`caja-${t.id}`); window.scrollTo?.({ top: 0, behavior: 'smooth' }) }}>
             <span className="pv-vistas-ico" aria-hidden="true">{t.ico}{t.id === 'vender' && abiertas > 0 && <i>{abiertas}</i>}</span>
             <span>{t.label}</span>
           </button>

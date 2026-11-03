@@ -6,6 +6,7 @@ import { jornadaDe, etiquetaJornada, horaCorta } from '../../utils/jornada'
 import { cuentasDe, cuentaEfectivo, emojiCuenta, cuentasParaPagar } from '../../utils/cuentasDinero'
 import { primerNombre } from './CajaVentas'
 import { conTope } from '../../utils/conTope'
+import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 // 💸 GASTOS (Caja, guía «Cuentas del negocio» D9 + S13): concepto y valor, y de qué cuenta salió
 // la plata (por defecto el efectivo). Lista por día como las ventas. Equivocarse se arregla
@@ -46,6 +47,7 @@ export default function CajaGastos({ local, cuentasApi, usuario, esAdmin }) {
     try {
       await conTope(cuentasApi.registrarMovimiento({ id: idGasto.current, tipo: 'gasto', concepto, monto: numero(valor), cuenta }, por, local), 12000)
       idGasto.current = null
+      avisarDemo('gasto')
       setOk(`✓ ${concepto.trim()} · ${cop(numero(valor))}`)
       setTimeout(() => setOk(''), 3000)
       setConcepto(''); setValor('')

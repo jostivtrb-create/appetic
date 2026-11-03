@@ -135,6 +135,12 @@ Pregunta abierta: ¿agregamos al panel un editor de colores y logo? (hoy no exis
 
 ## 7. Bitácora
 
+- **3-nov · Auditoría de la demo cerrada** (H4 y H6, decididos por el usuario con la opción recomendada):
+  - H4 → el servicio 5 hace anotar un gasto: Caja → «Gastos» → «Gas · $45.000» → Cuentas, donde se ve en «Gastaste» y
+    baja «Te quedó». Señales nuevas `caja-<vista>` (AdminCaja) y `gasto` (CajaGastos). Probado en vista previa.
+  - H6 → el pie de la bienvenida («Solo mirar el menú» + «Quiero esto», ahora en botón amarillo) queda pegado abajo;
+    probado en 375×812 y en 360×640 (con la lista deslizándose por detrás). El letrero sigue con un solo botón.
+
 - **3-nov · Ronda 3 construida (sin publicar).** Bienvenida por los 5 servicios con los íconos de la propuesta
   (`public/demo-servicios/`), recorridos `menu` (elige → `menu-recoger` / `menu-domicilio` / `menu-mesa`), `tv`,
   `domicilios`, `salon`, `cuentas`, con «Viene en el plan X · desde $Y/mes» al final. Probados en vista previa:
