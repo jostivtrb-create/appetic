@@ -5,7 +5,7 @@
 
 - **Tarea:** Construir el punto 2 de la propuesta, «Tu menú en vivo, en tu TV», bien hecho y no como una pantalla genérica.
 - **Inicio:** 2 de noviembre de 2026
-- **Estado:** 🔵 Construyendo · ✅ Etapa A publicada (2-nov, `efcc2a6`) · ✅ Etapa B lista en la vista previa (sin publicar) · sigue la Etapa C
+- **Estado:** 🔵 Construyendo · ✅ Etapa A publicada (2-nov, `efcc2a6`) · ✅ Etapa B publicada (`a3a4897`) · ✅ Etapa C lista en la vista previa (sin publicar: lleva reglas nuevas)
 - **Proyecto:** `Appetic/` (Vite + React + Firebase, Vercel)
 
 ---
@@ -191,11 +191,11 @@ Por etapas. Cada etapa deja algo que funciona y se puede mostrar sola.
 - [x] B6 · TV: «Almuerzo de hoy» en el plato grande dentro de la franja (D19, D23).
 
 ### Etapa C · Pedidos listos con turno
-- [ ] C1 · Turno del día (contador en transacción), solo con pedidos listos prendidos (D16), en las comandas para llevar del mostrador y en las del QR de la mesa.
-- [ ] C2 · Al despachar en cocina, resumen público `pantalla/listos` (S10). Reglas de Firestore.
-- [ ] C3 · El turno visible: mesero y caja al mandar, cliente del QR, la comanda en cocina (S17).
-- [ ] C4 · TV: interrupción a pantalla completa sin sonido y luego franja con los últimos (D14, D24).
-- [ ] C5 · Interruptor en el panel, solo si usa cocina (S16).
+- [x] C1 · Turno del día (contador en transacción), solo con pedidos listos prendidos (D16), en las comandas para llevar del mostrador y en las del QR de la mesa.
+- [x] C2 · Al despachar en cocina, resumen público `pantalla/listos` (S10). Reglas de Firestore.
+- [x] C3 · El turno visible: mesero y caja al mandar, cliente del QR, la comanda en cocina (S17).
+- [x] C4 · TV: interrupción a pantalla completa sin sonido y luego franja con los últimos (D14, D24).
+- [x] C5 · Interruptor en el panel, solo si usa cocina (S16).
 
 ### Etapa D · Demo y cierre
 - [ ] D1 · Burger Demo con pantalla, anuncios y menú del día de ejemplo; «Reiniciar demo» lo deja así; `/demo/tv`.
@@ -256,3 +256,19 @@ Por etapas. Cada etapa deja algo que funciona y se puede mostrar sola.
     en la prueba. No se cambió nada por eso.
   - *Pendiente conocido:* si la franja termina con el almuerzo ya en el carrito, el cliente todavía lo
     puede mandar. Se deja así: el local lo ve en el WhatsApp y decide.
+- **2-nov-2026** — **Etapa B publicada** (`a3a4897`; verificado por un texto que solo existe en esta versión).
+- **2-nov-2026** — **Etapa C construida y probada** (vista previa + Chrome del computador con clics reales).
+  Archivos: `utils/turnos.js` (lógica pura, 14 pruebas), `services/comandas.js` (`tomarTurno` en
+  transacción, `turno` en la comanda, `escucharListos`, y `entregar`/`deshacer` escriben o quitan en
+  `pantalla/listos`; los dos motores, Firestore y demo), `CajaVender` (diálogo grande «Dile al cliente
+  su turno»), `CheckoutMesa` («Tu turno» en la pantalla de éxito), `AdminComandas` (insignia «T14»),
+  `PantallaTV` (`useListos`: llamado a pantalla completa 7 s de a uno, sin sonido, y franja «LISTOS»
+  abajo con lo de los últimos 12 min), `ConfigPantalla` (interruptor; bloqueado y explicado sin cocina),
+  `firestore.rules` (`pantalla/turno` lo sube cualquiera de a uno o vuelve a 1 al cambiar el día;
+  `pantalla/listos` solo el personal, máx. 8, sin datos personales), «Reiniciar demo» vacía `pantalla`.
+  La Burger Demo trae `pedidosListos: true`.
+  - *Sobre la marcha:* si el envío se reintenta, la comanda conserva su turno (se recuerda por id).
+    Al abrir el TV no se vuelven a llamar los pedidos que ya estaban listos; solo los que salen
+    después. Si dos salen a la vez, se llaman en fila. La franja se va sola a los 12 minutos.
+  - *A tener en cuenta:* la cocina tiene un botón «Empezar turno» (el turno de trabajo) y ahora
+    también existe el turno del pedido. No se cambió el texto; si confunde, se renombra.

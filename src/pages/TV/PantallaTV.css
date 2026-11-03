@@ -305,6 +305,49 @@
 .tvm-o { font-style: normal; font-weight: 500; color: var(--tv-tenue); }
 .tvm-ops small { font-size: .7em; color: var(--tv-acento); font-weight: 800; }
 
+/* ───────────── Pedidos listos (Etapa C) ───────────── */
+/* La franja solo existe mientras haya pedidos listos recientes: el menú sube para hacerle sitio. */
+.tv-con-listos .tv-escena { bottom: calc(var(--u) * 6.4); }
+.tvl-franja {
+  position: absolute; z-index: 5; left: 0; right: 0; bottom: 0; height: calc(var(--u) * 6.4);
+  display: flex; align-items: center; gap: calc(var(--u) * 1.6);
+  padding: 0 calc(var(--u) * 3);
+  background: color-mix(in srgb, var(--tv-primario) 88%, #000);
+  color: var(--tv-sobre-primario);
+  animation: tvl-sube .6s cubic-bezier(.2,.8,.2,1) both;
+}
+.tvl-franja-tit { font-size: calc(var(--u) * 1.1); font-weight: 900; letter-spacing: .2em; text-transform: uppercase; opacity: .85; flex: none; }
+.tvl-franja-lista { display: flex; gap: calc(var(--u) * 1); overflow: hidden; min-width: 0; }
+.tvl-chip {
+  display: inline-flex; align-items: baseline; gap: calc(var(--u) * .6); flex: none;
+  padding: calc(var(--u) * .35) calc(var(--u) * 1.2); border-radius: 999px;
+  background: rgba(255,255,255,.16);
+  animation: tv-aparece .5s ease both;
+}
+.tvl-chip:first-child { background: rgba(255,255,255,.95); color: #1d1714; }
+.tvl-chip b { font-size: calc(var(--u) * 2.3); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.tvl-chip small { font-size: calc(var(--u) * 1.2); font-weight: 700; opacity: .9; }
+@keyframes tvl-sube { from { transform: translateY(100%); } to { transform: none; } }
+
+/* El llamado: a pantalla completa unos segundos, sin sonido (D24). */
+.tvl-llamado {
+  position: absolute; inset: 0; z-index: 15;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--tv-primario) 75%, #000) 0%, color-mix(in srgb, var(--tv-primario) 30%, var(--tv-bg)) 70%);
+  color: var(--tv-sobre-primario);
+  animation: tv-aparece .4s ease both;
+}
+.tvl-etq { font-size: calc(var(--u) * 2.2); font-weight: 900; letter-spacing: .3em; text-transform: uppercase; animation: tv-sube .6s .1s ease both; }
+.tvl-num {
+  font-size: calc(var(--u) * 22); font-weight: 900; line-height: .95; font-variant-numeric: tabular-nums;
+  text-shadow: 0 calc(var(--u) * .6) calc(var(--u) * 3) rgba(0,0,0,.35);
+  animation: tvl-late 1.4s .2s ease-in-out 3 both;
+}
+.tvl-nombre { font-family: var(--tv-serif); font-size: calc(var(--u) * 5); font-weight: 800; animation: tv-sube .6s .35s ease both; }
+.tvl-pie { margin-top: calc(var(--u) * 1.4); font-size: calc(var(--u) * 1.8); font-weight: 600; opacity: .85; animation: tv-sube .6s .5s ease both; }
+@keyframes tvl-late { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+.tv-liviano .tvl-num { animation: none; text-shadow: none; }
+
 /* ───────────── Anuncio a pantalla completa ───────────── */
 .tva {
   position: absolute;

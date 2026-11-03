@@ -15,6 +15,8 @@
 //   porCobrar: true al nacer → false cuando la caja la marca cobrada (cobradaEn · cobradaPor · ventaId,
 //              la venta de services/cuentas.js) o se cancela. Guía «Cuenta por mesa»: la Caja lista las porCobrar y su historial son las cobradas.
 //   envio:     (pedidos de la app a domicilio) costo del envío, para cobrar el total completo.
+//   turno:     número del día (1, 2, 3…) de los para llevar y los del QR cuando el local prendió
+//              «Pedidos listos» en el TV (utils/turnos.js). Al entregarse, sale en el TV.
 //
 // Tachar es por LÍNEA (las 4 hamburguesas son una línea): la cocina tacha la pizza que ya salió
 // y deja las hamburguesas. «Entregada» = la cocina confirmó todo (un solo paso, D5 de la guía).
@@ -30,6 +32,8 @@ import {
 import { db } from '../config/firebase'
 import { precioItem } from '../utils/price'
 import { resumenSeleccion } from '../utils/selectionSummary'
+import { siguienteTurno, agregarListo, quitarListo, nombreCorto } from '../utils/turnos'
+import { fechaBogota } from '../utils/menuDelDia'
 
 export const POR_PAGINA = 20
 
@@ -183,8 +187,18 @@ export function escucharConReintento(q, cb, onError) {
   return () => { vivo = false; clearTimeout(timer); unsub() }
 }
 
+// Lo que el TV muestra de una comanda lista: su turno y el primer nombre, nada más (S10).
+const entradaListo = c => ({ id: c.id, turno: c.turno, nombre: nombreCorto(c.destino?.nombre), en: Date.now() })
+
 function firestoreApi(localId) {
   const col = () => collection(db, 'locales', localId, 'comandas')
+  const refPantalla = id => doc(db, 'locales', localId, 'pantalla', id)
+  // El turno ya tomado para cada comanda: si el envío se reintenta, conserva su número.
+  const turnos = new Map()
+  const cambiarListos = fn => runTransaction(db, async tx => {
+    const snap = await tx.get(refPantalla('listos'))
+    tx.set(refPantalla('listos'), fn(snap.exists() ? snap.data() : null))
+  }).catch(e => console.warn('No se pudo avisar al TV del pedido listo', e?.code || e))
   // Lee la comanda fresca, le cambia los ítems y escribe — todo en una transacción.
   const cambiarItems = (id, fn, extra = {}) => runTransaction(db, async tx => {
     const ref = doc(col(), id)
@@ -218,8 +232,26 @@ function firestoreApi(localId) {
     // Con id propio (setDoc): si el mesero reintenta un envío que en realidad sí había llegado,
     // escribe el MISMO documento y no aparece una comanda repetida en cocina.
     // entregada: el local no usa cocina (D13), la comanda nace terminada y lista para cobrar.
-    async crear({ id, destino, items, creadaPor, origen = 'mesero', entregada = false }) {
+    // 🔔 Turno del día, en transacción para que dos cajas a la vez no saquen el mismo número.
+    async tomarTurno(comandaId) {
+      if (turnos.has(comandaId)) return turnos.get(comandaId)
+      const fecha = fechaBogota()
+      const n = await runTransaction(db, async tx => {
+        const snap = await tx.get(refPantalla('turno'))
+        const n = siguienteTurno(snap.exists() ? snap.data() : null, fecha)
+        tx.set(refPantalla('turno'), { fecha, n })
+        return n
+      })
+      turnos.set(comandaId, n)
+      return n
+    },
+    // Lo que muestra el TV: un solo documento público.
+    escucharListos(cb) {
+      return onSnapshot(refPantalla('listos'), s => cb(s.exists() ? s.data() : null), e => console.warn('TV: listos', e?.code || e))
+    },
+    async crear({ id, destino, items, creadaPor, origen = 'mesero', entregada = false, turno = null }) {
       const data = {
+        ...(turno ? { turno } : {}),
         destino,
         items,
         estado: entregada ? 'entregada' : 'activa',
@@ -233,6 +265,7 @@ function firestoreApi(localId) {
         porCobrar: true,
       }
       await setDoc(doc(col(), id), data)
+      turnos.delete(id)
       return id
     },
     // Tachar / destachar una línea. Se reescribe la lista entera (Firestore no edita un elemento
@@ -269,10 +302,12 @@ function firestoreApi(localId) {
       await cambiarItems(comanda.id, items => items.map(it => it.quitado ? it : { ...it, hecho: true }), {
         estado: 'entregada', entregadaEn: serverTimestamp(), cerradaEn: serverTimestamp(),
       })
+      if (comanda.turno) await cambiarListos(prev => agregarListo(prev, entradaListo(comanda), fechaBogota()))
     },
     // Deshacer un «entregado» por error de dedo: vuelve a la fila en su lugar (por creadaEn).
     async deshacer(comanda) {
       await updateDoc(doc(col(), comanda.id), { estado: 'activa', entregadaEn: null, cerradaEn: null })
+      if (comanda.turno) await cambiarListos(prev => quitarListo(prev, comanda.id))
     },
     async cancelar(comanda, porQuien) {
       await updateDoc(doc(col(), comanda.id), {
@@ -306,6 +341,11 @@ function firestoreApi(localId) {
 
 function demoApi(localId) {
   const KEY = `appetic_demo_comandas_${localId}`
+  const KEY_TURNO = `appetic_demo_turno_${localId}`
+  const KEY_LISTOS = `appetic_demo_listos_${localId}`
+  const turnos = new Map()
+  const leerJSON = k => { try { return JSON.parse(localStorage.getItem(k) || 'null') } catch { return null } }
+  const escribirListos = fn => { try { localStorage.setItem(KEY_LISTOS, JSON.stringify(fn(leerJSON(KEY_LISTOS)))) } catch { /* nada */ } }
   const canal = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(KEY) : null
   const oyentes = new Set()
 
@@ -360,9 +400,22 @@ function demoApi(localId) {
       return { lista: l.map(hidratar), ultimo: l.length ? desde + l.length : null }
     },
     nuevoId: () => 'demo-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    async crear({ id, destino, items, creadaPor, origen = 'mesero', entregada = false }) {
+    async tomarTurno(comandaId) {
+      if (turnos.has(comandaId)) return turnos.get(comandaId)
+      const fecha = fechaBogota()
+      const n = siguienteTurno(leerJSON(KEY_TURNO), fecha)
+      try { localStorage.setItem(KEY_TURNO, JSON.stringify({ fecha, n })) } catch { /* nada */ }
+      turnos.set(comandaId, n)
+      return n
+    },
+    escucharListos(cb) {
+      return suscribir(() => [leerJSON(KEY_LISTOS)], cb)
+    },
+    async crear({ id, destino, items, creadaPor, origen = 'mesero', entregada = false, turno = null }) {
       const ahora = Date.now()
+      turnos.delete(id)
       escribir([...leer().filter(c => c.id !== id), {
+        ...(turno ? { turno } : {}),
         id, destino, items, estado: entregada ? 'entregada' : 'activa', origen, creadaPor,
         total: items.reduce((s, it) => s + (it.precio || 0), 0),
         cantidadItems: items.reduce((s, it) => s + (it.cantidad || 0), 0),
@@ -394,12 +447,14 @@ function demoApi(localId) {
     },
     async entregar(comanda) {
       const ahora = Date.now()
+      if (comanda.turno) escribirListos(prev => agregarListo(prev, entradaListo(comanda), fechaBogota()))
       cambiar(comanda.id, c => ({
         ...c, items: c.items.map(it => it.quitado ? it : { ...it, hecho: true }),
         estado: 'entregada', entregadaEn: ahora, cerradaEn: ahora,
       }))
     },
     async deshacer(comanda) {
+      if (comanda.turno) escribirListos(prev => quitarListo(prev, comanda.id))
       cambiar(comanda.id, c => ({ ...c, estado: 'activa', entregadaEn: null, cerradaEn: null }))
     },
     async cancelar(comanda, porQuien) {

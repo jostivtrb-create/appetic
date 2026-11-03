@@ -218,5 +218,27 @@ const con = md.conMenuDelDia({categorias:[{id:'a'}], menuDelDia: M}, [{id:'x'}],
 eq('dos principios para escoger', alm.gruposOpciones[2].max, 2)
 eq('el almuerzo va de primero, en su categoría', [con.local.categorias[0].id, con.productos[0].id], ['_menu-del-dia','menu-del-dia'])
 
+
+// ── 🔔 Turnos y pedidos listos (Etapa C) ──
+const tu = await import('./src/utils/turnos.js')
+console.log('\n── Turnos y pedidos listos ──')
+const conListos = { pantalla: { pedidosListos: true } }
+eq('para llevar con listos prendidos: lleva turno', tu.llevaTurno(conListos, {tipo:'llevar'}, 'caja'), true)
+eq('del QR de la mesa: también', tu.llevaTurno(conListos, {tipo:'mesa', mesa:'4'}, 'qr'), true)
+eq('mesa tomada por el mesero: no', tu.llevaTurno(conListos, {tipo:'mesa', mesa:'4'}, 'mesero'), false)
+eq('sin cocina: no', tu.llevaTurno({ ...conListos, usaCocina: false }, {tipo:'llevar'}, 'caja'), false)
+eq('con listos apagados: no', tu.llevaTurno({}, {tipo:'llevar'}, 'caja'), false)
+eq('el primero del día es el 1', tu.siguienteTurno(null, '2026-11-02'), 1)
+eq('sigue contando el mismo día', tu.siguienteTurno({fecha:'2026-11-02', n:14}, '2026-11-02'), 15)
+eq('al otro día vuelve a 1', tu.siguienteTurno({fecha:'2026-11-01', n:90}, '2026-11-02'), 1)
+eq('primer nombre', tu.nombreCorto('  Ana María Pérez '), 'Ana')
+const l1 = tu.agregarListo(null, {id:'a', turno:1, en:1}, '2026-11-02')
+const l2 = tu.agregarListo(l1, {id:'b', turno:2, en:2}, '2026-11-02')
+eq('el más nuevo va arriba', l2.items.map(x=>x.turno), [2,1])
+eq('no repite la misma comanda', tu.agregarListo(l2, {id:'a', turno:1, en:3}, '2026-11-02').items.map(x=>x.id), ['a','b'])
+eq('lo de ayer se borra', tu.agregarListo({fecha:'2026-11-01', items:[{id:'z'}]}, {id:'a'}, '2026-11-02').items.map(x=>x.id), ['a'])
+eq('deshacer lo saca', tu.quitarListo(l2, 'b').items.map(x=>x.id), ['a'])
+eq('a los 12 minutos sale de la franja', tu.listosVigentes({items:[{en:0},{en:600000}]}, 12*60000).length, 1)
+
 console.log(f===0 ? '\n✅ TODO PASA — los dos lados cuadran\n' : `\n❌ ${f} FALLO(S)\n`)
 process.exit(f===0?0:1)

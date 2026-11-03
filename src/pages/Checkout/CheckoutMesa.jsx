@@ -4,6 +4,7 @@ import { cop } from '../../utils/money'
 import { precioItem } from '../../utils/price'
 import { resumenSeleccion } from '../../utils/selectionSummary'
 import { comandasDe, itemsDeComanda } from '../../services/comandas'
+import { llevaTurno } from '../../utils/turnos'
 import { registrarPedidoStats } from '../../services/stats'
 import { isDevSlug } from '../../dev'
 import './Checkout.css'
@@ -20,7 +21,7 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
   const api = useMemo(() => comandasDe(local.id, { demo }), [local.id, demo])
   const [nombre, setNombre] = useState(() => { try { return JSON.parse(localStorage.getItem(NOMBRE_KEY))?.nombre || '' } catch { return '' } })
   const [estado, setEstado] = useState('')   // '' | enviando | error
-  const [listo, setListo] = useState(null)   // nombre con el que salió
+  const [listo, setListo] = useState(null)   // { nombre, turno } con el que salió
   const idRef = useRef(null)                 // mismo id en los reintentos → nunca se duplica
   const valido = abierto && items.length > 0 && nombre.trim().length >= 2
 
@@ -37,12 +38,14 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
       creadaPor: { email: '', nombre: `${quien} (desde la mesa)` },
     }
     try {
-      await Promise.race([api.crear(datos), new Promise((_, rej) => setTimeout(() => rej(new Error('tiempo')), 10000))])
+      // 🔔 Con «Pedidos listos» en el TV, el pedido de la mesa también lleva turno (D15).
+      const turno = llevaTurno(local, datos.destino, 'qr') ? await api.tomarTurno(datos.id) : null
+      await Promise.race([api.crear({ ...datos, turno }), new Promise((_, rej) => setTimeout(() => rej(new Error('tiempo')), 10000))])
       if (!demo) registrarPedidoStats(local.id, subtotal, 'mesa')
       try { localStorage.setItem(NOMBRE_KEY, JSON.stringify({ ...(JSON.parse(localStorage.getItem(NOMBRE_KEY)) || {}), nombre: quien })) } catch { /* nada */ }
       idRef.current = null
       clear()
-      setListo(quien)
+      setListo({ nombre: quien, turno })
       avisarDemo('pedido-mesa')
       setEstado('')
     } catch {
@@ -54,8 +57,15 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
     return (
       <div className="co-screen co-exito">
         <div className="co-exito-check">✓</div>
-        <h2>¡Listo, {listo.split(' ')[0]}!</h2>
+        <h2>¡Listo, {listo.nombre.split(' ')[0]}!</h2>
         <p>Tu pedido ya está en la cocina 🍳. Te lo llevamos a la <strong>mesa {mesa}</strong>.</p>
+        {listo.turno && (
+          <div className="co-turno">
+            <small>Tu turno</small>
+            <b>{listo.turno}</b>
+            <span>Cuando esté listo, sale en el TV del local.</span>
+          </div>
+        )}
         <p className="co-hint">¿Quieres algo más? Puedes volver al menú y pedir otra vez desde aquí.</p>
         <button className="btn btn-primary" onClick={onClose}>Volver al menú</button>
       </div>

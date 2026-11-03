@@ -10,6 +10,8 @@ import { esColorOscuro } from '../../utils/theme'
 import { diaBogota, minutosAhoraBogota } from '../../utils/horario'
 import { useMinuto, useConMenuDelDia } from '../../utils/useMinuto'
 import { CATEGORIA_MD } from '../../utils/menuDelDia'
+import { listosVigentes } from '../../utils/turnos'
+import { comandasDe } from '../../services/comandas'
 import './PantallaTV.css'
 
 // 📺 La pantalla de TV del local: appetic.vercel.app/<slug>/tv
@@ -68,6 +70,8 @@ function Pantalla({ local: localBase, productos: productosBase, tam, clases, der
   // franja (D19, D23). En el local se dicen los dos precios si son distintos (mesa y llevar).
   const { local, productos } = useConMenuDelDia(localBase, productosBase, 'personal')
   const minuto = useMinuto()
+  // 🔔 Pedidos listos (Etapa C): interrumpen a pantalla completa y quedan en una franja (D14).
+  const { llamando, franja } = useListos(local, minuto)
   const vertical = tam.h > tam.w
   // Unidad de medida que escala con la pantalla, como si siempre fuera 16:9 (o 9:16).
   const u = vertical ? Math.min(tam.h, tam.w * 16 / 9) / 100 : Math.min(tam.w, tam.h * 16 / 9) / 100
@@ -158,7 +162,7 @@ function Pantalla({ local: localBase, productos: productosBase, tam, clases, der
   const logo = local.logo || local.icono
 
   return (
-    <div className={`tv ${vertical ? 'tv-vertical' : 'tv-horizontal'} ${hayGrande ? '' : 'tv-sin-grande'} ${clases}`} style={estilo}>
+    <div className={`tv ${vertical ? 'tv-vertical' : 'tv-horizontal'} ${hayGrande ? '' : 'tv-sin-grande'} ${franja.length ? 'tv-con-listos' : ''} ${clases}`} style={estilo}>
       <div className="tv-escena">
         {hayGrande && (
           <section className={`tvg tvg-${transicion}`}>
@@ -213,6 +217,26 @@ function Pantalla({ local: localBase, productos: productosBase, tam, clases, der
       </div>
 
       {anuncio && <Anuncio key={`${anuncio.id}-${paso.vueltaAnuncio}`} anuncio={anuncio} logo={logo} nombre={local.nombre} />}
+
+      {franja.length > 0 && (
+        <div className="tvl-franja" aria-label="Pedidos listos">
+          <span className="tvl-franja-tit">Listos</span>
+          <div className="tvl-franja-lista">
+            {franja.map(x => (
+              <span key={x.id} className="tvl-chip"><b>{x.turno}</b>{x.nombre && <small>{x.nombre}</small>}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {llamando && (
+        <div key={llamando.id} className="tvl-llamado" role="alert">
+          <span className="tvl-etq">Pedido listo</span>
+          <b className="tvl-num">{llamando.turno}</b>
+          {llamando.nombre && <span className="tvl-nombre">{llamando.nombre}</span>}
+          <span className="tvl-pie">Acércate al mostrador</span>
+        </div>
+      )}
 
       <span className="tv-marca">Hecho con <b>Appetic</b></span>
     </div>
@@ -358,6 +382,47 @@ function Mensaje({ titulo, texto }) {
 }
 
 // ─────────────────────────────── Ganchos ───────────────────────────────
+
+// 🔔 Escucha `pantalla/listos` (un documento público) si el local prendió los pedidos listos.
+// Los que llegan después de abrir la pantalla se llaman de a uno, 7 s cada uno, sin sonido (D24);
+// los que ya estaban al abrir no se vuelven a llamar. La franja muestra los de los últimos minutos.
+function useListos(local, minuto) {
+  const activo = !!local?.pantalla?.pedidosListos && local?.usaCocina !== false
+  // undefined = todavía no llega nada; null = no hay documento (ningún pedido listo aún).
+  const [docListos, setDocListos] = useState(undefined)
+  useEffect(() => {
+    if (!activo || !local?.id) { setDocListos(undefined); return }
+    const demo = import.meta.env.DEV || new URLSearchParams(window.location.search).has('preview')
+    return comandasDe(local.id, { demo }).escucharListos(setDocListos)
+  }, [activo, local?.id])
+
+  const vistos = useRef(null)
+  const [cola, setCola] = useState([])
+  const [llamando, setLlamando] = useState(null)
+  useEffect(() => {
+    if (docListos === undefined) return
+    const items = docListos?.items || []
+    // Lo que ya estaba al abrir la pantalla no se vuelve a llamar.
+    if (vistos.current === null) { vistos.current = new Set(items.map(x => x.id)); return }
+    const nuevos = items.filter(x => !vistos.current.has(x.id) && Date.now() - Number(x.en || 0) < 120000).reverse()
+    nuevos.forEach(x => vistos.current.add(x.id))
+    if (nuevos.length) setCola(c => [...c, ...nuevos])
+  }, [docListos, activo])
+  useEffect(() => {
+    if (llamando || !cola.length) return
+    setLlamando(cola[0])
+    setCola(c => c.slice(1))
+  }, [cola, llamando])
+  useEffect(() => {
+    if (!llamando) return
+    const t = setTimeout(() => setLlamando(null), 7000)
+    return () => clearTimeout(t)
+  }, [llamando])
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const franja = useMemo(() => (activo ? listosVigentes(docListos) : []), [activo, docListos, minuto])
+  return { llamando, franja }
+}
 
 // El plato que entra y el que sale conviven ~1,2 s para que la transición se vea.
 function useCapas(plato) {

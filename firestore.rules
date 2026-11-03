@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Última actualización: 2026-11-02 (Cuentas del negocio + contadores por tipo de pedido)
+// Última actualización: 2026-11-02 (Pantalla de TV: turno del día y pedidos listos en locales/{id}/pantalla)
 // Cambios Cuentas: rol CAJERO por local (vende, cobra y anota gastos; no ve saldos ni ganancia) ·
 //   ventas/, movimientos/, trabajadores/ y resumen/ PRIVADOS del local (ver services/cuentas.js) ·
 //   las comandas pueden nacer «entregada» si el local no usa cocina · el cobro (porCobrar,
@@ -192,6 +192,29 @@ service cloud.firestore {
                           || puedeCaja(localId)
                           || (request.resource.data.estado == 'cancelada' && request.resource.data.get('porCobrar', false) == false
                               && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['cobradaEn', 'cobradaPor', 'ventaId'])));
+        allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
+      }
+
+      // 📺 PANTALLA DE TV (guía «Pantalla de TV», Etapa C). El TV no inicia sesión: lee esto en público.
+      //   turno  → contador del día { fecha, n }. Lo sube quien manda una comanda con turno, también
+      //            el cliente del QR de la mesa (sin sesión): solo de a uno, o vuelve a 1 al cambiar el día.
+      //   listos → lo que muestra el TV { fecha, items: [{ id, turno, nombre, en }] }. Lo escribe el
+      //            personal (la cocina al despachar); sin platos, teléfonos ni direcciones.
+      match /pantalla/{docId} {
+        allow read: if true;
+        allow create, update: if docId == 'turno'
+                              && request.resource.data.keys().hasOnly(['fecha', 'n'])
+                              && request.resource.data.fecha is string
+                              && request.resource.data.n is int
+                              && (resource == null
+                                    ? request.resource.data.n == 1
+                                    : (request.resource.data.fecha == resource.data.fecha
+                                         ? request.resource.data.n == resource.data.n + 1
+                                         : request.resource.data.n == 1));
+        allow create, update: if docId == 'listos' && esPersonal(localId)
+                              && request.resource.data.keys().hasOnly(['fecha', 'items'])
+                              && request.resource.data.items is list
+                              && request.resource.data.items.size() <= 8;
         allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
 

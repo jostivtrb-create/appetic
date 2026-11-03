@@ -302,3 +302,24 @@
 .pv-ya-acc .pv-link { font-size: 13px; }
 .pv-ya-acc.seguro { align-items: center; }
 .pv-ya-acc.seguro span { flex: 1; font-size: 13px; font-weight: 700; color: #8E1B14; }
+
+/* 🔔 Turno recién dado (Pedidos listos en el TV): grande, para decírselo al cliente */
+.pv-turno-capa {
+  position: fixed; inset: 0; z-index: 80;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: rgba(20, 14, 10, .55);
+  animation: pv-turno-fondo .2s ease both;
+}
+.pv-turno {
+  width: min(340px, 100%); padding: 22px 22px 18px; border-radius: 22px; text-align: center;
+  background: var(--surface); box-shadow: var(--shadow-lg, 0 20px 50px rgba(0,0,0,.3));
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  animation: pv-turno-entra .35s cubic-bezier(.2,.9,.3,1.2) both;
+}
+.pv-turno small { font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
+.pv-turno b { font-size: 96px; line-height: 1; font-weight: 900; color: var(--brand-orange-strong, var(--brand-orange)); font-variant-numeric: tabular-nums; }
+.pv-turno span { font-size: 20px; font-weight: 800; }
+.pv-turno p { margin: 6px 0 12px; font-size: 13px; color: var(--text-soft); }
+.pv-turno .btn { width: 100%; }
+@keyframes pv-turno-fondo { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pv-turno-entra { from { opacity: 0; transform: scale(.85); } to { opacity: 1; transform: none; } }

@@ -21,7 +21,7 @@ import { cuentasDeEjemplo } from './cuentasEjemplo'
 
 const ID = DEMO_SLUG
 // pedidosPublicos no se puede listar (reglas): se borra por los mismos ids de los pedidos.
-const SUBCOLECCIONES = ['comandas', 'pedidos', 'equipo', 'productos', 'stats', 'ventas', 'movimientos', 'trabajadores', 'resumen']
+const SUBCOLECCIONES = ['comandas', 'pedidos', 'equipo', 'productos', 'stats', 'ventas', 'movimientos', 'trabajadores', 'resumen', 'pantalla']
 
 async function vaciar(nombre) {
   const snap = await getDocs(collection(db, 'locales', ID, nombre))

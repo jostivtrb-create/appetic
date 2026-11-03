@@ -6,6 +6,7 @@ import {
   itemsDeComanda, etiquetaDestino, claveMesa, ms, nuevoIdComanda, usaCocina, itemsVivos,
 } from '../../services/comandas'
 import { pedidosDe } from '../../services/pedidos'
+import { llevaTurno } from '../../utils/turnos'
 import ProductModal from '../../components/Menu/ProductModal'
 import ProductWizard from '../../components/Menu/ProductWizard'
 import { useEsEscritorio } from '../../utils/useEsEscritorio'
@@ -201,6 +202,8 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
   const toastT = useRef(null)
   const avisar = t => { setToast(t); clearTimeout(toastT.current); toastT.current = setTimeout(() => setToast(''), 3200) }
   const [error, setError] = useState('')
+  // El turno que se acaba de dar: se muestra en grande para decírselo al cliente.
+  const [turnoDado, setTurnoDado] = useState(null)
 
   // ── Mandar (a cocina o a «por cobrar») ──
   const [enviando, setEnviando] = useState(false)
@@ -208,9 +211,12 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
   async function crearComanda(destino, lista) {
     if (!idRef.current) idRef.current = nuevoIdComanda(api)
     const id = idRef.current
-    await api.crear({ id, destino, items: itemsDeComanda(lista), creadaPor: por, origen: esMesero ? 'mesero' : 'caja', entregada: !conCocina })
+    const origen = esMesero ? 'mesero' : 'caja'
+    // 🔔 Para llevar con «Pedidos listos» prendidos: número de turno del día (S17).
+    const turno = llevaTurno(local, destino, origen) ? await api.tomarTurno(id) : null
+    await api.crear({ id, destino, items: itemsDeComanda(lista), creadaPor: por, origen, entregada: !conCocina, turno })
     idRef.current = null
-    return id
+    return { id, turno }
   }
   async function mandar(destino) {
     const dest = destino || grupo?.destino
@@ -218,14 +224,15 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
     setEnviando(true); setError('')
     try {
       const lista = lineas
-      const id = await crearComanda(dest, lista)
+      const { id, turno } = await crearComanda(dest, lista)
       sumarFrec(lista)
       setGuardado(g => {
         const carts = { ...g.carts, [sel]: [] }
         return { carts, nuevas: g.nuevas.filter(n => n.key !== sel) }
       })
       setSel(claveMesa(dest) || `c:${id}`)
-      avisar(conCocina ? `✓ Enviada a cocina · ${etiquetaDestino(dest)}` : `✓ ${etiquetaDestino(dest)} queda por cobrar`)
+      if (turno) setTurnoDado({ turno, nombre: dest.nombre || '' })
+      else avisar(conCocina ? `✓ Enviada a cocina · ${etiquetaDestino(dest)}` : `✓ ${etiquetaDestino(dest)} queda por cobrar`)
       avisarDemo('comanda-mesero')
     } catch {
       setError('No se envió. Revisa el internet y vuelve a intentar: no se va a repetir.')
@@ -588,6 +595,17 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
       )}
 
       {toast && <div className="pv-toast" role="status">{toast}</div>}
+      {turnoDado && (
+        <div className="pv-turno-capa" role="dialog" aria-label="Turno del pedido" onClick={() => setTurnoDado(null)}>
+          <div className="pv-turno">
+            <small>Dile al cliente su turno</small>
+            <b>{turnoDado.turno}</b>
+            {turnoDado.nombre && <span>{turnoDado.nombre}</span>}
+            <p>Cuando la cocina lo despache, sale en el TV.</p>
+            <button className="btn btn-primary" onClick={() => setTurnoDado(null)}>Listo</button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

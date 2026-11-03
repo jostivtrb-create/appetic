@@ -194,6 +194,8 @@ function Comanda({ c, n, abierta, nueva, ahora, umbrales, onAlternar, onTachar, 
       <button className="km-com-cab" onClick={onAlternar} aria-expanded={abierta}>
         <span className="km-com-tipo">{palabraDestino(c.destino)}</span>
         <span className="km-com-dest">{llevar ? (c.destino?.nombre || '') : (c.destino?.mesa || c.destino?.nombre || '')}</span>
+        {/* 🔔 El turno que sale en el TV al despachar (Pedidos listos). */}
+        {c.turno ? <span className="km-com-turno" title="Turno del TV">T{c.turno}</span> : null}
         <span className="km-com-orden">#{n}</span>
       </button>
       {/* ⚠️ La franja de CAMBIO se ve aunque la comanda esté cerrada, y se quita con «Visto». */}

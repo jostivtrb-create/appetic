@@ -63,6 +63,7 @@
 .km-com.domicilio .km-com-cab { background: var(--cm-domi); color: var(--cm-domi-txt); }
 .km-com.domicilio .km-com-dest { font-size: 22px; }
 .km-com-tipo { font-size: 18px; font-weight: 900; letter-spacing: 0.06em; }
+.km-com-turno { flex: none; padding: 3px 9px; border-radius: 999px; background: rgba(255,255,255,.92); color: #1d1714; font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; }
 .km-com-dest { font-size: 34px; font-weight: 900; line-height: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .km-com.llevar .km-com-dest { font-size: 22px; }
 .km-com-orden { margin-left: auto; font-size: 15px; font-weight: 800; opacity: 0.8; }

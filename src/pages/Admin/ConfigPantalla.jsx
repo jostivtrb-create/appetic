@@ -119,6 +119,24 @@ export default function ConfigPantalla({ local, productos, slug, onUpdate, onSub
       </section>
 
       <section className="ac-sec">
+        <h3>🔔 Pedidos listos</h3>
+        {local.usaCocina === false ? (
+          <p className="ac-hint cpt-hint-top">Para llamar los pedidos en el TV hace falta la pantalla de cocina: es la que dice cuándo sale cada uno. Prende <b>«Usamos la pantalla de cocina»</b> en Configuración → Cuentas y pagos.</p>
+        ) : (
+          <>
+            <label className="ac-switch cpt-listos">
+              <span>
+                <b>Llamar los pedidos en el TV</b>
+                <small>Cada pedido para llevar y cada pedido del QR de la mesa recibe un número de turno del día (1, 2, 3…). Cuando la cocina lo despacha, el número sale en grande en el TV y queda unos minutos en una franja abajo.</small>
+              </span>
+              <input type="checkbox" checked={!!pantalla.pedidosListos} onChange={e => guardar({ pedidosListos: e.target.checked })} />
+            </label>
+            {pantalla.pedidosListos && <p className="ac-hint">La caja y el mesero ven el turno en grande al mandar el pedido, para decírselo al cliente. Los pedidos de mesa que lleva el mesero no se llaman.</p>}
+          </>
+        )}
+      </section>
+
+      <section className="ac-sec">
         <h3>📢 Anuncios</h3>
         <p className="ac-hint cpt-hint-top">Entran a pantalla completa unos segundos, entre las categorías. Puedes decir qué días y a qué horas sale cada uno.</p>
 
