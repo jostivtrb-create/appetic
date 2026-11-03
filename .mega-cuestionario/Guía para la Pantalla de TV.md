@@ -5,7 +5,7 @@
 
 - **Tarea:** Construir el punto 2 de la propuesta, «Tu menú en vivo, en tu TV», bien hecho y no como una pantalla genérica.
 - **Inicio:** 2 de noviembre de 2026
-- **Estado:** 🔵 Construyendo · ✅ Etapa A publicada (2-nov, `efcc2a6`) · ✅ Etapa B publicada (`a3a4897`) · ✅ Etapa C lista en la vista previa (sin publicar: lleva reglas nuevas)
+- **Estado:** ✅ **Terminada** — 2 de noviembre de 2026 · Etapas A (`efcc2a6`), B (`a3a4897`) y C (`ec75ead`) publicadas, reglas desplegadas · falta solo «Reiniciar demo» (superadmin) para ver todo en la demo publicada
 - **Proyecto:** `Appetic/` (Vite + React + Firebase, Vercel)
 
 ---
@@ -159,6 +159,7 @@ El usuario quiere algo **top**, que se sienta producto y no una pantalla para sa
 - **Ronda 2 — Cómo funciona por dentro** ✅ respondida · `Cuestionario-2-Pantalla-TV.html`
 - **Ronda 3 — El corrientazo y un choque** ✅ respondida · `Cuestionario-3-Pantalla-TV.html`
 - **Ronda 4** ❌ no se hace: ya no queda nada que adivinar.
+- Los HTML de las tres rondas se borraron al cerrar (2-nov-2026).
 
 ---
 
@@ -198,9 +199,9 @@ Por etapas. Cada etapa deja algo que funciona y se puede mostrar sola.
 - [x] C5 · Interruptor en el panel, solo si usa cocina (S16).
 
 ### Etapa D · Demo y cierre
-- [ ] D1 · Burger Demo con pantalla, anuncios y menú del día de ejemplo; «Reiniciar demo» lo deja así; `/demo/tv`.
-- [ ] D2 · Desplegar reglas y app (con permiso) y probar en producción.
-- [ ] D3 · Cerrar la guía y borrar los HTML de las rondas.
+- [~] D1 · Burger Demo con pantalla, anuncios y menú del día de ejemplo; «Reiniciar demo» lo deja así; `/demo/tv`.
+- [x] D2 · Desplegar reglas y app (con permiso) y probar en producción.
+- [x] D3 · Cerrar la guía y borrar los HTML de las rondas.
 
 ---
 
@@ -272,3 +273,10 @@ Por etapas. Cada etapa deja algo que funciona y se puede mostrar sola.
     después. Si dos salen a la vez, se llaman en fila. La franja se va sola a los 12 minutos.
   - *A tener en cuenta:* la cocina tiene un botón «Empezar turno» (el turno de trabajo) y ahora
     también existe el turno del pedido. No se cambió el texto; si confunde, se renombra.
+- **2-nov-2026** — **Etapa C publicada**: reglas de `pantalla/` desplegadas a `appetic-17477` (antes que el
+  código: solo agregan permisos) y app en `ec75ead` (verificado en el bundle). En producción, `pantalla/listos`
+  y `pantalla/turno` se leen sin sesión (404 = permitido, aún sin documento) y `comandas` sigue cerrada (403).
+- **2-nov-2026** — **Cierre.** Burger Demo ya trae en el código pantalla, anuncios, menú del día y pedidos
+  listos; en producción aparecen cuando el superadmin pulse «Reiniciar demo» (D1 queda en manos del usuario).
+  Se borraron los HTML de las rondas. Ideas que quedaron fuera y se pueden retomar: una configuración por TV
+  (D7), sonido opcional al llamar (D24), renombrar «Empezar turno» de la cocina si confunde con el turno del pedido.
