@@ -27,7 +27,7 @@ su mesa y puede tocar «Pedir la cuenta».
 | # | Decisión | Por qué |
 |---|----------|---------|
 | D1 | Alcance: **cuenta por mesa**, sin cuadre de caja ni contabilidad | El cuadre sigue en el plan caro (D42 de la guía de Mesero y Comandas) |
-| D2 | Va en **todos los planes** (Emprendedor incluido) | Decisión del usuario. ⚠️ Hay que cambiar la propuesta: decía «No es una caja registradora: la cuenta de la mesa y el cobro los sigues manejando tú» |
+| D2 | ~~Va en **todos los planes** (Emprendedor incluido)~~ → **solo Empresario** desde el 3-nov («Guía para el Blindaje de Appetic» D8) | Decisión del usuario. ⚠️ Hay que cambiar la propuesta: decía «No es una caja registradora: la cuenta de la mesa y el cobro los sigues manejando tú» |
 | D3 | **Reemplaza P-D10** de la guía de Mesero y Comandas («Solo comanda a cocina, sin caja ni cuenta de la mesa») | El usuario lo pidió explícitamente tras probarla: «una vez que se entrega se pierde y ya no se sabe cuánto cobrar» |
 
 ### De la ronda 1

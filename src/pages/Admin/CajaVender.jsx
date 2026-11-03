@@ -13,6 +13,8 @@ import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import { Teclado } from './Teclado'
 import Cobro from './Cobro'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
+import { tiene } from '../../utils/plan'
+import { Candado } from './PlanAvisos'
 
 // 🛒 VENDER (Caja, guía «Cuentas del negocio» D6, D19, D20 y D29 — el orden de La Catrina):
 //
@@ -74,6 +76,9 @@ function useFrecuentes(localId) {
 export default function CajaVender({ local, productos, api, cuentasApi, demo, usuario, porCobrar, onVenta, modo = 'caja' }) {
   const esMesero = modo === 'mesero'
   const conCocina = usaCocina(local)
+  // 🔒 Cuentas por mesa: solo Empresario (guía «Blindaje», respuesta del 3-nov). Los demás dejan la
+  // cuenta «para llevar» a nombre de alguien.
+  const conMesas = tiene(local, 'mesas')
   const esPC = useEsEscritorio()
   const por = useMemo(() => ({ email: (usuario?.email || '').toLowerCase(), nombre: usuario?.displayName || '' }), [usuario])
   const idsMenu = useMemo(() => new Set(productos.map(p => p.id)), [productos])
@@ -470,7 +475,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
         {lineas.length > 0 && <button type="button" className="pv-link" onClick={() => setLineas([])}>Vaciar</button>}
         {!esMesero && !grupo && lineas.length > 0 && (
           <button type="button" className="pv-link" onClick={() => setAbrirCuenta('dejar')}>
-            {conCocina ? 'Mandar y cobrar después' : 'Dejar en una mesa'}
+            {conCocina ? 'Mandar y cobrar después' : conMesas ? 'Dejar en una mesa' : 'Dejar para cobrar después'}
           </button>
         )}
       </div>
@@ -495,7 +500,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
           </button>
         ))}
         <button type="button" className="pv-cuenta nueva" onClick={() => setAbrirCuenta('nueva')}>
-          <b>＋ Mesa</b>
+          <b>{conMesas ? '＋ Mesa' : '＋ Cuenta'}</b>
           <small>abrir cuenta</small>
         </button>
       </nav>
@@ -570,7 +575,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
         ? <ProductWizard key={abierto.id} producto={abierto} onCerrar={() => setAbierto(null)} onAgregar={agregarDesdeModal} />
         : <ProductModal key={abierto.id} producto={abierto} compacto textoNotas={conCocina ? 'Nota para cocina' : 'Nota'} onCerrar={() => setAbierto(null)} onAgregar={agregarDesdeModal} />)}
 
-      {abrirCuenta && <AbrirCuenta modo={abrirCuenta} conCocina={conCocina} onCerrar={() => setAbrirCuenta(null)} onElegir={elegirDestino} />}
+      {abrirCuenta && <AbrirCuenta local={local} conMesas={conMesas} modo={abrirCuenta} conCocina={conCocina} onCerrar={() => setAbrirCuenta(null)} onElegir={elegirDestino} />}
 
       {cobro && (
         <Cobro
@@ -611,8 +616,9 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
 }
 
 // ＋ Mesa: número por teclado, otro nombre o para llevar.
-function AbrirCuenta({ modo, conCocina, onCerrar, onElegir }) {
-  const [tipo, setTipo] = useState('mesa')
+function AbrirCuenta({ local, conMesas, modo, conCocina, onCerrar, onElegir }) {
+  const [tipo, setTipo] = useState(conMesas ? 'mesa' : 'llevar')
+  const tipos = conMesas ? [['mesa', '🪑 Mesa'], ['nombre', '✏️ Nombre'], ['llevar', '🥡 Para llevar']] : [['llevar', '🥡 Para llevar']]
   const [mesa, setMesa] = useState('')
   const [nombre, setNombre] = useState('')
   const destino = tipo === 'llevar' ? { tipo: 'llevar', mesa: null, nombre: nombre.trim() || null }
@@ -625,13 +631,14 @@ function AbrirCuenta({ modo, conCocina, onCerrar, onElegir }) {
         <button type="button" className="pv-hoja-x" aria-label="Cerrar" onClick={onCerrar}>✕</button>
         <h2>{modo === 'dejar' ? (conCocina ? '¿Para dónde va?' : '¿A qué cuenta?') : 'Abrir cuenta'}</h2>
         <div className="cb-mini pv-abrir-tipo" role="radiogroup">
-          {[['mesa', '🪑 Mesa'], ['nombre', '✏️ Nombre'], ['llevar', '🥡 Para llevar']].map(([v, t]) => (
+          {tipos.map(([v, t]) => (
             <button key={v} role="radio" aria-checked={tipo === v} className={tipo === v ? 'on' : ''} onClick={() => setTipo(v)}>{t}</button>
           ))}
         </div>
         {tipo === 'mesa'
           ? <Teclado valor={mesa} onCambio={setMesa} />
           : <input className="cb-motivo" autoFocus maxLength={30} placeholder={tipo === 'llevar' ? 'Nombre del cliente (opcional)' : 'Ej: Barra, Terraza, Don Carlos'} value={nombre} onChange={e => setNombre(e.target.value)} />}
+        {!conMesas && <Candado local={local} funcion="mesas" compacto titulo="Las cuentas por mesa" />}
         <button type="button" className="pv-cobrar" disabled={!listo} onClick={() => onElegir(destino)}>
           {!listo ? 'Elige la mesa' : modo === 'dejar' && conCocina ? `Mandar a cocina · ${etiquetaDestino(destino)}` : `Listo · ${etiquetaDestino(destino)}`}
         </button>

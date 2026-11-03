@@ -5,7 +5,7 @@ import { precioItem } from '../../utils/price'
 import { resumenSeleccion } from '../../utils/selectionSummary'
 import { comandasDe, itemsDeComanda } from '../../services/comandas'
 import { llevaTurno } from '../../utils/turnos'
-import { registrarPedidoStats } from '../../services/stats'
+import { enviarAlServidor, lineasDelCarrito, textoCambios } from '../../services/enviarPedido'
 import { isDevSlug } from '../../dev'
 import './Checkout.css'
 import { useFavoritos } from '../../contexts/FavoritosContext'
@@ -17,12 +17,13 @@ import { avisarDemo } from '../../components/Demo/eventosDemo'
 const NOMBRE_KEY = 'appetic_cliente'
 
 export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
-  const { items, subtotal, clear } = useCart()
+  const { items, subtotal, clear, ponerAlDia } = useCart()
   const demo = isDevSlug(local.slug)
   const api = useMemo(() => comandasDe(local.id, { demo }), [local.id, demo])
   const [nombre, setNombre] = useState(() => { try { return JSON.parse(localStorage.getItem(NOMBRE_KEY))?.nombre || '' } catch { return '' } })
   const [estado, setEstado] = useState('')   // '' | enviando | error
   const [listo, setListo] = useState(null)   // { nombre, turno } con el que salió
+  const [aviso, setAviso] = useState({ cambios: [], error: '' })   // lo que dijo el servidor (guía «Blindaje»)
   const idRef = useRef(null)                 // mismo id en los reintentos → nunca se duplica
   const valido = abierto && items.length > 0 && nombre.trim().length >= 2
   const { agregarFavorito } = useFavoritos()
@@ -39,21 +40,38 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
       items: itemsDeComanda(items.map(it => ({ ...it, comentario: it.notas || '' }))),
       creadaPor: { email: '', nombre: `${quien} (desde la mesa)` },
     }
-    try {
-      // 🔔 Con «Pedidos listos» en el TV, el pedido de la mesa también lleva turno (D15).
-      const turno = llevaTurno(local, datos.destino, 'qr') ? await api.tomarTurno(datos.id) : null
-      await Promise.race([api.crear({ ...datos, turno }), new Promise((_, rej) => setTimeout(() => rej(new Error('tiempo')), 10000))])
-      if (!demo) registrarPedidoStats(local.id, subtotal, 'mesa')
-      try { localStorage.setItem(NOMBRE_KEY, JSON.stringify({ ...(JSON.parse(localStorage.getItem(NOMBRE_KEY)) || {}), nombre: quien })) } catch { /* nada */ }
-      idRef.current = null
-      agregarFavorito(local)   // ❤️ D14
-      clear()
-      setListo({ nombre: quien, turno })
-      avisarDemo('pedido-mesa')
-      setEstado('')
-    } catch {
-      setEstado('error')
+    setAviso({ cambios: [], error: '' })
+    let turno = null
+    if (demo) {
+      // Vista previa (?preview=1): motor DEMO del navegador.
+      try {
+        turno = llevaTurno(local, datos.destino, 'qr') ? await api.tomarTurno(datos.id) : null
+        await api.crear({ ...datos, turno })
+      } catch { setEstado('error'); return }
+    } else {
+      // 🧾 El SERVIDOR rehace los precios y cuenta los envíos de este celular (guía «Blindaje» D1, D4).
+      const r = await enviarAlServidor({ tipo: 'mesa', localId: local.id, id: datos.id, mesa, nombre: quien, items: lineasDelCarrito(items) })
+      if (r.cambios) {
+        ponerAlDia(r.cambios, r.productos)
+        setAviso({ cambios: textoCambios(r.cambios), error: '' })
+        setEstado('')
+        return
+      }
+      if (r.error) {
+        setAviso({ cambios: [], error: r.motivo === 'limite' ? 'Ya mandaste varios pedidos seguidos. Espera unos minutos o pídeselo al mesero.' : r.motivo === 'cerrado' ? 'El local acaba de cerrar.' : r.error })
+        setEstado('')
+        return
+      }
+      if (r.sinRed) { setEstado('error'); return }
+      turno = r.turno || null
     }
+    try { localStorage.setItem(NOMBRE_KEY, JSON.stringify({ ...(JSON.parse(localStorage.getItem(NOMBRE_KEY)) || {}), nombre: quien })) } catch { /* nada */ }
+    idRef.current = null
+    agregarFavorito(local)   // ❤️ D14
+    clear()
+    setListo({ nombre: quien, turno })
+    avisarDemo('pedido-mesa')
+    setEstado('')
   }
 
   if (listo) {
@@ -99,6 +117,14 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
           <input className="co-input" placeholder="Tu nombre" value={nombre} maxLength={30} autoComplete="given-name" onChange={e => setNombre(e.target.value)} />
           <p className="co-hint">Así sabemos de quién es en la mesa {mesa}. La cuenta la pagas en el local, como siempre.</p>
         </section>
+        {aviso.cambios.length > 0 && (
+          <section className="co-convenir co-cambios" role="alert">
+            <strong>🔄 Actualizamos tu pedido</strong>
+            <ul>{aviso.cambios.map((x, i) => <li key={i}>{x}</li>)}</ul>
+            <span>Revisa el total y vuelve a enviar.</span>
+          </section>
+        )}
+        {aviso.error && <p className="co-hint co-hint-err">⚠️ {aviso.error}</p>}
         {estado === 'error' && <p className="co-hint co-hint-err">⚠️ No se envió. Revisa el internet y vuelve a intentar.</p>}
       </div>
       <footer className="co-footer">

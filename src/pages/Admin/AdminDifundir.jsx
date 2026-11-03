@@ -182,7 +182,13 @@ export default function AdminDifundir({ local, slug, onUpdate }) {
           {mesasMsg && <span className="dif-mesas-msg">{mesasMsg}</span>}
         </label>
         <button className="dif-afiche" disabled={!mesas}
-          onClick={async () => { await guardarMesas(mesas); abrirHojaMesas(local, url, mesas, qrDark(local.tema)) }}>
+          onClick={() => {
+            // La ventana se abre en el mismo toque: en iPhone, abrirla después de guardar la bloquea.
+            const w = window.open('', '_blank')
+            if (!w) { setMesasMsg('Tu navegador bloqueó la ventana: permite las ventanas emergentes y vuelve a tocar.'); return }
+            guardarMesas(mesas)
+            abrirHojaMesas(local, url, mesas, qrDark(local.tema), w)
+          }}>
           <span className="dif-afiche-ic">🪑</span>
           <span className="dif-afiche-txt"><strong>Imprimir los QR de las mesas</strong><small>{mesas ? `${mesas} QR, uno por mesa, con tu logo y el número` : 'Primero pon cuántas mesas tienes'}</small></span>
           <span className="dif-afiche-arrow">→</span>

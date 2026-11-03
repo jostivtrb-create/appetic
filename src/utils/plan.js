@@ -156,8 +156,8 @@ function simularEstado(sim, ahora) {
 export const estaCortado = (local, ahora) => estadoPago(local, ahora).estado === 'cortado'
 
 // ¿Sale en el buscador? Solo si el dueño lo prendió y está al día (D6, D7). En montaje nunca (D9).
-// Sin `enBuscador` (datos de antes de migrar) vale el viejo `suscripcion.activa`.
-export const quiereBuscador = local => !!(local?.enBuscador ?? local?.suscripcion?.activa)
+// (Todos los locales ya tienen `enBuscador`; el viejo `suscripcion.activa` se retiró el 3-nov-2026.)
+export const quiereBuscador = local => !!local?.enBuscador
 export function apareceEnBuscador(local, ahora) {
   if (!quiereBuscador(local) || local?.esDemo) return false
   const e = estadoPago(local, ahora).estado

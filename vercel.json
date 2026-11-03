@@ -4,5 +4,16 @@
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "crons": [
+    {
+      "path": "/api/demo",
+      "schedule": "0 8 * * *"
+    }
+  ],
+  "functions": {
+    "api/demo.js": {
+      "maxDuration": 60
+    }
+  }
 }

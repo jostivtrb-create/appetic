@@ -6,11 +6,10 @@
 //   • Los últimos 20 días: ventas con platos del menú, pagos repartidos entre las cuentas, alguna
 //     propina y algún descuento; gastos cada pocos días y la nómina semanal de dos personas.
 //   • Los 5 meses anteriores: solo su resumen (para la gráfica), con ventas parecidas.
-import { _internos } from './cuentas'
-import { jornadaDe, horaDe, sumarDias, mesDe, mesAnterior } from '../utils/jornada'
-import { cuentasDe } from '../utils/cuentasDinero'
+import { deltaVenta, saldosVenta, deltaMovimiento, saldosMovimiento, sumarEn, docsResumen } from '../utils/cuentasCalculo.js'
+import { jornadaDe, horaDe, sumarDias, mesDe, mesAnterior } from '../utils/jornada.js'
+import { cuentasDe } from '../utils/cuentasDinero.js'
 
-const { deltaVenta, saldosVenta, deltaMovimiento, saldosMovimiento, sumarEn, docsResumen } = _internos
 
 // Pseudoaleatorio con semilla: el ejemplo sale igual cada vez.
 function azar(semilla = 7) {

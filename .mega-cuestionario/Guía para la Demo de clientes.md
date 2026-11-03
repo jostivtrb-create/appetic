@@ -45,7 +45,7 @@ como nuevo con un botón «Reiniciar demo».
 | D12 | El link abre una **bienvenida** con «Ver como cliente» y «Ver como dueño» | El que llega solo entiende en 5 s qué está viendo |
 | D13 | Pueden subir **cualquier foto** (platos, logo, portada); se borran al reiniciar | Que pruebe con su propio plato |
 | D14 | Arranca con **3–4 comandas y un domicilio de ejemplo**, y vuelven al reiniciar | Una cocina vacía no impresiona |
-| D15 | Dos visitantes a la vez se ven los cambios: **se acepta**; se reinicia a mano antes de mandar el link | Decisión del usuario (S1) |
+| D15 | Dos visitantes a la vez se ven los cambios: **se acepta**; ~~se reinicia a mano antes de mandar el link~~ → **se reinicia sola** (madrugada y 30 min sin uso) y no se borran platos ni categorías: ver «Guía para el Blindaje de Appetic» D5 | Decisión del usuario (S1), ajustada el 3-nov |
 | D16 | **Bloqueados** en la demo: WhatsApp del local, link (slug) y horario | Si los cambian, se rompe para el siguiente (S2) |
 | D17 | **Tutorial guiado tipo videojuego**: resalta en pantalla qué tocar, espera a que lo haga y avanza; no solo texto | Obs. del usuario en S3: «muy bonito e interactivo, una experiencia guiada» |
 | D18 | Se miden **visitas y clics** a «Quiero esto para mi negocio» | Saber si la demo convierte (S4) |

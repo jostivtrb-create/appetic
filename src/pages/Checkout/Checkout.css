@@ -112,6 +112,9 @@
   line-height: 1.45;
 }
 .co-convenir strong { font-weight: 800; }
+.co-cambios { margin: 0 0 14px; animation: co-cambios-in .25s ease-out; }
+.co-cambios ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; }
+@keyframes co-cambios-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 .co-convenir-reintentar {
   align-self: flex-start;
   margin-top: 2px;

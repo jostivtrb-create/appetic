@@ -1,4 +1,4 @@
-import { estaCompleto } from './price'
+import { estaCompleto } from './price.js'
 
 // 📝 Resume las elecciones de un ítem en texto legible.
 // Ej: "Doble carne · Queso extra, Tocineta"

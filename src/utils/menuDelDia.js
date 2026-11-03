@@ -12,7 +12,7 @@
 // Cada día se convierte en un plato «armado» (`almuerzoDeHoy`) con un grupo de opciones por
 // parte: así el carrito, el WhatsApp, las comandas, la caja y las cuentas no cambian (S22).
 
-import { aMinutos, diaBogota, minutosAhoraBogota } from './horario'
+import { aMinutos, diaBogota, minutosAhoraBogota } from './horario.js'
 
 export const DIAS_MD = [
   { k: 'lun', c: 'Lun', full: 'Lunes' }, { k: 'mar', c: 'Mar', full: 'Martes' },

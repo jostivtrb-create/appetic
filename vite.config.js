@@ -1,11 +1,43 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { existsSync, readFileSync } from 'node:fs'
+
+// 🧪 En desarrollo, /api/* lo atienden las mismas funciones de Vercel (api/*.js), para probar el
+// pedido, la demo y los avisos sin publicar. Usan la llave local (scripts/serviceAccount.base64.txt,
+// fuera de git): OJO, escriben en el Firebase de verdad — prueba con la demo.
+function apiLocal() {
+  return {
+    name: 'api-local',
+    apply: 'serve',
+    configureServer(server) {
+      const llave = 'scripts/serviceAccount.base64.txt'
+      if (!process.env.FIREBASE_SERVICE_ACCOUNT && existsSync(llave)) process.env.FIREBASE_SERVICE_ACCOUNT = readFileSync(llave, 'utf8')
+      server.middlewares.use(async (req, res, next) => {
+        const m = /^\/api\/([\w-]+)(?:\?|$)/.exec(req.url || '')
+        if (!m || !existsSync(`api/${m[1]}.js`)) return next()
+        let cuerpo = ''
+        for await (const trozo of req) cuerpo += trozo
+        req.body = cuerpo
+        res.status = c => { res.statusCode = c; return res }
+        res.json = d => { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(d)) }
+        try {
+          const { default: handler } = await server.ssrLoadModule(`/api/${m[1]}.js`)
+          await handler(req, res)
+        } catch (e) {
+          console.error('[api-local]', e)
+          res.status(500).json({ error: String(e?.message || e) })
+        }
+      })
+    },
+  }
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    apiLocal(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icons/favicon.png', 'icons/apple-touch-icon.png'],

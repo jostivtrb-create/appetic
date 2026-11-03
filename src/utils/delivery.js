@@ -1,4 +1,4 @@
-import { distanciaKm } from './geo'
+import { distanciaKm } from './geo.js'
 
 // 🛵 Calcula el costo de domicilio según la distancia y la config del local.
 // config = { activo, maxKm, tarifas: { "0.5":2000, "1.0":2000, ... } }

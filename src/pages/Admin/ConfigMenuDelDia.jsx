@@ -31,6 +31,7 @@ export default function ConfigMenuDelDia({ local, onUpdate, onSubirFoto }) {
     reloj.current = setTimeout(guardar, ya ? 0 : ESPERA_GUARDAR)
   }
   async function guardar() {
+    reloj.current = null   // ya no hay nada pendiente: al salir no se vuelve a guardar
     setEstado('guardando')
     try {
       await onUpdate({ menuDelDia: ultimo.current })

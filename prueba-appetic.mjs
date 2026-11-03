@@ -240,5 +240,28 @@ eq('lo de ayer se borra', tu.agregarListo({fecha:'2026-11-01', items:[{id:'z'}]}
 eq('deshacer lo saca', tu.quitarListo(l2, 'b').items.map(x=>x.id), ['a'])
 eq('a los 12 minutos sale de la franja', tu.listosVigentes({items:[{en:0},{en:600000}]}, 12*60000).length, 1)
 
+
+// ── 🛡️ Precios del servidor (guía «Blindaje» D1, D2) ──
+const pr = await import('./api/_lib/precios.js')
+console.log('\n── Precios del servidor ──')
+const burger = { id:'b', nombre:'Doble', precio:20000, gruposOpciones:[
+  { id:'g', nombre:'Adición', min:0, max:2, opciones:[{id:'queso', nombre:'Queso', precioExtra:3000}] }] }
+const menuPr = { b: burger, ago: { id:'ago', nombre:'Malteada', precio:9000, disponible:false } }
+const linPr = (extra={}) => ({ uid:'u1', productoId:'b', cantidad:2, seleccion:{grupos:{g:['queso']}}, precio:46000, ...extra })
+const bien = pr.recalcular([linPr()], menuPr)
+eq('el precio sale del menú', [bien.subtotal, bien.items[0].precio, bien.cambios.length], [46000, 46000, 0])
+eq('el nombre y las opciones también', [bien.items[0].nombre, bien.items[0].opciones], ['Doble', 'Queso'])
+const trampa = pr.recalcular([linPr({precio:2000})], menuPr)
+eq('si mandó otro precio, avisa y no guarda', [trampa.items.length, trampa.cambios[0].tipo, trampa.cambios[0].ahora], [0, 'precio', 46000])
+eq('agotado', pr.recalcular([{uid:'a', productoId:'ago', cantidad:1}], menuPr).cambios[0].tipo, 'agotado')
+eq('ya no existe', pr.recalcular([{uid:'a', productoId:'zz', cantidad:1}], menuPr).cambios[0].tipo, 'no-existe')
+eq('una opción inventada no vale $0', pr.recalcular([linPr({seleccion:{grupos:{g:['gratis']}}})], menuPr).cambios[0].tipo, 'opciones')
+eq('cantidad imposible', pr.recalcular([linPr({cantidad:-3})], menuPr).cambios[0].tipo, 'opciones')
+eq('el nombre que mande el cliente no cuenta', pr.recalcular([linPr({nombre:'GRATIS'})], menuPr).items[0].nombre, 'Doble')
+eq('vacío', pr.recalcular([], menuPr).error, 'vacio')
+const almSel = sel({'md-sopa':['sin-sopa'],'md-sopa-cambio':['cambio-sopa-0'],'md-principio':['pr1'],'md-proteina':['p2'],'md-jugo':['j1']})
+const rAlm = pr.recalcular([{uid:'m', productoId:'menu-del-dia', cantidad:1, seleccion:almSel, precio:precioUnitario(alm, almSel)}], {'menu-del-dia': alm})
+eq('el almuerzo del día, con «en vez de», pasa', [rAlm.cambios.length, rAlm.subtotal], [0, precioUnitario(alm, almSel)])
+
 console.log(f===0 ? '\n✅ TODO PASA — los dos lados cuadran\n' : `\n❌ ${f} FALLO(S)\n`)
 process.exit(f===0?0:1)

@@ -30,8 +30,6 @@ import {
   getDocs, getDoc, serverTimestamp, runTransaction, deleteField,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import { precioItem } from '../utils/price'
-import { resumenSeleccion } from '../utils/selectionSummary'
 import { siguienteTurno, agregarListo, quitarListo, nombreCorto } from '../utils/turnos'
 import { fechaBogota } from '../utils/menuDelDia'
 import { tiene } from '../utils/plan'
@@ -43,22 +41,9 @@ export const POR_PAGINA = 20
 // Sin pantalla de cocina en su plan (Emprendedor y Comerciante) es como si la hubiera apagado.
 export const usaCocina = local => local?.usaCocina !== false && tiene(local, 'cocina')
 
-// Convierte los ítems del carrito del mesero al formato de la comanda.
-export function itemsDeComanda(carrito) {
-  return carrito.map(it => ({
-    uid: it.uid,
-    productoId: it.producto?.id || '',
-    nombre: it.producto?.nombre || 'Producto',
-    cantidad: it.cantidad || 1,
-    opciones: resumenSeleccion(it.producto, it.seleccion) || '',
-    seleccion: it.seleccion || {},
-    comentario: (it.comentario || '').trim(),
-    // «¿Qué lleva?» para la cocina: la descripción del plato tal como estaba al enviarse.
-    descripcion: it.producto?.descripcion || '',
-    precio: precioItem(it),
-    hecho: false,
-  }))
-}
+// Convierte los ítems del carrito del mesero al formato de la comanda (vive en utils, sin Firebase,
+// para que el servidor la use igual al reiniciar la demo).
+export { itemsDeComanda } from '../utils/comandaItems.js'
 
 // ─────────────────────────────── Correcciones (paso 2) ───────────────────────────────
 //

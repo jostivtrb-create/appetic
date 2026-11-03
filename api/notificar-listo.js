@@ -14,65 +14,19 @@
 // Requiere la variable de entorno secreta FIREBASE_SERVICE_ACCOUNT en Vercel: la llave de servicio
 // de Firebase en base64 de una línea (scripts/serviceAccount.base64.txt, ignorado por git) o el
 // JSON tal cual. Sin ella responde 503 y la app sigue funcionando igual.
-// firebase-admin se carga DENTRO de la petición (no arriba del archivo): si algo falla al cargarlo,
-// la función responde el motivo en vez de morir con un FUNCTION_INVOCATION_FAILED mudo.
-let fa = null
-async function cargar() {
-  if (fa) return fa
-  const [app, auth, fs, msg] = await Promise.all([
-    import('firebase-admin/app'), import('firebase-admin/auth'),
-    import('firebase-admin/firestore'), import('firebase-admin/messaging'),
-  ])
-  fa = {
-    initializeApp: app.initializeApp, cert: app.cert, getApps: app.getApps,
-    getAuth: auth.getAuth, getFirestore: fs.getFirestore, FieldValue: fs.FieldValue, getMessaging: msg.getMessaging,
-  }
-  return fa
-}
-
-const SUPERADMINS = ['jostivtrb@gmail.com'] // espejo de src/config/roles.js
-
-// La llave puede venir como el JSON tal cual o en UNA línea base64 (más seguro de pegar en Vercel:
-// sin saltos de línea ni comillas que el formulario pueda alterar).
-function leerLlave(raw) {
-  let t = String(raw || '').trim()
-  if (/^["'].*["']$/s.test(t)) t = t.slice(1, -1).trim()
-  if (!t.startsWith('{')) t = Buffer.from(t, 'base64').toString('utf8').trim()
-  return JSON.parse(t)
-}
-
-function iniciar({ getApps, initializeApp, cert }) {
-  if (getApps().length) return true
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT
-  if (!raw) return false
-  initializeApp({ credential: cert(leerLlave(raw)) })
-  return true
-}
+// La carga de firebase-admin y la llave viven en api/_lib/admin.js (compartido con /api/pedido y /api/demo).
+import { conAdmin, sesionDe, SUPERADMINS } from './_lib/admin.js'
+import { estadoPago, tiene } from '../src/utils/plan.js'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Solo POST' })
-  let f
-  try { f = await cargar() } catch (e) {
-    console.error('notificar-listo: no cargó firebase-admin', e)
-    return res.status(500).json({ error: 'No cargó firebase-admin', detalle: String(e?.message || e).slice(0, 300), node: process.version })
-  }
-  const { getAuth, getFirestore, FieldValue, getMessaging } = f
-  try {
-    if (!iniciar(f)) return res.status(503).json({ error: 'Falta FIREBASE_SERVICE_ACCOUNT en Vercel', node: process.version })
-  } catch (e) {
-    // Pistas SIN revelar la llave: largo, si tiene saltos de línea y cómo empieza (el comienzo es
-    // `{"type":"service_account"`, que no es secreto).
-    const raw = String(process.env.FIREBASE_SERVICE_ACCOUNT || '')
-    return res.status(500).json({
-      error: 'La llave FIREBASE_SERVICE_ACCOUNT no es válida', detalle: String(e?.message || e).slice(0, 160),
-      largo: raw.length, saltos: (raw.match(/\n/g) || []).length, empieza: raw.slice(0, 12),
-    })
-  }
+  const f = await conAdmin(res)
+  if (!f) return
+  const { getFirestore, FieldValue, getMessaging } = f
 
   try {
-    const idToken = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
-    if (!idToken) return res.status(401).json({ error: 'Sin sesión' })
-    const quien = await getAuth().verifyIdToken(idToken).catch(() => null)
+    if (!String(req.headers.authorization || '').trim()) return res.status(401).json({ error: 'Sin sesión' })
+    const quien = await sesionDe(f, req)
     if (!quien) return res.status(401).json({ error: 'Sesión inválida' })
     const email = String(quien.email || '').toLowerCase()
 
@@ -81,18 +35,22 @@ export default async function handler(req, res) {
 
     const db = getFirestore()
     const localRef = db.collection('locales').doc(String(localId))
-    const [localSnap, comandaSnap, cocinaSnap, meseroSnap] = await Promise.all([
+    const [localSnap, comandaSnap, cocinaSnap, meseroSnap, cajeroSnap] = await Promise.all([
       localRef.get(),
       localRef.collection('comandas').doc(String(comandaId)).get(),
       localRef.collection('equipo').doc(`cocina:${email}`).get(),
       localRef.collection('equipo').doc(`mesero:${email}`).get(),
+      localRef.collection('equipo').doc(`cajero:${email}`).get(),
     ])
     if (!localSnap.exists || !comandaSnap.exists) return res.status(404).json({ error: 'No existe' })
     const local = localSnap.data()
+    // Un local apagado por no pago no manda avisos (espejo de localVivo() en las reglas).
+    if (estadoPago(local).estado === 'cortado' && !SUPERADMINS.includes(email)) return res.status(403).json({ error: 'Local fuera de servicio' })
     const admins = (local.admins || []).map(e => String(e).toLowerCase())
-    // (Solo el personal que mueve comandas puede pedir el aviso: admin, cocina o mesero.)
+    // (Solo el personal que mueve comandas puede pedir el aviso: admin, cocina, mesero o caja.)
+    const activo = s => s.exists && s.data().activo
     const esPersonal = SUPERADMINS.includes(email) || admins.includes(email)
-      || (cocinaSnap.exists && cocinaSnap.data().activo) || (meseroSnap.exists && meseroSnap.data().activo)
+      || activo(cocinaSnap) || activo(meseroSnap) || activo(cajeroSnap)
     if (!esPersonal) return res.status(403).json({ error: 'No autorizado' })
 
     const comanda = comandaSnap.data()
@@ -104,19 +62,23 @@ export default async function handler(req, res) {
     // domiciliarios activos del local (D39: les suena cuando la cocina lo deja listo para salir).
     const esDomicilio = comanda.destino?.tipo === 'domicilio'
     let domiciliarios = []
-    if (esDomicilio) {
+    if (esDomicilio && tiene(local, 'domiciliario')) {
       const eq = await localRef.collection('equipo').where('rol', '==', 'domiciliario').get()
       domiciliarios = eq.docs.map(d => d.data()).filter(x => x.activo).map(x => String(x.email).toLowerCase())
     }
     // Pedido desde el QR de la mesa: nadie lo tomó, así que avisa a TODOS los meseros activos.
-    if (comanda.origen === 'qr') {
+    if (comanda.origen === 'qr' && tiene(local, 'mesero')) {
       const eq = await localRef.collection('equipo').where('rol', '==', 'mesero').get()
       domiciliarios = [...domiciliarios, ...eq.docs.map(d => d.data()).filter(x => x.activo).map(x => String(x.email).toLowerCase())]
     }
-    const destinatarios = [...new Set([...domiciliarios, String(comanda.creadaPor?.email || '').toLowerCase(), ...admins].filter(Boolean))].slice(0, 30)
+    const destinatarios = [...new Set([...domiciliarios, String(comanda.creadaPor?.email || '').toLowerCase(), ...admins].filter(Boolean))]
     if (!destinatarios.length) return res.status(200).json({ enviadas: 0 })
-    const dispSnap = await localRef.collection('dispositivos').where('email', 'in', destinatarios).get()
-    const tokens = dispSnap.docs.map(d => d.id)
+    // Firestore deja buscar de a 30 correos por consulta («in»): se parte en grupos (antes se
+    // cortaba en 30 y los de más no recibían nada).
+    const grupos = []
+    for (let i = 0; i < destinatarios.length; i += 30) grupos.push(destinatarios.slice(i, i + 30))
+    const snaps = await Promise.all(grupos.map(g => localRef.collection('dispositivos').where('email', 'in', g).get()))
+    const tokens = [...new Set(snaps.flatMap(s => s.docs.map(d => d.id)))]
     await comandaSnap.ref.update({ notificadaEn: FieldValue.serverTimestamp() })
     if (!tokens.length) return res.status(200).json({ enviadas: 0 })
 

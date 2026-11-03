@@ -13,19 +13,32 @@ import './AvisoListo.css'
 // En la pantalla Mesero no sale: ahí ya parpadea su propio aviso. Lo «visto» se comparte con esa
 // pantalla (misma clave), así que tocar uno apaga el otro.
 export default function AvisoListo() {
-  const { user } = useAuth()
   const { locales, equipo, slug: adminSlug } = useAdmin()
+
+  // Qué locales vigilar: el que administra (seleccionado) y TODOS donde es mesero (guía «Blindaje»
+  // S7: antes solo el primero, y el mesero de dos locales no se enteraba del segundo).
+  const vigilados = useMemo(() => {
+    const propio = locales.find(l => l.slug === adminSlug) || (locales.length === 1 ? locales[0] : null)
+    const lista = propio ? [{ local: propio, admin: true }] : []
+    for (const e of equipo) {
+      if (e.rol === 'mesero' && e.local && !lista.some(v => v.local.id === e.local.id)) lista.push({ local: e.local, admin: false })
+    }
+    return lista
+  }, [locales, adminSlug, equipo])
+
+  if (!vigilados.length) return null
+  return (
+    <div className="al-pila">
+      {vigilados.map(v => <AvisoDeLocal key={v.local.id} vigilado={v} conNombre={vigilados.length > 1} />)}
+    </div>
+  )
+}
+
+function AvisoDeLocal({ vigilado, conNombre }) {
+  const { user } = useAuth()
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const yo = (user?.email || '').toLowerCase()
-
-  // Qué local vigilar: el que administra (seleccionado) o donde es mesero.
-  const vigilado = useMemo(() => {
-    const propio = locales.find(l => l.slug === adminSlug) || (locales.length === 1 ? locales[0] : null)
-    if (propio) return { local: propio, admin: true }
-    const mesero = equipo.find(e => e.rol === 'mesero')
-    return mesero ? { local: mesero.local, admin: false } : null
-  }, [locales, adminSlug, equipo])
 
   const localId = vigilado?.local?.id
   const demo = Boolean(vigilado && import.meta.env.DEV && isDevSlug(vigilado.local.slug))
@@ -62,7 +75,7 @@ export default function AvisoListo() {
     campanita()
   }, [pendientes])
 
-  const enMesero = /\/admin\/mesero$/.test(pathname)
+  const enMesero = pathname === `/${vigilado.local.slug}/admin/mesero`
   if (!pendientes.length || enMesero) return null
 
   function cerrar(ir) {
@@ -77,7 +90,7 @@ export default function AvisoListo() {
       <button className="al-cuerpo" onClick={() => cerrar(true)}>
         <span className="al-campana" aria-hidden="true">🔔</span>
         <span className="al-txt">
-          <strong>{pendientes.length === 1 ? '¡Pedido listo!' : `¡${pendientes.length} pedidos listos!`}</strong>
+          <strong>{pendientes.length === 1 ? '¡Pedido listo!' : `¡${pendientes.length} pedidos listos!`}{conNombre ? ` · ${vigilado.local.nombre}` : ''}</strong>
           <span>{pendientes.map(c => etiquetaDestino(c.destino)).join(' · ')}</span>
         </span>
       </button>

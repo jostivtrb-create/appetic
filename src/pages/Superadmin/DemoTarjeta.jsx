@@ -26,8 +26,10 @@ export default function DemoTarjeta() {
   async function reiniciar() {
     setConfirmar(false)
     try {
-      const { reiniciarDemo } = await import('../../services/demo')
-      await reiniciarDemo(setPaso)
+      setPaso('Reiniciando la demo en el servidor…')
+      const { reiniciarDemoAhora } = await import('../../services/demo')
+      await reiniciarDemoAhora()
+      setPaso('¡Listo! La demo quedó como nueva.')
       leer()
     } catch (e) {
       console.error('[demo] no se pudo reiniciar:', e)

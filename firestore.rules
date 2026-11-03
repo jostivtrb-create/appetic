@@ -1,5 +1,11 @@
 rules_version = '2';
 
+// Última actualización: 2026-11-03 (BLINDAJE: guía «Blindaje de Appetic»)
+// Cambios Blindaje: los pedidos de la app y las comandas del QR los escribe SOLO el servidor
+//   (/api/pedido, que rehace los precios con el menú; el cliente ya no los crea directo) · el turno
+//   del TV solo lo sube el personal · las métricas: el público solo suma de a uno visitas e
+//   interesados · en la demo no se borran platos ni categorías · limites/ (contador de envíos) solo
+//   el servidor.
 // Última actualización: 2026-11-02 (PLANES Y PAGO: guía «Planes en la app»)
 // Cambios Planes: el local se APAGA solo al vencer (suscripcion.corteEn) · cada plan abre lo suyo
 //   (domicilios desde Comerciante; mesero, cocina y QR por mesa en Empresario) · el dueño ya NO puede
@@ -114,6 +120,20 @@ service cloud.firestore {
       return puedeAdministrar(localId) || equipoActivo(localId, 'mesero') || equipoActivo(localId, 'cocina') || esCajero(localId);
     }
 
+    // 🪑 Cuenta por mesa: solo Empresario (guía «Blindaje», 3-nov). Para llevar o domicilio, todos.
+    function mesaEnPlan(localId) {
+      return request.resource.data.get('destino', {}).get('tipo', '') != 'mesa' || nivelPlan(localId) >= 3;
+    }
+
+    // 📈 Métricas públicas: lo único que cambia es visitas o interesados, y sube exactamente 1.
+    function sumaSoloUno(antes) {
+      let cambia = request.resource.data.diff(antes).affectedKeys();
+      return cambia.hasOnly(['visitas', 'interesados', 'fecha'])
+        && (!cambia.hasAny(['fecha']) || !('fecha' in antes))
+        && (!cambia.hasAny(['visitas']) || request.resource.data.visitas == antes.get('visitas', 0) + 1)
+        && (!cambia.hasAny(['interesados']) || request.resource.data.interesados == antes.get('interesados', 0) + 1);
+    }
+
     // ¿Se creó hace menos de 36 h? El cajero solo corrige lo del día (S17); el dueño, todo.
     function reciente() {
       return resource.data.en is timestamp && resource.data.en > request.time - duration.value(36, 'h');
@@ -145,8 +165,10 @@ service cloud.firestore {
                         && !request.resource.data.diff(resource.data).affectedKeys()
                               .hasAny(['suscripcion', 'admins', 'esDemo', 'prioridad', 'etiquetas'])
                         && !(esLocalDemo(localId)
-                             && request.resource.data.diff(resource.data).affectedKeys()
-                                  .hasAny(['whatsapp', 'slug', 'horario', 'enBuscador'])));
+                             && (request.resource.data.diff(resource.data).affectedKeys()
+                                   .hasAny(['whatsapp', 'slug', 'horario', 'enBuscador'])
+                                 // ni borrar categorías (guía «Blindaje» D5)
+                                 || request.resource.data.get('categorias', []).size() < resource.data.get('categorias', []).size())));
       // Los locales se crean desde la consola/seed; la única excepción es la demo, que el
       // superadmin puede volver a crear desde «Reiniciar demo».
       allow create: if esSuperadmin() && request.resource.data.esDemo == true;
@@ -154,13 +176,16 @@ service cloud.firestore {
 
       match /productos/{productoId} {
         allow read: if true;
-        allow write: if puedeAdministrar(localId);
+        allow create, update: if puedeAdministrar(localId);
+        // En la demo nadie borra platos (guía «Blindaje» D5): el siguiente visitante los necesita.
+        allow delete: if puedeAdministrar(localId) && (!esLocalDemo(localId) || esSuperadmin());
       }
 
       match /pedidos/{pedidoId} {
-        // El cliente (con o sin login) CREA su pedido; se exige un total válido y que nazca «nuevo».
-        // Solo si el local está prendido, y a domicilio solo si su plan lo trae (Comerciante o más).
-        allow create: if request.resource.data.total is number
+        // El pedido del cliente lo crea el SERVIDOR (/api/pedido) con los precios del menú (guía
+        // «Blindaje» D1). Desde la app solo en la demo, donde el visitante arma pedidos de ejemplo.
+        allow create: if esLocalDemo(localId) && puedeAdministrar(localId)
+                      && request.resource.data.total is number
                       && request.resource.data.total >= 0
                       && request.resource.data.estado == 'nuevo'
                       && localVivo(localId)
@@ -204,28 +229,22 @@ service cloud.firestore {
       // (quedan como historial).
       match /comandas/{comandaId} {
         allow read: if esPersonal(localId);
-        // También el CLIENTE desde el QR de su mesa (origen 'qr'), sin sesión: solo si el local
-        // activó sus mesas, a una mesa que existe, y nace limpia (sin correcciones ni tachados).
+        // Las del QR de la mesa (origen 'qr') las crea SOLO el servidor (/api/pedido), con los
+        // precios del menú y el límite de envíos por celular (guía «Blindaje» D1, D4).
         // Nace activa; o entregada si la crea el personal de un local sin cocina (D13).
         allow create: if (request.resource.data.estado == 'activa'
                           || (request.resource.data.estado == 'entregada' && request.resource.data.get('origen', '') != 'qr'))
                       && request.resource.data.items is list
                       && request.resource.data.items.size() > 0
                       && request.resource.data.items.size() <= 60
-                      && (
-                        puedeAdministrar(localId) || equipoActivo(localId, 'mesero') || esCajero(localId)
-                        || (request.resource.data.origen == 'qr' && request.resource.data.estado == 'activa'
-                            && localVivo(localId) && nivelPlan(localId) >= 3
-                            && request.resource.data.destino.tipo == 'mesa'
-                            && get(/databases/$(database)/documents/locales/$(localId)).data.get('mesas', 0) > 0
-                            && int(request.resource.data.destino.mesa) >= 1
-                            && int(request.resource.data.destino.mesa) <= get(/databases/$(database)/documents/locales/$(localId)).data.get('mesas', 0)
-                            && !('cambios' in request.resource.data))
-                      );
+                      && request.resource.data.get('origen', '') != 'qr'
+                      && mesaEnPlan(localId)
+                      && (puedeAdministrar(localId) || equipoActivo(localId, 'mesero') || esCajero(localId));
         // 💵 Lo de COBRO (porCobrar · cobradaEn · cobradaPor · ventaId) solo lo tocan el admin y el
         // cajero (la caja). Una cancelación del mesero sí la saca de «por cobrar». Guía «Cuenta por mesa» D6.
         allow update: if esPersonal(localId)
                       && request.resource.data.estado in ['activa', 'entregada', 'cancelada']
+                      && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['destino']) || mesaEnPlan(localId))
                       && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['porCobrar', 'cobradaEn', 'cobradaPor', 'ventaId'])
                           || puedeCaja(localId)
                           || (request.resource.data.estado == 'cancelada' && request.resource.data.get('porCobrar', false) == false
@@ -240,7 +259,8 @@ service cloud.firestore {
       //            personal (la cocina al despachar); sin platos, teléfonos ni direcciones.
       match /pantalla/{docId} {
         allow read: if true;
-        allow create, update: if docId == 'turno'
+        // El turno lo sube el personal (caja y mesero, para llevar); el del QR, el servidor.
+        allow create, update: if docId == 'turno' && esPersonal(localId)
                               && request.resource.data.keys().hasOnly(['fecha', 'n'])
                               && request.resource.data.fecha is string
                               && request.resource.data.n is int
@@ -312,7 +332,10 @@ service cloud.firestore {
         // Contadores (visitas/pedidos/monto y por tipo: domicilios/recoger/mesaQR). El cliente los incrementa anónimo;
         // solo el admin del local (o el superadmin) los lee. Escritura acotada a esos campos.
         allow read: if puedeAdministrar(localId);
-        allow write: if request.resource.data.keys().hasOnly(['fecha', 'visitas', 'pedidos', 'monto', 'interesados', 'domicilios', 'recoger', 'mesaQR']);
+        // Los pedidos y el monto los suma el servidor (guía «Blindaje» S13). El público solo suma de a
+        // UNO visitas o interesados, y nada más: así nadie infla las métricas de un local.
+        allow write: if request.resource.data.keys().hasOnly(['fecha', 'visitas', 'pedidos', 'monto', 'interesados', 'domicilios', 'recoger', 'mesaQR'])
+                     && (puedeAdministrar(localId) || sumaSoloUno(resource == null ? {} : resource.data));
         allow delete: if esSuperadmin() && esLocalDemo(localId);   // «Reiniciar demo»
       }
     }

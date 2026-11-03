@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate, Navigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { getLocalBySlug } from '../../services/locales'
 import { getProductos } from '../../services/productos'
@@ -57,6 +57,7 @@ export default function AdminPage() {
   const { puede: tieneBarra } = usePuedePanel()
   const { setPanelCatalogo } = useNavUI()
   const navigate = useNavigate()
+  const location = useLocation()   // la de React Router: se actualiza al navegar (antes era la global)
   const { user, sesion, cargando: authCargando, entrar, entrarDemo, salir, errorLogin } = useAuth()
   const demo = isDevSlug(slug) // previsualización de local en DEV (no escribe en Firestore)
 

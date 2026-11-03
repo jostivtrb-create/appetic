@@ -114,3 +114,22 @@ body:has(.demo-bienv) .demo-letrero { display: none; }
   border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 800; cursor: pointer;
   background: #F2A900; color: #1E1B1A; white-space: nowrap;
 }
+
+/* 🔄 La demo se está dejando como nueva (guía «Blindaje» D5): tapa todo unos segundos. */
+.demo-preparando {
+  position: fixed; inset: 0; z-index: 900;
+  display: grid; place-items: center; padding: 16px;
+  background: rgba(30, 27, 26, .72); backdrop-filter: blur(4px);
+  animation: demo-prep-in .25s ease-out;
+}
+.demo-preparando-caja {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  max-width: 320px; padding: 22px 20px; border-radius: 18px;
+  background: #FFFBF4; color: #2A211C; box-shadow: 0 12px 40px rgba(0,0,0,.25);
+}
+.demo-preparando-caja b { font-size: 17px; font-weight: 800; }
+.demo-preparando-caja small { font-size: 13px; opacity: .75; line-height: 1.4; }
+.demo-preparando-ico { font-size: 38px; animation: demo-prep-gira 1.2s ease-in-out infinite; }
+@keyframes demo-prep-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes demo-prep-gira { 0%, 100% { transform: rotate(-8deg) scale(1); } 50% { transform: rotate(8deg) scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { .demo-preparando, .demo-preparando-ico { animation: none; } }

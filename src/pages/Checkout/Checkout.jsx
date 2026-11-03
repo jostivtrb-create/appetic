@@ -7,6 +7,7 @@ import { calcularDomicilio } from '../../utils/delivery'
 import { abrirPedidoWhatsApp, textoPedido } from '../../utils/whatsapp'
 import ChatWhatsApp from '../../components/Demo/ChatWhatsApp'
 import { crearPedido, pedidosDe } from '../../services/pedidos'
+import { enviarAlServidor, lineasDelCarrito, textoCambios } from '../../services/enviarPedido'
 import { isDevSlug } from '../../dev'
 import { generarCodigoPedido } from '../../utils/codigoPedido'
 import { guardarEnHistorial } from '../../services/historial'
@@ -33,7 +34,7 @@ function guardarClienteLocal(datos) {
 }
 
 export default function Checkout({ local, onClose, abierto = true }) {
-  const { items, subtotal, clear } = useCart()
+  const { items, subtotal, clear, ponerAlDia } = useCart()
   const { user } = useAuth()
   // El domicilio solo se ofrece si el local registró su ubicación (sin ella no se
   // puede calcular la distancia). Hasta que el admin la fije, solo "Recoger".
@@ -59,6 +60,10 @@ export default function Checkout({ local, onClose, abierto = true }) {
   const [confirmoWhatsapp, setConfirmoWhatsapp] = useState(false)
   const [enviando, setEnviando] = useState(false)
   const [exito, setExito] = useState(null) // { url, codigo }
+  // 🔄 Lo que el servidor corrigió (guía «Blindaje» D2/D3) y por qué no se pudo enviar.
+  const [avisoCambios, setAvisoCambios] = useState([])
+  const [envioServidor, setEnvioServidor] = useState(null) // costo del envío según el servidor
+  const [errorEnvio, setErrorEnvio] = useState('')
 
   // Prellenar desde el dispositivo (funciona para invitados y al instante).
   useEffect(() => {
@@ -91,7 +96,9 @@ export default function Checkout({ local, onClose, abierto = true }) {
     () => (entrega === 'domicilio' ? calcularDomicilio(local, coordUsada) : null),
     [entrega, local, coordUsada?.lat, coordUsada?.lng] // eslint-disable-line react-hooks/exhaustive-deps
   )
-  const costoEnvio = entrega === 'domicilio' && domicilio?.ok ? domicilio.costo : 0
+  // Otra ubicación u otra forma de entrega: lo que dijo el servidor del envío ya no aplica.
+  useEffect(() => { setEnvioServidor(null) }, [entrega, coordUsada?.lat, coordUsada?.lng])
+  const costoEnvio = entrega === 'domicilio' && domicilio?.ok ? (envioServidor ?? domicilio.costo) : 0
   const total = subtotal + costoEnvio
   const pago = pagosCliente.find(p => p.id === pagoId)
   const cashNum = Number(String(cash).replace(/\D/g, '')) || 0
@@ -154,6 +161,43 @@ export default function Checkout({ local, onClose, abierto = true }) {
       subtotal,
       total,
     }
+    // 🧾 El pedido pasa por el SERVIDOR, que rehace precios y envío con el menú de hoy (guía
+    // «Blindaje» D1–D3). Si algo cambió, el carrito se pone al día y el cliente vuelve a enviar;
+    // si no contesta (internet malo), el WhatsApp sale igual sin «Mi pedido» (S9).
+    // Vista previa (?preview=1): va al motor DEMO del navegador, como siempre.
+    setAvisoCambios([])
+    setErrorEnvio('')
+    let guardado = false
+    if (demo) {
+      guardado = await crearPedido(local, pedido, codigo, id, { demo }).catch(() => false)
+    } else {
+      const r = await enviarAlServidor({
+        tipo: 'pedido', localId: local.id, id, items: lineasDelCarrito(items),
+        pedido: {
+          codigo, entrega, cliente: pedido.cliente, notas: pedido.notas,
+          pago: { id: pago?.id || null, nombre: pago?.nombre || '', tipo: pago?.tipo || '', cashAmount: pedido.pago.cashAmount },
+          domicilio: domicilio?.ok ? { costo: costoEnvio } : null, domicilioAConvenir,
+        },
+      })
+      if (r.cambios) {
+        const textos = textoCambios(r.cambios)
+        if (r.cambios.length) ponerAlDia(r.cambios, r.productos)
+        if (r.domicilio?.ok) { setEnvioServidor(r.domicilio.costo); textos.push(`El domicilio ahora cuesta ${cop(r.domicilio.costo)}`) }
+        if (r.domicilio && !r.domicilio.ok) textos.push(r.domicilio.motivo === 'fuera-cobertura' ? 'Tu ubicación quedó fuera del área de domicilio' : 'El domicilio no está disponible para tu ubicación')
+        setAvisoCambios(textos)
+        setEnviando(false)
+        return
+      }
+      if (r.error) {
+        setErrorEnvio(r.motivo === 'limite' ? 'Espera un momento antes de volver a pedir.' : r.motivo === 'cerrado' ? 'El local acaba de cerrar.' : `No se pudo enviar: ${r.error}.`)
+        setEnviando(false)
+        return
+      }
+      if (r.ok) { guardado = true; pedido.subtotal = r.subtotal; pedido.total = r.total }
+    }
+    // Sin guardar no hay «Mi pedido» que seguir: el link no va en el WhatsApp.
+    if (!guardado) pedido.id = null
+
     // Locales con su propia app: el pedido se deja escrito ALLÁ, con la forma
     // que su pantalla de comandas espera. El link que sale de aquí va en el
     // WhatsApp y lo manda a la cocina de un toque.
@@ -171,15 +215,6 @@ export default function Checkout({ local, onClose, abierto = true }) {
       ])
       if (id) pedido.linkComanda = `${LA_GRAN_ESQUINA_WEB}/comanda/${id}`
     }
-
-    // Guarda el pedido COMPLETO en Firestore con su código (antes de abrir WhatsApp).
-    // Le damos hasta 6s: así el pedido alcanza a guardarse antes de navegar a WhatsApp
-    // (importante en móvil, donde la navegación corta las peticiones en curso), pero si la
-    // red está lenta NO dejamos al cliente trabado en "Enviando…". Best-effort.
-    await Promise.race([
-      crearPedido(local, pedido, codigo, id, { demo }).catch(() => false),
-      new Promise(res => setTimeout(res, 6000)),
-    ])
 
     // Guarda el pedido en el historial de ESTE dispositivo (para "Mis pedidos").
     guardarEnHistorial(local, pedido)
@@ -200,7 +235,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
     // 🍔 En la demo NO se abre WhatsApp: se muestra cómo le llega el mensaje al restaurante.
     const url = local.esDemo ? '' : abrirPedidoWhatsApp(local, pedido)
     clear()
-    setExito({ url, codigo, miPedido: id ? `/p/${local.slug}/${id}` : '', chat: local.esDemo ? textoPedido(local, pedido) : '' })
+    setExito({ url, codigo, miPedido: guardado ? `/p/${local.slug}/${id}` : '', chat: local.esDemo ? textoPedido(local, pedido) : '' })
     avisarDemo('pedido-app')
     setEnviando(false)
   }
@@ -361,6 +396,14 @@ export default function Checkout({ local, onClose, abierto = true }) {
           <textarea className="co-input co-textarea" rows={2} placeholder="Algo más que debamos saber…" value={notas} onChange={e => setNotas(e.target.value)} />
         </section>
 
+        {avisoCambios.length > 0 && (
+          <section className="co-convenir co-cambios" role="alert">
+            <strong>🔄 Actualizamos tu pedido</strong>
+            <ul>{avisoCambios.map((x, i) => <li key={i}>{x}</li>)}</ul>
+            <span>Revisa el total y vuelve a enviar.</span>
+          </section>
+        )}
+
         {/* Resumen */}
         <section className="co-resumen">
           <div className="co-res-row"><span>Subtotal</span><span>{cop(subtotal)}</span></div>
@@ -383,6 +426,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
         {!abierto && (
           <p className="co-hint">😴 El local está cerrado ahora. Abre a las {local.horario?.abre}.</p>
         )}
+        {errorEnvio && <p className="co-hint co-hint-err">⚠️ {errorEnvio}</p>}
         {abierto && !valido && items.length > 0 && (
           <p className="co-hint">
             {faltas.includes('ubicacion') ? 'Falta tu ubicación · ' : ''}

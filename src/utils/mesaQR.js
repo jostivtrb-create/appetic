@@ -36,8 +36,9 @@ export function olvidarMesa(slug) {
 }
 
 // Hoja para imprimir: un QR por mesa (6 por hoja carta), con el logo y el número grande.
-export async function abrirHojaMesas(local, urlMenu, cuantas, colorQR) {
-  const w = window.open('', '_blank')
+// `ventana`: abierta YA en el toque del usuario (iPhone bloquea la que se abre después de un await).
+export async function abrirHojaMesas(local, urlMenu, cuantas, colorQR, ventana = null) {
+  const w = ventana || window.open('', '_blank')
   if (!w) return false
   w.document.write('<p style="font-family:sans-serif;padding:20px">Generando los QR…</p>')
   const { default: QRCode } = await import('qrcode')

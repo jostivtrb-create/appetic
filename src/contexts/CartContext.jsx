@@ -40,9 +40,22 @@ export function CartProvider({ localId, children }) {
 
   function clear() { setItems([]) }
 
+  // 🔄 El servidor dijo que algo cambió (guía «Blindaje» D2): el precio nuevo entra al carrito y lo
+  // agotado, lo que ya no existe o lo que trae opciones que ya no valen, sale (se elige de nuevo).
+  function ponerAlDia(cambios, productos = {}) {
+    const porUid = new Map(cambios.map(c => [c.uid, c]))
+    setItems(prev => prev.flatMap(it => {
+      const c = porUid.get(it.uid)
+      if (!c) return [it]
+      const fresco = productos[c.productoId]
+      if (c.tipo !== 'precio' || !fresco) return []
+      return [{ ...it, producto: fresco }]
+    }))
+  }
+
   const totalItems = useMemo(() => items.reduce((s, it) => s + it.cantidad, 0), [items])
   const subtotal = useMemo(() => items.reduce((s, it) => s + precioItem(it), 0), [items])
 
-  const value = { items, addItem, setCantidad, removeItem, clear, totalItems, subtotal }
+  const value = { items, addItem, setCantidad, removeItem, clear, ponerAlDia, totalItems, subtotal }
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
