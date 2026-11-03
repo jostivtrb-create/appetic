@@ -181,3 +181,127 @@ Photorealistic professional food photography of a warm chocolate brownie with a 
 ```
 Photorealistic professional food photography of a slice of creamy cheesecake with red berry sauce and fresh berries on top, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
 ```
+
+---
+
+## 🍔 Platos que faltan — set 2 (3-nov-2026) · estilo de las 6 que ya existen
+Las 6 primeras (La Clásica, Pollo Crispy, Salchipapa Mixta, Combo Clásico, Gaseosa, Limonada) salieron en **mesa de madera de restaurante cálido**, no en la pizarra oscura de arriba. Para que combinen, estas 19 usan ese estilo y **reemplazan** los prompts de pizarra de arriba.
+**Bloque de estilo (idéntico en todas):**
+
+```
+Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**1. Doble Queso** — `platos/doble-queso.webp` · ✅ lista (3-nov)
+
+```
+A tall double cheeseburger: two thick grilled beef patties with melted cheddar dripping over the edges, golden caramelized onions and pickle slices in a shiny sesame brioche bun, served on a dark ceramic plate. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**2. BBQ Tocineta** — `platos/bbq-tocineta.webp` · ✅ lista (3-nov)
+
+```
+A juicy bacon BBQ burger: grilled beef patty, crispy bacon strips, two golden onion rings, melted cheddar and glossy smoky barbecue sauce dripping down, in a toasted brioche bun on a wooden board. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**3. La Mexicana** — `platos/mexicana.webp` · ✅ lista (3-nov)
+
+```
+A Mexican-style burger: grilled beef patty topped with a generous scoop of fresh guacamole, sliced green jalapeños, crushed tortilla chips and melted cheese, in a brioche bun on a dark plate, a few lime wedges beside it. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**4. Veggie de Garbanzo** — `platos/veggie.webp` · ✅ lista (3-nov)
+
+```
+A vegetarian chickpea burger: a golden crispy chickpea and vegetable patty, sliced avocado, green lettuce, tomato and creamy white yogurt sauce in a whole-grain bun, served on a light ceramic plate with a few chickpeas scattered around. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**5. Perro Sencillo** — `platos/perro-sencillo.webp` · ✅ lista (3-nov)
+
+```
+A Colombian-style hot dog: a long American sausage in a soft bun, topped with a crunchy layer of fine shoestring potato sticks, grated white cheese and zigzag lines of pink, yellow and red sauces, served in a paper-lined wooden tray. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**6. Perro Especial** — `platos/perro-especial.webp` · ✅ lista (3-nov)
+
+```
+A loaded Colombian hot dog: sausage in a soft bun covered with crispy bacon pieces, golden gratinated melted cheese, three halved quail eggs on top and fine shoestring potato sticks, with drizzles of sauce, served in a paper-lined wooden tray. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**7. Choriperro** — `platos/choriperro.webp` · ✅ lista (3-nov)
+
+```
+A grilled chorizo in a long soft bun, with grill marks, topped with green chimichurri sauce, chopped white onion and melted cheese, served on a small wooden board with a little bowl of chimichurri. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**8. Salchipapa Clásica** — `platos/salchipapa.webp` · ✅ lista (3-nov)
+
+```
+A classic Colombian salchipapa: a generous pile of golden french fries mixed with sliced fried sausage rounds and topped with finely grated white coastal cheese, with drizzles of pink sauce, served in a rustic ceramic bowl. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**9. Salchipapa de Tocineta** — `platos/salchipapa-tocineta.webp` · ✅ lista (3-nov)
+
+```
+A bacon salchipapa: golden french fries with sliced sausage, crispy bacon pieces, sweet yellow corn kernels and golden melted gratinated cheese on top, served in a rustic ceramic bowl. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**10. Combo Pareja** — `platos/combo-pareja.webp` · ✅ lista (3-nov)
+
+```
+A combo for two on the wooden table: two classic cheeseburgers side by side, a large shared basket of golden french fries in the middle and two tall glasses of iced cola, on a paper-lined serving tray. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**11. Combo Familiar** — `platos/combo-familiar.webp` · ✅ lista (3-nov)
+
+```
+A family feast on the wooden table: four classic cheeseburgers, a large bowl of salchipapa with french fries, sausage and cheese, and a big unbranded 1.5-liter bottle of cola with glasses of ice, abundant and ready to share, seen slightly from above. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**12. Papas a la francesa** — `platos/papas.webp` · ✅ lista (3-nov)
+
+```
+A metal fry basket lined with paper, full of crispy golden french fries sprinkled with coarse sea salt, with a small bowl of ketchup beside it. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**13. Aros de cebolla** — `platos/aros.webp` · ✅ lista (3-nov)
+
+```
+Eight crispy golden battered onion rings stacked on a paper-lined wooden board, with a small bowl of creamy pink house sauce. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**14. Nuggets de pollo** — `platos/nuggets.webp` · ✅ lista (3-nov)
+
+```
+Six golden crispy chicken nuggets on a paper-lined plate, one broken in half showing juicy white meat, with a small bowl of honey mustard sauce. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**15. Papas con cheddar y tocineta** — `platos/papas-cheddar.webp` · ✅ lista (3-nov)
+
+```
+A bowl of golden french fries smothered in thick melted cheddar cheese sauce and topped with crispy bacon bits and a little chopped chives, the cheese stretching as a few fries are lifted. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**16. Malteada** — `platos/malteada.webp` · ✅ lista (3-nov)
+
+```
+A tall glass vanilla milkshake topped with a generous swirl of whipped cream, a red cherry and a striped paper straw, condensation on the glass, a little whipped cream dripping down the side. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**17. Cerveza nacional** — `platos/cerveza.webp` · ✅ lista (3-nov)
+
+```
+An ice-cold amber lager beer: an unbranded brown glass bottle with no label and a tall glass filled with golden beer and white foam, condensation droplets on both. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**18. Brownie con helado** — `platos/brownie.webp` · ✅ lista (3-nov)
+
+```
+A warm fudgy chocolate brownie square on a small plate with a scoop of vanilla ice cream starting to melt on top and a drizzle of chocolate sauce. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
+
+**19. Cheesecake de frutos rojos** — `platos/cheesecake.webp` · ✅ lista (3-nov)
+
+```
+A slice of creamy New York cheesecake with a golden biscuit base, topped with glossy red berry sauce, fresh raspberries and blueberries, on a small ceramic plate with a dessert fork. Photorealistic professional food photography, close-up at a 30-degree angle, on a rustic weathered wooden table in a cozy, warm neighborhood burger restaurant; softly blurred background with exposed brick, warm pendant lights and soft daylight from a window on the left; shallow depth of field with sharp focus on the food; warm natural tones, appetizing and freshly made. Square 1:1, the food centered with some space around it. No text, no letters, no menu boards with writing, no logos, no brand labels, no watermark, no hands, no people in focus.
+```
