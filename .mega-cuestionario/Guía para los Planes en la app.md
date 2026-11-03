@@ -202,6 +202,5 @@ Ninguna.
 - **2 de noviembre de 2026** — Pedido del usuario: «todos en Emprendedor, solo Pilotos en Comerciante».
   Pasados a Emprendedor (cortesía): bon-appetit, el-monumento, fruti-tentacion, jasbury, juance,
   la-comarca, sabor-del-dia (ninguno usaba domicilios, mesas ni equipo en los últimos 30 días).
-  La demo sigue en Empresario (D10). ⏳ **Pendiente de confirmar:** la-gran-esquina (12 domicilios en
-  30 días) y perros-criollos (2) siguen en Empresario: con Emprendedor sus clientes pierden el
-  domicilio. Se dejaron así porque el usuario apagó el PC antes de responder.
+  La demo sigue en Empresario (D10). la-gran-esquina (último domicilio el 23-oct) y perros-criollos
+  también pasaron a Emprendedor tras confirmarlo el usuario: sus clientes ya no ven el domicilio.
