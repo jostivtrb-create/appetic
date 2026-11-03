@@ -17,7 +17,11 @@
 
 import { DEMO_SLUG as SLUG, WHATSAPP_VENTAS } from '../config/demo.js'
 
-const F = id => `/locales/demo/platos/${id}.webp`
+// Las fotos que ya existen en public/locales/demo/platos/ (3-nov: las que el usuario ya tenía en
+// Descargas). Los demás platos quedan sin foto (marcador) hasta que se generen: así no se pide un
+// archivo que no existe y el TV no intenta usarlos de plato grande.
+const CON_FOTO = new Set(['clasica', 'pollo-crispy', 'salchipapa-mixta', 'combo-clasico', 'gaseosa', 'limonada'])
+const F = id => CON_FOTO.has(id) ? `/locales/demo/platos/${id}.webp` : ''
 
 export const DEMO_LOCAL = {
   id: SLUG,
@@ -110,7 +114,7 @@ function menuDelDiaDemo() {
   return {
     activo: true,
     nombre: 'Almuerzo ejecutivo',
-    foto: '',
+    foto: '/locales/demo/platos/almuerzo.webp',
     franja: { desde: '00:00', hasta: '00:00' },
     precioMesa: 16000,
     precioLlevar: 17000,

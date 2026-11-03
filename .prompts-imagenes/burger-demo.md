@@ -22,7 +22,7 @@ El **ícono cuadrado** (`icono.webp`) lo armo yo con la hamburguesa del mismo lo
 
 ---
 
-## 🖼️ Banner (portada) — `banner.webp` · ⏳ pendiente
+## 🖼️ Banner (portada) — `banner.webp` · ✅ lista (3-nov, de Descargas)
 
 ```
 Photorealistic wide horizontal banner food photography for a burger joint: an abundant spread on a long charred dark wooden table — two tall juicy cheeseburgers with melted cheddar, a basket of golden french fries, onion rings, a loaded hot dog and two frosty sodas, dark charcoal background with grill flames and floating embers glowing warmly in the distance, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, keep the center-left slightly calmer for overlaid text, horizontal cinematic 16:9 composition, high detail, sharp focus, no text, no watermark, no logo, no hands, no people.
@@ -32,7 +32,7 @@ Photorealistic wide horizontal banner food photography for a burger joint: an ab
 
 ## 🍔 Platos — `platos/<archivo>.webp` (cuadradas)
 
-**La Clásica** — `platos/clasica.webp` · ⏳ pendiente
+**La Clásica** — `platos/clasica.webp` · ✅ lista (3-nov, de Descargas)
 
 ```
 Photorealistic professional food photography of a tall classic cheeseburger: grilled beef patty, melted cheddar, crisp lettuce, tomato slice, red onion and house sauce in a glossy golden brioche bun, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
@@ -50,7 +50,7 @@ Photorealistic professional food photography of a tall double cheeseburger with 
 Photorealistic professional food photography of a burger with a grilled beef patty, crispy bacon strips, golden onion rings, melted cheddar and dark smoky BBQ sauce dripping, in a brioche bun, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
 ```
 
-**Pollo Crispy** — `platos/pollo-crispy.webp` · ⏳ pendiente
+**Pollo Crispy** — `platos/pollo-crispy.webp` · ✅ lista (3-nov, de Descargas)
 
 ```
 Photorealistic professional food photography of a crispy fried chicken breast sandwich with lettuce, tomato and honey mustard sauce in a sesame brioche bun, the golden breading very crunchy, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
@@ -92,7 +92,7 @@ Photorealistic professional food photography of a grilled Colombian chorizo in a
 Photorealistic professional food photography of a Colombian salchipapa: a generous pile of golden french fries with sliced sausage and grated white cheese, served in a small paper-lined tray, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
 ```
 
-**Salchipapa Mixta** — `platos/salchipapa-mixta.webp` · ⏳ pendiente
+**Salchipapa Mixta** — `platos/salchipapa-mixta.webp` · ✅ lista (3-nov, de Descargas)
 
 ```
 Photorealistic professional food photography of a loaded salchipapa: golden french fries topped with sliced sausage, shredded chicken, beef strips and gratinated melted cheese, in a paper-lined tray, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
@@ -104,7 +104,7 @@ Photorealistic professional food photography of a loaded salchipapa: golden fren
 Photorealistic professional food photography of golden french fries topped with sliced sausage, crispy bacon bits, sweet corn kernels and melted gratinated cheese, in a paper-lined tray, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
 ```
 
-**Combo Clásico** — `platos/combo-clasico.webp` · ⏳ pendiente
+**Combo Clásico** — `platos/combo-clasico.webp` · ✅ lista (3-nov, de Descargas)
 
 ```
 Photorealistic professional food photography of a combo meal: a classic cheeseburger, a portion of golden french fries and a cold soda in a glass with ice, arranged together, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
@@ -146,13 +146,13 @@ Photorealistic professional food photography of six golden crispy chicken nugget
 Photorealistic professional food photography of golden french fries drenched in melted cheddar cheese sauce and topped with crispy bacon bits and chopped chives, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
 ```
 
-**Gaseosa** — `platos/gaseosa.webp` · ⏳ pendiente
+**Gaseosa** — `platos/gaseosa.webp` · ✅ lista (3-nov, de Descargas)
 
 ```
 Photorealistic professional food photography of a tall glass of cold cola with ice cubes and condensation droplets, next to a chilled glass bottle, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
 ```
 
-**Limonada** — `platos/limonada.webp` · ⏳ pendiente
+**Limonada** — `platos/limonada.webp` · ✅ lista (3-nov, de Descargas)
 
 ```
 Photorealistic professional food photography of a tall glass of fresh frosty lemonade with ice, lime slices and a mint sprig, condensation droplets, freshly made, juicy and mouth-watering, served on a dark matte slate board on a charred dark wooden table, dark charcoal background with a soft warm glow of grill flames and floating embers far behind, warm golden side lighting, subtle red #D9381E and mustard yellow #F2A900 accents, shallow depth of field, high detail, sharp focus on the food, centered with some space around it, square 1:1 composition, no text, no watermark, no logo, no hands, no people.
