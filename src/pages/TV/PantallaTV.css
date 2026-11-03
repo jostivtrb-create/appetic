@@ -447,3 +447,7 @@
 .tv-liviano .tvt-logo, .tv-liviano .tva-logo { filter: none; }
 .tv-liviano .tvg-precio { box-shadow: none; }
 .tv-liviano .tvt-fila { animation-delay: 0s !important; }
+
+/* 🍔 Demo: el plato al que el visitante le acaba de cambiar el precio (guía «Demo de clientes» D20). */
+.tvt-fila.tvt-resaltado { position: relative; border-radius: calc(var(--u) * 1); background: rgba(242,169,0,.18); background: color-mix(in srgb, var(--tv-acento) 22%, transparent); box-shadow: 0 0 0 calc(var(--u) * .3) var(--tv-acento); animation: tvResalta 1.6s ease-in-out infinite; }
+@keyframes tvResalta { 50% { box-shadow: 0 0 0 calc(var(--u) * .6) var(--tv-acento); } }

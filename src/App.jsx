@@ -45,6 +45,8 @@ export default function App() {
   if (RUTA_TV.test(pathname)) {
     return (
       <Suspense fallback={null}>
+        {/* 🎮 En /demo/tv sigue el recorrido guiado del servicio 2 (no pinta nada fuera de la demo). */}
+        <Recorrido />
         <Routes>
           <Route path="/:slug/tv" element={<PantallaTV />} />
         </Routes>

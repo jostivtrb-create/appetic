@@ -83,6 +83,7 @@
   font-size: 12.5px; font-weight: 900; background: rgba(255,255,255,.14);
 }
 .demo-bienv-procesos .demo-bienv-ic { font-size: 24px; }
+.demo-bienv-icono { width: 40px; height: 40px; object-fit: contain; flex: none; }
 .demo-bienv-txt { flex: 1; min-width: 0; display: grid; }
 .demo-bienv-txt b { font-size: 15px; }
 .demo-bienv-txt small { font-size: 12.5px; opacity: .8; line-height: 1.35; }
@@ -109,6 +110,8 @@ body:has(.co-screen, .pm-overlay, .pw-overlay, .cd-overlay) .demo-letrero { disp
 
 /* Un solo botón: volver al inicio del demo. Va por encima del bloqueo del recorrido (z 450). */
 .demo-letrero { z-index: 470; }
+/* En el TV de la demo: encima de la pantalla, sin empujarla. */
+.demo-letrero--tv { position: fixed; top: 0; left: 0; right: 0; }
 body:has(.demo-bienv) .demo-letrero { display: none; }
 .demo-letrero-volver {
   border: 0; border-radius: 999px; padding: 8px 14px; font: inherit; font-weight: 800; cursor: pointer;

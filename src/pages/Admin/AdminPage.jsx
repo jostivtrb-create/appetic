@@ -12,6 +12,7 @@ import AdminFotosExternas from './AdminFotosExternas'
 import AdminConfig from './AdminConfig'
 import AdminDifundir from './AdminDifundir'
 import DemoLetrero from '../../components/Demo/DemoLetrero'
+import { CLAVE_PLATO } from '../../components/Demo/Recorrido'
 import { isDevSlug, getDevLocal } from '../../dev'
 import { computeDestacadosHome } from '../../utils/destacadosHome'
 import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
@@ -184,6 +185,8 @@ export default function AdminPage() {
   }
   async function updateProducto(id, cambios) {
     avisarDemo('producto')
+    // 🍔 Demo: el TV muestra resaltado el plato que el visitante acaba de cambiar (D20).
+    if (local?.esDemo) { try { sessionStorage.setItem(CLAVE_PLATO, id) } catch { /* nada */ } }
     let nuevos = productos.map(x => x.id === id ? { ...x, ...cambios } : x)
     if (cambios.destacado === true) {
       const cat = nuevos.find(x => x.id === id)?.categoria

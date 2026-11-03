@@ -4,8 +4,28 @@
     {
       "name": "appetic",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "5199", "--strictPort"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5199",
+        "--strictPort"
+      ],
       "port": 5199,
+      "autoPort": false
+    },
+    {
+      "name": "appetic-build",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--port",
+        "5198",
+        "--strictPort"
+      ],
+      "port": 5198,
       "autoPort": false
     }
   ]

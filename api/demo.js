@@ -7,12 +7,16 @@
 //     antes de que la vea; si hay alguien, no la toca. Responde { reiniciada }.
 //   • POST { accion: 'latido' } → «sigo aquí», cada 5 min mientras alguien la tiene abierta.
 //   • POST { accion: 'reiniciar' } con la sesión del superadmin → ya, sin esperar.
+//   • POST { accion: 'interesado', origen } → tocó «Quiero esto para mi negocio».
+// 📈 De dónde llegan (guía «Demo de clientes» D22): `entrar` con { origen, nueva } y `interesado`
+// suman en config/demoEmbudo { visitas: { <origen>: n }, interesados: { <origen>: n } }. Vive FUERA
+// del local: el reinicio borra locales/demo/stats y con él se perdía el «Quiero esto» (D18).
 // Nadie de afuera puede hacer daño con esto: sin superadmin, solo reinicia lo que nadie está usando.
 //
 // La actividad vive en config/demoActividad { en (ms), reiniciandoDesde (ms) } — solo el servidor.
 import { conAdmin, cuerpo, sesionDe, SUPERADMINS } from './_lib/admin.js'
 import { DEMO_LOCAL, DEMO_PRODUCTOS } from '../src/dev/burgerDemo.js'
-import { DEMO_SLUG } from '../src/config/demo.js'
+import { DEMO_SLUG, origenValido } from '../src/config/demo.js'
 import { comandasDeEjemplo, metricasDeEjemplo, pedidoDeEjemplo } from '../src/services/demoEjemplo.js'
 import { cuentasDeEjemplo } from '../src/services/cuentasEjemplo.js'
 import { armarPedido, publicoDe } from '../src/utils/pedidoDoc.js'
@@ -118,6 +122,12 @@ export default async function handler(req, res) {
   const ref = db.collection('config').doc('demoActividad')
   try {
     const accion = req.method === 'GET' ? 'tarea' : String(cuerpo(req).accion || '')
+    const embudo = db.collection('config').doc('demoEmbudo')
+    const sumar = campo => embudo.set({ [campo]: { [origenValido(String(cuerpo(req).origen || ''))]: f.FieldValue.increment(1) } }, { merge: true })
+    if (accion === 'interesado') {
+      await sumar('interesados')
+      return res.status(200).json({ ok: true })
+    }
     if (accion === 'latido') {
       await ref.set({ en: Date.now() }, { merge: true })
       return res.status(200).json({ ok: true })
@@ -136,6 +146,7 @@ export default async function handler(req, res) {
     }
     // Quien entra o reinicia cuenta como actividad (la tarea de la madrugada no).
     if (accion !== 'tarea') await ref.set({ en: Date.now() }, { merge: true })
+    if (accion === 'entrar' && cuerpo(req).nueva === true) await sumar('visitas')
     return res.status(200).json({ ok: true, reiniciada: toca })
   } catch (err) {
     console.error('demo:', err)

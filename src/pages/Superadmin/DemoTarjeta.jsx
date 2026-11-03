@@ -3,8 +3,8 @@ import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../config/firebase'
 import { DEMO_SLUG } from '../../config/demo'
 
-// 🍔 Demo para clientes (guía «Demo de clientes» D5 · D18): el link para mandar por WhatsApp,
-// cuánta gente entró / tocó «Quiero esto», y el botón «Reiniciar demo».
+// 🍔 Demo para clientes (guía «Demo de clientes» D5 · D18 · D22): el link para mandar por WhatsApp,
+// cuánta gente entró / tocó «Quiero esto» y de dónde venían, y el botón «Reiniciar demo».
 export default function DemoTarjeta() {
   const [datos, setDatos] = useState(null)
   const [confirmar, setConfirmar] = useState(false)
@@ -14,11 +14,11 @@ export default function DemoTarjeta() {
 
   async function leer() {
     try {
-      const [l, t] = await Promise.all([
+      const [l, e] = await Promise.all([
         getDoc(doc(db, 'locales', DEMO_SLUG)),
-        getDoc(doc(db, 'locales', DEMO_SLUG, 'stats', 'total')),
+        getDoc(doc(db, 'config', 'demoEmbudo')),
       ])
-      setDatos({ existe: l.exists(), reiniciadaEn: l.data()?.reiniciadaEn?.toDate?.(), interesados: t.data()?.interesados || 0 })
+      setDatos({ existe: l.exists(), reiniciadaEn: l.data()?.reiniciadaEn?.toDate?.(), embudo: e.data() || {} })
     } catch { setDatos({ existe: false }) }
   }
   useEffect(() => { leer() }, [])
@@ -58,8 +58,9 @@ export default function DemoTarjeta() {
           <small>
             {datos === null ? 'Cargando…'
               : !datos.existe ? 'Todavía no está creada: tócale «Crear demo».'
-                : `Reiniciada ${datos.reiniciadaEn ? datos.reiniciadaEn.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—'} · ${datos.interesados} tocaron «Quiero esto»`}
+                : `Reiniciada ${datos.reiniciadaEn ? datos.reiniciadaEn.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}`}
           </small>
+          {datos?.existe && <Embudo embudo={datos.embudo} />}
         </div>
       </div>
       <div className="sa-demo-acc">
@@ -84,5 +85,23 @@ export default function DemoTarjeta() {
         </div>
       )}
     </section>
+  )
+}
+
+// 📈 Visitas y «Quiero esto» por origen (D22). «Propuesta» = los dos QR del papel.
+const NOMBRE_ORIGEN = { directo: 'Link directo', 'prop-p2': 'Propuesta (QR de arriba)', 'prop-p6': 'Propuesta (QR de Cuentas)', whatsapp: 'WhatsApp', instagram: 'Instagram', otro: 'Otro' }
+function Embudo({ embudo }) {
+  const visitas = embudo.visitas || {}, interesados = embudo.interesados || {}
+  const total = o => Object.values(o).reduce((s, n) => s + (n || 0), 0)
+  const origenes = Object.keys(NOMBRE_ORIGEN).filter(o => visitas[o] || interesados[o])
+  return (
+    <div className="sa-demo-embudo">
+      <b>{total(visitas)} visitas · {total(interesados)} tocaron «Quiero esto»</b>
+      {origenes.length > 0 && (
+        <ul>
+          {origenes.map(o => <li key={o}>{NOMBRE_ORIGEN[o]}: {visitas[o] || 0} visitas · {interesados[o] || 0} «Quiero esto»</li>)}
+        </ul>
+      )}
+    </div>
   )
 }

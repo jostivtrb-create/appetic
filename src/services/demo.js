@@ -25,10 +25,10 @@ export async function fijarFotosBase() {
   return Object.keys(fotos).length
 }
 
-async function llamar(accion, conSesion = false) {
+async function llamar(accion, conSesion = false, extra = {}) {
   const headers = { 'Content-Type': 'application/json' }
   if (conSesion && auth.currentUser) headers.Authorization = `Bearer ${await auth.currentUser.getIdToken()}`
-  const r = await fetch('/api/demo', { method: 'POST', headers, body: JSON.stringify({ accion }) })
+  const r = await fetch('/api/demo', { method: 'POST', headers, body: JSON.stringify({ accion, ...extra }), keepalive: true })
   const d = await r.json().catch(() => ({}))
   if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`)
   return d
@@ -38,6 +38,9 @@ async function llamar(accion, conSesion = false) {
 export const reiniciarDemoAhora = () => llamar('reiniciar', true)
 
 // El visitante llega: si nadie la usaba hace 30 min, el servidor la reinicia antes. { reiniciada }
-export const avisarDemoEntrada = () => llamar('entrar').catch(() => ({ reiniciada: false }))
+// `nueva` (primera vez hoy en este aparato) suma una visita a su `origen` (D22).
+export const avisarDemoEntrada = ({ origen, nueva } = {}) => llamar('entrar', false, { origen, nueva }).catch(() => ({ reiniciada: false }))
+// Tocó «Quiero esto para mi negocio» (D18 · D22).
+export const avisarDemoInteresado = origen => llamar('interesado', false, { origen }).catch(() => {})
 // «Sigo aquí» (cada 5 min mientras la tenga abierta): así no se la reinician encima.
 export const avisarDemoLatido = () => llamar('latido').catch(() => {})

@@ -1,4 +1,4 @@
-import { Component, useEffect, useMemo, useRef, useState } from 'react'
+import { Component, Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { escucharPantalla, ultimoGuardado } from '../../services/pantallaTV'
 import {
@@ -14,7 +14,12 @@ import { listosVigentes } from '../../utils/turnos'
 import { comandasDe } from '../../services/comandas'
 import { estaCortado } from '../../utils/plan'
 import { vigilarTV, recargarPronto } from './vigilanteTV'
+import { DEMO_SLUG } from '../../config/demo'
 import './PantallaTV.css'
+
+// 🍔 En la demo para clientes el TV lleva el letrero y el recorrido (guía «Demo de clientes» D20).
+// Va aparte para que un TV de verdad no cargue el código de la demo.
+const DemoLetrero = lazy(() => import('../../components/Demo/DemoLetrero'))
 
 // 📺 La pantalla de TV del local: appetic.vercel.app/<slug>/tv
 // Guía: .mega-cuestionario/Guía para la Pantalla de TV.md
@@ -45,8 +50,11 @@ function PantallaTVInterna({ slugFijo, incrustada = false }) {
   const liviano = useModoLiviano(!!datos)
   useAguanteSolo(!incrustada)
   const deriva = useDeriva()
-  const cursorOculto = useCursorOculto(!incrustada)
-  const avisoCompleta = usePantallaCompleta(!incrustada)
+  // En la demo se ve en un celular o un PC, con el recorrido encima: sin pantalla completa al
+  // primer toque ni puntero escondido.
+  const enDemo = slug === DEMO_SLUG
+  const cursorOculto = useCursorOculto(!incrustada && !enDemo)
+  const avisoCompleta = usePantallaCompleta(!incrustada && !enDemo)
   // 💳 Local apagado por falta de pago: el TV lo dice y se recarga solo cada 10 min por si ya pagaron.
   const cortado = !!datos && estaCortado(datos.local)
   const [, setTic] = useState(0)
@@ -81,13 +89,17 @@ function PantallaTVInterna({ slugFijo, incrustada = false }) {
         tam={tam}
         clases={`${liviano ? 'tv-liviano' : ''} ${cursorOculto ? 'tv-sin-cursor' : ''} ${incrustada ? 'tv-incrustada' : ''}`}
         deriva={deriva}
+        platoFoco={datos.local.esDemo ? new URLSearchParams(window.location.search).get('plato') : null}
       />
+      {datos.local.esDemo && !incrustada && (
+        <Suspense fallback={null}><DemoLetrero local={datos.local} vista="tv" /></Suspense>
+      )}
       {avisoCompleta && <div className="tv-aviso-completa">Pulsa <b>OK</b> o toca la pantalla para verla completa</div>}
     </>
   )
 }
 
-function Pantalla({ local: localBase, productos: productosBase, tam, clases, deriva, veloz = false }) {
+function Pantalla({ local: localBase, productos: productosBase, tam, clases, deriva, veloz = false, platoFoco = null }) {
   // 🍲 El almuerzo de hoy entra de primero en el tablero y en el lugar grande, solo dentro de su
   // franja (D19, D23). En el local se dicen los dos precios si son distintos (mesa y llevar).
   const { local, productos } = useConMenuDelDia(localBase, productosBase, 'personal')
@@ -147,6 +159,17 @@ function Pantalla({ local: localBase, productos: productosBase, tam, clases, der
     return () => clearTimeout(t)
   }, [paso, anuncios.length])
 
+  // 🍔 Demo: al volver de cambiar un precio (?plato=), salta a la página donde está ese plato y lo
+  // resalta, en vez de esperar a que le toque el turno (D20).
+  const focoHecho = useRef(false)
+  useEffect(() => {
+    if (!platoFoco || focoHecho.current || !paginas.length) return
+    const i = paginas.findIndex(pg => pg.platos.some(p => p.id === platoFoco))
+    if (i < 0) return
+    focoHecho.current = true
+    setPaso({ pag: i, anuncio: null, vueltaAnuncio: 0 })
+  }, [platoFoco, paginas])
+
   const pagina = paginas.length ? paginas[paso.pag % paginas.length] : null
   const anuncio = paso.anuncio != null ? anuncios[paso.anuncio % Math.max(1, anuncios.length)] : null
 
@@ -158,6 +181,12 @@ function Pantalla({ local: localBase, productos: productosBase, tam, clases, der
     const t = setInterval(() => setIGrande(i => i + 1), veloz ? TIEMPOS.plato / 2 : TIEMPOS.plato)
     return () => clearInterval(t)
   }, [cola.length, veloz])
+  const grandeHecho = useRef(false)
+  useEffect(() => {
+    if (!platoFoco || grandeHecho.current) return
+    const i = cola.findIndex(p => p.id === platoFoco)
+    if (i >= 0) { grandeHecho.current = true; setIGrande(i) }
+  }, [platoFoco, cola])
   const grande = cola.length ? cola[iGrande % cola.length] : null
   const siguiente = cola.length > 1 ? cola[(iGrande + 1) % cola.length] : null
   useEffect(() => { if (siguiente?.foto) new Image().src = siguiente.foto }, [siguiente?.foto])
@@ -215,7 +244,7 @@ function Pantalla({ local: localBase, productos: productosBase, tam, clases, der
               <TableroAlmuerzo key="almuerzo" plato={pagina.platos[0]} />
             ) : pagina ? (
               <ul key={`${pagina.cat.id}-${pagina.pagina}`} className={columnas === 2 ? 'dos' : ''}>
-                {pagina.platos.map((p, i) => <FilaTablero key={p.id} plato={p} i={i} />)}
+                {pagina.platos.map((p, i) => <FilaTablero key={p.id} plato={p} i={i} resaltado={p.id === platoFoco} />)}
               </ul>
             ) : (
               <p className="tvt-vacio">Muy pronto verás aquí nuestro menú.</p>
@@ -350,7 +379,7 @@ function TableroAlmuerzo({ plato }) {
   )
 }
 
-function FilaTablero({ plato, i }) {
+function FilaTablero({ plato, i, resaltado = false }) {
   const p0 = preciosDelPlato(plato)
   // Con 3 tamaños o más, los precios uno al lado del otro dejaban el nombre en «Hambur…»: en el
   // tablero va el rango (el detalle está en el menú del celular). Auditoría H13.
@@ -358,7 +387,7 @@ function FilaTablero({ plato, i }) {
     ? { tipo: 'rango', min: Math.min(...p0.tamanos.map(t => t.precio)), max: Math.max(...p0.tamanos.map(t => t.precio)) }
     : p0
   return (
-    <li className="tvt-fila" style={{ animationDelay: `${i * 60}ms` }}>
+    <li className={`tvt-fila ${resaltado ? 'tvt-resaltado' : ''}`} style={{ animationDelay: `${i * 60}ms` }}>
       <div className="tvt-txt">
         <span className="tvt-pnombre">
           {plato.nombre}

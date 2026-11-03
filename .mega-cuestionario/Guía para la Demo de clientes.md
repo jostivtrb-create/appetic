@@ -5,7 +5,7 @@
 
 - **Tarea:** un local DEMO de Appetic donde los clientes potenciales entren, cambien y prueben a su gusto, y que nosotros podamos reiniciar.
 - **Inicio:** 29 de octubre de 2026
-- **Estado:** 🔵 Construyendo
+- **Estado:** 🔵 Construyendo — ronda 3 (3-nov): la demo se ordena por los 5 servicios de la propuesta
 - **Proyecto:** Appetic/
 
 ---
@@ -50,6 +50,19 @@ como nuevo con un botón «Reiniciar demo».
 | D17 | **Tutorial guiado tipo videojuego**: resalta en pantalla qué tocar, espera a que lo haga y avanza; no solo texto | Obs. del usuario en S3: «muy bonito e interactivo, una experiencia guiada» |
 | D18 | Se miden **visitas y clics** a «Quiero esto para mi negocio» | Saber si la demo convierte (S4) |
 
+
+### De la ronda 3 (3-nov · auditoría `.auditoria/demo-de-clientes.md` H1–H3 + revisión de la propuesta)
+
+| # | Decisión | Por qué |
+|---|----------|---------|
+| D19 | La bienvenida se ordena por los **5 servicios de la propuesta**, con su mismo número, nombre e ícono: 1 Menú digital · 2 Menú en el TV · 3 Domicilios · 4 Meseros y cocina · 5 Tus cuentas. **Reemplaza** la bienvenida por procesos del 30-oct | Quien llega con el papel encuentra lo que acaba de leer (H2) |
+| D20 | El TV tiene **recorrido propio**: prende el TV → cambia un precio en la carta → vuelve al TV y lo ve cambiado | La promesa del papel es «cambias un precio y cambia en el TV» (H1) |
+| D21 | En el servicio 1 el cliente **elige cómo pide**: 🛍️ para recoger · 🛵 a domicilio · 🪑 desde la mesa (QR) | El Emprendedor (recoger) y el QR de mesa no se veían en ningún lado (H3) |
+| D22 | Se mide **de dónde llegan** a la demo (`?origen=`): visitas y «Quiero esto» por origen | Saber si la propuesta impresa trae gente (S1) |
+| D23 | Al final de cada servicio se dice **en qué plan viene** y desde cuánto | Que el de un tráiler no piense «esto no es para mí» (S2 · H5 de la auditoría) |
+
+**Propuesta (ronda 3):** no se le agregan bloques (P4), el Plan Desarrollador se queda arriba como ancla (P5), se quedan las dos portadas (P6), las fotos de los platos van **incluidas en todos los planes, hechas con IA** desde sus fotos o su carta (P7 — ya es lo que dice el papel). Único cambio: un **QR pequeño de la demo arriba** (pág. 2–3) además del de la pág. 6 (S3), y los dos QR con su `?origen=` (D22).
+
 ---
 
 ## 3. Suposiciones del agente
@@ -80,6 +93,14 @@ como nuevo con un botón «Reiniciar demo».
 - **Reiniciar:** botón en «Locales y planes» del superadmin; borra comandas, pedidos, equipo, productos y
   fotos subidas, y vuelve a escribir el local, el menú, las comandas de ejemplo y las métricas de ejemplo.
 - Notificaciones push y «Activar avisos» se esconden en la demo.
+- **Ronda 3 (decidido por mí):**
+  - Lo que antes estaba en los procesos se reparte así: **1 Menú** (el cliente pide, 3 caminos) · **2 TV** (incluye editar un precio en Catálogo) · **3 Domicilios** (confirmar el pedido del cliente → domiciliario: en camino → entregado) · **4 Meseros y cocina** (mesero toma la comanda → cocina abre, tacha y despacha → QR por mesa en Difundir) · **5 Cuentas** (cobrar en la Caja → ver Cuentas).
+  - Planes al final: 1, 2 y 5 → Emprendedor ($59.900) · 3 → Comerciante ($79.900) · 4 y el pedido desde la mesa → Empresario ($99.900). Precios leídos de `utils/plan.js`.
+  - El TV se abre en la MISMA pestaña (`/demo/tv`) con el letrero y el recorrido encima; al volver tras cambiar un precio abre `?plato=<id>` y salta a la página del tablero donde está ese plato, resaltado.
+  - El conteo por origen vive en `config/demoEmbudo` y lo suma el servidor (`/api/demo`), **no** en `locales/demo/stats`: ⚠️ hallazgo de paso — el reinicio borra `stats`, así que el contador «tocaron Quiero esto» (D18) se volvía a 0 cada vez que la demo se reiniciaba sola.
+  - Orígenes: `prop-p2` (QR nuevo de arriba) y `prop-p6` (el de siempre); sin `?origen=` cuenta como `directo`. Una visita por aparato y por día.
+  - Título de la bienvenida: «Así funcionaría tu negocio» (H7 de la auditoría, va de paso al rehacerla).
+
 
 ---
 
@@ -102,9 +123,37 @@ Pregunta abierta: ¿agregamos al panel un editor de colores y logo? (hoy no exis
 - [x] 7. Tutorial guiado tipo videojuego
 - [~] 8. Probar todo en vista previa ✅ → publicar ✅ (29-oct: reglas Firestore+Storage y app) → sembrar la demo («Crear demo», usuario) → probar en producción
 
+### Ronda 3 (3-nov)
+- [x] 9. Recorridos por servicio (`Recorrido.jsx`): menu (elige recoger/domicilio/mesa), tv, domicilios, salon, cuentas, con el plan al final
+- [x] 10. Bienvenida por los 5 servicios con los íconos de la propuesta
+- [x] 11. TV en la demo: letrero + recorrido en `/demo/tv`, `?plato=` resalta el plato cambiado
+- [x] 12. Medir origen: `?origen=` → `/api/demo` → `config/demoEmbudo`; superadmin lo muestra
+- [x] 13. Propuesta: QR pequeño arriba (`prop-p2`) y el de la pág. 6 con `prop-p6`; regenerar PDF
+- [~] 14. Probado en vista previa (móvil) ✅ → pedir permiso para publicar
+
 ---
 
 ## 7. Bitácora
+
+- **3-nov · Ronda 3 construida (sin publicar).** Bienvenida por los 5 servicios con los íconos de la propuesta
+  (`public/demo-servicios/`), recorridos `menu` (elige → `menu-recoger` / `menu-domicilio` / `menu-mesa`), `tv`,
+  `domicilios`, `salon`, `cuentas`, con «Viene en el plan X · desde $Y/mes» al final. Probados en vista previa:
+  menú desde la mesa (la comanda cae en cocina), TV (con `appetic-build`: el TV leyendo Firebase mostró La Clásica
+  resaltada con el precio nuevo), domicilios de punta a punta, y los arranques de 4 y 5.
+- **Problemas encontrados y resueltos en el camino:**
+  - Al tocar «Siguiente servicio» con la ventana «¡Listo!» del pedido aún abierta, la burbuja del guía solo decía
+    «Entendido»: el visitante quedaba atascado. Ahora la burbuja también trae el botón del paso (y las opciones).
+  - El reinicio de la demo borra `locales/demo/stats`, así que el contador «tocaron Quiero esto» (D18) volvía a 0
+    cada vez que se reiniciaba sola. Se movió a `config/demoEmbudo`, lo suma el servidor (`/api/demo`), por origen.
+  - En el TV la tarjeta del guía tapaba el plato resaltado: el paso ahora apunta a `.tvt-resaltado` y la tarjeta se corre.
+  - El TV en la demo ya no pide pantalla completa al primer toque ni esconde el puntero.
+  - En «Meseros y cocina» se sumó un paso para mirar Difundir (antes el final lo tapaba con el velo).
+- **Decidido sobre la marcha:** el servicio 3 crea SIEMPRE un pedido «por confirmar» nuevo para el visitante (así no
+  le toca uno que ya confirmó otro); si toca «Ver el pedido» antes de que exista (~2 s), cae en el de ejemplo.
+- **Propuesta:** QR pequeño «Pruébalo mientras lees» en el pie de la pág. 2 (`img/qr-demo-p2.png`, `?origen=prop-p2`)
+  y el de la pág. 6 cambiado a `img/qr-demo-p6.png` (`?origen=prop-p6`). PDF regenerado, sigue en 7 páginas. Los dos
+  QR leídos con OpenCV desde el PDF. ⚠️ Las propuestas YA impresas siguen con el QR viejo (sin origen): cuentan como «directo».
+- ⚠️ En `config/demoEmbudo` quedaron 1 visita y 2 «Quiero esto» de las pruebas (1 de ellos «otro»). Restar al leer o borrar el documento antes de mirar números.
 
 - **30-oct · Pedidos del usuario al probarla:** durante un recorrido **solo se toca lo resaltado** (paneles
   transparentes alrededor del hueco; tocar fuera sacude la tarjeta); con una ventana abierta el guía es una
@@ -148,4 +197,5 @@ Pregunta abierta: ¿agregamos al panel un editor de colores y logo? (hoy no exis
 | Ronda | Tema | Estado |
 |---|---|---|
 | 1 | Visión general: dónde vive, quién entra, qué toca, cómo se reinicia | ✅ respondida |
-| 2 | Cómo se ve y se cuida la demo compartida | ✅ respondida — sin más rondas |
+| 2 | Cómo se ve y se cuida la demo compartida | ✅ respondida |
+| 3 | Qué cambia: bienvenida por servicios, TV, cómo pide el cliente + afinar la propuesta | ✅ respondida (3-nov) — sin más rondas |

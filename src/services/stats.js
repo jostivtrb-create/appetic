@@ -60,12 +60,6 @@ export async function registrarPedidoStats(localId, total, entrega) {
   await sumar(localId, { pedidos: increment(1), monto: increment(Number(total) || 0), ...(campo ? { [campo]: increment(1) } : {}) })
 }
 
-// 🍔 Demo para clientes: alguien tocó «Quiero esto para mi negocio» (D18).
-export async function registrarInteresado(localId) {
-  if (!localId) return
-  await sumar(localId, { interesados: increment(1) })
-}
-
 // Lee las estadísticas para el panel: total (1 lectura) + últimos 7 días (≤7 lecturas).
 export async function obtenerEstadisticas(localId) {
   const vacio = { visitas: 0, pedidos: 0, monto: 0 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { avisarDemoEntrada, avisarDemoLatido } from '../../services/demo'
-import { conPreview, olvidarBienvenida } from './demoUtils'
+import { conPreview, olvidarBienvenida, origenDemo, visitaNuevaHoy } from './demoUtils'
 import { AVISO_BIENVENIDA, terminarRecorrido } from './Recorrido'
 import './Demo.css'
 
@@ -22,7 +22,7 @@ function useDemoEnUso(activa) {
     if (!entradaAvisada) {
       entradaAvisada = true
       const reloj = setTimeout(() => setPreparando(true), 1200)
-      avisarDemoEntrada().then(r => {
+      avisarDemoEntrada({ origen: origenDemo(), nueva: visitaNuevaHoy() }).then(r => {
         clearTimeout(reloj)
         setPreparando(false)
         let yaRecargo = false
@@ -41,7 +41,7 @@ function useDemoEnUso(activa) {
   return preparando
 }
 
-export default function DemoLetrero({ local }) {
+export default function DemoLetrero({ local, vista }) {
   // La vista previa (?preview=1) es del navegador: no hay nada que reiniciar en el servidor.
   const preparando = useDemoEnUso(!!local?.esDemo && !new URLSearchParams(window.location.search).has('preview'))
   const navigate = useNavigate()
@@ -65,7 +65,7 @@ export default function DemoLetrero({ local }) {
     )
   }
   return (
-    <div className="demo-letrero" role="note">
+    <div className={`demo-letrero ${vista === 'tv' ? 'demo-letrero--tv' : ''}`} role="note">
       <span className="demo-letrero-txt"><b>🧪 Demo de Appetic</b></span>
       <button className="demo-letrero-volver" onClick={volver}>↩ Volver al inicio del demo</button>
     </div>

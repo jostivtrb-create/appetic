@@ -1,9 +1,8 @@
-// 🧪 Cada PROCESO de la demo se vale solo (pedido del usuario, 30-oct): al empezarlo se crea, si
-// hace falta, lo que esa persona necesita ver — sin obligar a hacer antes otro proceso.
-//   • Mesero        → un pedido de la app «por confirmar».
-//   • Cocina        → una comanda en la fila.
-//   • Domiciliario  → un domicilio «listo para salir».
-//   • Administrador → una comanda terminada, lista para cobrar.
+// 🧪 Cada SERVICIO de la demo se vale solo (pedido del usuario, 30-oct · D19 del 3-nov): al
+// empezarlo se crea, si hace falta, lo que esa persona necesita ver — sin obligar a hacer antes otro.
+//   • 3 Domicilios       → un pedido «por confirmar» (siempre uno nuevo, suyo) y uno «listo para salir».
+//   • 4 Meseros y cocina → una comanda en la fila de la cocina.
+//   • 5 Tus cuentas      → una comanda terminada, lista para cobrar.
 // Usa los MISMOS servicios que la app (el visitante administra la demo), así que vale igual en la
 // demo publicada (Firestore) y en la vista previa (?preview=1, en el navegador).
 import { DEMO_LOCAL, DEMO_PRODUCTOS } from '../../dev/burgerDemo'
@@ -11,6 +10,7 @@ import { DEMO_SLUG } from '../../config/demo'
 import { isDevSlug } from '../../dev'
 import { comandasDe, itemsDeComanda } from '../../services/comandas'
 import { pedidosDe, crearPedido } from '../../services/pedidos'
+import { fijarPedidoAConfirmar } from './Recorrido'
 
 const prod = id => DEMO_PRODUCTOS.find(p => p.id === id)
 let n = 0
@@ -64,7 +64,7 @@ export async function prepararProceso(proceso) {
   const com = comandasDe(DEMO_SLUG, { demo })
   const ped = pedidosDe(DEMO_SLUG, { demo })
   try {
-    if (proceso === 'cocina') {
+    if (proceso === 'salon') {
       const activas = await unaVez(cb => com.escucharActivas(cb))
       if (!activas.filter(c => c.estado === 'activa').length) {
         await comandaMesa(com, '6', [
@@ -73,7 +73,10 @@ export async function prepararProceso(proceso) {
         ])
       }
     }
-    if (proceso === 'domiciliario') {
+    if (proceso === 'domicilios') {
+      // El que va a confirmar: nuevo cada vez, para que no le toque uno que ya confirmó otro.
+      fijarPedidoAConfirmar(null)
+      fijarPedidoAConfirmar(await pedidoDomicilio(ped, 'Juan Pérez'))
       const vivos = await unaVez(cb => ped.escucharDomicilios(cb))
       if (!vivos.some(p => p.estado === 'listo')) {
         // De punta a punta por los mismos pasos de la app: pedido → confirmado → cocina lo entrega → listo.
@@ -84,7 +87,7 @@ export async function prepararProceso(proceso) {
         await ped.cambiarEstado(id, 'listo')
       }
     }
-    if (proceso === 'admin') {
+    if (proceso === 'cuentas') {
       const porCobrar = await unaVez(cb => com.escucharPorCobrar(cb))
       if (!porCobrar.some(c => c.estado === 'entregada' && c.destino?.tipo !== 'domicilio')) {
         const id = await comandaMesa(com, '3', [
