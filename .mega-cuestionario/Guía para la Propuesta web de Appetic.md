@@ -281,3 +281,9 @@ Carpeta de la web: `../web/` (fuera de este repo; `web/subir.sh` sube por FTP). 
   probadas (avanza solo, se detiene al tocar, continúa desde donde esté). Publicado por FTP y en
   Vercel. El guion `web/captura.mjs` ahora acepta `--gps` (ubicación simulada) y devuelve el valor
   del JS, con lo que sirve para probar flujos enteros sin tocar la pantalla.
+- **4 de noviembre de 2026 (tarde, 3)** — La golondrina del pase se veía dentro de un **rectángulo
+  claro**: no era la imagen (el PNG original es transparente y sin halo, medido) sino mi CSS, que le
+  ponía fondo crema y una sombra, y la sombra dibujaba la caja. Arreglo: `web/appetic/img/golondrina.png`
+  limpio desde `assets/marca/golondrina.png` (recortado al cuerpo, 360 px, 37 KB, verificado sobre
+  crema, oscuro y violeta) y la línea punteada partida en dos tramos con el pájaro en medio, sin
+  fondo ni sombra. Subido (`?v=6`) y comprobado en vivo.
