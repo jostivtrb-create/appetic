@@ -1,0 +1,187 @@
+# Guía para la Propuesta web de Appetic
+
+> Documento vivo. Aquí queda **todo lo decidido**, para no depender de la memoria del chat.
+> Si se cierra la sesión, se retoma leyendo este archivo.
+
+- **Tarea:** pasar la propuesta de Appetic a una página del sitio de Swiftfly Solutions,
+  interactuable, con animaciones, optimizada en PC y celular, a la altura del inicio.
+- **Inicio:** 3 de noviembre de 2026
+- **Estado:** 🟢 Rondas cerradas · listo para construir (se retoma el 5-nov-2026)
+- **Proyecto:** repo `appetic` (fuente: `propuesta/propuesta-appetic.html`) · sitio `switflysolutions.com` (Hostinger)
+
+---
+
+## 1. Objetivo
+
+En sus palabras: *"pasar la propuesta de Appetic a la página de Swiftfly Solutions, pero que sea
+interactuable y con animaciones, optimizada en PC y optimizada en celular, que esté a la altura del
+inicio"*.
+
+---
+
+## 2. Decisiones CERRADAS
+
+### De la ronda 1
+
+| # | Decisión | Por qué |
+|---|----------|---------|
+| **D1** | **Página larga con scroll animado + modo presentación** (diapositivas a pantalla completa). | Respuesta a P1: «las dos». Link para WhatsApp y modo visita en tablet. |
+| **D2** | **Interactivos:** viaje del pedido animado · celular con menú y carrito simulado · TV en vivo · cuentas animadas · selector de planes (mensual/6/12) · pase de abordar animado en portada. | Respuesta a P3. Quedó fuera solo la demo real incrustada. |
+| **D3** | **Vive en `switflysolutions.com/appetic/`** y el botón del inicio pasa de «Descargar PDF» a «Ver la propuesta». | Respuesta a P4. |
+| **D4** | **La subo yo por FTP** cuando abra el acceso de red a `ftp.switflysolutions.com`. | Respuesta a P5. |
+| **D5** | **Mismo contenido del PDF**, con ejemplos gráficos y animación muy pulida «como el inicio, para que se vea que somos buenos desarrolladores». | Respuesta a P6. |
+| **D6** | **Botón «Solicitar cotización formal»**: lo llenan los vendedores con los datos del local que visitan (Swiftfly manda la propuesta y contacta al cliente) y también el cliente curioso que llega al link. | Respuesta a P6, palabras suyas. Detalle en ronda 2. |
+| **D7** | Vista previa para WhatsApp (og) **sí** · botón Descargar PDF **sí** · link con saludo por cliente **no** · la promo del 2.º mes **no** se apaga sola. | Sugerencias S2–S5. |
+
+### De la ronda 2 (4 de noviembre de 2026)
+
+| # | Decisión | Por qué |
+|---|----------|---------|
+| **D8** | **Las solicitudes se GUARDAN en una base de datos dentro de Appetic** (Firestore del proyecto `appetic-17477`), no van por correo ni solo por WhatsApp. Se consultan desde el panel del superadmin de la app. | Obs. a P1: *«Toca crear una base de datos dentro de la app porque también necesito que los vendedores tomen foto del lugar y pongan la ubicación, así sabemos que sí están cumpliendo con las zonas de venta»*. P5 (correo) quedó en blanco → sin correo. |
+| **D9** | **Un solo formulario** que empieza con «Soy vendedor de Swiftfly / Soy dueño de un negocio». Al vendedor se le pide más; al dueño, lo corto. | P2. |
+| **D10** | **El vendedor escoge su nombre de una lista fija.** | P3. Los nombres los pasa el usuario (incógnita 1); mientras, la lista es una constante fácil de editar. |
+| **D11** | **Datos del local:** nombre del local · nombre del dueño · celular/WhatsApp · ciudad y barrio · tipo de negocio (tráiler / local / restaurante) · **plan que le interesó** · **notas libres de la visita**. Nada más (no domiciliario/mesas, redes, hora, ni frío/tibio/caliente). | P4: marcó solo «Notas libres» y anotó «qué plan le interesó» (que ya iba). |
+| **D12** | **Solo para el vendedor:** foto del lugar (fachada) · ubicación GPS tomada en el momento · foto de la carta y del logo (adjuntos). | Obs. a P1 (control de zonas de venta) + S3 «sí». |
+| **D13** | **Funciona sin señal:** la solicitud (con sus fotos) se guarda en el celular y se envía sola cuando vuelve la conexión. | S2 «sí». |
+| **D14** | **Anti-spam:** campo oculto para robots + validación del lado del servidor. | S4 «sí». |
+
+---
+
+## 3. Suposiciones del agente
+
+- **S1** — El contenido sale de `propuesta/propuesta-appetic.html` (7 páginas, versión «planes por
+  tipo de negocio»: Emprendedor $59.900 · Comerciante $79.900 · Empresario $99.900 · Desarrollador
+  $3.000.000, 2.º mes gratis hasta 31-dic-2026, adelantado 6 → paga 5 y 12 → paga 10).
+  *(leído del HTML)*
+- **S2** — El sitio es HTML estático en un solo archivo con CSS/JS en línea: tokens `--bg:#061330`,
+  `--cyan:#1FC4F5`, `--blue:#1F5BFF`, Montserrat + Inter, revelado `.rv` al hacer scroll, intro
+  con video, nav fija con menú hamburguesa. Appetic aparece en «Proyectos» con `--acc:#FF7A3D` y un
+  botón a `propuestas/propuesta-appetic.pdf`. *(descargado de switflysolutions.com el 3-nov)*
+- **S3** — La página nueva sigue ese mismo estilo de construcción (HTML+CSS+JS vanilla, sin
+  frameworks), para que viva en el mismo hosting sin build.
+- **S4** — Público principal: el dueño del negocio que recibe el link por WhatsApp → se diseña
+  primero para celular. *(la propuesta ya se reparte por WhatsApp)*
+- **S5** — Las imágenes de `propuesta/img/` (≈9 MB) se pasan a WebP y tamaño web para que cargue
+  rápido con datos.
+- **S7** — *(respondió en blanco P2)* **Cara visual: azul noche de Swiftfly con acentos naranja de
+  Appetic**, igual que el bloque de Appetic en «Proyectos» del inicio. Decidido por mí: es lo que
+  hace que se sienta parte del mismo sitio.
+- **S6** — Contacto: WhatsApp 320 843 5143, con mensaje precargado.
+- **S8** — *(ronda 2)* **Cómo llega la solicitud a Firestore:** la página de Hostinger es estática, así
+  que el formulario hace `POST` a una función nueva del Vercel de Appetic (`api/solicitud.js`, con
+  `firebase-admin` como `api/demo.js` y `api/pedido.js`) que valida, guarda en la colección
+  `solicitudes/` y sube las fotos a Storage (`solicitudes/<id>/…`). Con CORS para
+  `https://switflysolutions.com`. Así ninguna regla de Firestore queda abierta al público.
+- **S9** — *(ronda 2)* **Dónde se ven:** una sección nueva «Solicitudes» en el panel del superadmin
+  (`jostivtrb@gmail.com`, `src/config/roles.js`), con estado **nueva → contactada → cerrada**, el mapa
+  de la ubicación (link a Google Maps) y las fotos. Al dueño del local no se le muestra nada de esto.
+- **S10** — *(ronda 2)* **Sin señal** = las solicitudes pendientes se guardan en IndexedDB del celular
+  (fotos incluidas, como blobs) y un reintento al volver `online` las manda; la página avisa «se
+  enviará cuando tengas señal». No hace falta service worker.
+- **S11** — *(ronda 2)* **Fotos:** se reducen en el navegador antes de subir (máx. 1600 px, JPEG/WebP)
+  para que pesen poco con datos. GPS con `geolocation` de alta precisión; si el vendedor no da permiso,
+  se guarda la solicitud igual pero marcada «sin ubicación».
+- **S12** — *(ronda 2)* **El dueño curioso** no sube fotos ni ubicación: solo D11 y «quiero que me
+  contacten». Su solicitud llega igual al panel, con `origen: 'dueño'`.
+
+---
+
+## 4. Descartado (no volver a proponer)
+
+- **Demo real incrustada en un celular** → no se marcó en P3; el celular es simulado.
+- **Link con saludo por cliente (`?para=`)** → S2: no.
+- **Apagar la promo sola el 31-dic** → S3: no.
+- **Enviar la solicitud por correo** → P5 en blanco y P1 pide base de datos; no se hace correo.
+- **Datos extra del local** (domiciliario/mesas, qué usa hoy, redes, hora de llamada, frío/tibio/caliente)
+  → P4 no los marcó.
+
+---
+
+## 5. Estado de las rondas
+
+- **Ronda 1 — Visión general** ✅ respondida · `Cuestionario-1-Propuesta-Web-Appetic.html`
+- **Ronda 2 — La cotización formal** ✅ respondida (4-nov) · `Cuestionario-2-Cotizacion-Formal.html`
+- **No hay ronda 3:** con esto no queda nada que adivinar. Lo único pendiente es un dato (los nombres
+  de los vendedores), no una decisión.
+
+---
+
+## 6. Incógnitas abiertas
+
+1. **Nombres de los vendedores** para la lista fija (D10). Mientras no lleguen, la lista va como
+   constante `VENDEDORES` al inicio del JS de la página, con un marcador para rellenar.
+
+---
+
+## 7. Plan de implementación
+
+Carpeta de la web: `../web/` (fuera de este repo; `web/subir.sh` sube por FTP). La página nueva vive en
+`web/appetic/`. Lo del formulario del lado del servidor y el panel viven en este repo (rama
+`ccr-20747b3e-4xpkim`).
+
+### A · Página `web/appetic/index.html` (HTML+CSS+JS vanilla, mobile-first, S2/S3/S7)
+- [ ] Cabecera/nav del inicio (golondrina, «Volver al inicio», botón WhatsApp) y tokens del inicio
+      con `--acc:#FF7A3D` (naranja Appetic) para acentos.
+- [ ] Portada: «Tu negocio de comida, listo para despegar» + **pase de abordar animado** (D2).
+- [ ] Qué es Appetic + 4 pilares (revelado `.rv` como el inicio).
+- [ ] Las 5 cosas, una sección por cada una, con sus interactivos (D2):
+  - [ ] 1 Menú: **celular simulado con menú y carrito** (tocas platos, se arma el pedido, sale el
+        mensaje de WhatsApp).
+  - [ ] 2 TV: **TV en vivo** que rota platos sola.
+  - [ ] 3 Domicilios: foto + badge de envío que cambia con la distancia (deslizador).
+  - [ ] 4 Meseros y cocina: **viaje del pedido animado** (mesa → cocina → despacho → aviso).
+  - [ ] 5 Cuentas: **números que suman solos** (vendiste − gastaste = te quedó) y barras del mes.
+- [ ] Planes: **selector mensual / 6 meses / 12 meses** que recalcula precios (Emprendedor 59.900 ·
+      Comerciante 79.900 · Empresario 99.900 · Desarrollador 3.000.000 único), sello «2.º mes gratis».
+- [ ] Demo (QR + link `appetic.vercel.app/demo`) · CTA WhatsApp · botón **Descargar PDF**
+      (`../propuestas/propuesta-appetic.pdf`) · **Solicitar cotización formal**.
+- [ ] **Modo presentación** (D1): botón «Presentar» → cada sección a pantalla completa, flechas /
+      teclado / deslizar, salir con Esc.
+- [ ] `og:` para WhatsApp (D7) con imagen `img/og-appetic.jpg` 1200×630.
+- [ ] Imágenes WebP ya en `web/appetic/img/` (44 archivos, 2 MB) ✅ 4-nov.
+
+### B · Formulario de cotización (D8–D14) — en la misma página, como hoja/modal
+- [ ] Paso 1: «Soy vendedor de Swiftfly» / «Soy dueño de un negocio».
+- [ ] Campos D11 (+ vendedor de la lista, foto del lugar, GPS, carta y logo si es vendedor).
+- [ ] Reducción de fotos en el navegador (S11) · honeypot (D14).
+- [ ] Cola sin señal en IndexedDB + reintento al volver `online` (D13/S10).
+- [ ] `POST https://appetic.vercel.app/api/solicitud` (S8).
+
+### C · Servidor y panel (en este repo)
+- [ ] `api/solicitud.js`: CORS para switflysolutions.com, valida, honeypot, guarda en `solicitudes/`
+      y fotos en Storage; límite de tamaño.
+- [ ] `firestore.rules` / `storage.rules`: `solicitudes/` solo la lee el superadmin; nadie escribe desde
+      el cliente (escribe el servidor). Desplegar con /Actualizar_Reglas_Firebase.
+- [ ] Sección «Solicitudes» en el panel del superadmin (S9): lista, estado, mapa, fotos.
+- [ ] Desplegar Appetic a Vercel (/despliegue_en_vercel).
+
+### D · Inicio del sitio
+- [ ] En `web/index.html`, el botón de Appetic pasa de «Descargar la propuesta (PDF)» a
+      «Ver la propuesta» → `appetic/` (D3). El PDF sigue disponible dentro de la propuesta.
+
+### E · Publicar y verificar
+- [ ] Respaldo del `index.html` en vivo (`respaldo-servidor-<fecha>/`) antes de subir.
+- [ ] FTP desde esta PC: `ftp.switflysolutions.com`, usuario `u374493639.switfly` (el usuario lo
+      recuerda como `u374493639.switflysolutions.com` + `switfly`, pero lo que conecta es esto).
+      Subir `appetic/` completo + `index.html`. No tocar `privacy-policy/`.
+- [ ] Verificar en vivo PC y celular con capturas; `og:` con el depurador de WhatsApp/Facebook.
+
+---
+
+## 8. Bitácora
+
+- **3 de noviembre de 2026** — Leída la propuesta (7 págs.) y descargado y capturado el inicio de
+  switflysolutions.com (PC y celular). Probado el FTP: `u374493639.switflysolutions.com` no existe
+  en DNS; `ftp.switflysolutions.com` (46.28.42.185) resuelve pero los puertos 21/22/65002 no
+  conectan desde el entorno en la nube → la red del entorno lo bloquea. Entregada la ronda 1.
+- **3 de noviembre de 2026** — Ronda 1 respondida (D1–D7, S7). P2 en blanco → decidí la cara
+  visual (S7). Apareció algo nuevo, el formulario de cotización (D6): la ronda 2 es solo eso. FTP
+  vuelto a probar: sigue cerrado. Hostinger sirve el sitio (cabecera `platform: hostinger`), así que
+  PHP para enviar correo es viable.
+- **4 de noviembre de 2026 (noche)** — Rama traída a la PC. Ronda 2 respondida → D8–D14 y S8–S12. Lo
+  grande: la solicitud **se guarda en Firestore de Appetic** con foto del lugar y GPS del vendedor
+  (control de zonas de venta), nada de correo. Decidido por mí cómo llega (función en Vercel, S8) y
+  dónde se ve (panel del superadmin, S9). Imágenes pasadas a WebP en `web/appetic/img/` (14 MB → 2 MB).
+  Comprobado que el `index.html` en vivo es idéntico a `web/index.html` y que `/appetic/` aún no
+  existe. El usuario pasó la clave del FTP en el chat (no se guarda). Se pausa por hoy: **mañana
+  5-nov se construye** siguiendo el plan de la sección 7, sin más preguntas.
