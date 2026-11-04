@@ -59,6 +59,8 @@ inicio"*.
 | **D22** | **«Solo registrar la visita»:** el vendedor puede registrar una visita sin cotización (foto + ubicación + nota, sin datos del dueño) **con el motivo**: el dueño no estaba · estaban ocupados · no se dejó hablar · no le interesó · otro (con texto). | S1 «sí» + observación suya: así saben qué pasó y lo más común. |
 | **D23** | **Recorrido del día:** en el superadmin, por vendedor, un botón «Recorrido» que abre Google Maps con todos sus puntos del día (visitas y cotizaciones), con selector de fecha. | S2 «sí». |
 | **D24** | **El modo presentación se reemplaza por un recorrido automático:** la página se recorre sola, parada por parada (con paradas intermedias en secciones altas), mientras los interactivos se demuestran; **cualquier toque, rueda o tecla la detiene** y «Continuar» sigue desde donde esté la persona. Botón «Recorrido» en la barra; `#recorrido` lo arranca solo. **Sustituye a D1** (diapositivas). | Mensaje del usuario al ver las diapositivas en celular: «se ve cortado y feo, prefiero un recorrido automático sin tocar la pantalla, que se pare sola al tocarla y se pueda continuar desde donde uno esté». |
+| **D26** | **El recorrido tiene voz y subtítulo karaoke:** un guion corto por sección (10 clips, 3 minutos, 1,2 MB) grabado con una voz neuronal colombiana (`es-CO-SalomeNeural`, edge-tts, gratis) y el subtítulo con cada palabra encendiéndose al ritmo de la voz. Botón para silenciar (se recuerda). Al tocar la pantalla la voz se calla con el recorrido y «Continuar» la retoma donde iba. | Pregunta del usuario: «le falta que se vaya resaltando el texto para ir leyendo, ¿es muy difícil meter una voz?» → «hazlo de una, te autorizo». Elegí voz pregrabada (igual en todos los aparatos) sobre la del navegador (robótica y distinta en cada uno). |
+| **D27** | **Cocina en celular:** la tablet se vuelve vertical (600 px de alto, una comanda debajo de otra, enteras) y en todas partes caben **dos comandas** completas, no tres cortadas. | Mensaje del usuario con captura: «la cocina está horrible». |
 | **D25** | **Sin zoom en celular** (`maximum-scale=1, user-scalable=no`) en el inicio y en la propuesta, y `html{overflow-x:hidden}` + `main{overflow-x:clip}` en el inicio. | El usuario vio que al hacer zoom la página se desplazaba de lado y se descuadraba. |
 
 ---
@@ -115,6 +117,13 @@ inicio"*.
   categorías, cuadrícula de productos y ticket abajo con «Enviar a cocina» en el mesero; «En fila /
   Entregadas», tarjetas MESA 4 #1 con contador y «1/3 ✓», tachar por toque y «Confirmar entregado»
   en la cocina. Interactivos: tocar productos arma la comanda; tocar líneas las tacha.
+- **S19** — *(voz)* El guion vive en `web/appetic/voz/guion.txt` (una línea por sección: `id|texto`); se
+  regenera con `~/.claude/tools/edge-tts-venv/bin/python3 web/appetic/voz/generar.py`, que deja los
+  `.mp3` y `guion.json` (texto + tiempo de cada palabra). Si cambia un texto, se regenera esa línea.
+  Los precios van en letras («cincuenta y nueve mil novecientos») para que la voz los lea bien.
+- **S20** — *(voz)* Los celulares solo dejan sonar audio tras un toque: el botón «Recorrido» desbloquea
+  el `<audio>` dentro del clic. Si se entra por `#recorrido` sin tocar, el subtítulo corre con un
+  reloj propio y la voz arranca al primer toque en «Continuar».
 - **S12** — *(ronda 2)* **El dueño curioso** no sube fotos ni ubicación: solo D11 y «quiero que me
   contacten». Su solicitud llega igual al panel, con `origen: 'dueño'`.
 
@@ -287,3 +296,8 @@ Carpeta de la web: `../web/` (fuera de este repo; `web/subir.sh` sube por FTP). 
   limpio desde `assets/marca/golondrina.png` (recortado al cuerpo, 360 px, 37 KB, verificado sobre
   crema, oscuro y violeta) y la línea punteada partida en dos tramos con el pájaro en medio, sin
   fondo ni sombra. Subido (`?v=6`) y comprobado en vivo.
+- **4 de noviembre de 2026 (tarde, 4)** — Voz y karaoke del recorrido (D26): guion de 10 secciones,
+  generado con edge-tts (hubo que pedir `boundary='WordBoundary'` para que entregue los tiempos de
+  palabra; sin eso devuelve cero palabras). La narración de cada sección se reparte entre sus paradas
+  (en celular hay varias por sección) para que la voz y el scroll vayan juntos. Cocina en celular
+  rehecha (D27). Herramienta nueva: venv `~/.claude/tools/edge-tts-venv`.
