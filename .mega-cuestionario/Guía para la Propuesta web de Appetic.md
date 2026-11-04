@@ -63,6 +63,8 @@ inicio"*.
 | **D27** | **Cocina en celular:** la tablet se vuelve vertical (600 px de alto, una comanda debajo de otra, enteras) y en todas partes caben **dos comandas** completas, no tres cortadas. | Mensaje del usuario con captura: «la cocina está horrible». |
 | **D28** | **Música de fondo suave** durante el recorrido (bucle sintetizado aquí, `voz/fondo.mp3`, 24 s, 186 KB, sin derechos de terceros): suena solo mientras el recorrido anda, baja cuando habla la voz y se detiene con la pausa o al salir. El botón de silencio apaga voz y música. **Nada suena al entrar a la página** (se quitó el arranque por `#recorrido`). | «Que la voz solo suene cuando está la presentación» (había oído mi prueba automática por los parlantes) y «pon musiquita de ascensor detrás muy suave para que no se sienta tan vacío». |
 | **D29** | **La carta del local: varias fotos o un PDF** (hasta 6 archivos desde la página, PDF ≤ 3 MB; el servidor admite 8 por solicitud). Cada archivo va en su propia petición a `/api/solicitud-archivo` después de crear la solicitud (Vercel acepta ~4,5 MB por petición), con reanudación si se corta la señal. | «Que para el menú puedan subir PDF o tomar varias fotos». Foto del lugar y ubicación siguen obligatorias (ya lo eran, D21). |
+| **D30** | **El recorrido solo se pausa con el botón «Pausar»**; tocar, desplazar o jugar con los interactivos no lo detiene (Esc lo termina). Al terminar cada parada y al pulsar «Continuar», mira en qué parte de la página está la persona y sigue desde ahí, con la voz de esa sección. **Sustituye la parte de D24** que decía que cualquier toque lo detenía. | «Que ya no se salga presionando en cualquier lado, sino un botón de pausar, y que continuar mire en qué pestaña estás y siga hablando desde ahí». |
+| **D31** | **Subtítulo de dos líneas**, fondo más transparente, y el texto **va subiendo solo** a medida que la voz avanza (la línea de la palabra actual es la de abajo). | «El texto tapa la pantalla; que se vaya bajando a medida». |
 | **D25** | **Sin zoom en celular** (`maximum-scale=1, user-scalable=no`) en el inicio y en la propuesta, y `html{overflow-x:hidden}` + `main{overflow-x:clip}` en el inicio. | El usuario vio que al hacer zoom la página se desplazaba de lado y se descuadraba. |
 
 ---
@@ -312,3 +314,6 @@ Carpeta de la web: `../web/` (fuera de este repo; `web/subir.sh` sube por FTP). 
   reanudación desde la cola sin señal; API `solicitud-archivo` + panel (agente, pruebas en verde;
   CORS compartido en `api/_lib/cors.js`). Probado de punta a punta (2 fotos + PDF) y borrado. Las
   pruebas automáticas ahora corren con el audio silenciado (`--mute-audio` en `captura.mjs`).
+- **4 de noviembre de 2026 (tarde, 6)** — D30 y D31 construidos, probados (toques no pausan; al
+  moverse a otra sección el recorrido continúa allí con su voz; el subtítulo muestra 2 líneas y se
+  desplaza con la voz) y publicados (`?v=11`).
