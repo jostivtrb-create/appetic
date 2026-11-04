@@ -17,12 +17,15 @@
 //   Al vendedor SIEMPRE se le exige la ubicación (cotización o visita): es el control de zonas. Al
 //   dueño que llena desde su casa, no.
 //
-//   OPTIONS → 204 con las cabeceras CORS (solo para la web de Swiftfly y localhost).
+//   OPTIONS → 204 con las cabeceras CORS (_lib/cors.js: solo la web de Swiftfly y localhost).
 //   POST { id, registro: 'cotizacion' | 'visita', origen: 'vendedor' | 'dueno', vendedor, local, dueno,
 //          celular, ciudad, barrio, tipo, plan, notas, ubicacion: { lat, lng, precision } | null,
 //          motivo: 'no-estaba' | 'ocupados' | 'no-se-dejo-hablar' | 'no-le-intereso' | 'otro' (solo visita),
 //          motivoTexto (≤ 300, opcional; típico con 'otro'),
-//          fotos: { lugar?, carta?, logo? } (data URL), llenadaEn (ISO),
+//          fotos: { lugar?, carta?, logo? } (data URL ≤ 1,5 MB), llenadaEn (ISO),
+//            · La página nueva solo manda `lugar`: la carta (PDF o varias fotos) y el logo van DESPUÉS,
+//              uno por petición a /api/solicitud-archivo (una función acepta ~4,5 MB por cuerpo).
+//              `carta` y `logo` se siguen aceptando aquí por compatibilidad con la página vieja.
 //          web (HONEYPOT: si trae algo, se responde 200 falso y no se guarda nada) }
 //
 //   200 { ok, id }                      ← guardada
@@ -38,8 +41,8 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { conAdmin, cuerpo, ipDe } from './_lib/admin.js'
 import { permitir, LIMITES } from './_lib/limites.js'
+import { cors, origenPermitido } from './_lib/cors.js'
 
-const ORIGENES_WEB = ['https://switflysolutions.com', 'https://www.switflysolutions.com']
 const ID_VALIDO = /^[A-Za-z0-9_-]{8,40}$/
 const ORIGENES = ['vendedor', 'dueno']
 const REGISTROS = ['cotizacion', 'visita']
@@ -53,20 +56,6 @@ const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
 const texto = (v, max) => String(v ?? '').trim().slice(0, max)
 const deLista = (v, lista) => (lista.includes(v) ? v : '')
 const hash = t => createHash('sha256').update(String(t)).digest('hex').slice(0, 20)
-
-// ¿Desde dónde llaman? La web de Swiftfly, o localhost para probar. Cualquier otro → no se atiende.
-function origenPermitido(origin) {
-  const o = String(origin || '')
-  return ORIGENES_WEB.includes(o) || /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(o)
-}
-
-function cors(res, origin) {
-  res.setHeader('Access-Control-Allow-Origin', origin)
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  res.setHeader('Access-Control-Max-Age', '86400')
-  res.setHeader('Vary', 'Origin')
-}
 
 // { lat, lng, precision } con números de verdad, o null.
 function ubicacionDe(u) {

@@ -37,7 +37,7 @@ export async function pagosSimulados() {
 }
 
 // 📋 Solicitudes inventadas para revisar la sección «Solicitudes de cotización» sin leer Firestore:
-// una cotización de vendedor con GPS y fotos, una de dueño sin nada, y dos VISITAS de hoy del mismo
+// una cotización de vendedor con GPS, fotos y la carta en `archivos` (2 fotos + PDF), una de dueño sin nada, y dos VISITAS de hoy del mismo
 // vendedor (con ubicación y motivos distintos) para que el bloque «Recorridos» pinte 3 puntos.
 export async function solicitudesSimuladas() {
   const hace = horas => new Date(Date.now() - horas * 3600000)
@@ -62,6 +62,12 @@ export async function solicitudesSimuladas() {
       notas: 'Tiene carta en cartulina, vende almuerzos y domicilios por WhatsApp. Le interesa el QR por mesa.',
       ubicacion: { lat: 4.6286, lng: -74.1507, precision: 18 },
       fotos: { lugar: '/locales/demo/banner.webp', logo: '/locales/demo/logo.webp' },
+      // La carta llegó por /api/solicitud-archivo: dos fotos y el PDF (la url del PDF es de adorno).
+      archivos: [
+        { clave: 'carta', nombre: 'carta-pagina-1.jpg', url: '/locales/demo/platos/almuerzo.webp', tipo: 'imagen', bytes: 418_000, en: Date.now() - 1.9 * 3600000 },
+        { clave: 'carta', nombre: 'carta-pagina-2.jpg', url: '/locales/demo/platos/choriperro.webp', tipo: 'imagen', bytes: 392_000, en: Date.now() - 1.9 * 3600000 + 4000 },
+        { clave: 'carta', nombre: 'Carta Doña Rosa 2026.pdf', url: '/locales/demo/carta-simulada.pdf', tipo: 'pdf', bytes: 1_250_000, en: Date.now() - 1.9 * 3600000 + 9000 },
+      ],
       llenadaEn: hoyA(2), creadaEn: hoyA(1.9), estado: 'nueva',
     },
     {

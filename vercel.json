@@ -17,6 +17,9 @@
     },
     "api/solicitud.js": {
       "maxDuration": 30
+    },
+    "api/solicitud-archivo.js": {
+      "maxDuration": 30
     }
   }
 }

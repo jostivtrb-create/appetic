@@ -479,6 +479,31 @@
 }
 .sa-sol-foto small { font-size: 11.5px; font-weight: 700; text-align: center; }
 
+/* 📎 Archivos de la carta y el logo (/api/solicitud-archivo): un grupo por clave; dentro, las fotos
+   en cuadrícula de 3 (como .sa-sol-foto) y cada PDF como ficha de ancho completo. */
+.sa-sol-arch { display: flex; flex-direction: column; gap: 6px; }
+.sa-sol-arch-titulo { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 800; color: var(--text); }
+.sa-sol-arch-titulo small {
+  min-width: 18px; padding: 0 5px; border-radius: 999px; text-align: center;
+  font-size: 11px; font-weight: 800; line-height: 18px; color: var(--text-soft); background: var(--surface); border: 1px solid var(--border);
+}
+.sa-sol-arch-lista { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sa-sol-pdf {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 9px 11px;
+  border-radius: 10px; border: 1px solid var(--border); background: var(--surface);
+  text-decoration: none; color: var(--text); transition: transform .12s ease, border-color .12s ease;
+}
+.sa-sol-pdf:hover { border-color: var(--brand-orange, #ED7D2B); }
+.sa-sol-pdf:active { transform: scale(0.98); }
+.sa-sol-pdf-ico { flex: none; font-size: 22px; line-height: 1; }
+.sa-sol-pdf-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.sa-sol-pdf-txt strong { font-size: 13.5px; font-weight: 700; overflow-wrap: anywhere; }
+.sa-sol-pdf-txt small { font-size: 11.5px; font-weight: 600; color: var(--text-soft); }
+@media (min-width: 720px) {
+  .sa-sol-arch-lista { grid-template-columns: repeat(4, 1fr); }
+  .sa-sol-pdf { grid-column: span 2; }
+}
+
 .sa-sol-estados { display: flex; gap: 6px; }
 .sa-sol-estado-btn {
   flex: 1; padding: 8px 2px; border-radius: 10px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;

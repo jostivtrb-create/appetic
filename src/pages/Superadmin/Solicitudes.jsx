@@ -6,6 +6,10 @@ import { cambiarEstadoSolicitud, listarSolicitudes, MOTIVOS_VISITA, recorridoUrl
 // calle (con foto de la fachada, GPS y fotos de la carta y el logo) o dueños curiosos (solo datos).
 // Aquí se ven, se contactan por WhatsApp y se mueven de estado: nueva → contactada → cerrada.
 //
+// La carta y el logo llegan como `archivos[]` (uno por petición a /api/solicitud-archivo: la carta
+// puede ser un PDF o varias fotos) y se pintan agrupados por clave; `fotos.carta/logo` de la página
+// vieja se siguen mostrando como siempre.
+//
 // También llegan las VISITAS (D21–D23): el vendedor pasó por un negocio y el dueño no pidió
 // cotización; queda el local, la ubicación y el motivo. No tienen estados ni botones, pero sí
 // cuentan en el bloque «Recorridos»: por fecha, cada vendedor con sus puntos del día (cotizaciones
@@ -30,6 +34,8 @@ const PLANES = {
   desarrollador: 'Plan Desarrollador', 'no-sabe': 'Plan: no sabe aún',
 }
 const FOTOS = [['lugar', 'Fachada'], ['carta', 'Carta'], ['logo', 'Logo']]
+// Grupos de `archivos[]` (espejo de CLAVES en api/solicitud-archivo.js), en el orden en que se pintan.
+const ARCHIVOS = [['carta', '📋 Carta'], ['logo', '🎨 Logo']]
 const ZONA = 'America/Bogota'
 
 // Timestamp de Firestore, Date o ISO → Date (o null).
@@ -48,6 +54,17 @@ const diaLegible = ymd => {
   const d = new Date(`${ymd}T12:00:00-05:00`)
   return Number.isNaN(d.getTime()) ? ymd : d.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short', timeZone: ZONA })
 }
+// 1234567 → «1,2 MB»; menos de 1 MB → «830 KB».
+const pesoLegible = bytes => {
+  const b = Number(bytes) || 0
+  return b >= 1048576
+    ? `${(b / 1048576).toLocaleString('es-CO', { maximumFractionDigits: 1 })} MB`
+    : `${Math.max(1, Math.round(b / 1024))} KB`
+}
+// `archivos[]` → [[clave, título, archivos de esa clave]] solo de las claves que traen algo.
+const archivosPorClave = s => ARCHIVOS
+  .map(([k, titulo]) => [k, titulo, (Array.isArray(s.archivos) ? s.archivos : []).filter(a => a?.clave === k && a.url)])
+  .filter(([, , lista]) => lista.length > 0)
 const esVisita = s => s.registro === 'visita' || s.estado === 'visita'
 const estadoDe = s => (esVisita(s) ? 'visita' : (s.estado || 'nueva'))
 const tieneUbicacion = s => !!s.ubicacion && Number.isFinite(Number(s.ubicacion.lat)) && Number.isFinite(Number(s.ubicacion.lng))
@@ -68,6 +85,7 @@ function Tarjeta({ s, onEstado }) {
   const visita = esVisita(s)
   const fecha = momentoDe(s)
   const fotos = FOTOS.filter(([k]) => s.fotos?.[k])
+  const grupos = archivosPorClave(s)
   const wa = linkWhatsApp(s.celular, s.local, visita)
   const lugar = [s.ciudad, s.barrio].filter(Boolean).join(' · ')
   const estadoActual = ESTADOS.find(e => e.id === s.estado) || ESTADOS[0]
@@ -141,6 +159,30 @@ function Tarjeta({ s, onEstado }) {
               ))}
             </div>
           )}
+          {/* 📎 Carta (PDF o varias fotos) y logo subidos a /api/solicitud-archivo, por grupo. */}
+          {grupos.map(([k, titulo, lista]) => (
+            <div key={k} className="sa-sol-arch">
+              <span className="sa-sol-arch-titulo">{titulo} <small>{lista.length}</small></span>
+              <div className="sa-sol-arch-lista">
+                {lista.map((a, i) => a.tipo === 'pdf'
+                  ? (
+                    <a key={a.url} className="sa-sol-pdf" href={a.url} target="_blank" rel="noopener noreferrer" title="Abrir el PDF">
+                      <span className="sa-sol-pdf-ico">📄</span>
+                      <span className="sa-sol-pdf-txt">
+                        <strong>{a.nombre || `${k}-${i + 1}.pdf`}</strong>
+                        <small>PDF · {pesoLegible(a.bytes)}</small>
+                      </span>
+                    </a>
+                  )
+                  : (
+                    <a key={a.url} className="sa-sol-foto" href={a.url} target="_blank" rel="noopener noreferrer" title={a.nombre ? `Abrir ${a.nombre}` : 'Abrir la foto'}>
+                      <img src={a.url} alt={a.nombre || titulo} loading="lazy" />
+                      <small>{pesoLegible(a.bytes)}</small>
+                    </a>
+                  ))}
+              </div>
+            </div>
+          ))}
           {s.fotosFallidas?.length > 0 && (
             <p className="sa-sol-faint">⚠️ No llegaron: {s.fotosFallidas.map(k => (FOTOS.find(f => f[0] === k)?.[1] || k).toLowerCase()).join(', ')}.</p>
           )}
