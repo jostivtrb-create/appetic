@@ -14,6 +14,9 @@
   "functions": {
     "api/demo.js": {
       "maxDuration": 60
+    },
+    "api/solicitud.js": {
+      "maxDuration": 30
     }
   }
 }

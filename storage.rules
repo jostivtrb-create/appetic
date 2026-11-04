@@ -25,5 +25,14 @@ service firebase.storage {
                                || (request.resource.size < 5 * 1024 * 1024
                                    && request.resource.contentType.matches('image/.*')))));
     }
+
+    // 📋 Fotos de las solicitudes de cotización de la propuesta web (fachada, carta, logo). Las sube
+    // SOLO el servidor (/api/solicitud con firebase-admin, que no pasa por aquí) y las guarda con
+    // token de descarga: esas URL con ?token= se abren igual sin pasar por estas reglas. Por el SDK
+    // solo las lee el superadmin; desde el cliente nadie escribe.
+    match /solicitudes/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.token.email == 'jostivtrb@gmail.com';
+      allow write: if false;
+    }
   }
 }

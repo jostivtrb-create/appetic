@@ -365,6 +365,115 @@
 .sa-demo-confirma .sa-demo-btn { color: var(--text, #222); border-color: var(--border, #ddd); }
 .sa-demo-confirma .sa-demo-btn-rojo { color: #fff; border-color: #D9381E; }
 
+/* 📋 Solicitudes de cotización (Solicitudes.jsx · guía «Propuesta web de Appetic») */
+.sa-sol {
+  margin: 12px 0;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.sa-sol-cab { display: flex; align-items: center; gap: 12px; }
+.sa-sol-ico {
+  width: 40px; height: 40px; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; border-radius: 12px;
+  background: var(--brand-orange-tint);
+}
+.sa-sol-cab-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sa-sol-cab-txt strong { font-size: 14.5px; font-weight: 800; color: var(--text); }
+.sa-sol-cab-txt small { font-size: 12.5px; color: var(--text-soft); }
+.sa-sol-contador {
+  flex: none; min-width: 28px; height: 28px; padding: 0 8px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 999px; background: var(--brand-orange, #ED7D2B); color: #fff;
+  font-size: 13px; font-weight: 800;
+}
+
+.sa-sol-filtros { display: flex; gap: 6px; margin-top: 12px; overflow-x: auto; scrollbar-width: none; }
+.sa-sol-filtros::-webkit-scrollbar { display: none; }
+.sa-sol-filtro {
+  flex: none; display: flex; align-items: center; gap: 5px;
+  border: 1.5px solid var(--border); background: var(--surface-2); color: var(--text-soft);
+  border-radius: 999px; padding: 6px 11px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer;
+}
+.sa-sol-filtro.on { background: var(--brand-orange, #ED7D2B); border-color: var(--brand-orange, #ED7D2B); color: #fff; }
+.sa-sol-filtro-n { font-size: 11px; opacity: .8; }
+
+.sa-sol-skel {
+  height: 84px; margin-top: 12px; border-radius: var(--radius-sm);
+  background: linear-gradient(100deg, var(--surface-2) 30%, #fff 50%, var(--surface-2) 70%);
+  background-size: 200% 100%; animation: sa-sol-brillo 1.2s linear infinite;
+}
+@keyframes sa-sol-brillo { to { background-position: -200% 0; } }
+.sa-sol-vacio { margin: 14px 0 2px; font-size: 13.5px; line-height: 1.45; color: var(--text-soft); text-align: center; }
+
+.sa-sol-lista { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.sa-sol-item {
+  border: 1px solid var(--border); border-left: 4px solid var(--border);
+  border-radius: var(--radius-sm); background: var(--surface-2); padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sa-sol-item--nueva { border-left-color: var(--brand-orange, #ED7D2B); }
+.sa-sol-item--contactada { border-left-color: var(--warning); }
+.sa-sol-item--cerrada { border-left-color: var(--success, #30A46C); opacity: .85; }
+
+.sa-sol-head {
+  width: 100%; display: flex; align-items: flex-start; gap: 8px;
+  border: none; background: none; padding: 0; font: inherit; text-align: left; color: inherit; cursor: pointer;
+}
+.sa-sol-head-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.sa-sol-origen { font-size: 12px; font-weight: 700; color: var(--text-soft); }
+.sa-sol-origen b { color: var(--text); }
+.sa-sol-local { font-size: 17px; font-weight: 800; color: var(--text); line-height: 1.2; overflow-wrap: anywhere; }
+.sa-sol-sub { font-size: 12.5px; color: var(--text-faint); }
+.sa-sol-estado {
+  flex: none; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 800; white-space: nowrap;
+  background: var(--brand-orange-tint); color: var(--brand-orange-strong);
+}
+.sa-sol-estado--contactada { background: color-mix(in srgb, var(--warning) 18%, transparent); color: var(--text); }
+.sa-sol-estado--cerrada { background: color-mix(in srgb, var(--success, #30A46C) 18%, transparent); color: var(--success, #30A46C); }
+.sa-sol-chevron { flex: none; font-size: 9px; color: var(--text-faint); margin-top: 4px; }
+
+.sa-sol-contacto { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 13.5px; color: var(--text); }
+.sa-sol-wa {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 6px 12px; border-radius: 999px; text-decoration: none;
+  background: #25D366; color: #fff; font-weight: 800; font-size: 13px;
+}
+.sa-sol-wa:active { transform: scale(0.97); }
+.sa-sol-faint { font-size: 12.5px; color: var(--text-faint); }
+
+.sa-sol-body { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.sa-sol-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sa-sol-chip {
+  padding: 4px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 700;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text-soft);
+}
+.sa-sol-chip--plan { border-color: var(--brand-orange, #ED7D2B); color: var(--brand-orange-strong); background: var(--brand-orange-tint); }
+.sa-sol-notas { margin: 0; font-size: 13.5px; line-height: 1.45; color: var(--text); white-space: pre-wrap; overflow-wrap: anywhere; }
+.sa-sol-ubi { font-size: 13.5px; }
+.sa-sol-ubi a { color: var(--brand-orange-strong); font-weight: 700; text-decoration: none; }
+.sa-sol-ubi small { font-weight: 600; color: var(--text-soft); }
+
+.sa-sol-fotos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sa-sol-foto { display: flex; flex-direction: column; gap: 3px; text-decoration: none; color: var(--text-soft); }
+.sa-sol-foto img {
+  width: 100%; aspect-ratio: 1; object-fit: cover; display: block;
+  border-radius: 10px; border: 1px solid var(--border); background: var(--surface);
+}
+.sa-sol-foto small { font-size: 11.5px; font-weight: 700; text-align: center; }
+
+.sa-sol-estados { display: flex; gap: 6px; }
+.sa-sol-estado-btn {
+  flex: 1; padding: 8px 2px; border-radius: 10px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--text-soft);
+}
+.sa-sol-estado-btn.on { background: var(--text); border-color: var(--text); color: #fff; cursor: default; }
+.sa-sol-estado-btn:disabled:not(.on) { opacity: .5; cursor: wait; }
+.sa-sol-error { margin: 0; font-size: 12.5px; color: var(--danger, #E5484D); }
+
 /* 💳 Plan y pago (PlanSuper.jsx · guía «Planes en la app») */
 .sp-chip {
   flex: none;

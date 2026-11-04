@@ -1,6 +1,10 @@
 rules_version = '2';
 
-// Última actualización: 2026-11-03 (auditorías: comandas, pedidos/domicilios y cuentas)
+// Última actualización: 2026-11-04 (SOLICITUDES: guía «Propuesta web de Appetic»)
+// Cambios Solicitudes: solicitudes/ (cotizaciones que llegan de switflysolutions.com/appetic) las
+//   crea SOLO el servidor (/api/solicitud); el superadmin las lee y les cambia el estado · limites/
+//   queda negado de forma explícita.
+// Anterior: 2026-11-03 (auditorías: comandas, pedidos/domicilios y cuentas)
 // Anterior: 2026-11-03 (BLINDAJE: guía «Blindaje de Appetic»)
 // Cambios Blindaje: los pedidos de la app y las comandas del QR los escribe SOLO el servidor
 //   (/api/pedido, que rehace los precios con el menú; el cliente ya no los crea directo) · el turno
@@ -385,6 +389,21 @@ service cloud.firestore {
     // 💳 Historial de pagos de los locales a Appetic (guía «Planes en la app» D4). Solo nosotros.
     match /pagos/{pagoId} {
       allow read, write: if esSuperadmin();
+    }
+
+    // 📋 Solicitudes de cotización de la propuesta web (switflysolutions.com/appetic, guía
+    // «Propuesta web de Appetic»). Las CREA solo el servidor (/api/solicitud con firebase-admin, que
+    // no pasa por estas reglas); el superadmin las lee y les mueve el estado (nueva → contactada →
+    // cerrada). Desde el cliente nadie crea ni borra.
+    match /solicitudes/{solicitudId} {
+      allow read, update: if esSuperadmin();
+      allow create, delete: if false;
+    }
+
+    // 🚦 limites/ — contador de envíos de /api (guía «Blindaje» D4 · S8). Solo el servidor. Sin este
+    // bloque ya se negaba (lo que no tiene match no se permite); queda explícito para que se vea.
+    match /limites/{claveId} {
+      allow read, write: if false;
     }
 
     // Lectura de pedidos por GRUPO de colecciones (collectionGroup): solo el superadmin

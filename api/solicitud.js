@@ -1,0 +1,173 @@
+// 📋 /api/solicitud — las solicitudes de cotización de la propuesta web de Appetic
+// (https://switflysolutions.com/appetic/, página estática en Hostinger) se GUARDAN aquí.
+//
+// Quién la llena: (a) los vendedores de Swiftfly en la calle, con la foto de la fachada del local,
+// su ubicación GPS (control de zonas de venta) y las fotos de la carta y del logo; (b) dueños de
+// negocio curiosos, solo con sus datos. Todo queda en Firestore (solicitudes/{id}) y en Storage
+// (solicitudes/{id}/…), y se ve en el panel del superadmin (/superadmin → «Solicitudes de
+// cotización»). Nada de correo.
+//
+//   OPTIONS → 204 con las cabeceras CORS (solo para la web de Swiftfly y localhost).
+//   POST { id, origen: 'vendedor' | 'dueno', vendedor, local, dueno, celular, ciudad, barrio, tipo, plan,
+//          notas, ubicacion: { lat, lng, precision } | null, fotos: { lugar?, carta?, logo? } (data URL),
+//          llenadaEn (ISO), web (HONEYPOT: si trae algo, se responde 200 falso y no se guarda nada) }
+//
+//   200 { ok, id }                      ← guardada
+//   200 { ok, id, repetida: true }      ← ese id ya estaba (reintento de la cola sin señal): no se toca
+//   400 { error }                       ← faltan datos
+//   403 { error }                       ← origen (Origin) que no es la web de Swiftfly
+//   429 { error }                       ← más de LIMITES.solicitud por conexión
+//
+// El `id` lo genera el navegador: sirve de idempotencia cuando la página reintenta sin señal. Las
+// fotos van a Storage con un token de descarga (como las que sube la app) y en el doc queda la URL;
+// una foto que falle no tumba la solicitud: se guarda sin ella y se anota en `fotosFallidas`.
+// No se guarda la IP, solo su hash (como hace _lib/limites.js).
+import { createHash, randomUUID } from 'node:crypto'
+import { conAdmin, cuerpo, ipDe } from './_lib/admin.js'
+import { permitir, LIMITES } from './_lib/limites.js'
+
+const ORIGENES_WEB = ['https://switflysolutions.com', 'https://www.switflysolutions.com']
+const ID_VALIDO = /^[A-Za-z0-9_-]{8,40}$/
+const ORIGENES = ['vendedor', 'dueno']
+const TIPOS = ['trailer', 'local', 'restaurante']
+const PLANES = ['emprendedor', 'comerciante', 'empresario', 'desarrollador', 'no-sabe']
+const FOTOS = ['lugar', 'carta', 'logo']
+const FOTO_MAX = 1.5 * 1024 * 1024 // bytes ya decodificados
+const EXT = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+
+const texto = (v, max) => String(v ?? '').trim().slice(0, max)
+const deLista = (v, lista) => (lista.includes(v) ? v : '')
+const hash = t => createHash('sha256').update(String(t)).digest('hex').slice(0, 20)
+
+// ¿Desde dónde llaman? La web de Swiftfly, o localhost para probar. Cualquier otro → no se atiende.
+function origenPermitido(origin) {
+  const o = String(origin || '')
+  return ORIGENES_WEB.includes(o) || /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(o)
+}
+
+function cors(res, origin) {
+  res.setHeader('Access-Control-Allow-Origin', origin)
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Max-Age', '86400')
+  res.setHeader('Vary', 'Origin')
+}
+
+// { lat, lng, precision } con números de verdad, o null.
+function ubicacionDe(u) {
+  if (!u || typeof u !== 'object') return null
+  const lat = Number(u.lat), lng = Number(u.lng), precision = Number(u.precision)
+  if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return null
+  return { lat, lng, precision: Number.isFinite(precision) && precision >= 0 ? Math.round(precision) : 0 }
+}
+
+// La data URL → { contentType, buffer } si es jpeg/png/webp y pesa ≤ 1.5 MB; si no, null.
+function decodificarFoto(dataUrl) {
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=\s]+)$/.exec(String(dataUrl || ''))
+  if (!m) return null
+  const buffer = Buffer.from(m[2].replace(/\s/g, ''), 'base64')
+  if (!buffer.length || buffer.length > FOTO_MAX) return null
+  return { contentType: m[1], buffer }
+}
+
+// Sube una foto a solicitudes/{id}/{clave}.{ext} con token de descarga y devuelve su URL pública.
+async function subirFoto(bucket, id, clave, { contentType, buffer }) {
+  const ruta = `solicitudes/${id}/${clave}.${EXT[contentType]}`
+  const token = randomUUID()
+  await bucket.file(ruta).save(buffer, {
+    resumable: false,
+    metadata: { contentType, metadata: { firebaseStorageDownloadTokens: token } },
+  })
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(ruta)}?alt=media&token=${token}`
+}
+
+export default async function handler(req, res) {
+  const origin = String(req.headers.origin || '')
+  if (!origenPermitido(origin)) return res.status(403).json({ error: 'Origen no permitido' })
+  cors(res, origin)
+  if (req.method === 'OPTIONS') return res.status(204).end()
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Solo POST' })
+
+  const f = await conAdmin(res)
+  if (!f) return
+  const { getFirestore, getStorage, FieldValue, Timestamp } = f
+  try {
+    let b
+    try { b = cuerpo(req) } catch { return res.status(400).json({ error: 'El cuerpo no es JSON' }) }
+    if (!b || typeof b !== 'object') return res.status(400).json({ error: 'El cuerpo no es JSON' })
+
+    // 🍯 Honeypot: el campo `web` no se ve en la página; si un robot lo llenó, se le dice «ok» y ya.
+    if (texto(b.web, 10)) return res.status(200).json({ ok: true })
+
+    const id = texto(b.id, 40)
+    if (!ID_VALIDO.test(id)) return res.status(400).json({ error: 'Falta el id de la solicitud' })
+    const origen = String(b.origen || '')
+    if (!ORIGENES.includes(origen)) return res.status(400).json({ error: 'Falta el origen (vendedor o dueño)' })
+    const datos = {
+      origen,
+      vendedor: texto(b.vendedor, 60),
+      local: texto(b.local, 80),
+      dueno: texto(b.dueno, 80),
+      celular: texto(b.celular, 20),
+      ciudad: texto(b.ciudad, 60),
+      barrio: texto(b.barrio, 60),
+      tipo: deLista(b.tipo, TIPOS),
+      plan: deLista(b.plan, PLANES),
+      notas: texto(b.notas, 1500),
+      ubicacion: ubicacionDe(b.ubicacion),
+    }
+    if (!datos.local) return res.status(400).json({ error: 'Falta el nombre del local' })
+    if (!datos.celular) return res.status(400).json({ error: 'Falta el celular' })
+    if (origen === 'vendedor' && !datos.vendedor) return res.status(400).json({ error: 'Falta el nombre del vendedor' })
+
+    const db = getFirestore()
+    const ref = db.collection('solicitudes').doc(id)
+    // Reintento de la cola sin señal: ya está guardada, no se toca ni gasta cupo.
+    if ((await ref.get()).exists) return res.status(200).json({ ok: true, id, repetida: true })
+
+    // 🚦 Límite por conexión (guía «Blindaje» D4): nadie llena la base desde un solo sitio.
+    const ip = ipDe(req)
+    if (!(await permitir(db, f, `sol:${ip}`, LIMITES.solicitud))) {
+      return res.status(429).json({ error: 'Demasiadas solicitudes, intenta más tarde' })
+    }
+
+    // 📷 Fotos: cada una por su lado; la que falle se anota y la solicitud sigue.
+    const fotos = {}
+    const fotosFallidas = []
+    const pedidas = b.fotos && typeof b.fotos === 'object' ? b.fotos : {}
+    const bucket = getStorage().bucket()
+    await Promise.all(FOTOS.filter(k => pedidas[k]).map(async k => {
+      try {
+        const foto = decodificarFoto(pedidas[k])
+        if (!foto) throw new Error('no es jpeg/png/webp de hasta 1,5 MB')
+        fotos[k] = await subirFoto(bucket, id, k, foto)
+      } catch (e) {
+        console.warn(`solicitud ${id}: no se subió la foto «${k}»:`, e?.message || e)
+        fotosFallidas.push(k)
+      }
+    }))
+
+    const llenada = new Date(String(b.llenadaEn || ''))
+    const doc = {
+      ...datos,
+      estado: 'nueva',
+      creadaEn: FieldValue.serverTimestamp(),
+      llenadaEn: Number.isNaN(llenada.getTime()) ? null : Timestamp.fromDate(llenada),
+      fotos,
+      ...(fotosFallidas.length ? { fotosFallidas } : {}),
+      ipHash: hash(ip),
+      userAgent: texto(req.headers['user-agent'], 200),
+    }
+    try {
+      await ref.create(doc)
+    } catch (e) {
+      // Dos reintentos a la vez con el mismo id: ganó el otro.
+      if (e?.code === 6 || /ALREADY_EXISTS/i.test(String(e?.message))) return res.status(200).json({ ok: true, id, repetida: true })
+      throw e
+    }
+    return res.status(200).json({ ok: true, id })
+  } catch (err) {
+    console.error('solicitud:', err)
+    return res.status(500).json({ error: 'Error interno' })
+  }
+}

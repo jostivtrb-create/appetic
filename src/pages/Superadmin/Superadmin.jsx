@@ -9,6 +9,7 @@ import { CATEGORIAS_LOCALES } from '../../config/categoriasLocales'
 import PanelMenuBoton from '../../components/BottomNav/PanelMenuBoton'
 import { devSuper } from '../../components/BottomNav/PanelRail'
 import DemoTarjeta from './DemoTarjeta'
+import Solicitudes from './Solicitudes'
 import './Superadmin.css'
 
 // 🗂️ Editor de ETIQUETAS (chips del inicio) + ⭐ prioridad de un local.
@@ -228,6 +229,9 @@ export default function Superadmin() {
       </a>
 
       <DemoTarjeta />
+
+      {/* 📋 Cotizaciones que llegan de la propuesta web (switflysolutions.com/appetic → /api/solicitud) */}
+      <Solicitudes simulado={simulado} />
 
       {estado === 'ok' && <TableroCobros locales={locales.filter(l => !l.esDemo)} pagos={pagos} />}
 
