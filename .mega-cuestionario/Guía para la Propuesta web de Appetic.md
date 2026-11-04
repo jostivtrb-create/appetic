@@ -61,6 +61,8 @@ inicio"*.
 | **D24** | **El modo presentación se reemplaza por un recorrido automático:** la página se recorre sola, parada por parada (con paradas intermedias en secciones altas), mientras los interactivos se demuestran; **cualquier toque, rueda o tecla la detiene** y «Continuar» sigue desde donde esté la persona. Botón «Recorrido» en la barra; `#recorrido` lo arranca solo. **Sustituye a D1** (diapositivas). | Mensaje del usuario al ver las diapositivas en celular: «se ve cortado y feo, prefiero un recorrido automático sin tocar la pantalla, que se pare sola al tocarla y se pueda continuar desde donde uno esté». |
 | **D26** | **El recorrido tiene voz y subtítulo karaoke:** un guion corto por sección (10 clips, 3 minutos, 1,2 MB) grabado con una voz neuronal colombiana (`es-CO-SalomeNeural`, edge-tts, gratis) y el subtítulo con cada palabra encendiéndose al ritmo de la voz. Botón para silenciar (se recuerda). Al tocar la pantalla la voz se calla con el recorrido y «Continuar» la retoma donde iba. | Pregunta del usuario: «le falta que se vaya resaltando el texto para ir leyendo, ¿es muy difícil meter una voz?» → «hazlo de una, te autorizo». Elegí voz pregrabada (igual en todos los aparatos) sobre la del navegador (robótica y distinta en cada uno). |
 | **D27** | **Cocina en celular:** la tablet se vuelve vertical (600 px de alto, una comanda debajo de otra, enteras) y en todas partes caben **dos comandas** completas, no tres cortadas. | Mensaje del usuario con captura: «la cocina está horrible». |
+| **D28** | **Música de fondo suave** durante el recorrido (bucle sintetizado aquí, `voz/fondo.mp3`, 24 s, 186 KB, sin derechos de terceros): suena solo mientras el recorrido anda, baja cuando habla la voz y se detiene con la pausa o al salir. El botón de silencio apaga voz y música. **Nada suena al entrar a la página** (se quitó el arranque por `#recorrido`). | «Que la voz solo suene cuando está la presentación» (había oído mi prueba automática por los parlantes) y «pon musiquita de ascensor detrás muy suave para que no se sienta tan vacío». |
+| **D29** | **La carta del local: varias fotos o un PDF** (hasta 6 archivos desde la página, PDF ≤ 3 MB; el servidor admite 8 por solicitud). Cada archivo va en su propia petición a `/api/solicitud-archivo` después de crear la solicitud (Vercel acepta ~4,5 MB por petición), con reanudación si se corta la señal. | «Que para el menú puedan subir PDF o tomar varias fotos». Foto del lugar y ubicación siguen obligatorias (ya lo eran, D21). |
 | **D25** | **Sin zoom en celular** (`maximum-scale=1, user-scalable=no`) en el inicio y en la propuesta, y `html{overflow-x:hidden}` + `main{overflow-x:clip}` en el inicio. | El usuario vio que al hacer zoom la página se desplazaba de lado y se descuadraba. |
 
 ---
@@ -301,3 +303,12 @@ Carpeta de la web: `../web/` (fuera de este repo; `web/subir.sh` sube por FTP). 
   palabra; sin eso devuelve cero palabras). La narración de cada sección se reparte entre sus paradas
   (en celular hay varias por sección) para que la voz y el scroll vayan juntos. Cocina en celular
   rehecha (D27). Herramienta nueva: venv `~/.claude/tools/edge-tts-venv`.
+- **4 de noviembre de 2026 (tarde, 5)** — Música de fondo (D28) sintetizada con numpy (`voz/musica.py`:
+  pad de acordes Cmaj9·Am9·Dm9·G13 a 76 bpm, piano eléctrico con swing, bajo discreto, cierre cruzado
+  sin corte) y mezclada bajo la voz (0,16 sola → 0,07 cuando habla). Al reanudar, el recorrido tomaba
+  la parada siguiente en vez de la que se veía: ahora elige la última cuyo inicio ya pasó el tercio
+  superior de la pantalla, y la voz sigue donde iba. Carta en varias fotos o PDF (D29): página con
+  lista de archivos, envío archivo por archivo con progreso («Subiendo la carta: 2 de 3…») y
+  reanudación desde la cola sin señal; API `solicitud-archivo` + panel (agente, pruebas en verde;
+  CORS compartido en `api/_lib/cors.js`). Probado de punta a punta (2 fotos + PDF) y borrado. Las
+  pruebas automáticas ahora corren con el audio silenciado (`--mute-audio` en `captura.mjs`).
