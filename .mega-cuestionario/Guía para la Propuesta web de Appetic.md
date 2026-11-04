@@ -6,7 +6,7 @@
 - **Tarea:** pasar la propuesta de Appetic a una página del sitio de Swiftfly Solutions,
   interactuable, con animaciones, optimizada en PC y celular, a la altura del inicio.
 - **Inicio:** 3 de noviembre de 2026
-- **Estado:** ✅ Construida y publicada el 4-nov-2026 · faltan 2 pendientes del usuario (ver §8)
+- **Estado:** ✅ Retoques de la ronda 3 construidos y publicados (4-nov-2026) · pendiente solo los nombres definitivos de los vendedores (S13)
 - **Proyecto:** repo `appetic` (fuente: `propuesta/propuesta-appetic.html`) · sitio `switflysolutions.com` (Hostinger)
 
 ---
@@ -44,6 +44,22 @@ inicio"*.
 | **D12** | **Solo para el vendedor:** foto del lugar (fachada) · ubicación GPS tomada en el momento · foto de la carta y del logo (adjuntos). | Obs. a P1 (control de zonas de venta) + S3 «sí». |
 | **D13** | **Funciona sin señal:** la solicitud (con sus fotos) se guarda en el celular y se envía sola cuando vuelve la conexión. | S2 «sí». |
 | **D14** | **Anti-spam:** campo oculto para robots + validación del lado del servidor. | S4 «sí». |
+
+### De la ronda 3 (4 de noviembre de 2026, tras ver la página en vivo)
+
+| # | Decisión | Por qué |
+|---|----------|---------|
+| **D15** | **Vendedor:** se escoge con **botones** con los nombres (no desplegable) y **no se le piden ciudad ni barrio**; foto del lugar obligatoria. Al dueño sí se le piden ciudad y barrio. | Puntos 1 y 7 del usuario. |
+| **D16** | El **«Desliza»** de la portada **no sale en celular** (tapaba el logo del talón). | Punto 3. |
+| **D17** | **Pase de abordar:** la **golondrina completa** (la del inicio) **quieta** sobre la línea punteada. Nada de logo recortado volando. | P1. Punto 2: «recorta el pájaro, no se ve profesional». |
+| **D18** | **Sección 4:** el «viaje del pedido» se queda arriba; las dos tarjetas con capturas se **reemplazan por un celular del mesero y una tablet de cocina simulados**, como el celular del menú. | P2. |
+| **D19** | Mesero y cocina **cada uno por su lado**, con su propia demostración automática (no conectados entre sí). | P3. |
+| **D20** | **TV: réplica fiel del TV real de la app** (fondo negro, plato grande a la izquierda con nombre y precios, tablero de la categoría a la derecha, fichas de categorías abajo, categorías que se turnan), con los platos de ejemplo y el control de «cambiar precio». | P4. Punto 5: «el mismo que tenemos en la app». |
+| **D21** | **Ubicación del vendedor obligatoria:** sin ubicación no se envía. | P5. Es el control de zonas. |
+| **D22** | **«Solo registrar la visita»:** el vendedor puede registrar una visita sin cotización (foto + ubicación + nota, sin datos del dueño) **con el motivo**: el dueño no estaba · estaban ocupados · no se dejó hablar · no le interesó · otro (con texto). | S1 «sí» + observación suya: así saben qué pasó y lo más común. |
+| **D23** | **Recorrido del día:** en el superadmin, por vendedor, un botón «Recorrido» que abre Google Maps con todos sus puntos del día (visitas y cotizaciones), con selector de fecha. | S2 «sí». |
+| **D24** | **El modo presentación se reemplaza por un recorrido automático:** la página se recorre sola, parada por parada (con paradas intermedias en secciones altas), mientras los interactivos se demuestran; **cualquier toque, rueda o tecla la detiene** y «Continuar» sigue desde donde esté la persona. Botón «Recorrido» en la barra; `#recorrido` lo arranca solo. **Sustituye a D1** (diapositivas). | Mensaje del usuario al ver las diapositivas en celular: «se ve cortado y feo, prefiero un recorrido automático sin tocar la pantalla, que se pare sola al tocarla y se pueda continuar desde donde uno esté». |
+| **D25** | **Sin zoom en celular** (`maximum-scale=1, user-scalable=no`) en el inicio y en la propuesta, y `html{overflow-x:hidden}` + `main{overflow-x:clip}` en el inicio. | El usuario vio que al hacer zoom la página se desplazaba de lado y se descuadraba. |
 
 ---
 
@@ -89,6 +105,16 @@ inicio"*.
   `npm run dev`) y a `appetic.vercel.app` en producción.
 - **S15** — *(construcción)* **Capturas fiables:** `web/captura.mjs` (Chrome headless por CDP), porque el
   panel del navegador de la app congela las animaciones cuando está oculto.
+- **S16** — *(ronda 3)* Las **visitas sin interés** se guardan en la misma colección `solicitudes/` con
+  `registro: 'visita'` y `estado: 'visita'` (no pasan por nueva → contactada → cerrada); en el panel
+  tienen su propio filtro «Visitas» y su chip con el motivo. Celular, dueño, tipo y plan no se piden.
+- **S17** — *(ronda 3)* El **recorrido** se arma con `https://www.google.com/maps/dir/lat,lng/lat,lng/…`
+  en orden de hora (Google acepta ~10 puntos por link; si hay más se parte en tramos).
+- **S18** — *(ronda 3)* Los simuladores del mesero y la cocina **copian las pantallas reales** de la demo
+  (capturas en `web/appetic/.capturas/app-mesero.png` y `app-cocina.png`): fichas de mesa, buscador,
+  categorías, cuadrícula de productos y ticket abajo con «Enviar a cocina» en el mesero; «En fila /
+  Entregadas», tarjetas MESA 4 #1 con contador y «1/3 ✓», tachar por toque y «Confirmar entregado»
+  en la cocina. Interactivos: tocar productos arma la comanda; tocar líneas las tacha.
 - **S12** — *(ronda 2)* **El dueño curioso** no sube fotos ni ubicación: solo D11 y «quiero que me
   contacten». Su solicitud llega igual al panel, con `origen: 'dueño'`.
 
@@ -109,8 +135,8 @@ inicio"*.
 
 - **Ronda 1 — Visión general** ✅ respondida · `Cuestionario-1-Propuesta-Web-Appetic.html`
 - **Ronda 2 — La cotización formal** ✅ respondida (4-nov) · `Cuestionario-2-Cotizacion-Formal.html`
-- **No hay ronda 3:** con esto no queda nada que adivinar. Lo único pendiente es un dato (los nombres
-  de los vendedores), no una decisión.
+- **Ronda 3 — Retoques tras verla en vivo** ✅ respondida (4-nov) · `Cuestionario-3-Retoques-En-Vivo.html` (retirado).
+  Nació de 7 puntos del usuario al ver la página publicada (ver bitácora).
 
 ---
 
@@ -183,6 +209,18 @@ Carpeta de la web: `../web/` (fuera de este repo; `web/subir.sh` sube por FTP). 
   bloquea, cola sin señal guarda y envía al volver), reglas en el emulador (13 casos), `npm run build`,
   capturas PC y celular locales y en vivo (`web/appetic/.capturas/`). Datos de prueba borrados.
 
+### F · Retoques de la ronda 3 (4-nov-2026)
+- [x] Página: vendedor con botones · sin ciudad/barrio para vendedor · GPS obligatorio · «Solo
+      registrar la visita» con motivos (D15, D21, D22) · sin «Desliza» (D16, también chocaba en PC) ·
+      golondrina quieta en el pase (D17).
+- [x] Recorrido automático en lugar de las diapositivas (D24) · sin zoom en celular (D25).
+- [x] TV réplica del real (D20) con el control de precio.
+- [x] Sección 4: celular del mesero y tablet de cocina simulados, cada uno con su demo (D18, D19, S18).
+- [x] API `api/solicitud.js`: `registro`, `motivo`, `motivoTexto`; ubicación obligatoria para
+      vendedor; celular opcional en visitas (S16). Commit `491da28`, en Vercel.
+- [x] Panel: filtro «Visitas», chip del motivo, bloque «Recorridos» por vendedor y fecha (D23, S17).
+- [x] Publicar: Appetic a GitHub/Vercel (`491da28`) · `web/appetic/` por FTP (versiones `?v=3`) · verificado en vivo.
+
 ### E · Publicar y verificar
 - [x] Respaldo del `index.html` en vivo (`respaldo-servidor-<fecha>/`) antes de subir.
 - [x] FTP desde esta PC: `ftp.switflysolutions.com`, usuario `u374493639.switfly` (el usuario lo
@@ -221,3 +259,25 @@ Carpeta de la web: `../web/` (fuera de este repo; `web/subir.sh` sube por FTP). 
   bloqueó): `firebase deploy --only firestore:rules,storage --project appetic-17477 --account
   jostivtrb@gmail.com` desde `Appetic/`; sin eso el superadmin no ve la lista (la API sí guarda).
   (2) Pasar los nombres definitivos de los vendedores (S13).
+- **4 de noviembre de 2026 (tarde)** — El usuario vio la página en vivo y pidió 7 cosas: (1) el
+  desplegable de vendedores se dibuja fuera del celular (es el emulador de Chrome, pero se pasa a
+  botones y listo); (2) no le gustó el logo recortado volando en el pase; (3) el «Desliza» tapaba
+  el logo del talón en celular; (4) le gustó el celular del menú y quiere uno así para el mesero y
+  otro para la cocina; (5) el TV debe ser como el real de la app; (6) correr las reglas y tener el
+  apartado en el superadmin → **reglas desplegadas** (`firebase deploy … --project appetic-17477
+  --account jostivtrb@gmail.com`, compiladas y liberadas) y el apartado ya existía; (7) el vendedor
+  no pone ciudad ni barrio, sí foto y ubicación. Decidido sin preguntar: D15 vendedor con botones y
+  sin ciudad/barrio; D16 sin «Desliza» en celular. Capturadas las pantallas reales del TV, mesero y
+  cocina de la demo (`web/appetic/.capturas/app-*.png`) para replicarlas. Entregada la ronda 3 con
+  5 preguntas (avión, qué reemplazan los simuladores, si van conectados, TV réplica o incrustado,
+  ubicación obligatoria) y 2 sugerencias (registrar visitas sin interés; recorrido del día).
+- **4 de noviembre de 2026 (tarde, 2)** — Ronda 3 respondida → D17–D23. Construido: golondrina quieta
+  en el pase; TV réplica del real (las dos mitades en absoluto para que el contenido no estire el
+  16:9; en celular se oculta el precio «para llevar»); celular del mesero y tablet de cocina con sus
+  demos propias; formulario con vendedores en botones, visita con motivo, ubicación obligatoria y
+  sin ciudad/barrio para el vendedor; API y panel con visitas y recorridos (agente, pruebas en
+  verde, datos de prueba borrados). A mitad de camino el usuario pidió dos cosas más al verlo en el
+  celular: **sin zoom** (D25) y **recorrido automático en vez de diapositivas** (D24); hechas y
+  probadas (avanza solo, se detiene al tocar, continúa desde donde esté). Publicado por FTP y en
+  Vercel. El guion `web/captura.mjs` ahora acepta `--gps` (ubicación simulada) y devuelve el valor
+  del JS, con lo que sirve para probar flujos enteros sin tocar la pantalla.
