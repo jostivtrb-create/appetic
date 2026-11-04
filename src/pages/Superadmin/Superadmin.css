@@ -390,6 +390,10 @@
   border-radius: 999px; background: var(--brand-orange, #ED7D2B); color: #fff;
   font-size: 13px; font-weight: 800;
 }
+.sa-sol-contador--visitas {
+  background: var(--surface-2); border: 1px solid var(--border); color: var(--text-soft);
+  font-size: 11.5px; font-weight: 700; white-space: nowrap;
+}
 
 .sa-sol-filtros { display: flex; gap: 6px; margin-top: 12px; overflow-x: auto; scrollbar-width: none; }
 .sa-sol-filtros::-webkit-scrollbar { display: none; }
@@ -418,6 +422,7 @@
 .sa-sol-item--nueva { border-left-color: var(--brand-orange, #ED7D2B); }
 .sa-sol-item--contactada { border-left-color: var(--warning); }
 .sa-sol-item--cerrada { border-left-color: var(--success, #30A46C); opacity: .85; }
+.sa-sol-item--visita { border-left-color: var(--text-faint); }
 
 .sa-sol-head {
   width: 100%; display: flex; align-items: flex-start; gap: 8px;
@@ -434,7 +439,16 @@
 }
 .sa-sol-estado--contactada { background: color-mix(in srgb, var(--warning) 18%, transparent); color: var(--text); }
 .sa-sol-estado--cerrada { background: color-mix(in srgb, var(--success, #30A46C) 18%, transparent); color: var(--success, #30A46C); }
+.sa-sol-estado--visita { background: var(--surface); border: 1px solid var(--border); color: var(--text-soft); }
 .sa-sol-chevron { flex: none; font-size: 9px; color: var(--text-faint); margin-top: 4px; }
+
+/* 🚶 Visita: el motivo a la vista, sin estados */
+.sa-sol-motivo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.sa-sol-motivo-chip {
+  padding: 4px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 800;
+  background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--text);
+}
+.sa-sol-motivo-txt { font-size: 13px; line-height: 1.4; color: var(--text-soft); overflow-wrap: anywhere; }
 
 .sa-sol-contacto { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 13.5px; color: var(--text); }
 .sa-sol-wa {
@@ -473,6 +487,50 @@
 .sa-sol-estado-btn.on { background: var(--text); border-color: var(--text); color: #fff; cursor: default; }
 .sa-sol-estado-btn:disabled:not(.on) { opacity: .5; cursor: wait; }
 .sa-sol-error { margin: 0; font-size: 12.5px; color: var(--danger, #E5484D); }
+
+/* 🗺️ Recorridos de los vendedores por día (Solicitudes.jsx › Recorridos) */
+.sa-sol-rec {
+  margin-top: 12px; padding: 10px 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.sa-sol-rec-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.sa-sol-rec-cab strong { font-size: 14px; font-weight: 800; color: var(--text); }
+.sa-sol-rec-fecha { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-soft); }
+.sa-sol-rec-fecha input {
+  font: inherit; font-size: 13px; font-weight: 700; color: var(--text);
+  padding: 5px 8px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--surface);
+  min-height: 34px;
+}
+.sa-sol-rec-vacio { margin: 0; font-size: 13px; color: var(--text-faint); text-align: center; }
+.sa-sol-rec-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.sa-sol-rec-item {
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface);
+  padding: 8px 10px; display: flex; flex-direction: column; gap: 8px;
+}
+.sa-sol-rec-head {
+  width: 100%; display: flex; align-items: flex-start; gap: 8px;
+  border: none; background: none; padding: 0; font: inherit; text-align: left; color: inherit; cursor: pointer;
+}
+.sa-sol-rec-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.sa-sol-rec-txt strong { font-size: 14px; font-weight: 800; color: var(--text); }
+.sa-sol-rec-txt small { font-size: 12px; color: var(--text-soft); line-height: 1.35; }
+.sa-sol-rec-links { display: flex; flex-wrap: wrap; gap: 6px; }
+.sa-sol-rec-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 7px 12px; border-radius: 999px; text-decoration: none;
+  background: var(--brand-orange, #ED7D2B); color: #fff; font-weight: 800; font-size: 12.5px;
+}
+.sa-sol-rec-btn:active { transform: scale(0.97); }
+.sa-sol-rec-puntos {
+  margin: 0; padding: 8px 0 0; list-style: none; border-top: 1px dashed var(--border);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.sa-sol-rec-puntos li { display: flex; align-items: baseline; gap: 8px; font-size: 13px; }
+.sa-sol-rec-hora { flex: none; min-width: 48px; font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text-soft); }
+.sa-sol-rec-local { flex: 1; min-width: 0; font-weight: 700; color: var(--text); overflow-wrap: anywhere; }
+.sa-sol-rec-tipo { flex: none; font-size: 11.5px; font-weight: 700; color: var(--text-soft); white-space: nowrap; }
+.sa-sol-rec-tipo.cotizacion { color: var(--brand-orange-strong); }
 
 /* 💳 Plan y pago (PlanSuper.jsx · guía «Planes en la app») */
 .sp-chip {

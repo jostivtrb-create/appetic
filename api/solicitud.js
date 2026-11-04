@@ -1,4 +1,4 @@
-// 📋 /api/solicitud — las solicitudes de cotización de la propuesta web de Appetic
+// 📋 /api/solicitud — las solicitudes de cotización y las VISITAS de la propuesta web de Appetic
 // (https://switflysolutions.com/appetic/, página estática en Hostinger) se GUARDAN aquí.
 //
 // Quién la llena: (a) los vendedores de Swiftfly en la calle, con la foto de la fachada del local,
@@ -7,10 +7,23 @@
 // (solicitudes/{id}/…), y se ve en el panel del superadmin (/superadmin → «Solicitudes de
 // cotización»). Nada de correo.
 //
+// Dos registros (guía «Propuesta web» D21–D23):
+//   · cotizacion (por defecto): el dueño pidió cotización. Nace con estado 'nueva' y el superadmin la
+//     mueve a contactada → cerrada.
+//   · visita: el vendedor pasó por un negocio y el dueño NO pidió cotización; se anota para saber el
+//     recorrido del día y qué pasó (motivo). Solo la registra un vendedor, con ubicación obligatoria;
+//     el celular, el dueño, el tipo y el plan pueden ir vacíos. Se guarda con estado 'visita' y no
+//     pasa por los estados de las cotizaciones.
+//   Al vendedor SIEMPRE se le exige la ubicación (cotización o visita): es el control de zonas. Al
+//   dueño que llena desde su casa, no.
+//
 //   OPTIONS → 204 con las cabeceras CORS (solo para la web de Swiftfly y localhost).
-//   POST { id, origen: 'vendedor' | 'dueno', vendedor, local, dueno, celular, ciudad, barrio, tipo, plan,
-//          notas, ubicacion: { lat, lng, precision } | null, fotos: { lugar?, carta?, logo? } (data URL),
-//          llenadaEn (ISO), web (HONEYPOT: si trae algo, se responde 200 falso y no se guarda nada) }
+//   POST { id, registro: 'cotizacion' | 'visita', origen: 'vendedor' | 'dueno', vendedor, local, dueno,
+//          celular, ciudad, barrio, tipo, plan, notas, ubicacion: { lat, lng, precision } | null,
+//          motivo: 'no-estaba' | 'ocupados' | 'no-se-dejo-hablar' | 'no-le-intereso' | 'otro' (solo visita),
+//          motivoTexto (≤ 300, opcional; típico con 'otro'),
+//          fotos: { lugar?, carta?, logo? } (data URL), llenadaEn (ISO),
+//          web (HONEYPOT: si trae algo, se responde 200 falso y no se guarda nada) }
 //
 //   200 { ok, id }                      ← guardada
 //   200 { ok, id, repetida: true }      ← ese id ya estaba (reintento de la cola sin señal): no se toca
@@ -29,6 +42,8 @@ import { permitir, LIMITES } from './_lib/limites.js'
 const ORIGENES_WEB = ['https://switflysolutions.com', 'https://www.switflysolutions.com']
 const ID_VALIDO = /^[A-Za-z0-9_-]{8,40}$/
 const ORIGENES = ['vendedor', 'dueno']
+const REGISTROS = ['cotizacion', 'visita']
+const MOTIVOS_VISITA = ['no-estaba', 'ocupados', 'no-se-dejo-hablar', 'no-le-intereso', 'otro']
 const TIPOS = ['trailer', 'local', 'restaurante']
 const PLANES = ['emprendedor', 'comerciante', 'empresario', 'desarrollador', 'no-sabe']
 const FOTOS = ['lugar', 'carta', 'logo']
@@ -103,7 +118,12 @@ export default async function handler(req, res) {
     if (!ID_VALIDO.test(id)) return res.status(400).json({ error: 'Falta el id de la solicitud' })
     const origen = String(b.origen || '')
     if (!ORIGENES.includes(origen)) return res.status(400).json({ error: 'Falta el origen (vendedor o dueño)' })
+    // Sin `registro` (la página vieja no lo manda) es una cotización, como siempre.
+    const registro = b.registro == null || b.registro === '' ? 'cotizacion' : String(b.registro)
+    if (!REGISTROS.includes(registro)) return res.status(400).json({ error: 'Registro desconocido (cotizacion o visita)' })
+    const esVisita = registro === 'visita'
     const datos = {
+      registro,
       origen,
       vendedor: texto(b.vendedor, 60),
       local: texto(b.local, 80),
@@ -115,10 +135,19 @@ export default async function handler(req, res) {
       plan: deLista(b.plan, PLANES),
       notas: texto(b.notas, 1500),
       ubicacion: ubicacionDe(b.ubicacion),
+      motivo: esVisita ? deLista(b.motivo, MOTIVOS_VISITA) : '',
+      motivoTexto: esVisita ? texto(b.motivoTexto, 300) : '',
     }
     if (!datos.local) return res.status(400).json({ error: 'Falta el nombre del local' })
-    if (!datos.celular) return res.status(400).json({ error: 'Falta el celular' })
+    // En una visita el dueño no dio su número (no quiso cotización): el celular es opcional.
+    if (!esVisita && !datos.celular) return res.status(400).json({ error: 'Falta el celular' })
     if (origen === 'vendedor' && !datos.vendedor) return res.status(400).json({ error: 'Falta el nombre del vendedor' })
+    // Control de zonas: lo que registra un vendedor lleva SIEMPRE su ubicación (cotización o visita).
+    if (origen === 'vendedor' && !datos.ubicacion) return res.status(400).json({ error: 'Falta la ubicación del vendedor' })
+    if (esVisita) {
+      if (origen !== 'vendedor') return res.status(400).json({ error: 'Una visita solo la registra un vendedor' })
+      if (!datos.motivo) return res.status(400).json({ error: 'Falta el motivo de la visita' })
+    }
 
     const db = getFirestore()
     const ref = db.collection('solicitudes').doc(id)
@@ -150,7 +179,8 @@ export default async function handler(req, res) {
     const llenada = new Date(String(b.llenadaEn || ''))
     const doc = {
       ...datos,
-      estado: 'nueva',
+      // Las visitas no pasan por nueva → contactada → cerrada: quedan con su propio estado.
+      estado: esVisita ? 'visita' : 'nueva',
       creadaEn: FieldValue.serverTimestamp(),
       llenadaEn: Number.isNaN(llenada.getTime()) ? null : Timestamp.fromDate(llenada),
       fotos,
