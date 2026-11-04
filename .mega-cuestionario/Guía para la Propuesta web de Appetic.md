@@ -65,6 +65,8 @@ inicio"*.
 | **D29** | **La carta del local: varias fotos o un PDF** (hasta 6 archivos desde la página, PDF ≤ 3 MB; el servidor admite 8 por solicitud). Cada archivo va en su propia petición a `/api/solicitud-archivo` después de crear la solicitud (Vercel acepta ~4,5 MB por petición), con reanudación si se corta la señal. | «Que para el menú puedan subir PDF o tomar varias fotos». Foto del lugar y ubicación siguen obligatorias (ya lo eran, D21). |
 | **D30** | **El recorrido solo se pausa con el botón «Pausar»**; tocar, desplazar o jugar con los interactivos no lo detiene (Esc lo termina). Al terminar cada parada y al pulsar «Continuar», mira en qué parte de la página está la persona y sigue desde ahí, con la voz de esa sección. **Sustituye la parte de D24** que decía que cualquier toque lo detenía. | «Que ya no se salga presionando en cualquier lado, sino un botón de pausar, y que continuar mire en qué pestaña estás y siga hablando desde ahí». |
 | **D31** | **Subtítulo de dos líneas**, fondo más transparente, y el texto **va subiendo solo** a medida que la voz avanza (la línea de la palabra actual es la de abajo). | «El texto tapa la pantalla; que se vaya bajando a medida». |
+| **D32** | **La pantalla se desliza despacio y sin parar** durante cada sección (del inicio al final de la sección a lo largo de toda su narración, con aceleración suave) y entra a la siguiente con un deslizamiento corto, sin saltos. Ya no hay «paradas» con tiempo fijo: el reloj es la voz. Si la persona mueve la página por su cuenta, se le deja (la voz sigue) y al terminar la sección se continúa desde donde esté. | «Que la pantalla no se quede quieta mientras va hablando, que se vaya deslizando suave para que no se sienta el cambio de golpe». |
+| **D33** | **«2.º mes gratis» como píldora blanca** arriba a la derecha de cada plan (antes un sello redondo con aro doble que en celular se veía mal). | «En celular la insignia se ve horrible». |
 | **D25** | **Sin zoom en celular** (`maximum-scale=1, user-scalable=no`) en el inicio y en la propuesta, y `html{overflow-x:hidden}` + `main{overflow-x:clip}` en el inicio. | El usuario vio que al hacer zoom la página se desplazaba de lado y se descuadraba. |
 
 ---
@@ -317,3 +319,9 @@ Carpeta de la web: `../web/` (fuera de este repo; `web/subir.sh` sube por FTP). 
 - **4 de noviembre de 2026 (tarde, 6)** — D30 y D31 construidos, probados (toques no pausan; al
   moverse a otra sección el recorrido continúa allí con su voz; el subtítulo muestra 2 líneas y se
   desplaza con la voz) y publicados (`?v=11`).
+- **4 de noviembre de 2026 (tarde, 7)** — D32: el recorrido pasó de paradas con tiempo fijo a un
+  deslizamiento continuo por sección atado al reloj de la narración (`deslizar()` en rAF; `glide.libre`
+  cuando la persona toma el control). Publicado `?v=12`.
+- **4 de noviembre de 2026 (tarde, 8)** — Al acabar el clip de voz el reloj de la narración se quedaba
+  en el último segundo y el tramo no terminaba nunca: al `ended` del audio el reloj pasa a correr solo.
+  D33 insignia en píldora. Publicado `?v=13`.
