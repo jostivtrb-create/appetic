@@ -6,7 +6,7 @@
 - **Tarea:** pasar la propuesta de Appetic a una página del sitio de Swiftfly Solutions,
   interactuable, con animaciones, optimizada en PC y celular, a la altura del inicio.
 - **Inicio:** 3 de noviembre de 2026
-- **Estado:** 🟢 Rondas cerradas · listo para construir (se retoma el 5-nov-2026)
+- **Estado:** ✅ Construida y publicada el 4-nov-2026 · faltan 2 pendientes del usuario (ver §8)
 - **Proyecto:** repo `appetic` (fuente: `propuesta/propuesta-appetic.html`) · sitio `switflysolutions.com` (Hostinger)
 
 ---
@@ -81,6 +81,14 @@ inicio"*.
 - **S11** — *(ronda 2)* **Fotos:** se reducen en el navegador antes de subir (máx. 1600 px, JPEG/WebP)
   para que pesen poco con datos. GPS con `geolocation` de alta precisión; si el vendedor no da permiso,
   se guarda la solicitud igual pero marcada «sin ubicación».
+- **S13** — *(construcción)* **Lista de vendedores (D10):** mientras el usuario no pase los nombres,
+  la constante `VENDEDORES` de `web/appetic/app.js` trae a los tres socios (Jonathan Miranda, Stiven
+  Patiño, Alejandro Rojas). Se editan ahí.
+- **S14** — *(construcción)* **Vista previa local:** `web/appetic/app.js` manda el formulario a
+  `http://localhost:5199/api/solicitud` cuando la página se abre desde localhost (Appetic en
+  `npm run dev`) y a `appetic.vercel.app` en producción.
+- **S15** — *(construcción)* **Capturas fiables:** `web/captura.mjs` (Chrome headless por CDP), porque el
+  panel del navegador de la app congela las animaciones cuando está oculto.
 - **S12** — *(ronda 2)* **El dueño curioso** no sube fotos ni ubicación: solo D11 y «quiero que me
   contacten». Su solicitud llega igual al panel, con `origen: 'dueño'`.
 
@@ -120,51 +128,67 @@ Carpeta de la web: `../web/` (fuera de este repo; `web/subir.sh` sube por FTP). 
 `ccr-20747b3e-4xpkim`).
 
 ### A · Página `web/appetic/index.html` (HTML+CSS+JS vanilla, mobile-first, S2/S3/S7)
-- [ ] Cabecera/nav del inicio (golondrina, «Volver al inicio», botón WhatsApp) y tokens del inicio
+- [x] Cabecera/nav del inicio (golondrina, «Volver al inicio», botón WhatsApp) y tokens del inicio
       con `--acc:#FF7A3D` (naranja Appetic) para acentos.
-- [ ] Portada: «Tu negocio de comida, listo para despegar» + **pase de abordar animado** (D2).
-- [ ] Qué es Appetic + 4 pilares (revelado `.rv` como el inicio).
-- [ ] Las 5 cosas, una sección por cada una, con sus interactivos (D2):
+- [x] Portada: «Tu negocio de comida, listo para despegar» + **pase de abordar animado** (D2).
+- [x] Qué es Appetic + 4 pilares (revelado `.rv` como el inicio).
+- [x] Las 5 cosas, una sección por cada una, con sus interactivos (D2):
   - [ ] 1 Menú: **celular simulado con menú y carrito** (tocas platos, se arma el pedido, sale el
         mensaje de WhatsApp).
   - [ ] 2 TV: **TV en vivo** que rota platos sola.
   - [ ] 3 Domicilios: foto + badge de envío que cambia con la distancia (deslizador).
   - [ ] 4 Meseros y cocina: **viaje del pedido animado** (mesa → cocina → despacho → aviso).
   - [ ] 5 Cuentas: **números que suman solos** (vendiste − gastaste = te quedó) y barras del mes.
-- [ ] Planes: **selector mensual / 6 meses / 12 meses** que recalcula precios (Emprendedor 59.900 ·
+- [x] Planes: **selector mensual / 6 meses / 12 meses** que recalcula precios (Emprendedor 59.900 ·
       Comerciante 79.900 · Empresario 99.900 · Desarrollador 3.000.000 único), sello «2.º mes gratis».
-- [ ] Demo (QR + link `appetic.vercel.app/demo`) · CTA WhatsApp · botón **Descargar PDF**
+- [x] Demo (QR + link `appetic.vercel.app/demo`) · CTA WhatsApp · botón **Descargar PDF**
       (`../propuestas/propuesta-appetic.pdf`) · **Solicitar cotización formal**.
-- [ ] **Modo presentación** (D1): botón «Presentar» → cada sección a pantalla completa, flechas /
+- [x] **Modo presentación** (D1): botón «Presentar» → cada sección a pantalla completa, flechas /
       teclado / deslizar, salir con Esc.
-- [ ] `og:` para WhatsApp (D7) con imagen `img/og-appetic.jpg` 1200×630.
-- [ ] Imágenes WebP ya en `web/appetic/img/` (44 archivos, 2 MB) ✅ 4-nov.
+- [x] `og:` para WhatsApp (D7) con imagen `img/og-appetic.jpg` 1200×630.
+- [x] Imágenes WebP ya en `web/appetic/img/` (44 archivos, 2 MB) ✅ 4-nov.
 
 ### B · Formulario de cotización (D8–D14) — en la misma página, como hoja/modal
-- [ ] Paso 1: «Soy vendedor de Swiftfly» / «Soy dueño de un negocio».
-- [ ] Campos D11 (+ vendedor de la lista, foto del lugar, GPS, carta y logo si es vendedor).
-- [ ] Reducción de fotos en el navegador (S11) · honeypot (D14).
-- [ ] Cola sin señal en IndexedDB + reintento al volver `online` (D13/S10).
-- [ ] `POST https://appetic.vercel.app/api/solicitud` (S8).
+- [x] Paso 1: «Soy vendedor de Swiftfly» / «Soy dueño de un negocio».
+- [x] Campos D11 (+ vendedor de la lista, foto del lugar, GPS, carta y logo si es vendedor).
+- [x] Reducción de fotos en el navegador (S11) · honeypot (D14).
+- [x] Cola sin señal en IndexedDB + reintento al volver `online` (D13/S10).
+- [x] `POST https://appetic.vercel.app/api/solicitud` (S8).
 
 ### C · Servidor y panel (en este repo)
-- [ ] `api/solicitud.js`: CORS para switflysolutions.com, valida, honeypot, guarda en `solicitudes/`
+- [x] `api/solicitud.js`: CORS para switflysolutions.com, valida, honeypot, guarda en `solicitudes/`
       y fotos en Storage; límite de tamaño.
-- [ ] `firestore.rules` / `storage.rules`: `solicitudes/` solo la lee el superadmin; nadie escribe desde
+- [x] `firestore.rules` / `storage.rules`: `solicitudes/` solo la lee el superadmin; nadie escribe desde
       el cliente (escribe el servidor). Desplegar con /Actualizar_Reglas_Firebase.
-- [ ] Sección «Solicitudes» en el panel del superadmin (S9): lista, estado, mapa, fotos.
-- [ ] Desplegar Appetic a Vercel (/despliegue_en_vercel).
+- [x] Sección «Solicitudes» en el panel del superadmin (S9): lista, estado, mapa, fotos.
+- [x] Desplegar Appetic a Vercel (/despliegue_en_vercel).
 
 ### D · Inicio del sitio
-- [ ] En `web/index.html`, el botón de Appetic pasa de «Descargar la propuesta (PDF)» a
+- [x] En `web/index.html`, el botón de Appetic pasa de «Descargar la propuesta (PDF)» a
       «Ver la propuesta» → `appetic/` (D3). El PDF sigue disponible dentro de la propuesta.
 
+### Qué se construyó (4-nov-2026)
+- `web/appetic/index.html` + `estilos.css` + `app.js` + `img/` (44 WebP + `og-appetic.jpg`): página larga
+  con portada de vuelo y pase de abordar animado, qué es Appetic, las 5 cosas con sus interactivos
+  (celular con carrito que arma el mensaje de WhatsApp y se demuestra solo, TV que rota y cambia el
+  precio al tocar el panel, envío por distancia con deslizador, viaje del pedido animado, cuentas que
+  suman solas), demo con QR, planes con selector mes / 6 / 12, CTA, modo presentación (botón
+  «Presentar», flechas, teclado, deslizar, `#presentar`) y el formulario de cotización (hoja con 4
+  pasos, fotos reducidas en el navegador, GPS, cola sin señal en IndexedDB, honeypot).
+- Repo Appetic (commit `0664653`): `api/solicitud.js`, `LIMITES.solicitud`, reglas de Firestore y
+  Storage para `solicitudes/`, `src/services/solicitudes.js`, sección «📋 Solicitudes de cotización»
+  en `/superadmin` (`Solicitudes.jsx`, también en el modo simulado `?super=1`).
+- `web/index.html`: el botón de Appetic en «Proyectos» pasó a «Ver la propuesta» → `appetic/`.
+- Pruebas: formulario de punta a punta contra la API local (dueño, vendedor con foto, sin foto
+  bloquea, cola sin señal guarda y envía al volver), reglas en el emulador (13 casos), `npm run build`,
+  capturas PC y celular locales y en vivo (`web/appetic/.capturas/`). Datos de prueba borrados.
+
 ### E · Publicar y verificar
-- [ ] Respaldo del `index.html` en vivo (`respaldo-servidor-<fecha>/`) antes de subir.
-- [ ] FTP desde esta PC: `ftp.switflysolutions.com`, usuario `u374493639.switfly` (el usuario lo
+- [x] Respaldo del `index.html` en vivo (`respaldo-servidor-<fecha>/`) antes de subir.
+- [x] FTP desde esta PC: `ftp.switflysolutions.com`, usuario `u374493639.switfly` (el usuario lo
       recuerda como `u374493639.switflysolutions.com` + `switfly`, pero lo que conecta es esto).
       Subir `appetic/` completo + `index.html`. No tocar `privacy-policy/`.
-- [ ] Verificar en vivo PC y celular con capturas; `og:` con el depurador de WhatsApp/Facebook.
+- [x] Verificar en vivo PC y celular con capturas; `og:` con el depurador de WhatsApp/Facebook.
 
 ---
 
@@ -185,3 +209,15 @@ Carpeta de la web: `../web/` (fuera de este repo; `web/subir.sh` sube por FTP). 
   Comprobado que el `index.html` en vivo es idéntico a `web/index.html` y que `/appetic/` aún no
   existe. El usuario pasó la clave del FTP en el chat (no se guarda). Se pausa por hoy: **mañana
   5-nov se construye** siguiendo el plan de la sección 7, sin más preguntas.
+- **4 de noviembre de 2026 (día)** — Construido todo el plan A–E. Problemas encontrados y resueltos:
+  el panel del navegador de la app no capturaba (se reescribió `web/captura.mjs` por CDP, S15); en
+  PC el sello «Abordado» tapaba un dato del pase (ahora va en el talón); `#planes` estaba repetido
+  como id (la sección y la cuadrícula) y el tachado de precios no salía; en celular las manchas
+  giradas de fondo ensanchaban la página (`main{overflow-x:clip}`); en modo presentación la portada
+  no se ocultaba por la especificidad del id. Vercel acepta cuerpos de ~4,5 MB → las fotos se
+  reducen a ≤ 900 KB y 1280 px. Publicado por FTP (respaldo en `respaldo-servidor-2026-11-04/`),
+  `main` de Appetic empujado a GitHub (Vercel despliega solo).
+  **Pendientes del usuario:** (1) desplegar las reglas de Firebase (el modo automático me lo
+  bloqueó): `firebase deploy --only firestore:rules,storage --project appetic-17477 --account
+  jostivtrb@gmail.com` desde `Appetic/`; sin eso el superadmin no ve la lista (la API sí guarda).
+  (2) Pasar los nombres definitivos de los vendedores (S13).
