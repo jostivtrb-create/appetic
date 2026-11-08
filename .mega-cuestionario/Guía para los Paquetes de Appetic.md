@@ -5,7 +5,7 @@
 
 - **Tarea:** cambiar los planes en escalera (Emprendedor, Comerciante, Empresario) por **paquetes** que cada negocio combina según lo que pide. Primero el contenido de cada paquete y después los precios.
 - **Inicio:** 7 de noviembre de 2026
-- **Estado:** 🔵 Fases A y B, propuesta por paquetes e Inventario PUBLICADOS (7-nov) · faltan B3, C1, C2 y C4
+- **Estado:** 🔵 Fases A y B, propuesta e Inventario publicados (7-nov) · C1 y C2 hechos el 8-nov en commit local, sin publicar · faltan B3 y C4
 - **Proyecto:** `~/Apps Zeven/Swiftfly Solutions/Appetic` (app) y `web/appetic/` (propuesta)
 - **Relacionada:** «Guía para las Mejoras frente a Loggro», cuya S5 dice que lo nuevo queda en Empresario mientras se definen los planes.
 
@@ -205,8 +205,17 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
 
 **Fase C — Lo nuevo de los paquetes** (cada uno, su propia guía o paso)
 
-- [ ] C1 · Notificaciones del dueño a los clientes (D9, D31, D34).
-- [ ] C2 · Horario semanal del personal (D10).
+- [x] C1 · Notificaciones del dueño a los clientes (D9, D31, D34). Hecho el 8-nov.
+  - **Cliente:** `components/InvitarAvisos` muestra «¿Te avisamos de las promociones de X?» al marcar ❤️ o tras su pedido (`Checkout` y `CheckoutMesa`). No sale si el navegador no puede (iPhone sin instalar), si los bloqueó, si ya está suscrito o si dijo «Ahora no» hace menos de 30 días. Su token queda en `suscriptores/{token}`.
+  - **Dueño:** en Difundir, «🔔 Avisos a tus clientes» trae ideas rápidas, título (≤ 50) y mensaje (≤ 140), vista previa de la notificación, cuántos clientes la reciben, el cupo «te quedan N de 3» y el historial.
+  - **`/api/avisar-clientes`:** solo el dueño o el superadmin; ni la demo ni un local apagado. Tope de 3 por semana (lunes a domingo, Bogotá), contado en una transacción en `avisosSemana/{lunes}`. Manda en grupos de 500 y borra los tokens muertos.
+  - **Pruebas:** 12 de 12 en las reglas (emulador). La API, contra los emuladores de Firestore y Auth: 3 pasan, el 4.º da 429 y sin título da 400.
+  - **Sin probar:** que llegue la notificación de verdad, porque necesita un celular real suscrito en producción.
+- [x] C2 · Horario semanal del personal (D10). Hecho el 8-nov.
+  - **Dueño:** Cuentas → 🗓️ Horario, con una tarjeta por persona (la de Nómina) y 7 días; atajos Mañana, Tarde y Completo, y aplicar a «Lunes a viernes» o «Toda la semana».
+  - **Equipo:** `/admin/horario`, con «Hoy trabajan» arriba.
+  - **Datos y reglas:** `horarios/semana`; lo lee el equipo activo y lo escribe el dueño.
+  - **Ojo:** primero se creó por error `utils/turnos.js`, que pisó el de los turnos del TV. Se restauró con git y el horario quedó en `utils/horarioSemana.js` y `services/horarioSemana.js`.
 - [x] C3 · Inventario con recetas y proveedores (D13 y paso 4 de la guía de Loggro). Publicado el 7-nov.
 - [ ] C4 · Cobro en línea y datáfono (pasos 5 a 7 de Loggro), solo si las empresas de pagos dejan conectarse.
 

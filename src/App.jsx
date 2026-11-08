@@ -21,6 +21,7 @@ import AvisoListo from './components/AvisoListo/AvisoListo.jsx'
 import Recorrido from './components/Demo/Recorrido'
 import InicioEquipo from './components/InicioEquipo.jsx'
 import VersionNueva from './components/VersionNueva/VersionNueva.jsx'
+import InvitarAvisos from './components/InvitarAvisos/InvitarAvisos.jsx'
 
 // 📺 La pantalla de TV va aparte: sin barra, sin avisos ni instalar, y en su propio archivo
 // para que el menú del cliente no cargue su código.
@@ -60,6 +61,8 @@ export default function App() {
       <InstallPrompt />
       {/* 🔄 Versión nueva lista: botón para aplicarla, solo en el panel y el superadmin. */}
       <VersionNueva />
+      {/* 🔔 «¿Te avisamos de las promociones?» tras el primer pedido o un favorito (D34). */}
+      <InvitarAvisos />
       {/* 🎮 Recorrido guiado de la demo para clientes (solo se pinta dentro de /demo). */}
       <Recorrido />
       {/* 🧑‍🍳 Mesero / cocina / domiciliario: al abrir la app caen en su pantalla. */}

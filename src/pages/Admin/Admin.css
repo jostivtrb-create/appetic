@@ -905,3 +905,24 @@ a.dif-afiche { text-decoration: none; }
   margin: 8px 16px 0; padding: 10px 12px; border-radius: 12px;
   background: #FDECEC; border: 1.5px solid #E5A19A; color: #8E1B14; font-size: 14px;
 }
+
+/* 🔔 Difundir → Avisos a tus clientes (guía «Paquetes de Appetic» D9) */
+.dif-avisos { display: grid; gap: 10px; }
+.dif-avisos-cupo { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--text-soft); }
+.dif-avisos-cupo i { width: 22px; height: 8px; border-radius: 4px; background: var(--brand-orange, #ED7D2B); }
+.dif-avisos-cupo i.usado { background: var(--border, #E8DDD3); }
+.dif-avisos-cupo span { margin-left: 6px; }
+.dif-ideas { display: flex; flex-wrap: wrap; gap: 6px; }
+.dif-ideas button { font: inherit; font-size: 13px; padding: 6px 10px; border-radius: 999px; border: 1px dashed var(--border, #E8DDD3); background: transparent; color: inherit; cursor: pointer; }
+.dif-campo { display: grid; gap: 5px; font-size: 13.5px; font-weight: 800; }
+.dif-campo small { font-weight: 500; color: var(--text-soft); margin-left: 6px; }
+.dif-campo input, .dif-campo textarea { font: inherit; font-weight: 500; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border, #E8DDD3); background: var(--surface, #fff); color: inherit; resize: vertical; }
+.dif-noti { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: center; padding: 10px 12px; border-radius: 16px; background: #2B2622; color: #fff; box-shadow: 0 8px 20px rgba(0, 0, 0, .15); }
+.dif-noti-ico { width: 36px; height: 36px; border-radius: 9px; background: #fff; overflow: hidden; display: grid; place-items: center; }
+.dif-noti-ico img { width: 100%; height: 100%; object-fit: contain; }
+.dif-noti b { display: block; font-size: 13.5px; }
+.dif-noti small { display: block; font-size: 12.5px; color: #D9CFC7; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.dif-avisos-hist { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; }
+.dif-avisos-hist li { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 6px 0; border-top: 1px solid var(--border, #E8DDD3); }
+.dif-avisos-hist span { color: var(--text-soft); white-space: nowrap; }
+.dif-avisos .btn:disabled { opacity: .45; cursor: default; box-shadow: none; }

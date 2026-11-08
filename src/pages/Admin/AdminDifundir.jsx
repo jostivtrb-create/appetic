@@ -6,6 +6,7 @@ import { construirPromptPublicidad, VARIANTES_PUBLICIDAD } from '../../utils/pro
 import { abrirHojaMesas } from '../../utils/mesaQR'
 import { tiene, ofreceDomicilio } from '../../utils/plan'
 import { Candado } from './PlanAvisos'
+import AvisosClientes from './AvisosClientes'
 
 // Dónde se recuerda, POR LOCAL, qué estilo de publicidad tocó la última vez.
 const claveVariante = slug => `appetic_pub_variante_${slug}`
@@ -13,7 +14,7 @@ const claveVariante = slug => `appetic_pub_variante_${slug}`
 // 📣 Difundir: el dueño del local consigue aquí todo lo que necesita para que sus
 // clientes lleguen al menú: el QR (descargable), un afiche de DOMICILIOS listo
 // para imprimir, el link para copiar y un mensaje de bienvenida para WhatsApp.
-export default function AdminDifundir({ local, slug, onUpdate }) {
+export default function AdminDifundir({ local, slug, onUpdate, demo }) {
   const url = menuUrl(slug)
   const urlTV = `${url.replace(/\/$/, '')}/tv`
   const [qrPng, setQrPng] = useState('')
@@ -106,6 +107,9 @@ export default function AdminDifundir({ local, slug, onUpdate }) {
 
   return (
     <div className="dif">
+      {/* 🔔 Avisos a los clientes (paquete Base, D9) */}
+      <AvisosClientes local={local} demo={demo} />
+
       {/* ---- Link del menú ---- */}
       <section className="ac-sec">
         <h3>🔗 El link de tu menú</h3>

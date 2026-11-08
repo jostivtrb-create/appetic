@@ -1,3 +1,4 @@
+import { invitarAvisos } from '../../components/InvitarAvisos/InvitarAvisos'
 import { useMemo, useRef, useState } from 'react'
 import { useCart } from '../../contexts/CartContext'
 import { cop } from '../../utils/money'
@@ -68,6 +69,7 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
     try { localStorage.setItem(NOMBRE_KEY, JSON.stringify({ ...(JSON.parse(localStorage.getItem(NOMBRE_KEY)) || {}), nombre: quien })) } catch { /* nada */ }
     idRef.current = null
     agregarFavorito(local)   // ❤️ D14
+    invitarAvisos(local, 'pedido') // 🔔 D34
     clear()
     setListo({ nombre: quien, turno })
     avisarDemo('pedido-mesa')

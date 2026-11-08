@@ -6,6 +6,7 @@ import { cop } from '../../utils/money'
 import { calcularDomicilio } from '../../utils/delivery'
 import { abrirPedidoWhatsApp, textoPedido } from '../../utils/whatsapp'
 import ChatWhatsApp from '../../components/Demo/ChatWhatsApp'
+import { invitarAvisos } from '../../components/InvitarAvisos/InvitarAvisos'
 import { crearPedido, pedidosDe } from '../../services/pedidos'
 import { enviarAlServidor, lineasDelCarrito, textoCambios } from '../../services/enviarPedido'
 import { isDevSlug } from '../../dev'
@@ -245,6 +246,8 @@ export default function Checkout({ local, onClose, abierto = true }) {
     guardarEnHistorial(local, pedido)
     // ❤️ Donde pide, le queda de favorito (D14).
     agregarFavorito(local)
+    // 🔔 Tras su pedido se le ofrecen los avisos del local (D34); la tarjeta espera su toque.
+    invitarAvisos(local, 'pedido')
 
     // Recordar datos para la próxima: siempre en el dispositivo (invitados) y,
     // si inició sesión, además en su perfil.

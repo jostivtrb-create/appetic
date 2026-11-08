@@ -1,5 +1,6 @@
 import { useFavoritos } from '../../contexts/FavoritosContext'
 import './BotonFavorito.css'
+import { invitarAvisos } from '../InvitarAvisos/InvitarAvisos'
 
 // ❤️ Corazón reutilizable para guardar/quitar un local de favoritos.
 // Sin sesión se guarda en este aparato y pasa a su cuenta cuando inicie sesión.
@@ -10,7 +11,8 @@ export default function BotonFavorito({ local, variante = '' }) {
   function click(e) {
     e.preventDefault()
     e.stopPropagation()
-    toggleFavorito(local)
+    // 🔔 Al marcarlo de favorito se le ofrecen los avisos del local (D34).
+    if (toggleFavorito(local)) invitarAvisos(local, 'favorito')
   }
 
   return (

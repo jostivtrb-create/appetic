@@ -405,6 +405,29 @@ service cloud.firestore {
         allow delete: if esSuperadmin() && esLocalDemo(localId);
       }
 
+      // 🔔 Avisos del dueño a sus clientes (guía «Paquetes» D9, D31, D34). El cliente (con o sin
+      // sesión) deja SU token al aceptar los avisos; el id del doc es el mismo token, así que solo
+      // quien lo tiene puede borrarlo (darse de baja). El dueño solo los CUENTA; los avisos y el tope
+      // semanal los escribe el servidor (/api/avisar-clientes).
+      match /suscriptores/{token} {
+        allow create, update: if request.resource.data.keys().hasOnly(['token', 'motivo', 'desde'])
+                              && request.resource.data.token == token
+                              && request.resource.data.motivo in ['pedido', 'favorito']
+                              && token.size() > 20 && token.size() < 400;
+        allow delete: if true;
+        allow read: if puedeAdministrar(localId);
+      }
+      match /avisos/{avisoId} {
+        allow read: if puedeAdministrar(localId);
+        allow write: if false;
+        allow delete: if esSuperadmin() && esLocalDemo(localId);
+      }
+      match /avisosSemana/{semana} {
+        allow read: if puedeAdministrar(localId);
+        allow write: if false;
+        allow delete: if esSuperadmin() && esLocalDemo(localId);
+      }
+
       // 🗓️ Horario de la semana del personal (guía «Paquetes» D10): lo arma el dueño y lo lee todo
       // el equipo activo (también el domiciliario). Solo nombres y horas, nada de plata.
       match /horarios/{docId} {

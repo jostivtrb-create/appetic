@@ -12,7 +12,7 @@ import app, { db, auth } from '../config/firebase'
 
 // Clave PÚBLICA de notificaciones web (Firebase → Cloud Messaging → Certificados push web).
 // Es pública por diseño (va en cada navegador); la privada nunca sale de Firebase.
-const VAPID = 'BBM6J8bJ1fqRT5kkb3iI2WzhGYAkwzFw1TjPYQnn_-L6hsP0OiLxg4sEPEOVJkjtfYWNtt7k4hrGBoNqHHFxCYw'
+export const VAPID = 'BBM6J8bJ1fqRT5kkb3iI2WzhGYAkwzFw1TjPYQnn_-L6hsP0OiLxg4sEPEOVJkjtfYWNtt7k4hrGBoNqHHFxCYw'
 
 // La marca es por local Y por persona: en un celular compartido por turnos, el segundo mesero no
 // hereda los avisos del primero (auditoría «mesero y cocina» H6).
@@ -37,7 +37,7 @@ export function estadoAvisos(localId, email) {
   return Notification.permission === 'granted' && marcado ? 'activo' : 'pendiente'
 }
 
-async function registrarSW() {
+export async function registrarSW() {
   const cfg = app.options
   const q = new URLSearchParams({
     apiKey: cfg.apiKey, projectId: cfg.projectId, messagingSenderId: cfg.messagingSenderId, appId: cfg.appId,
