@@ -106,7 +106,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
 
   const keys = useMemo(() => intervalosHasta(maxKm), [maxKm])
   // ¿Algún tramo mostrará el botón ↓? (tiene precio y hay vacíos debajo)
-  const hayFill = keys.some((k, i) => !!tarifas[k] && keys.slice(i + 1).some(kk => !tarifas[kk]))
+  const hayFill = keys.some((k, i) => conPrecio(tarifas[k]) && i + 1 < keys.length && !conPrecio(tarifas[keys[i + 1]]))
 
   const ningunDia = !DIAS_SEMANA.some(({ k }) => dias[k])
 
@@ -124,6 +124,20 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
 
   function toggleDia(k) {
     setDias(d => ({ ...d, [k]: !d[k] }))
+  }
+
+  // ＋ en la distancia: el tramo nuevo nace con el precio del anterior + ESCALON_DOMICILIO ($500).
+  // Si el local quiere otro, lo cambia a mano (pedido del usuario, 8-nov). Si ya tenía precio, se respeta.
+  function subirDistancia() {
+    const antes = Number(maxKm) || 0
+    const nuevo = Math.min(30, antes + 0.5)
+    if (nuevo === antes) return
+    const kAntes = antes.toFixed(1), kNuevo = nuevo.toFixed(1)
+    setMaxKm(String(nuevo))
+    setTarifas(t => {
+      if (conPrecio(t[kNuevo]) || !conPrecio(t[kAntes])) return t
+      return { ...t, [kNuevo]: String((Number(t[kAntes]) || 0) + ESCALON_DOMICILIO) }
+    })
   }
 
   function setTarifa(key, valor) {
@@ -347,13 +361,14 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
                     <small>Hasta</small>
                     <button type="button" onClick={() => setMaxKm(v => String(Math.max(0.5, (Number(v) || 0.5) - 0.5)))} disabled={Number(maxKm) <= 0.5} aria-label="Menos distancia">−</button>
                     <b>{(Number(maxKm) || 0).toFixed(1).replace('.', ',')} km</b>
-                    <button type="button" onClick={() => setMaxKm(v => String(Math.min(30, (Number(v) || 0) + 0.5)))} disabled={Number(maxKm) >= 30} aria-label="Más distancia">+</button>
+                    <button type="button" onClick={subirDistancia} disabled={Number(maxKm) >= 30} aria-label="Más distancia">+</button>
                   </div>
                 </div>
-                <p className="pp-ayuda">Escribe 0 si ese tramo es gratis.{hayFill ? ` El ↓ rellena los de abajo sumando ${fmtPesos(ESCALON_DOMICILIO)} cada medio kilómetro.` : ''}</p>
+                <p className="pp-ayuda">Escribe 0 si ese tramo es gratis. Con <b>+</b> el tramo nuevo sale $500 más caro que el anterior; cámbialo si quieres.{hayFill ? ` El ↓ rellena los de abajo sumando ${fmtPesos(ESCALON_DOMICILIO)} cada medio kilómetro.` : ''}</p>
                 <div className={`ac2-tramos-lista${hayFill ? ' con-fill' : ''}`}>
                   {keys.map((k, i) => {
-                    const mostrarFill = !!tarifas[k] && keys.slice(i + 1).some(kk => !tarifas[kk])
+                    // La ↓ solo en la fila justo encima de un tramo vacío (antes salía en todas, 8-nov).
+                    const mostrarFill = conPrecio(tarifas[k]) && i + 1 < keys.length && !conPrecio(tarifas[keys[i + 1]])
                     return (
                       <div key={k} className={`ac2-tramo${conPrecio(tarifas[k]) ? '' : ' vacio'}`}>
                         <span className="ac2-tramo-km"><small>hasta</small>{k.replace('.', ',')} km</span>
