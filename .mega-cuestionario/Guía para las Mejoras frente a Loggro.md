@@ -5,7 +5,7 @@
 
 - **Tarea:** decidir qué funciones agregar a Appetic tras compararlo con Loggro Restobar, y construirlas.
 - **Inicio:** 7 de noviembre de 2026
-- **Estado:** 🔵 Construyendo — pasos 1 y 2 publicados el 7-nov (`ecbf9ff` + reglas); sigue el paso 3, la impresora térmica
+- **Estado:** 🔵 Construyendo — pasos 1 y 2 publicados el 7-nov; paso 3 (impresora) hecho y probado en local, sin publicar
 - **Proyecto:** `~/Apps Zeven/Swiftfly Solutions/Appetic`
 
 ---
@@ -173,7 +173,19 @@ Va de lo más pequeño y seguro a lo que depende de terceros. Cada paso se audit
   - El cliente va como «Consumidor final 222222222222».
   - El descuento se reparte entre las líneas para que sumen exacto el total.
   - La propina y el total de la venta van solo en la primera línea de cada venta.
-- [ ] 3 · **Impresora térmica** (D6, S8): se prende en Configuración; comanda automática en cocina y ticket en la caja.
+- [x] 3 · **Impresora térmica** (D6, S8). Hecho el 7-nov, sin publicar.
+  - `utils/impresora/`:
+    - `documento.js`: arma el ticket, la comanda (con «CAMBIO») y la prueba;
+    - `escpos.js`: los pasa a ESC/POS con la página de códigos PC850 para las tildes;
+    - `html.js`: el «Imprimir» del navegador en 58 u 80 mm;
+    - `conexion.js`: WebUSB, Web Serial y Web Bluetooth, recordados por aparato.
+  - **Configuración → 🖨️ Impresora** (`ConfigImpresora.jsx`): la prende el dueño; elige comandas y/o ticket, el ancho del papel y el texto de arriba y de abajo, con una muestra del ticket.
+  - **Botón 🖨️** (`Impresora.jsx`) en la Caja y en la Cocina: cada aparato conecta su impresora y decide si imprime solo.
+  - **Lo que sale solo:**
+    - la comanda nueva, y otra vez si cambia, sin repetir (`appetic_impresas_<local>`);
+    - el ticket al cobrar.
+  - **Lo que se imprime a mano:** «Imprimir ticket» en el detalle de Ventas y «Reimprimir» en cada comanda.
+  - **Plan:** `impresora` y `arqueo` quedan en Empresario (S5), con su candado; `/api/arqueo` también lo exige.
 - [ ] 4 · **Inventario con recetas** (D7, D8, D13, S6):
   - insumos, recetas por producto y por opción;
   - la venta descuenta y el gasto suma;
@@ -207,3 +219,13 @@ Va de lo más pequeño y seguro a lo que depende de terceros. Cada paso se audit
   - **Reglas primero** (cambio puramente aditivo): `--only firestore:rules` con `jostivtrb@gmail.com`; el cruce `163250707814` coincidió. `released rules` a la primera.
   - **Después el push** `ecbf9ff` → Vercel. `/api/arqueo` respondió 401 «Sesión inválida» = la llave ya estaba puesta.
   - **Prueba en producción con el local demo:** se contaron $4.100.000 contra $4.080.000 → «Sobran $20.000». «Dejar así» pasó por las reglas sin error y quedó en Cuentas → Saldos como «Dejado así por Visitante». La consola, sin errores.
+- **7-nov-2026 · paso 3, impresora.**
+  - **Problema:** la hoja 🖨️ dentro de la cabecera de la Caja heredaba los estilos `.pv-caja > div` y salía deformada. **Solución:** `createPortal` al body, pasándole los colores del local.
+  - **Problema:** la casilla «imprimir solo» salía marcada pero no imprimía cuando la preferencia aún no existía. **Solución:** las dos usan ahora «sin decidir = sí».
+  - **Prueba de formato** en node: tildes PC850, sangrías, vueltas y el corte del papel.
+  - **Prueba en el navegador** (vista previa, con una impresora por puerto serie SIMULADA):
+    - una comanda nueva salió sola en 259 bytes, con MESA 7, el ítem, las opciones y «>> bien asada»;
+    - al cobrar la mesa con $100.000 salió solo el ticket con «Vueltas $48.000»;
+    - «Imprimir ticket» desde Ventas armó la página de 58 mm con el NIT configurado.
+  - **SIN PROBAR:** una impresora física. Falta ver qué modelos dejan WebUSB en Windows (el controlador suele no soltarla) y qué impresoras Bluetooth son BLE. Lo va a confirmar el usuario con su impresora.
+  - **Decidido sobre la marcha:** el ticket dice «Comprobante de pago. No es factura electrónica.» (D2: Appetic no factura).

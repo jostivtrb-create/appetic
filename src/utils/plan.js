@@ -28,6 +28,9 @@ const MINIMO = {
   mesero: 'empresario',
   cocina: 'empresario',
   mesas: 'empresario', // QR por mesa y cuenta por mesa
+  // Guía «Mejoras frente a Loggro» S5: lo nuevo va en Empresario hasta que el usuario cuadre los planes.
+  arqueo: 'empresario', // contar la caja
+  impresora: 'empresario', // comandas y ticket en impresora térmica
 }
 
 export const DIAS_AVISO = 5

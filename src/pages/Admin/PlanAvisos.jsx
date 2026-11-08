@@ -23,6 +23,8 @@ const QUE_ES = {
   domiciliario: { titulo: 'Domiciliarios', texto: 'Tus domiciliarios entran con su correo y ven los pedidos a domicilio.' },
   mesero: { titulo: 'Mesero', texto: 'Tus meseros toman el pedido en su celular y lo mandan directo a la cocina.' },
   cocina: { titulo: 'Pantalla de cocina', texto: 'Las comandas llegan solas a la tablet de la cocina, en orden y con su reloj.' },
+  arqueo: { titulo: 'Contar la caja', texto: 'Cuentan los billetes y monedas cuando quieran y la app les dice si sobra o falta plata.' },
+  impresora: { titulo: 'La impresora térmica', texto: 'Las comandas salen en papel en la cocina y el ticket del cliente en la caja, sin instalar nada.' },
   mesas: { titulo: 'QR por mesa', texto: 'Cada mesa con su QR: el cliente pide desde la mesa y lleva la cuenta de su mesa.' },
 }
 

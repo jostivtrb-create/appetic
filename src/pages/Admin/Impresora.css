@@ -1,0 +1,33 @@
+/* 🖨️ Impresora de este aparato (guía «Mejoras frente a Loggro» D6) */
+.imp-boton { position: relative; display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 auto; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); font-size: 19px; cursor: pointer; box-shadow: var(--shadow-sm); }
+.imp-boton i { position: absolute; top: 5px; right: 5px; width: 9px; height: 9px; border-radius: 50%; background: #B8B2AA; box-shadow: 0 0 0 2px var(--surface); }
+.imp-boton.ok i { background: #1B7A43; }
+.imp-boton.falta i { background: #D97706; }
+.imp-hoja h2 { margin-bottom: 4px; }
+.imp-estado { margin: 12px 0; padding: 10px 12px; border-radius: 12px; border: 1px dashed var(--border); font-size: 14px; }
+.imp-estado.ok { border-style: solid; border-color: #1B7A4355; background: #1B7A4312; }
+.imp-metodos { display: grid; gap: 8px; }
+.imp-metodo { display: flex; gap: 12px; align-items: flex-start; text-align: left; font: inherit; color: inherit; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; }
+.imp-metodo > span:first-child { font-size: 20px; line-height: 1.2; }
+.imp-metodo b { display: block; font-size: 15px; }
+.imp-metodo small { display: block; font-size: 12.5px; color: var(--text-soft); }
+.imp-metodo.on { border-color: var(--acc, var(--accent)); box-shadow: inset 0 0 0 1px var(--acc, var(--accent)); }
+.imp-metodo:disabled { opacity: .6; cursor: default; }
+.imp-auto { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0 4px; font-size: 14.5px; font-weight: 700; cursor: pointer; }
+.imp-auto input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--acc, var(--accent)); }
+.imp-auto small { display: block; font-weight: 400; font-size: 12.5px; color: var(--text-soft); }
+.imp-hoja .pv-eliminar-acc { margin-top: 14px; }
+.imp-anchos { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.imp-anchos small { font-size: 13.5px; color: var(--text-soft); margin-right: 4px; }
+.imp-anchos button { font: inherit; font-weight: 800; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: inherit; cursor: pointer; }
+.imp-anchos button.on { border-color: var(--brand-orange); background: color-mix(in srgb, var(--brand-orange) 12%, transparent); color: var(--brand-orange); }
+.imp-config { display: grid; gap: 16px; align-items: start; }
+@media (min-width: 760px) { .imp-config { grid-template-columns: minmax(0, 1fr) auto; } }
+.imp-campos { display: grid; gap: 12px; }
+.imp-campos label { display: grid; gap: 6px; font-weight: 800; font-size: 14.5px; }
+.imp-campos small { font-weight: 400; font-size: 12.5px; color: var(--text-soft); }
+.imp-campos textarea { font: inherit; font-weight: 400; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: inherit; resize: vertical; }
+.imp-papel { justify-self: center; background: #fff; color: #111; padding: 14px 12px 22px; border-radius: 4px; box-shadow: 0 6px 20px rgba(0,0,0,.14); font: 12px/1.4 "Courier New", ui-monospace, monospace; white-space: pre; overflow-x: auto; max-width: 100%;
+  -webkit-mask: linear-gradient(#000 calc(100% - 8px), transparent 0), conic-gradient(from -45deg at bottom, #000 90deg, transparent 0) 0 100% / 12px 8px repeat-x; mask: linear-gradient(#000 calc(100% - 8px), transparent 0), conic-gradient(from -45deg at bottom, #000 90deg, transparent 0) 0 100% / 12px 8px repeat-x; }
+.imp-papel.a80 { font-size: 10.5px; }
+.imp-papel .c { text-align: center; } .imp-papel .b { font-weight: 700; } .imp-papel .g { font-size: 1.45em; line-height: 1.25; }

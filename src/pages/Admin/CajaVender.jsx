@@ -16,6 +16,8 @@ import Cobro from './Cobro'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 import { tiene } from '../../utils/plan'
 import { Candado } from './PlanAvisos'
+import { armarVenta } from '../../utils/cuentasCalculo.js'
+import { ticketDe } from '../../utils/impresora/documento'
 
 // 🛒 VENDER (Caja, guía «Cuentas del negocio» D6, D19, D20 y D29 — el orden de La Catrina):
 //
@@ -76,7 +78,7 @@ function useFrecuentes(localId) {
   return [cuenta, sumar]
 }
 
-export default function CajaVender({ local, productos, api, cuentasApi, demo, usuario, porCobrar, onVenta, modo = 'caja' }) {
+export default function CajaVender({ local, productos, api, cuentasApi, demo, usuario, porCobrar, onVenta, modo = 'caja', impresora = null }) {
   const esMesero = modo === 'mesero'
   const conCocina = usaCocina(local)
   // 🔒 Cuentas por mesa: solo Empresario (guía «Blindaje», respuesta del 3-nov). Los demás dejan la
@@ -323,6 +325,14 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
       ...datos,
     }, por, local)
     if (lista.length) sumarFrec(lista)
+    // 🖨️ Ticket al cobrar, si este aparato tiene impresora directa y lo pidió (guía «Mejoras
+    // frente a Loggro» D6). Nunca frena el cobro: si falla, solo avisa.
+    if (impresora?.auto) {
+      try {
+        const venta = { ...armarVenta({ items, destino, mesa: destino?.mesa || null, ...datos }, por, local), en: Date.now() }
+        impresora.imprimir(ticketDe(venta, local), { soloDirecto: true }).catch(() => avisar('⚠️ No salió el ticket: revisa la impresora (botón 🖨️).'))
+      } catch { /* el ticket nunca tumba la venta */ }
+    }
     if (cobro.conLineas) setGuardado(g => ({ carts: { ...g.carts, [sel]: [] }, nuevas: g.nuevas.filter(n => n.key !== sel) }))
     const neto = totalCobro - (datos.descuento?.valor || 0)
     comandaDelCobro.current = null

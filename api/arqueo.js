@@ -10,7 +10,7 @@
 //   • Local apagado por no pago → no (espejo de localVivo() en las reglas).
 //   • La cuenta tiene que ser de efectivo. Con `id` fijo, un reintento no guarda dos conteos.
 import { conAdmin, sesionDe, cuerpo, SUPERADMINS } from './_lib/admin.js'
-import { estadoPago } from '../src/utils/plan.js'
+import { estadoPago, tiene } from '../src/utils/plan.js'
 import { jornadaDe } from '../src/utils/jornada.js'
 import { limpiarConteo, sumarConteo } from '../src/utils/arqueo.js'
 import { cuentasDe } from '../src/utils/cuentasDinero.js'
@@ -43,6 +43,7 @@ export default async function handler(req, res) {
     const esDueno = esSuper || local.esDemo === true || (email && admins.includes(email))
     const esCajero = !!cajeroSnap?.exists && cajeroSnap.data().activo === true
     if (!esDueno && !esCajero) return res.status(403).json({ error: 'No autorizado' })
+    if (!tiene(local, 'arqueo') && !esSuper) return res.status(403).json({ error: 'Contar la caja viene en el plan Empresario' })
 
     const c = cuentasDe(local).find(x => x.id === cuenta)
     if (!c || c.tipo !== 'efectivo') return res.status(400).json({ error: 'Esa cuenta no es de efectivo' })

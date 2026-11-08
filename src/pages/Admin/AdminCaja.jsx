@@ -11,6 +11,8 @@ import CajaVender from './CajaVender'
 import CajaVentas from './CajaVentas'
 import CajaGastos from './CajaGastos'
 import ContarCaja from './ContarCaja'
+import ImpresoraBoton, { useImpresora } from './Impresora'
+import { tiene } from '../../utils/plan'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 import './Cobro.css'
 import './Caja.css'
@@ -38,6 +40,7 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
   useMemo(() => { if (demo) sembrarSiVacio(cuentasApi, local, productos) }, [demo, cuentasApi]) // eslint-disable-line react-hooks/exhaustive-deps
   const [vista, setVista] = useState('vender')
   const [contando, setContando] = useState(false)
+  const impresora = useImpresora(local, 'caja')
   const [porCobrar, setPorCobrar] = useState(null)
   const [errorEscucha, setErrorEscucha] = useState('')
   useEffect(() => api.escucharPorCobrar(l => { setPorCobrar(l); setErrorEscucha('') }, e => setErrorEscucha(motivoError(e))), [api])
@@ -68,7 +71,8 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
             <div key={c.id}><small>{c.tipo === 'efectivo' ? 'En caja' : c.nombre}</small><b>{cop(saldos[c.id] || 0)}</b></div>
           ))}
           <div><small>Hoy · {dia?.nVentas || 0}</small><b>{cop(dia?.ventas || 0)}</b></div>
-          <button type="button" className="pv-contar" onClick={() => setContando(true)} aria-label="Contar la caja" title="Contar la caja">🧮<span>Contar</span></button>
+          <ImpresoraBoton local={local} uso="caja" impresora={impresora} estilo={coloresComanda(local).vars} />
+          {tiene(local, 'arqueo') && <button type="button" className="pv-contar" onClick={() => setContando(true)} aria-label="Contar la caja" title="Contar la caja">🧮<span>Contar</span></button>}
         </div>
       </header>
 
@@ -85,9 +89,9 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
       {errorEscucha && <p className="pv-error" role="alert">{errorEscucha}</p>}
 
       {vista === 'vender' && (
-        <CajaVender local={localVenta} productos={productosVenta} api={api} cuentasApi={cuentasApi} demo={demo} usuario={usuario} porCobrar={porCobrar} />
+        <CajaVender local={localVenta} productos={productosVenta} api={api} cuentasApi={cuentasApi} demo={demo} usuario={usuario} porCobrar={porCobrar} impresora={impresora} />
       )}
-      {vista === 'ventas' && <CajaVentas local={local} cuentasApi={cuentasApi} usuario={usuario} esAdmin={esAdmin} />}
+      {vista === 'ventas' && <CajaVentas local={local} cuentasApi={cuentasApi} usuario={usuario} esAdmin={esAdmin} impresora={impresora} />}
       {vista === 'gastos' && <CajaGastos local={local} cuentasApi={cuentasApi} usuario={usuario} esAdmin={esAdmin} />}
       {contando && <ContarCaja local={local} cuentasApi={cuentasApi} usuario={usuario} esAdmin={esAdmin} onCerrar={() => setContando(false)} />}
     </div>

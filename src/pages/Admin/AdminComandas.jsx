@@ -7,6 +7,21 @@ import { useAhora, minutosSeg, nivelTiempo, umbralesDe, coloresComanda, UMBRALES
 import './Comandas.css'
 import { tocar, activarSonido, sonidoListo } from '../../utils/sonido'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
+import ImpresoraBoton, { useImpresora, ventanaSiHaceFalta } from './Impresora'
+import { comandaDe } from '../../utils/impresora/documento'
+import { motivoImpresora } from '../../utils/impresora/conexion'
+
+// 🖨️ Qué comandas ya imprimió ESTE aparato (id + versión del cambio): una recarga o una comanda
+// que vuelve a la lista no sale dos veces.
+const claveImpresas = id => `appetic_impresas_${id}`
+function yaImpresa(localId, k) {
+  try {
+    const l = JSON.parse(localStorage.getItem(claveImpresas(localId)) || '[]')
+    if (l.includes(k)) return true
+    localStorage.setItem(claveImpresas(localId), JSON.stringify([...l, k].slice(-300)))
+  } catch { /* sin almacenamiento: se imprime igual */ }
+  return false
+}
 
 // 🧾 PANTALLA DE COMANDAS (cocina) — guía «Mesero y Comandas», paso 1.
 // Pensada para un celular o una tablet en la cocina: grande, clara y con pocos toques.
@@ -32,6 +47,13 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
   const ahora = useAhora()
   const umbrales = umbralesDe(local)
   const colores = coloresComanda(local)
+  const impresora = useImpresora(local, 'cocina')
+  const autoImprimir = useRef(null)
+  autoImprimir.current = (c, cambio) => {
+    if (!impresora.auto || yaImpresa(local.id, `${c.id}:${cambio ? ms(c.cambiadaEn) : 0}`)) return
+    impresora.imprimir(comandaDe(c, local, { cambio }), { soloDirecto: true })
+      .catch(e => setError(`🖨️ ${motivoImpresora(e)}`))
+  }
 
   useEffect(() => api.escucharActivas(l => { setActivas(l); setError('') }, e => setError(motivoError(e))), [api])
   useEffect(() => api.escucharRecientes((l, ult) => { setRecientes(l); setCursor(ult) }, () => {}), [api])
@@ -45,6 +67,7 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
       const llegaron = activas.filter(c => !vistas.current.has(c.id)).map(c => c.id)
       if (llegaron.length) {
         turno.sonar()
+        for (const c of activas) if (llegaron.includes(c.id)) autoImprimir.current(c, false)
         setNuevas(n => new Set([...n, ...llegaron]))
         setTimeout(() => setNuevas(n => { const m = new Set(n); llegaron.forEach(id => m.delete(id)); return m }), 8000)
       }
@@ -57,7 +80,11 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
   useEffect(() => {
     if (!activas) return
     const actual = new Map(activas.filter(c => c.cambioPendiente).map(c => [c.id, ms(c.cambiadaEn)]))
-    if (cambiosOidos.current && [...actual].some(([id, t]) => cambiosOidos.current.get(id) !== t)) turno.sonar()
+    if (cambiosOidos.current) {
+      const cambiaron = activas.filter(c => c.cambioPendiente && cambiosOidos.current.get(c.id) !== actual.get(c.id))
+      if (cambiaron.length) turno.sonar()
+      for (const c of cambiaron) autoImprimir.current(c, true)
+    }
     cambiosOidos.current = actual
   }, [activas, turno])
 
@@ -122,6 +149,7 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
           </button>
         </div>
         <div className="km-herr">
+          <ImpresoraBoton local={local} uso="cocina" impresora={impresora} estilo={colores.vars} />
           {esAdmin && <AjusteTiempos local={local} onGuardar={cfg => onUpdateLocal({ comandasConfig: cfg })} />}
           {esAdmin && <AdminEquipo local={local} rol="cocina" demo={demo} />}
         </div>
@@ -165,6 +193,10 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
                   onTacharTodo={hecho => (hecho && avisarDemo('tachar'), api.marcarTodo(c, hecho)).catch(() => setError('No se pudo tachar. Revisa el internet e intenta de nuevo.'))}
                   onEntregar={() => setConfirmar(c)}
                   onVisto={() => api.marcarVisto(c).catch(e => setError(textoCambioComanda(e) || 'No se pudo marcar como visto. Intenta de nuevo.'))}
+                  onImprimir={impresora.activa ? () => {
+                    const ventana = ventanaSiHaceFalta()
+                    impresora.imprimir(comandaDe(c, local, { cambio: !!c.cambioPendiente }), { ventana }).catch(e => setError(`🖨️ ${motivoImpresora(e)}`))
+                  } : null}
                 />
               ))}
             </div>
@@ -189,7 +221,7 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
 }
 
 // Una comanda de la fila.
-function Comanda({ c, n, abierta, nueva, ahora, umbrales, onAlternar, onTachar, onTacharTodo, onEntregar, onVisto }) {
+function Comanda({ c, n, abierta, nueva, ahora, umbrales, onAlternar, onTachar, onTacharTodo, onEntregar, onVisto, onImprimir }) {
   const clase = claseDestino(c.destino)
   const llevar = clase !== 'mesa'
   const seg = (ahora - (ms(c.creadaEn) || ahora)) / 1000  // el contador SIGUE desde que llegó (D27)
@@ -277,6 +309,7 @@ function Comanda({ c, n, abierta, nueva, ahora, umbrales, onAlternar, onTachar, 
             <button className="km-tachar-todo" onClick={() => onTacharTodo(true)}>Tachar todo</button>
           )}
           {todo && <button className="km-destachar" onClick={() => onTacharTodo(false)}>Destachar todo</button>}
+          {onImprimir && <button className="km-destachar" onClick={onImprimir}>🖨️ Reimprimir</button>}
           {/* Rastro (D26): quién la tomó y quién la cambió. */}
           <div className="km-quien">
             {c.creadaPor?.nombre && <p>La tomó <b>{c.creadaPor.nombre}</b></p>}

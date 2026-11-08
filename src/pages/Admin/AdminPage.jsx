@@ -22,6 +22,7 @@ import AdminComandas from './AdminComandas'
 import AdminCaja from './AdminCaja'
 import AdminCuentas from './AdminCuentas'
 import ConfigPagos from './ConfigPagos'
+import ConfigImpresora from './ConfigImpresora'
 import ConfigPantalla from './ConfigPantalla'
 import ConfigMenuDelDia from './ConfigMenuDelDia'
 import AdminDomicilios from './AdminDomicilios'
@@ -466,6 +467,7 @@ export default function AdminPage() {
                   </div>
                 )
                 : vista === 'pagos' ? <ConfigPagos local={local} onUpdate={updateLocal} />
+                : vista === 'impresora' ? <ConfigImpresora local={local} onUpdate={updateLocal} />
                 : vista === 'plan' ? <MiPlan local={local} />
                 : vista === 'menu-del-dia' ? <ConfigMenuDelDia key={local.id} local={local} onUpdate={updateLocal} onSubirFoto={subirFotoDelMenuDelDia} />
                 : vista === 'pantalla' ? <ConfigPantalla local={local} productos={productos} slug={slug} onUpdate={updateLocal} onSubirImagen={subirImagenDeAnuncio} />

@@ -5,6 +5,9 @@ import { motivoErrorCuentas, POR_PAGINA } from '../../services/cuentas'
 import { jornadaDe, etiquetaJornada, horaCorta } from '../../utils/jornada'
 import { cuentasDe, emojiCuenta } from '../../utils/cuentasDinero'
 import Cobro from './Cobro'
+import { ventanaSiHaceFalta } from './Impresora'
+import { ticketDe } from '../../utils/impresora/documento'
+import { motivoImpresora } from '../../utils/impresora/conexion'
 
 // 🧾 VENTAS (Caja, guía «Cuentas del negocio» D23 — el historial de La Catrina, mejorado):
 // la última primero, de a 20, con un encabezado pegajoso por día (con su total). Cada fila:
@@ -18,7 +21,7 @@ export function textoPago(v) {
   return v.pagos.length > 1 ? 'Dividido' : v.pagos[0].nombre
 }
 
-export default function CajaVentas({ local, cuentasApi, usuario, esAdmin }) {
+export default function CajaVentas({ local, cuentasApi, usuario, esAdmin, impresora = null }) {
   const [eliminadas, setEliminadas] = useState(false)
   const [n, setN] = useState(POR_PAGINA)
   const [lista, setLista] = useState(null)
@@ -79,7 +82,7 @@ export default function CajaVentas({ local, cuentasApi, usuario, esAdmin }) {
       </div>
 
       {ventaViva && (
-        <DetalleVenta local={local} venta={ventaViva} hoy={hoy} cuentasApi={cuentasApi} usuario={usuario}
+        <DetalleVenta local={local} venta={ventaViva} hoy={hoy} cuentasApi={cuentasApi} usuario={usuario} impresora={impresora}
           puedeCorregir={ventaViva.estado === 'ok' && (esAdmin || ventaViva.jornada === hoy)}
           onCerrar={() => setAbierta(null)} />
       )}
@@ -87,7 +90,15 @@ export default function CajaVentas({ local, cuentasApi, usuario, esAdmin }) {
   )
 }
 
-function DetalleVenta({ local, venta: v, hoy, cuentasApi, usuario, puedeCorregir, onCerrar }) {
+function DetalleVenta({ local, venta: v, hoy, cuentasApi, usuario, puedeCorregir, onCerrar, impresora }) {
+  const [imprimiendo, setImprimiendo] = useState('')
+  async function imprimirTicket() {
+    if (imprimiendo === '…') return
+    setImprimiendo('…')
+    const ventana = ventanaSiHaceFalta()
+    try { await impresora.imprimir(ticketDe(v, local), { ventana }); setImprimiendo('') }
+    catch (e) { setImprimiendo(motivoImpresora(e)) }
+  }
   const [paso, setPaso] = useState('')        // '' | cambiar | eliminar
   const [motivo, setMotivo] = useState('')
   const [devolver, setDevolver] = useState(null)   // con comandas: ¿la cuenta sigue pendiente?
@@ -154,6 +165,12 @@ function DetalleVenta({ local, venta: v, hoy, cuentasApi, usuario, puedeCorregir
           </ul>
         )}
 
+        {impresora?.activa && v.estado === 'ok' && paso === '' && (
+          <div className="pv-detalle-acc">
+            <button type="button" className="pv-mandar" disabled={imprimiendo === '…'} onClick={imprimirTicket}>{imprimiendo === '…' ? 'Imprimiendo…' : '🖨️ Imprimir ticket'}</button>
+            {imprimiendo && imprimiendo !== '…' && <p className="pv-error" role="alert">⚠️ {imprimiendo}</p>}
+          </div>
+        )}
         {puedeCorregir && paso === '' && (
           <div className="pv-detalle-acc">
             {v.pagos?.length > 0 && <button type="button" className="pv-mandar" onClick={() => setPaso('cambiar')}>✏️ Cambiar el pago</button>}
