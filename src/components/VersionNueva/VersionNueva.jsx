@@ -11,16 +11,21 @@ export default function VersionNueva() {
   const { pathname } = useLocation()
   const [hay, setHay] = useState(versionNuevaLista)
   const [actualizando, setActualizando] = useState(false)
+  const [luego, setLuego] = useState(false) // «Después»: se esconde hasta que se recargue la app
   useEffect(() => {
     const f = () => setHay(true)
     window.addEventListener('appetic:version-nueva', f)
     return () => window.removeEventListener('appetic:version-nueva', f)
   }, [])
-  if (!hay || !/\/(admin|superadmin)(\/|$)/.test(pathname)) return null
+  if (!hay || luego || !/\/(admin|superadmin)(\/|$)/.test(pathname)) return null
+  // Tarjeta abajo, de una sola línea (antes era una píldora negra arriba que en el celular se
+  // partía en 5 renglones y tapaba la cabecera; al usuario no le gustaba, 8-nov).
   return (
     <div className="vn" role="status">
-      <span>🔄 Hay una versión nueva de Appetic</span>
-      <button type="button" disabled={actualizando} onClick={() => { setActualizando(true); actualizarAhora() }}>
+      <span className="vn-ico" aria-hidden="true">✨</span>
+      <span className="vn-txt"><b>Versión nueva lista</b><small>Trae mejoras</small></span>
+      <button type="button" className="vn-luego" onClick={() => setLuego(true)} aria-label="Después">✕</button>
+      <button type="button" className="vn-ya" disabled={actualizando} onClick={() => { setActualizando(true); actualizarAhora() }}>
         {actualizando ? 'Actualizando…' : 'Actualizar'}
       </button>
     </div>

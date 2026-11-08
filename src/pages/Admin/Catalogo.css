@@ -322,3 +322,16 @@
   .ck-cat-nueva { width: 100%; justify-content: center; margin-top: 8px; border-radius: 14px; padding: 11px; }
   .ck-dentro .ck-prods { border: 0; background: transparent; box-shadow: none; padding: 0; }
 }
+
+/* ✋ Opciones al dejar oprimida una categoría (8-nov) */
+.ck-cat { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+.ck-op-mover { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.ck-op-mover button { display: grid; justify-items: center; gap: 2px; padding: 10px 4px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--surface); font: inherit; font-size: 20px; font-weight: 900; cursor: pointer; }
+.ck-op-mover button small { font-size: 11.5px; font-weight: 700; color: var(--text-soft); }
+.ck-op-mover button:active:not(:disabled) { background: var(--brand-orange-tint); border-color: var(--brand-orange); }
+.ck-op-mover button:disabled { opacity: .35; cursor: default; }
+.ck-op-lista { display: grid; gap: 6px; }
+.ck-op-lista button { display: flex; align-items: center; gap: 12px; padding: 13px 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); font: inherit; font-size: 15px; font-weight: 800; text-align: left; cursor: pointer; }
+.ck-op-lista button span { font-size: 18px; }
+.ck-op-lista button:active { background: var(--surface-2); }
+.ck-op-lista button.peligro { color: var(--danger); }

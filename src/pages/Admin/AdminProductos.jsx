@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { copRango, rangoPrecio } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 import { categoriaActiva, textoHorarioCat } from '../../utils/categorias'
 import EditorProducto from './EditorProducto'
-import { CategoriaHoja, EliminarCategoria } from './CatalogoCategorias'
+import { CategoriaHoja, EliminarCategoria, Ventana } from './CatalogoCategorias'
 import { useArrastre } from './useArrastre'
 import { useEntrar } from './PanelPagina'
 import './Catalogo.css'
@@ -48,6 +48,18 @@ export default function AdminProductos({
   const [menuCat, setMenuCat] = useState(null)   // id de la categoría con el menú ⋯ abierto
   // 📱 Celular: lista de categorías → se entra a sus productos con «‹ Categorías» (sin burbujas).
   const entrar = useEntrar()
+  // ✋ Dejar oprimida una categoría (o clic derecho en el PC) abre sus opciones: moverla, editarla,
+  // pausarla o eliminarla, sin tener que entrar a ella (pedido del usuario, 8-nov).
+  const [opcionesCat, setOpcionesCat] = useState(null) // id de la categoría con la hoja abierta
+  const presion = useRef({ t: null, x: 0, y: 0, largo: false })
+  const empezarPresion = (cat, e) => {
+    const p = presion.current
+    clearTimeout(p.t)
+    p.largo = false; p.x = e.clientX; p.y = e.clientY
+    p.t = setTimeout(() => { p.largo = true; try { navigator.vibrate?.(15) } catch { /* nada */ } setOpcionesCat(cat.id) }, 450)
+  }
+  const moverPresion = e => { const p = presion.current; if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) > 10) clearTimeout(p.t) }
+  const soltarPresion = () => clearTimeout(presion.current.t)
   const categorias = local.categorias || []
 
   // 🖥️ La barra lateral (PC) lleva a …/catalogo#cat-<id>: se elige esa categoría y se limpia la
@@ -65,6 +77,13 @@ export default function AdminProductos({
     if (j < 0 || j >= categorias.length) return
     const nuevas = categorias.slice()
     ;[nuevas[i], nuevas[j]] = [nuevas[j], nuevas[i]]
+    onReorderCategorias?.(nuevas)
+  }
+  function moverCategoriaA(i, j) {
+    if (i < 0 || j < 0 || j >= categorias.length || i === j) return
+    const nuevas = categorias.slice()
+    const [x] = nuevas.splice(i, 1)
+    nuevas.splice(j, 0, x)
     onReorderCategorias?.(nuevas)
   }
   function cerrarConsejo() {
@@ -208,7 +227,11 @@ export default function AdminProductos({
                       return (
                         <li key={cat.id} data-arr="cats" data-id={cat.id} className={`${arrCats.agarrado === cat.id ? 'ck-agarrado' : ''}${menuCat === cat.id ? ' ck-menu-abierto' : ''}`}>
                           <button id={`cat-${cat.id}`} className={`ck-cat${on ? ' on' : ''}${items.length ? '' : ' vacia'}${apagada ? ' apagada' : ''}`}
-                            onClick={() => { setSel(cat.id); setQuery(''); entrar.abrir() }} aria-current={on ? 'true' : undefined}>
+                            onClick={() => { if (presion.current.largo) { presion.current.largo = false; return } setSel(cat.id); setQuery(''); entrar.abrir() }}
+                            onPointerDown={real ? e => empezarPresion(cat, e) : undefined} onPointerMove={real ? moverPresion : undefined}
+                            onPointerUp={soltarPresion} onPointerLeave={soltarPresion} onPointerCancel={soltarPresion}
+                            onContextMenu={real ? e => { e.preventDefault(); soltarPresion(); setOpcionesCat(cat.id) } : undefined}
+                            aria-current={on ? 'true' : undefined}>
                             <span className="ck-cat-foto" aria-hidden="true">
                               {foto ? <ImagenApp className="ap-item-foto-img" src={foto} alt="" /> : <i>{cat.emoji || '🍽️'}</i>}
                             </span>
@@ -236,7 +259,7 @@ export default function AdminProductos({
               {!consejoVisto && (
                 <div className="ck-consejo">
                   <span className="ck-consejo-ico" aria-hidden="true">💡</span>
-                  <p>Toca una categoría para ver sus productos. Con las flechas <b>↑ ↓</b> la subes o la bajas en tu menú.</p>
+                  <p>Toca una categoría para ver sus productos. <b>Déjala oprimida</b> para moverla, editarla o borrarla.</p>
                   <button type="button" onClick={cerrarConsejo} aria-label="Cerrar consejo">✕</button>
                 </div>
               )}
@@ -360,6 +383,31 @@ export default function AdminProductos({
           onGuardarAdicion={onGuardarAdicion}
         />
       )}
+      {opcionesCat && (() => {
+        const cat = categorias.find(c => c.id === opcionesCat)
+        if (!cat) return null
+        const i = categorias.findIndex(c => c.id === cat.id)
+        const n = productos.filter(p => p.categoria === cat.id).length
+        const hacer = f => { setOpcionesCat(null); f() }
+        return (
+          <Ventana titulo={`${cat.emoji ? cat.emoji + ' ' : ''}${cat.nombre}`} onCerrar={() => setOpcionesCat(null)} ancho={420}>
+            <p className="cm-texto">{n} {n === 1 ? 'producto' : 'productos'} · está de <b>{i + 1}</b> de {categorias.length} en tu menú</p>
+            {onReorderCategorias && categorias.length > 1 && (
+              <div className="ck-op-mover" role="group" aria-label="Mover la categoría">
+                <button type="button" disabled={i === 0} onClick={() => moverCategoriaA(i, 0)}>⤒<small>Al principio</small></button>
+                <button type="button" disabled={i === 0} onClick={() => moverCategoriaA(i, i - 1)}>↑<small>Subir</small></button>
+                <button type="button" disabled={i === categorias.length - 1} onClick={() => moverCategoriaA(i, i + 1)}>↓<small>Bajar</small></button>
+                <button type="button" disabled={i === categorias.length - 1} onClick={() => moverCategoriaA(i, categorias.length - 1)}>⤓<small>Al final</small></button>
+              </div>
+            )}
+            <div className="ck-op-lista">
+              <button type="button" onClick={() => hacer(() => setHojaCat({ categoria: cat }))}><span>✏️</span>Editar nombre, ícono u horario</button>
+              <button type="button" onClick={() => hacer(() => onEditCategoria?.(cat.id, { pausada: !cat.pausada }))}><span>{cat.pausada ? '▶️' : '⏸️'}</span>{cat.pausada ? 'Reanudar (que vuelva a salir)' : 'Pausar (esconderla del menú)'}</button>
+              <button type="button" className="peligro" onClick={() => hacer(() => setBorrarCat(cat))}><span>🗑</span>Eliminar categoría</button>
+            </div>
+          </Ventana>
+        )
+      })()}
       {hojaCat && (
         <CategoriaHoja categoria={hojaCat.categoria} onCerrar={() => setHojaCat(null)}
           onGuardar={async c => {

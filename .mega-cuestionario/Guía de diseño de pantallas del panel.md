@@ -70,7 +70,9 @@ principal ocupa todo el ancho y los filtros van de a dos.
 - **Plata**: campo con el `$` o `+$` pegado adentro.
 - **Elegir de una lista** (íconos, días): cuadrícula de botones, no teclear a ciegas.
 - **Botones**: naranja = la acción; borde = secundaria; rojo solo para borrar y siempre pregunta antes.
-- **Arrastrar** con manija ⠿ (`useArrastre.js`, mouse y dedo).
+- **Arrastrar** con manija ⠿ (`useArrastre.js`, mouse y dedo) en el PC.
+- **Dejar oprimido** un ítem de una lista (o clic derecho en el PC) abre una **hoja de opciones** desde abajo: mover (⤒ ↑ ↓ ⤓ con «está de 4 de 21»), editar, pausar y eliminar — **sin tener que entrar** al ítem. Pedido del usuario (8-nov): *«inorgánico tener que entrar a una categoría y desde ahí darle subir o bajar»*. Modelo: categorías del Catálogo (`opcionesCat` en `AdminProductos.jsx`, 450 ms, se cancela si el dedo se mueve > 10 px para no pelear con el scroll).
+- **Avisos flotantes** (versión nueva, guardar): tarjeta de UNA línea abajo, nunca píldoras negras arriba que se parten en el celular.
 
 ### R8 · Que se sienta vivo y seguro
 - Lo que se apaga se ve **gris** (agotado, categoría pausada) y un **aviso amable** explica por qué y ofrece arreglarlo («▶️ Reanudar»).

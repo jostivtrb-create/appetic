@@ -50,4 +50,4 @@
 .ac2-guardar span { font-weight: 800; font-size: 14.5px; }
 .ac2-guardar.ok { background: #1E8A4C; }
 @keyframes ac2Sube { from { transform: translateY(20px); opacity: 0 } to { transform: none; opacity: 1 } }
-@media (max-width: 1023px) { .ac2-guardar { bottom: calc(84px + env(safe-area-inset-bottom)); } }
+@media (max-width: 1023px) { .ac2-guardar { bottom: calc(12px + env(safe-area-inset-bottom)); } }
