@@ -157,3 +157,9 @@
 .cu-dias-txt { font-size: 14px; }
 .cu-error { color: #B3261E; font-weight: 700; }
 .cu-tabla b.tot.neg { color: var(--danger); }
+
+/* ── Diseño nuevo (guía «Diseño de pantallas del panel», 8-nov) ── */
+.pv.cu2 { max-width: none; margin: 0; padding: 0; }
+.cu2-trabajo { min-width: 0; padding: 18px 20px; border-radius: 24px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.cu2 .pv-panel, .cu2 .cu-panel { max-width: none !important; margin-top: 0; }
+@media (max-width: 1023px) { .cu2-trabajo { padding: 12px; border-radius: 20px; } }

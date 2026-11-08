@@ -16,7 +16,7 @@ import { CLAVE_PLATO } from '../../components/Demo/Recorrido'
 import { isDevSlug, getDevLocal } from '../../dev'
 import { computeDestacadosHome } from '../../utils/destacadosHome'
 import { idCategoriaNueva } from '../../utils/categorias'
-import { AJUSTES_ANCHOS } from '../../config/ajustes'
+import { AJUSTES_ANCHOS, SECCIONES_ANCHAS } from '../../config/ajustes'
 import { adicionesDe, idAdicionNueva, productosConCambio, migrarBiblioteca } from '../../utils/adiciones'
 import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
 import { useAdmin } from '../../contexts/AdminContext'
@@ -463,7 +463,7 @@ export default function AdminPage() {
 
   // ---------- Panel ----------
   return (
-    <div className={`admin${seccion === 'config' && AJUSTES_ANCHOS.includes(sub || 'catalogo') && !((sub || 'catalogo') === 'catalogo' && local.menuExterno) ? ' admin--ancho' : ''}`}>
+    <div className={`admin${(seccion === 'config' && AJUSTES_ANCHOS.includes(sub || 'catalogo') && !((sub || 'catalogo') === 'catalogo' && local.menuExterno)) || SECCIONES_ANCHAS.includes(seccion) ? ' admin--ancho' : ''}`}>
       {local.esDemo && <DemoLetrero local={local} vista="duenio" />}
       <header className="admin-top">
         <div className="admin-top-izq">

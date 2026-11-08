@@ -14,6 +14,7 @@ import { descargarExcel, descargarPdf, descargarParaFacturar } from './exportarM
 import CuentasSaldos from './CuentasSaldos'
 import CuentasNomina from './CuentasNomina'
 import { HorarioEditor } from './Horario'
+import { PanelHero, PanelCuerpo, PanelLado, useEntrar } from './PanelPagina'
 import './Cobro.css'
 import './Caja.css'
 import './Cuentas.css'
@@ -27,12 +28,14 @@ import './Cuentas.css'
 //   💳 Saldos → cuánto hay en cada cuenta; meter, sacar y mover plata.
 //   👥 Nómina → la gente y sus pagos con calendario.
 // Todo sale de los resúmenes (resumen/d_… y m_…): leer un mes cuesta un documento.
+// Diseño (guía «Diseño de pantallas del panel», 8-nov): encabezado con los saldos; las 5 partes son
+// la lista de la izquierda (en el celular, lista que entra al detalle). Lo de adentro no cambió.
 const VISTAS = [
-  { id: 'hoy', ico: '📅', label: 'Día' },
-  { id: 'mes', ico: '🗓️', label: 'Mes' },
-  { id: 'saldos', ico: '💳', label: 'Saldos' },
-  { id: 'nomina', ico: '👥', label: 'Nómina' },
-  { id: 'horario', ico: '🗓️', label: 'Horario' },
+  { id: 'hoy', ico: '📅', label: 'Día', nota: 'Vendiste, gastaste y te quedó' },
+  { id: 'mes', ico: '📈', label: 'Mes', nota: 'Ganancia, gráfica y descargas' },
+  { id: 'saldos', ico: '💳', label: 'Saldos', nota: 'Cuánto hay en cada cuenta' },
+  { id: 'nomina', ico: '👥', label: 'Nómina', nota: 'Tu gente y sus pagos' },
+  { id: 'horario', ico: '🗓️', label: 'Horario', nota: 'La semana de tu equipo' },
 ]
 const ganancia = r => (r?.ventas || 0) - (r?.gastos || 0) - (r?.nomina || 0)
 
@@ -45,36 +48,28 @@ export default function AdminCuentas({ local, productos, demo, usuario }) {
   const cuentas = cuentasDe(local)
   const totalPlata = cuentas.reduce((s, c) => s + (saldos[c.id] || 0), 0)
 
+  const entrar = useEntrar()
+  const elegir = id => { setVista(id); entrar.abrir() }
+  const actual = VISTAS.find(v => v.id === vista)
+
   return (
-    <div className="pv cu" style={coloresComanda(local).vars}>
-      <header className="pv-top">
-        <div className="pv-marca">
-          <span className="pv-marca-logo" aria-hidden="true">{local.icono || local.logo ? <img src={local.icono || local.logo} alt="" /> : '📊'}</span>
-          <div>
-            <b>{local.nombre}</b>
-            <small>Cuentas del negocio</small>
-          </div>
-        </div>
-        <div className="pv-caja">
-          {cuentas.slice(0, 2).map(c => <div key={c.id}><small>{c.tipo === 'efectivo' ? 'En caja' : c.nombre}</small><b>{cop(saldos[c.id] || 0)}</b></div>)}
-          <div><small>Plata del negocio</small><b>{cop(totalPlata)}</b></div>
-        </div>
-      </header>
+    <div className={`pv cu cu2${entrar.abierto ? ' pp-dentro' : ''}`} style={coloresComanda(local).vars}>
+      <PanelHero miga={local.nombre} icono="📊" titulo="Cuentas" sub="Lo que vendes, lo que gastas y lo que te queda" chips={[
+        ...cuentas.slice(0, 2).map(c => ({ t: `${emojiCuenta(c)} ${c.tipo === 'efectivo' ? 'En caja' : c.nombre}: ${cop(saldos[c.id] || 0)}` })),
+        { t: `💰 Plata del negocio: ${cop(totalPlata)}`, tono: 'ok' },
+      ]} />
 
-      <nav className="pv-vistas" aria-label="Secciones de cuentas">
-        {VISTAS.map(t => (
-          <button key={t.id} type="button" className={vista === t.id ? 'on' : ''} aria-current={vista === t.id ? 'page' : undefined}
-            onClick={() => { setVista(t.id); window.scrollTo?.({ top: 0, behavior: 'smooth' }) }}>
-            <span className="pv-vistas-ico" aria-hidden="true">{t.ico}</span><span>{t.label}</span>
-          </button>
-        ))}
-      </nav>
-
-      {vista === 'hoy' && <Dia local={local} api={api} />}
-      {vista === 'mes' && <Mes local={local} api={api} demo={demo} />}
-      {vista === 'saldos' && <CuentasSaldos local={local} api={api} saldos={saldos} usuario={usuario} />}
-      {vista === 'nomina' && <CuentasNomina local={local} api={api} usuario={usuario} />}
-      {vista === 'horario' && <HorarioEditor local={local} api={api} demo={demo} usuario={usuario} />}
+      <PanelCuerpo entrar={entrar} titulo={actual.label} lado={
+        <PanelLado icono="📊" titulo="Cuentas" sel={vista} onSel={elegir} grupos={[{ items: VISTAS.map(v => ({ id: v.id, icono: v.ico, nombre: v.label, nota: v.nota })) }]} />
+      }>
+        <div className="cu2-trabajo">
+          {vista === 'hoy' && <Dia local={local} api={api} />}
+          {vista === 'mes' && <Mes local={local} api={api} demo={demo} />}
+          {vista === 'saldos' && <CuentasSaldos local={local} api={api} saldos={saldos} usuario={usuario} />}
+          {vista === 'nomina' && <CuentasNomina local={local} api={api} usuario={usuario} />}
+          {vista === 'horario' && <HorarioEditor local={local} api={api} demo={demo} usuario={usuario} />}
+        </div>
+      </PanelCuerpo>
     </div>
   )
 }
