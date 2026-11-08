@@ -188,7 +188,7 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
   - las «Cotizaciones» pasan por pendiente → enviada → cerrada, con el número, los paquetes, el total y el comentario del vendedor;
   - «Enviar cotización» baja el PDF y abre `wa.me` con el saludo y la oferta de reunión; queda «enviada».
 - [x] A2b · Propuesta web por paquetes (D36).
-- [ ] A5 · Probar de punta a punta en local y en producción. Publicar con el permiso del usuario, junto con la impresora (`ea34889`).
+- [~] A5 · Probar de punta a punta en local y en producción. Publicar con el permiso del usuario, junto con la impresora (`ea34889`).
 
 **Fase B — La app por paquetes**
 
@@ -252,4 +252,10 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
   - **Íconos que faltan:** `idx-inventario` y `idx-cocina`. Los prompts están en `.prompts-imagenes/propuesta-paquetes.md`. Mientras tanto se ven 📦 y `ico-comandas`; cuando existan los `.webp`, la página los toma sola (`data-ico`).
   - **Arreglado de paso:** `limpiar()` del formulario se caía en la carta, que no tiene `<img>`, y no limpiaba el GPS.
   - **Revisado en PC, tablet (768) y celular (375):** sin scroll horizontal y con todos los interactivos andando.
+- **7-nov-2026 · publicación de Appetic.**
+  - Reglas desplegadas (inventario). Push `a67c465`: impresora, cotizador, inventario y guías.
+  - Vercel sirve el bundle nuevo (trae `cotizacionPdf` y «Enviar cotización»).
+  - **Prueba real** de `/api/solicitud`: **AP-0001** «PRUEBA Swiftfly (borrar)» con los 6 paquetes → total $99.900, ahorro $1.500, 2.º mes gratis, vence el 22-nov. Hay que marcarla «Cerrada» en el superadmin.
+  - **La propuesta web queda por subir por FTP.** Lo hace el usuario con su clave, con el comando que se le dio en el chat.
+  - **Ícono de Inventario:** recortado y puesto. **El de Cocina:** salió como una taza de té; está el prompt v2 en `.prompts-imagenes/propuesta-paquetes.md`, y mientras tanto se usa `ico-comandas`.
 - **Pendiente de la guía de Loggro:** el paso 3 (impresora) está en un commit local `ea34889` sin publicar. Conviene publicarlo cuando se defina en qué paquete va.
