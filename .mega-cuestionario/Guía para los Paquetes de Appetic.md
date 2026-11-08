@@ -5,7 +5,7 @@
 
 - **Tarea:** cambiar los planes en escalera (Emprendedor, Comerciante, Empresario) por **paquetes** que cada negocio combina según lo que pide. Primero el contenido de cada paquete y después los precios.
 - **Inicio:** 7 de noviembre de 2026
-- **Estado:** 🔵 Fase A hecha y probada en local (sin publicar) · siguen las fases B y C
+- **Estado:** 🔵 Fase A, propuesta por paquetes (D36) e Inventario (C3) hechos y probados en local, SIN publicar · siguen la fase B y lo que falta de la C
 - **Proyecto:** `~/Apps Zeven/Swiftfly Solutions/Appetic` (app) y `web/appetic/` (propuesta)
 - **Relacionada:** «Guía para las Mejoras frente a Loggro», cuya S5 dice que lo nuevo queda en Empresario mientras se definen los planes.
 
@@ -187,6 +187,7 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
 - [x] A4 · **Superadmin:**
   - las «Cotizaciones» pasan por pendiente → enviada → cerrada, con el número, los paquetes, el total y el comentario del vendedor;
   - «Enviar cotización» baja el PDF y abre `wa.me` con el saludo y la oferta de reunión; queda «enviada».
+- [x] A2b · Propuesta web por paquetes (D36).
 - [ ] A5 · Probar de punta a punta en local y en producción. Publicar con el permiso del usuario, junto con la impresora (`ea34889`).
 
 **Fase B — La app por paquetes**
@@ -234,4 +235,21 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
     - el superadmin en modo simulado.
   - **Sin probar:** contra la API real en producción (necesita publicar).
 - **7-nov-2026** — El usuario pide que la propuesta web vaya **por paquetes**: una sección por paquete, de la Base hacia abajo, interactiva y completa en celular, tablet y PC. Se puede usar /Generar_Imagen. Esto es D36 y entra como fase A2.
+- **7-nov-2026 · propuesta por paquetes (D36).**
+  - **Las secciones:** `web/appetic/index.html` pasa a portada → qué es (índice de 6 paquetes) → 6 secciones `section.paq` (`base`, `domicilios`, `contabilidad`, `cocina-paq`, `salon`, `inventario`) → demo → tu plan → cotizar.
+  - **Cada paquete trae:** cabecera con sello «Paquete N», sus bloques interactivos, «Y también trae» y un pie que lleva al paquete siguiente.
+  - **Barra fija de paquetes** arriba, para que el vendedor salte al que le sirve al local. Se esconde durante el recorrido.
+  - **Interactivos nuevos:**
+    - Base, caja simulada: platos → billete → vueltas → ticket impreso;
+    - Contabilidad, contar la caja: «Faltan $10.000» hasta que cuadra;
+    - Inventario: cada hamburguesa descuenta su receta; el pan llega al mínimo, sale el aviso y el pedido por WhatsApp al proveedor.
+  - **Interactivos que se reacomodaron:**
+    - menú del celular y Menú en Pantalla → Base;
+    - la tablet de cocina → Cocina;
+    - el celular del mesero y el viaje del pedido → Salón;
+    - las cuentas y el mes → Contabilidad.
+  - **Voz:** el guion completo se reescribió y se regeneró (11 paradas). Se borraron `menu`, `tv`, `meseros` y `cuentas` `.mp3`.
+  - **Íconos que faltan:** `idx-inventario` y `idx-cocina`. Los prompts están en `.prompts-imagenes/propuesta-paquetes.md`. Mientras tanto se ven 📦 y `ico-comandas`; cuando existan los `.webp`, la página los toma sola (`data-ico`).
+  - **Arreglado de paso:** `limpiar()` del formulario se caía en la carta, que no tiene `<img>`, y no limpiaba el GPS.
+  - **Revisado en PC, tablet (768) y celular (375):** sin scroll horizontal y con todos los interactivos andando.
 - **Pendiente de la guía de Loggro:** el paso 3 (impresora) está en un commit local `ea34889` sin publicar. Conviene publicarlo cuando se defina en qué paquete va.
