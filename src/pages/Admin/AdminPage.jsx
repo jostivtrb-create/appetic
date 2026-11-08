@@ -15,6 +15,8 @@ import DemoLetrero from '../../components/Demo/DemoLetrero'
 import { CLAVE_PLATO } from '../../components/Demo/Recorrido'
 import { isDevSlug, getDevLocal } from '../../dev'
 import { computeDestacadosHome } from '../../utils/destacadosHome'
+import { idCategoriaNueva } from '../../utils/categorias'
+import { adicionesDe, idAdicionNueva, productosConCambio, migrarBiblioteca } from '../../utils/adiciones'
 import { puedeAdministrarLocal, esSuperadmin } from '../../config/roles'
 import { useAdmin } from '../../contexts/AdminContext'
 import AdminMesero from './AdminMesero'
@@ -201,15 +203,12 @@ export default function AdminPage() {
     setProductos(nuevos)
     if (!demo) await actualizarProducto(local.id, id, cambios)
     await sincronizarDestacadosHome(nuevos)
-    // Si cambió de categoría, alguna pudo quedar vacía → que desaparezca.
-    if ('categoria' in cambios) await podarCategoriasVacias(nuevos)
   }
   async function deleteProducto(id) {
     const nuevos = productos.filter(x => x.id !== id)
     setProductos(nuevos)
     if (!demo) await borrarProducto(local.id, id)
     await sincronizarDestacadosHome(nuevos)
-    await podarCategoriasVacias(nuevos)
   }
   // `campos` (opcional): lo que de verdad se escribe en Firestore, por ruta ('pantalla.anuncios'),
   // para no pisar lo que otro aparato cambió en el mismo objeto. Si falla, se deshace en pantalla
@@ -222,35 +221,95 @@ export default function AdminPage() {
     catch (e) { setLocal(antes); throw e }
   }
 
-  // Crea una categoría nueva (nombre + emoji opcional) y la agrega al local.
-  // Devuelve su id para asignársela al producto que la está creando.
-  async function addCategoria(nombre, emoji) {
+  // ─── Categorías (guía «Editar el catálogo» D3, D6–D8, D12) ───
+  // Las categorías vacías ya NO se borran solas (D6): el dueño crea «Postres» y la llena después.
+  // Crea una categoría nueva y devuelve su id (también se usa desde el editor de un producto).
+  async function addCategoria(nombre, emoji, extra = {}) {
     const nom = (nombre || '').trim()
     if (!nom) return null
-    // id ascii-safe desde el nombre (NFD + quitar no alfanuméricos = sin acentos).
-    const base = nom.toLowerCase().normalize('NFD')
-      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'cat'
-    const existentes = new Set((local.categorias || []).map(c => c.id))
-    let id = base, n = 2
-    while (existentes.has(id)) id = `${base}-${n++}`
-    const categorias = [...(local.categorias || []), { id, nombre: nom, emoji: (emoji || '').trim() }]
-    await updateLocal({ categorias })
+    const id = idCategoriaNueva(nom, local.categorias || [])
+    await updateLocal({ categorias: [...(local.categorias || []), { id, nombre: nom, emoji: (emoji || '').trim(), ...extra }] })
     return id
   }
-
+  // Renombrar, ícono, pausa y horario. `cambios` con `horario: null` lo quita.
+  async function editarCategoria(id, cambios) {
+    const categorias = (local.categorias || []).map(c => {
+      if (c.id !== id) return c
+      const n = { ...c, ...cambios }
+      if (n.horario == null) delete n.horario
+      if (!n.pausada) delete n.pausada
+      return n
+    })
+    await updateLocal({ categorias })
+  }
+  // Eliminar (D7): sus productos se mueven a otra categoría (`moverA`) o se borran.
+  async function eliminarCategoria(id, { moverA = null } = {}) {
+    const suyos = productos.filter(p => p.categoria === id)
+    if (moverA) {
+      for (const p of suyos) if (!demo) await actualizarProducto(local.id, p.id, { categoria: moverA })
+      setProductos(ps => ps.map(p => (p.categoria === id ? { ...p, categoria: moverA } : p)))
+    } else {
+      for (const p of suyos) if (!demo) await borrarProducto(local.id, p.id)
+      const nuevos = productos.filter(p => p.categoria !== id)
+      setProductos(nuevos)
+      await sincronizarDestacadosHome(nuevos)
+    }
+    await updateLocal({ categorias: (local.categorias || []).filter(c => c.id !== id) })
+  }
   // Reordena las categorías del local (el orden manda en el menú del cliente).
   async function reordenarCategorias(nuevas) {
     await updateLocal({ categorias: nuevas })
   }
-
-  // Quita del local las categorías que ya no tiene ningún producto (que desaparezcan).
-  async function podarCategoriasVacias(prods) {
-    const cats = local.categorias
-    if (!cats?.length) return
-    const usadas = new Set(prods.map(p => p.categoria).filter(Boolean))
-    const filtradas = cats.filter(c => usadas.has(c.id))
-    if (filtradas.length !== cats.length) await updateLocal({ categorias: filtradas })
+  // Ordena los productos de UNA categoría (D5): reparte entre ellos los mismos números de `orden`
+  // que ya tenían, así no se mueve nada de las otras categorías.
+  async function reordenarProductos(idsEnOrden) {
+    const lugares = idsEnOrden.map(id => productos.find(p => p.id === id)?.orden ?? 0).sort((a, b) => a - b)
+    // Si había empates (productos viejos sin orden), se abren huecos consecutivos.
+    for (let i = 1; i < lugares.length; i++) if (lugares[i] <= lugares[i - 1]) lugares[i] = lugares[i - 1] + 0.001
+    const nuevoOrden = Object.fromEntries(idsEnOrden.map((id, i) => [id, lugares[i]]))
+    const cambian = idsEnOrden.filter(id => productos.find(p => p.id === id)?.orden !== nuevoOrden[id])
+    setProductos(ps => ps.map(p => (p.id in nuevoOrden ? { ...p, orden: nuevoOrden[p.id] } : p)))
+    if (!demo) for (const id of cambian) await actualizarProducto(local.id, id, { orden: nuevoOrden[id] })
   }
+
+  // ─── Biblioteca de adicionales (D11, S13–S15) ───
+  // Escribe en los productos las copias que cambiaron y deja el estado al día.
+  async function aplicarEnProductos(cambiados) {
+    if (!cambiados.length) return
+    const porId = Object.fromEntries(cambiados.map(c => [c.id, c.gruposOpciones]))
+    setProductos(ps => ps.map(p => (porId[p.id] ? { ...p, gruposOpciones: porId[p.id] } : p)))
+    if (!demo) for (const c of cambiados) await actualizarProducto(local.id, c.id, { gruposOpciones: c.gruposOpciones })
+  }
+  // Crea o cambia un adicional; los productos que lo usan se actualizan solos. Devuelve el adicional.
+  async function guardarAdicion(ad) {
+    const lista = adicionesDe(local)
+    const limpio = { ...ad, nombre: String(ad.nombre || '').trim(), precio: Math.max(0, Number(ad.precio) || 0) }
+    if (!limpio.id) limpio.id = idAdicionNueva(limpio.nombre, lista)
+    const adiciones = lista.some(a => a.id === limpio.id) ? lista.map(a => (a.id === limpio.id ? limpio : a)) : [...lista, limpio]
+    await updateLocal({ adiciones })
+    await aplicarEnProductos(productosConCambio(productos, limpio.id, limpio))
+    return limpio
+  }
+  async function borrarAdicion(id) {
+    await updateLocal({ adiciones: adicionesDe(local).filter(a => a.id !== id) })
+    await aplicarEnProductos(productosConCambio(productos, id, null))
+  }
+  // La primera vez que se abre el catálogo, las adiciones que montamos nosotros pasan a la
+  // biblioteca (S15). Solo el dueño (o el superadmin) y una sola vez: después `local.adiciones` existe.
+  const [migrando, setMigrando] = useState(false)
+  useEffect(() => {
+    if (!local || local === 'error' || local.menuExterno || migrando || Array.isArray(local.adiciones)) return
+    if (!productos.length || !esAdmin) return
+    const m = migrarBiblioteca(local, productos)
+    setMigrando(true)
+    ;(async () => {
+      try {
+        await updateLocal({ adiciones: m?.adiciones || [] })
+        if (m) await aplicarEnProductos(m.cambiados)
+      } catch (e) { console.warn('No se pudo armar la biblioteca de adicionales', e?.code || e) }
+    })()
+  }, [local, productos, esAdmin, migrando]) // eslint-disable-line react-hooks/exhaustive-deps
+
   async function subirFoto(productoId, file) {
     if (demo) { const url = URL.createObjectURL(file); await updateProducto(productoId, { foto: url }); return url }
     const url = await subirFotoProducto(local.id, productoId, file)
@@ -392,6 +451,12 @@ export default function AdminPage() {
                   onFotoOpcion={subirFotoDeOpcion}
                   onAddCategoria={addCategoria}
                   onReorderCategorias={reordenarCategorias}
+                  onEditCategoria={editarCategoria}
+                  onDeleteCategoria={eliminarCategoria}
+                  onReorderProductos={reordenarProductos}
+                  onGuardarAdicion={guardarAdicion}
+                  onBorrarAdicion={borrarAdicion}
+                  demo={demo}
                 />
               )
 

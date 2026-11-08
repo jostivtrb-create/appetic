@@ -19,6 +19,7 @@ import Checkout from '../Checkout/Checkout'
 import CheckoutMesa from '../Checkout/CheckoutMesa'
 import { mesaActual } from '../../utils/mesaQR'
 import { useConMenuDelDia, useMinuto } from '../../utils/useMinuto'
+import { categoriasApagadas } from '../../utils/categorias'
 import './LocalSkinJet.css'
 import './LocalSkinJuance.css'
 import './LocalSkinFruti.css'
@@ -28,7 +29,14 @@ import { avisarDemo } from '../../components/Demo/eventosDemo'
 export default function LocalMenu({ local: localBase, productos: productosBase, cerrarCapaRef }) {
   // 🍲 El almuerzo de hoy va de primero, en su propia categoría, solo dentro de su franja (S19).
   // Por el QR de la mesa vale lo de mesa; por la app, lo de llevar (S21).
-  const { local, productos } = useConMenuDelDia(localBase, productosBase, mesaActual(localBase) ? 'mesa' : 'llevar')
+  // ⏸️ Categorías pausadas o fuera de su horario (guía «Editar el catálogo» D8, D12): sus platos no
+  // salen. Se revisa cada minuto, así «Desayunos» se esconde sola a las 11:00 sin recargar.
+  const minutoCat = useMinuto()
+  const productosVisibles = useMemo(() => {
+    const apagadas = categoriasApagadas(localBase)
+    return apagadas.size ? (productosBase || []).filter(p => !apagadas.has(p.categoria)) : productosBase
+  }, [localBase, productosBase, minutoCat]) // eslint-disable-line react-hooks/exhaustive-deps
+  const { local, productos } = useConMenuDelDia(localBase, productosVisibles, mesaActual(localBase) ? 'mesa' : 'llevar')
   const { addItem, totalItems } = useCart()
   const { setActiveLocal, setCartCount, setLive } = useNavUI()
   const { esDueno } = useAdmin()

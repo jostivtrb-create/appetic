@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { categoriasApagadas } from '../../utils/categorias'
 import { cop } from '../../utils/money'
 import { tieneOpciones, precioItem } from '../../utils/price'
 import { resumenSeleccion } from '../../utils/selectionSummary'
@@ -171,7 +172,11 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
   const [q, setQ] = useState('')
   const [cat, setCat] = useState(null)
   const [frec, sumarFrec] = useFrecuentes(local.id)
-  const disponibles = useMemo(() => productos.filter(p => p.disponible !== false), [productos])
+  // Sin agotados ni platos de una categoría pausada o fuera de su horario (guía «Editar el catálogo» D12).
+  const disponibles = useMemo(() => {
+    const apagadas = categoriasApagadas(local)
+    return productos.filter(p => p.disponible !== false && !apagadas.has(p.categoria))
+  }, [productos, local])
   const categorias = useMemo(() => (local.categorias || []).filter(c => disponibles.some(p => p.categoria === c.id)), [local.categorias, disponibles])
   const frecuentes = useMemo(() => disponibles.filter(p => frec[p.id]).sort((a, b) => frec[b.id] - frec[a.id]).slice(0, 8), [disponibles, frec])
   const pestanas = useMemo(() => [

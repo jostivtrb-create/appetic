@@ -9,6 +9,7 @@
 
 import { rangoPrecio } from './money'
 import { aMinutos } from './horario'
+import { categoriasApagadas } from './categorias'
 
 // Las transiciones del plato grande (D17, S14). Todas con opacidad y desplazamiento,
 // que es lo que un Smart TV barato mueve sin trabarse.
@@ -32,10 +33,12 @@ export const TIEMPOS = { plato: 7000, pagina: 16000, anuncio: 9000, paginasEntre
 const tieneFoto = p => typeof p?.foto === 'string' && p.foto.trim() !== ''
 
 // Los platos que el TV puede mostrar: sin agotados (D9), sin los que el dueño escondió (D4).
+// Tampoco los de una categoría pausada o fuera de su horario (guía «Editar el catálogo» D12).
 export function platosDelTV(local, productos = []) {
   const ocultas = new Set(local?.pantalla?.categoriasOcultas || [])
+  const apagadas = categoriasApagadas(local)
   return productos.filter(p =>
-    p && p.disponible !== false && !p.ocultoTV && !ocultas.has(p.categoria))
+    p && p.disponible !== false && !p.ocultoTV && !ocultas.has(p.categoria) && !apagadas.has(p.categoria))
 }
 
 // Las categorías del TV en el orden del menú, solo las que tienen algo. Un plato cuya

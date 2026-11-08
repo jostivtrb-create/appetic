@@ -19,6 +19,7 @@ import { almuerzoDeHoy, ahoraBogota, fechaBogota, MENU_DEL_DIA_ID } from '../src
 import { calcularDomicilio } from '../src/utils/delivery.js'
 import { estadoPago, tiene } from '../src/utils/plan.js'
 import { estaAbierto } from '../src/utils/horario.js'
+import { categoriasApagadas } from '../src/utils/categorias.js'
 import { llevaTurno, siguienteTurno } from '../src/utils/turnos.js'
 import { armarPedido, publicoDe } from '../src/utils/pedidoDoc.js'
 
@@ -35,6 +36,9 @@ async function productosDe(localRef, local, ids, contexto) {
   const snaps = unicos.length ? await localRef.firestore.getAll(...unicos.map(id => localRef.collection('productos').doc(id))) : []
   const productos = {}
   for (const s of snaps) if (s.exists) productos[s.id] = { id: s.id, ...s.data() }
+  // ⏸️ Categoría pausada o fuera de su horario (guía «Editar el catálogo» S16): se rechaza como agotado.
+  const apagadas = categoriasApagadas(local)
+  for (const p of Object.values(productos)) if (apagadas.has(p.categoria)) p.disponible = false
   if (ids.includes(MENU_DEL_DIA_ID)) {
     const almuerzo = almuerzoDeHoy(local.menuDelDia, ahoraBogota({ contexto, ignorarFranja: true }))
     if (almuerzo) productos[MENU_DEL_DIA_ID] = almuerzo

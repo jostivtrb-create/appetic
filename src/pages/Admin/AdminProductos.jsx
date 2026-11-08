@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { copRango, rangoPrecio } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
-import { construirPromptImagenIA } from '../../utils/promptIA'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
+import { categoriaActiva, textoHorarioCat } from '../../utils/categorias'
+import EditorProducto from './EditorProducto'
+import { CategoriaHoja, EliminarCategoria } from './CatalogoCategorias'
+import { useArrastre } from './useArrastre'
 import './Catalogo.css'
 
 // 🗂️ CATÁLOGO (Configuración → Catálogo), armado como un panel profesional según la maqueta que
@@ -29,13 +32,19 @@ const ESTADOS = [
 const CONSEJO = 'appetic_catalogo_consejo_visto'
 const leerConsejo = () => { try { return localStorage.getItem(CONSEJO) === '1' } catch { return false } }
 
-export default function AdminProductos({ local, slug, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
+export default function AdminProductos({
+  local, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias,
+  onEditCategoria, onDeleteCategoria, onReorderProductos, onGuardarAdicion, demo,
+}) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
   const [sel, setSel] = useState(null)           // id de la categoría elegida (null = la primera con productos)
   const [query, setQuery] = useState('')
   const [estado, setEstado] = useState('todos')
   const [orden, setOrden] = useState('menu')
   const [consejoVisto, setConsejoVisto] = useState(leerConsejo)
+  const [hojaCat, setHojaCat] = useState(null)   // null | { nueva: true } | { categoria }
+  const [borrarCat, setBorrarCat] = useState(null)
+  const [menuCat, setMenuCat] = useState(null)   // id de la categoría con el menú ⋯ abierto
   const categorias = local.categorias || []
 
   // 🖥️ La barra lateral (PC) lleva a …/catalogo#cat-<id>: se elige esa categoría y se limpia la
@@ -75,6 +84,18 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
   const reordenable = onReorderCategorias && categorias.length > 1 && idx >= 0
   const nombreCat = id => categorias.find(c => c.id === id)?.nombre || 'Sin categoría'
 
+  // ✋ Arrastrar (D3, D5): las categorías por su manija; los productos solo viendo una categoría
+  // en el orden del menú (con filtros u otro orden, «arrastrar» no tendría sentido).
+  const arrCats = useArrastre('cats', ids => onReorderCategorias?.(ids.map(id => categorias.find(c => c.id === id)).filter(Boolean)))
+  const arrProds = useArrastre('prods', ids => onReorderProductos?.(ids))
+  // Cerrar el menú ⋯ al tocar fuera.
+  useEffect(() => {
+    if (!menuCat) return
+    const cerrar = () => setMenuCat(null)
+    window.addEventListener('pointerdown', cerrar)
+    return () => window.removeEventListener('pointerdown', cerrar)
+  }, [menuCat])
+
   // 🔎 Buscador (nombre o descripción, igual que en el menú) + filtro de estado + orden.
   const q = query.trim().toLowerCase()
   const buscando = q.length > 0
@@ -93,6 +114,14 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
   const agotados = productos.filter(p => p.disponible === false).length
   // Las fotos de sus propios platos adornan el encabezado (en el PC).
   const adorno = useMemo(() => productos.filter(p => p.foto && p.disponible !== false).slice(0, 3).map(p => p.foto), [productos])
+  const sePuedeArrastrar = !buscando && estado === 'todos' && orden === 'menu' && !!onReorderProductos && actual?.cat.id !== '__sin__'
+  const listaVista = sePuedeArrastrar ? arrProds.ordenar(lista.map(p => p.id)).map(id => lista.find(p => p.id === id)).filter(Boolean) : lista
+  const catActual = categorias.find(c => c.id === actual?.cat.id)
+  const accionesCat = cat => [
+    { t: '✏️ Editar', f: () => setHojaCat({ categoria: cat }) },
+    { t: cat.pausada ? '▶️ Reanudar' : '⏸️ Pausar', f: () => onEditCategoria?.(cat.id, { pausada: !cat.pausada }) },
+    { t: '🗑 Eliminar', f: () => setBorrarCat(cat), peligro: true },
+  ]
   const nuevo = categoria => setEditando({ nuevo: true, categoria: categoria && categoria !== '__sin__' ? categoria : categorias[0]?.id })
 
   return (
@@ -160,23 +189,41 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
                   <span className="ck-num">{grupos.length}</span>
                 </header>
                 <ul className="ck-cats-lista">
-                  {grupos.map(({ cat, items }) => {
-                    const foto = items.find(p => p.foto)?.foto
-                    const on = !buscando && actual?.cat.id === cat.id
-                    return (
-                      <li key={cat.id}>
-                        <button id={`cat-${cat.id}`} className={`ck-cat${on ? ' on' : ''}${items.length ? '' : ' vacia'}`}
-                          onClick={() => { setSel(cat.id); setQuery('') }} aria-current={on ? 'true' : undefined}>
-                          <span className="ck-cat-foto" aria-hidden="true">
-                            {foto ? <ImagenApp className="ap-item-foto-img" src={foto} alt="" /> : <i>{cat.emoji || '🍽️'}</i>}
-                          </span>
-                          <span className="ck-cat-nom">{cat.nombre}</span>
-                          <span className="ck-cat-n">{items.length}</span>
-                        </button>
-                      </li>
-                    )
-                  })}
+                  {(() => {
+                    const ids = grupos.filter(g => g.cat.id !== '__sin__').map(g => g.cat.id)
+                    const vistos = [...arrCats.ordenar(ids).map(id => grupos.find(g => g.cat.id === id)), ...grupos.filter(g => g.cat.id === '__sin__')]
+                    return vistos.map(({ cat, items }) => {
+                      const foto = items.find(p => p.foto)?.foto
+                      const on = !buscando && actual?.cat.id === cat.id
+                      const real = cat.id !== '__sin__' && onEditCategoria
+                      const apagada = real && !categoriaActiva(cat)
+                      const nota = real ? textoHorarioCat(cat) : ''
+                      return (
+                        <li key={cat.id} data-arr="cats" data-id={cat.id} className={`${arrCats.agarrado === cat.id ? 'ck-agarrado' : ''}${menuCat === cat.id ? ' ck-menu-abierto' : ''}`}>
+                          <button id={`cat-${cat.id}`} className={`ck-cat${on ? ' on' : ''}${items.length ? '' : ' vacia'}${apagada ? ' apagada' : ''}`}
+                            onClick={() => { setSel(cat.id); setQuery('') }} aria-current={on ? 'true' : undefined}>
+                            <span className="ck-cat-foto" aria-hidden="true">
+                              {foto ? <ImagenApp className="ap-item-foto-img" src={foto} alt="" /> : <i>{cat.emoji || '🍽️'}</i>}
+                            </span>
+                            <span className="ck-cat-nom">{cat.nombre}{nota && <small className={cat.pausada ? 'pausa' : ''}>{cat.pausada ? '⏸️ ' : '🕒 '}{nota}</small>}</span>
+                            <span className="ck-cat-n">{items.length}</span>
+                          </button>
+                          {real && <>
+                            <button className="ck-cat-mas" aria-label={`Opciones de ${cat.nombre}`} aria-haspopup="menu" aria-expanded={menuCat === cat.id}
+                              onPointerDown={e => e.stopPropagation()} onClick={() => setMenuCat(menuCat === cat.id ? null : cat.id)}>⋯</button>
+                            {onReorderCategorias && !buscando && <button className="ck-manija" {...arrCats.manija(cat.id, ids)}>⠿</button>}
+                            {menuCat === cat.id && (
+                              <div className="ck-menu" role="menu" onPointerDown={e => e.stopPropagation()}>
+                                {accionesCat(cat).map(a => <button key={a.t} role="menuitem" className={a.peligro ? 'peligro' : ''} onClick={() => { setMenuCat(null); a.f() }}>{a.t}</button>)}
+                              </div>
+                            )}
+                          </>}
+                        </li>
+                      )
+                    })
+                  })()}
                 </ul>
+                {onEditCategoria && <button type="button" className="ck-cat-nueva" onClick={() => setHojaCat({ nueva: true })}><span aria-hidden="true">+</span> Nueva categoría</button>}
               </aside>
               {!consejoVisto && (
                 <div className="ck-consejo">
@@ -195,6 +242,12 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
                   ? <>Resultados para <em>“{query.trim()}”</em></>
                   : <>Productos de la categoría: <em>{actual?.cat.nombre}</em></>}</h3>
                 <div className="ck-prods-der">
+                  {!buscando && catActual && onEditCategoria && (
+                    <span className="ck-cat-acc">
+                      <button type="button" onClick={() => setHojaCat({ categoria: catActual })}>✏️ <span>Editar categoría</span></button>
+                      <button type="button" className="peligro" onClick={() => setBorrarCat(catActual)} aria-label={`Eliminar ${catActual.nombre}`}>🗑</button>
+                    </span>
+                  )}
                   {!buscando && reordenable && (
                     <span className="ck-mover" role="group" aria-label="Mover la categoría en el menú">
                       <button disabled={idx === 0} onClick={() => moverCategoria(idx, -1)} title="Subir la categoría en el menú" aria-label="Subir la categoría">↑</button>
@@ -205,14 +258,27 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
                 </div>
               </header>
 
+              {!buscando && catActual && !categoriaActiva(catActual) && (
+                <div className="ck-aviso-pausa">
+                  <span>{catActual.pausada ? '⏸️' : '🕒'}</span>
+                  <p>{catActual.pausada
+                    ? <><b>Esta categoría está pausada.</b> No sale en el menú ni en el Menú en Pantalla.</>
+                    : <><b>Ahora está fuera de su horario</b> ({textoHorarioCat(catActual)}). Se muestra sola cuando llegue la hora.</>}</p>
+                  {catActual.pausada && <button type="button" onClick={() => onEditCategoria?.(catActual.id, { pausada: false })}>▶️ Reanudar</button>}
+                </div>
+              )}
+              {!buscando && actual && !actual.items.length && estado === 'todos' && (
+                <p className="ck-vacia">Esta categoría todavía no tiene productos.</p>
+              )}
               {!lista.length && (buscando || estado !== 'todos') && (
                 <p className="ap-vacio">{buscando ? <>No encontramos “<strong>{query}</strong>”.</> : `No hay productos ${estado} aquí.`}</p>
               )}
               <div className="ck-grid">
-                {lista.map(p => {
+                {listaVista.map(p => {
                   const off = p.disponible === false
                   return (
-                    <article key={p.id} className={`ck-prod${off ? ' off' : ''}`}>
+                    <article key={p.id} data-arr="prods" data-id={p.id} className={`ck-prod${off ? ' off' : ''}${arrProds.agarrado === p.id ? ' ck-agarrado' : ''}`}>
+                      {sePuedeArrastrar && lista.length > 1 && <button className="ck-manija ck-manija-prod" {...arrProds.manija(p.id, lista.map(x => x.id))}>⠿</button>}
                       <div className="ck-prod-top">
                         <div className="ck-prod-foto"><ImagenApp className="ap-item-foto-img" src={p.foto} alt="" /></div>
                         <div className="ck-prod-info">
@@ -252,8 +318,10 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
 
       {editando && (
         <EditorProducto
+          key={editando.id || 'nuevo'}
           producto={editando}
           local={local}
+          productos={productos}
           categorias={categorias}
           onAddCategoria={onAddCategoria}
           onCerrar={() => setEditando(null)}
@@ -267,470 +335,32 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
             }
             setEditando(null)
           }}
+          onDuplicar={async (data, fotoFile) => {
+            const nuevoId = await onAdd(data)
+            if (fotoFile && nuevoId) await onFoto(nuevoId, fotoFile)
+            setSel(data.categoria)
+            setEditando({ ...data, id: nuevoId })
+          }}
           onBorrar={editando.nuevo ? null : async () => { await onDelete(editando.id); setEditando(null) }}
-          onFotoNueva={onFoto}
           onFotoOpcion={onFotoOpcion}
+          onGuardarAdicion={onGuardarAdicion}
         />
       )}
-    </div>
-  )
-}
-
-function EditorProducto({ producto, local, categorias, onAddCategoria, onCerrar, onGuardar, onBorrar, onFotoOpcion }) {
-  const [nombre, setNombre] = useState(producto.nombre || '')
-  const [descripcion, setDescripcion] = useState(producto.descripcion || '')
-  const [categoria, setCategoria] = useState(producto.categoria || categorias[0]?.id || '')
-  const [destacado, setDestacado] = useState(!!producto.destacado)
-  const [enTV, setEnTV] = useState(!producto.ocultoTV)
-  const [nuevaCat, setNuevaCat] = useState('')          // nombre de categoría nueva
-  const [nuevaCatEmoji, setNuevaCatEmoji] = useState('')
-  const creandoCat = categoria === '__nueva__'
-  const [precio, setPrecio] = useState(producto.precio || '')
-  const [variantes, setVariantes] = useState(producto.variantes ? producto.variantes.map(v => ({ ...v })) : null)
-  // Copia editable de los grupos de opciones (toppings/salsas) con sus fotos.
-  const [grupos, setGrupos] = useState(
-    producto.gruposOpciones
-      ? producto.gruposOpciones.map(g => ({ ...g, opciones: (g.opciones || []).map(o => ({ ...o })) }))
-      : null
-  )
-  const [fotoFile, setFotoFile] = useState(null)
-  const [fotoPreview, setFotoPreview] = useState(producto.foto || '')
-  const [guardando, setGuardando] = useState(false)
-  // Aviso del flujo "Crear con IA": guarda el prompt para mostrar instrucciones + re-copiar.
-  const [avisoIA, setAvisoIA] = useState(null) // null | { prompt }
-  // Candado a prueba de doble-toque: evita crear productos duplicados si se
-  // pulsa "Guardar" muy rápido, antes de que el botón alcance a deshabilitarse.
-  const guardandoRef = useRef(false)
-
-  const tieneVariantes = Array.isArray(variantes) && variantes.length > 0
-  const tieneGrupos = Array.isArray(grupos) && grupos.length > 0
-
-  // --- Edición de opciones (toppings/salsas) dentro de un grupo ---
-  function setOpcion(gi, oi, cambios) {
-    setGrupos(gs => gs.map((g, j) => j !== gi ? g
-      : { ...g, opciones: g.opciones.map((o, k) => k === oi ? { ...o, ...cambios } : o) }))
-  }
-  function quitarOpcion(gi, oi) {
-    setGrupos(gs => gs.map((g, j) => j !== gi ? g
-      : { ...g, opciones: g.opciones.filter((_, k) => k !== oi) }))
-  }
-  function agregarOpcion(gi) {
-    setGrupos(gs => gs.map((g, j) => {
-      if (j !== gi) return g
-      const usados = g.opciones.map(o => o.id)
-      let n = g.opciones.length + 1
-      const prefijo = g.id.includes('salsa') ? 's' : (g.id.includes('topping') ? 't' : 'o')
-      let nuevoId = `${prefijo}${n}`
-      while (usados.includes(nuevoId)) { n++; nuevoId = `${prefijo}${n}` }
-      return { ...g, opciones: [...g.opciones, { id: nuevoId, nombre: '', precioExtra: 0, emoji: '', foto: '' }] }
-    }))
-  }
-
-  // --- Cuántas opciones del grupo puede elegir el cliente SEGÚN el tamaño ---
-  // Ej.: pizza familiar → 3 sabores; personal → 1. Se guarda por id de tamaño,
-  // así que renombrar un tamaño no rompe la regla.
-  function setMaxVariante(gi, varianteId, valor) {
-    const n = Math.max(0, Number(String(valor).replace(/\D/g, '')) || 0)
-    setGrupos(gs => gs.map((g, j) => {
-      if (j !== gi) return g
-      const mapa = { ...(g.maxPorVariante || {}) }
-      if (n > 0) mapa[varianteId] = n
-      else delete mapa[varianteId]   // vacío = sin regla propia, vale el tope general
-      return { ...g, maxPorVariante: mapa }
-    }))
-  }
-
-  // --- Edición de "precios por tamaño" (variantes) ---
-  // id único para un tamaño nuevo (v1, v2, … evitando choques).
-  function nuevoVarianteId(vs) {
-    const usados = new Set((vs || []).map(v => v.id))
-    let n = (vs?.length || 0) + 1
-    let id = `v${n}`
-    while (usados.has(id)) { n++; id = `v${n}` }
-    return id
-  }
-  function setVariante(i, cambios) {
-    setVariantes(vs => vs.map((x, j) => j === i ? { ...x, ...cambios } : x))
-  }
-  function agregarVariante() {
-    setVariantes(vs => [...(vs || []), { id: nuevoVarianteId(vs), nombre: '', precio: '' }])
-  }
-  function quitarVariante(i) {
-    // Al quitar el último tamaño, el producto vuelve a "un solo precio".
-    setVariantes(vs => {
-      const next = (vs || []).filter((_, j) => j !== i)
-      return next.length ? next : null
-    })
-  }
-  function activarVariantes() {
-    // Convierte "un solo precio" en "precios por tamaño": siembra el 1er tamaño con el precio actual.
-    setVariantes([{ id: 'v1', nombre: '', precio: precio || '' }])
-  }
-  function usarPrecioUnico() {
-    // Vuelve a un solo precio; conserva el menor de los tamaños como base.
-    const precios = (variantes || []).map(v => Number(v.precio) || 0).filter(Boolean)
-    if (precios.length) setPrecio(String(Math.min(...precios)))
-    setVariantes(null)
-  }
-
-  function elegirFoto(e) {
-    const f = e.target.files?.[0]
-    if (!f) return
-    setFotoFile(f)
-    setFotoPreview(URL.createObjectURL(f))
-  }
-
-  // ✨ Crear foto con IA: arma el prompt (foto realista + colores del local), lo copia al
-  // portapapeles y abre Gemini en otra pestaña. El dueño pega, genera, descarga y la sube
-  // con "Del dispositivo". Sirve para la foto del producto (tipo 'producto') y de cada
-  // opción/topping (tipo 'opcion').
-  function crearFotoConIA({ nombre: n, descripcion: d = '', tipo = 'producto' }) {
-    if (!n || !n.trim()) {
-      alert(tipo === 'opcion'
-        ? 'Escribe primero el nombre de la opción para crear su foto.'
-        : 'Escribe primero el nombre del producto para crear su foto.')
-      return
-    }
-    const prompt = construirPromptImagenIA({ nombre: n, descripcion: d, tipo, local })
-    // Copiar al portapapeles (sin bloquear) y abrir Gemini en el MISMO gesto del click.
-    try { navigator.clipboard?.writeText(prompt) } catch { /* fallback: botón "Copiar" del aviso */ }
-    window.open('https://gemini.google.com/app', '_blank', 'noopener')
-    setAvisoIA({ prompt })
-  }
-
-  async function guardar() {
-    if (guardandoRef.current) return // ya hay un guardado en curso: no dupliques
-    if (!nombre.trim()) return
-    if (creandoCat && !nuevaCat.trim()) { alert('Escribe el nombre de la nueva categoría.'); return }
-    guardandoRef.current = true
-    setGuardando(true)
-    // Si eligió "crear categoría nueva", créala primero y usa su id.
-    let categoriaFinal = categoria
-    if (creandoCat) {
-      try {
-        const id = await onAddCategoria(nuevaCat, nuevaCatEmoji)
-        if (!id) { guardandoRef.current = false; setGuardando(false); return }
-        categoriaFinal = id
-      } catch (err) {
-        console.error('No se pudo crear la categoría:', err)
-        alert('No se pudo crear la categoría. Intenta de nuevo.')
-        guardandoRef.current = false
-        setGuardando(false)
-        return
-      }
-    }
-    const data = {
-      nombre: nombre.trim(),
-      descripcion: descripcion.trim(),
-      categoria: categoriaFinal,
-      destacado,
-      ocultoTV: !enTV,
-    }
-    if (tieneVariantes) {
-      // Descarta tamaños sin nombre; guarda el resto con precio numérico.
-      const limpias = variantes.filter(v => v.nombre.trim())
-        .map(v => ({ ...v, nombre: v.nombre.trim(), precio: Number(v.precio) || 0 }))
-      if (limpias.length) {
-        data.variantes = limpias
-        data.precio = null // limpia el precio único viejo para que no reaparezca
-      } else {
-        // Todos los tamaños quedaron vacíos → guarda como precio único.
-        data.variantes = null
-        data.precio = Number(precio) || 0
-      }
-    } else {
-      data.precio = Number(precio) || 0
-      data.variantes = null // limpia tamaños viejos al pasar a precio único
-    }
-    if (tieneGrupos) {
-      // Los topes por tamaño se limpian contra los tamaños que quedaron guardados:
-      // si el dueño borró un tamaño (o volvió a precio único), su regla se va con él
-      // y no queda basura apuntando a un id que ya no existe.
-      const idsVigentes = new Set((data.variantes || []).map(v => v.id))
-      data.gruposOpciones = grupos.map(g => {
-        const mapa = {}
-        for (const [vid, n] of Object.entries(g.maxPorVariante || {})) {
-          if (idsVigentes.has(vid) && Number(n) > 0) mapa[vid] = Number(n)
-        }
-        return {
-          ...g,
-          maxPorVariante: mapa,
-          opciones: g.opciones
-            .filter(o => o.nombre.trim()) // descarta opciones sin nombre
-            .map(o => ({ ...o, nombre: o.nombre.trim(), precioExtra: Number(o.precioExtra) || 0 })),
-        }
-      })
-    }
-    try {
-      await onGuardar(data, fotoFile)
-      // En éxito, el editor se cierra (onGuardar hace setEditando(null)); no
-      // reseteamos guardando aquí para evitar tocar un componente desmontado.
-    } catch (err) {
-      // Si algo falla (subir foto, guardar), no dejar el botón pegado en "Guardando…".
-      const cod = err?.code || err?.message || String(err)
-      console.error('No se pudo guardar el producto:', cod, err)
-      alert(`No se pudo guardar.\n\nDetalle: ${cod}\n\nMándame este detalle si se repite.`)
-      guardandoRef.current = false
-      setGuardando(false)
-    }
-  }
-
-  return (
-    <div className="pm-overlay" onClick={guardando ? undefined : onCerrar}>
-      <div className="pm-sheet" onClick={e => e.stopPropagation()}>
-        <button className="pm-close" onClick={onCerrar} disabled={guardando}>✕</button>
-        <div className="pm-body">
-          <h2 className="pm-nombre">{producto.nuevo ? 'Nuevo producto' : 'Editar producto'}</h2>
-
-          <div className="ap-foto-bloque">
-            <div className="ap-foto-preview">
-              {fotoPreview ? <img src={fotoPreview} alt="" /> : <span>📷</span>}
-            </div>
-            <div className="ap-foto-acciones">
-              <label className="ap-foto-btn">
-                📱 Del dispositivo
-                <input type="file" accept="image/*" onChange={elegirFoto} hidden />
-              </label>
-              <button
-                type="button"
-                className="ap-foto-btn ap-foto-btn-ia"
-                onClick={() => crearFotoConIA({ nombre, descripcion, tipo: 'producto' })}
-              >
-                ✨ Crear con IA
-              </button>
-            </div>
-          </div>
-
-          {avisoIA && (
-            <div className="ap-ia-aviso">
-              <button className="ap-ia-aviso-x" onClick={() => setAvisoIA(null)} aria-label="Cerrar">✕</button>
-              <p className="ap-ia-aviso-tit">✨ Abrimos <strong>Gemini</strong> en otra pestaña</p>
-              <ol className="ap-ia-aviso-pasos">
-                <li>Pega el prompt (ya copiado) con <strong>Ctrl/Cmd + V</strong> y envía.</li>
-                <li>Cuando Gemini genere la imagen, <strong>descárgala</strong>.</li>
-                <li>Vuelve aquí y súbela con <strong>📱 Del dispositivo</strong>.</li>
-              </ol>
-              <button
-                type="button"
-                className="ap-ia-aviso-copiar"
-                onClick={() => { try { navigator.clipboard?.writeText(avisoIA.prompt) } catch {} }}
-              >
-                📋 Copiar el prompt de nuevo
-              </button>
-            </div>
-          )}
-
-          <label className="ap-label">Nombre</label>
-          <input className="co-input" value={nombre} onChange={e => setNombre(e.target.value)} placeholder="Ej: Hamburguesa Clásica" />
-
-          <label className="ap-label">Descripción</label>
-          <textarea className="co-input co-textarea" rows={2} value={descripcion} onChange={e => setDescripcion(e.target.value)} />
-
-          <label className="ap-label">Categoría</label>
-          <select className="co-input" value={categoria} onChange={e => setCategoria(e.target.value)}>
-            {categorias.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
-            {onAddCategoria && <option value="__nueva__">➕ Crear categoría nueva…</option>}
-          </select>
-          {creandoCat && (
-            <div className="ap-nueva-cat">
-              <input
-                className="co-input"
-                value={nuevaCat}
-                onChange={e => setNuevaCat(e.target.value)}
-                placeholder="Nombre de la categoría (ej: Postres)"
-                autoFocus
-              />
-              <input
-                className="co-input ap-cat-emoji"
-                value={nuevaCatEmoji}
-                onChange={e => setNuevaCatEmoji(e.target.value)}
-                placeholder="🍮"
-                maxLength={2}
-                aria-label="Emoji (opcional)"
-              />
-            </div>
-          )}
-
-          <label className="ac-switch ap-fuerte">
-            <span>⭐ Nuestro fuerte</span>
-            <input type="checkbox" checked={destacado} onChange={e => setDestacado(e.target.checked)} />
-          </label>
-          <p className="ac-hint">Resáltalo como el plato estrella de su categoría. Solo uno por categoría: al marcar este, se quita el de los demás.</p>
-
-          <label className="ac-switch">
-            <span>📺 Mostrar en el Menú en Pantalla</span>
-            <input type="checkbox" checked={enTV} onChange={e => setEnTV(e.target.checked)} />
-          </label>
-
-          {tieneVariantes ? (
-            <>
-              <div className="ap-precio-head">
-                <label className="ap-label">Precios por tamaño</label>
-                <button type="button" className="ap-precio-modo" onClick={usarPrecioUnico}>
-                  Usar un solo precio
-                </button>
-              </div>
-              {variantes.map((v, i) => (
-                <div key={v.id} className="ap-variante">
-                  <input
-                    className="co-input ap-variante-nombre"
-                    value={v.nombre}
-                    onChange={e => setVariante(i, { nombre: e.target.value })}
-                    placeholder="Tamaño (ej: 350 ml)"
-                  />
-                  <input
-                    className="co-input ap-variante-precio"
-                    inputMode="numeric"
-                    value={v.precio}
-                    onChange={e => setVariante(i, { precio: e.target.value.replace(/\D/g, '') })}
-                    placeholder="4000"
-                  />
-                  <button
-                    type="button"
-                    className="ap-opcion-quitar"
-                    onClick={() => quitarVariante(i)}
-                    aria-label={`Quitar tamaño ${v.nombre || ''}`}
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-              <button type="button" className="ap-add-opcion" onClick={agregarVariante}>
-                + Agregar tamaño
-              </button>
-            </>
-          ) : (
-            <>
-              <label className="ap-label">Precio</label>
-              <input className="co-input" inputMode="numeric" value={precio} onChange={e => setPrecio(e.target.value.replace(/\D/g, ''))} placeholder="14000" />
-              <button type="button" className="ap-add-opcion ap-precio-tamano" onClick={activarVariantes}>
-                + Usar precios por tamaño
-              </button>
-            </>
-          )}
-
-          {/* Grupos de opciones (toppings / salsas) con su foto */}
-          {tieneGrupos && grupos.map((g, gi) => (
-            <div key={g.id} className="ap-grupo">
-              <label className="ap-label">{g.emoji} {g.nombre}</label>
-
-              {/* 🍕 Cuántas puede elegir el cliente SEGÚN el tamaño.
-                  Solo aparece con precios por tamaño: sin tamaños no hay nada que
-                  diferenciar. Dejarlo vacío = vale el tope de siempre del grupo. */}
-              {tieneVariantes && (
-                <div className="ap-topes">
-                  <p className="ap-topes-titulo">¿Cuántas puede elegir el cliente?</p>
-                  <p className="ap-topes-ayuda">
-                    Una por cada tamaño. Ej.: la familiar lleva 3 sabores y la personal 1.
-                    En blanco, el cliente elige {g.max ?? 1}.
-                  </p>
-                  {variantes.filter(v => v.nombre.trim()).map(v => (
-                    <div key={v.id} className="ap-tope">
-                      <span className="ap-tope-nombre">{v.nombre}</span>
-                      <input
-                        className="co-input ap-tope-num"
-                        inputMode="numeric"
-                        value={g.maxPorVariante?.[v.id] ?? ''}
-                        onChange={e => setMaxVariante(gi, v.id, e.target.value)}
-                        placeholder={String(g.max ?? 1)}
-                        aria-label={`Cuántas ${g.nombre.toLowerCase()} puede elegir en ${v.nombre}`}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="ap-opciones">
-                {g.opciones.map((o, oi) => (
-                  <OpcionEditor
-                    key={o.id}
-                    opcion={o}
-                    onNombre={val => setOpcion(gi, oi, { nombre: val })}
-                    onQuitar={() => quitarOpcion(gi, oi)}
-                    onCrearIA={() => crearFotoConIA({ nombre: o.nombre, tipo: 'opcion' })}
-                    onFoto={onFotoOpcion
-                      ? async file => {
-                          const url = await onFotoOpcion(g.id, o.id, file)
-                          setOpcion(gi, oi, { foto: url })
-                        }
-                      : null}
-                  />
-                ))}
-              </div>
-              <button type="button" className="ap-add-opcion" onClick={() => agregarOpcion(gi)}>
-                + Agregar a {g.nombre.toLowerCase()}
-              </button>
-            </div>
-          ))}
-
-          {onBorrar && (
-            <button className="ap-borrar" onClick={onBorrar}>Borrar producto</button>
-          )}
-        </div>
-        <div className="pm-footer">
-          <button className="btn btn-primary pm-add" onClick={guardar} disabled={guardando || !nombre.trim() || (creandoCat && !nuevaCat.trim())}>
-            {guardando ? 'Guardando…' : 'Guardar'}
-          </button>
-        </div>
-
-        {/* Indicador de carga bloqueante: cubre el formulario mientras se guarda
-            (y sube la foto), para que se vea que está trabajando y no se pulse
-            "Guardar" de nuevo ni se cierre la app —evita productos duplicados. */}
-        {guardando && (
-          <div className="pm-loading" role="status" aria-live="polite">
-            <div className="local-spinner" />
-            <p className="pm-loading-txt">{fotoFile ? 'Subiendo foto y guardando…' : 'Guardando…'}</p>
-            <p className="pm-loading-sub">No cierres la app. Con fotos grandes puede tardar unos segundos.</p>
-            <div className="pm-loading-bar"><span /></div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// Una opción (topping/salsa): mini-foto + nombre editable + crear con IA + quitar.
-function OpcionEditor({ opcion, onNombre, onQuitar, onCrearIA, onFoto }) {
-  const [preview, setPreview] = useState(opcion.foto || '')
-  const [subiendo, setSubiendo] = useState(false)
-  const [error, setError] = useState(false)
-
-  async function elegir(e) {
-    const f = e.target.files?.[0]
-    if (!f || !onFoto) return
-    const anterior = preview
-    setError(false)
-    setPreview(URL.createObjectURL(f))
-    setSubiendo(true)
-    try {
-      await onFoto(f) // sube a Storage y guarda la URL real en la opción
-    } catch (err) {
-      // Si falla la subida, revierte la vista previa y avisa (no guardar en falso).
-      console.warn('No se pudo subir la foto de la opción:', err?.code || err)
-      setPreview(anterior)
-      setError(true)
-    } finally {
-      setSubiendo(false)
-    }
-  }
-
-  return (
-    <div className="ap-opcion">
-      <label className={`ap-opcion-foto ${error ? 'ap-opcion-foto-error' : ''}`} title={error ? 'No se pudo subir, intenta de nuevo' : 'Cambiar foto'}>
-        {preview ? <img src={preview} alt="" /> : <span>{error ? '⚠️' : (opcion.emoji || '📷')}</span>}
-        {subiendo && <span className="ap-opcion-subiendo">…</span>}
-        <input type="file" accept="image/*" onChange={elegir} hidden disabled={!onFoto} />
-      </label>
-      <input
-        className="co-input ap-opcion-nombre"
-        value={opcion.nombre}
-        onChange={e => onNombre(e.target.value)}
-        placeholder="Nombre"
-      />
-      {onCrearIA && (
-        <button type="button" className="ap-opcion-ia" onClick={onCrearIA} title="Crear foto con IA" aria-label="Crear foto con IA">✨</button>
+      {hojaCat && (
+        <CategoriaHoja categoria={hojaCat.categoria} onCerrar={() => setHojaCat(null)}
+          onGuardar={async c => {
+            if (hojaCat.categoria) { await onEditCategoria(hojaCat.categoria.id, c); return }
+            const id = await onAddCategoria(c.nombre, c.emoji, { ...(c.pausada ? { pausada: true } : {}), ...(c.horario ? { horario: c.horario } : {}) })
+            if (id) { setSel(id); setQuery('') }
+          }} />
       )}
-      <button type="button" className="ap-opcion-quitar" onClick={onQuitar} aria-label="Quitar">✕</button>
+      {borrarCat && (
+        <EliminarCategoria categoria={borrarCat} demo={demo}
+          cuantos={productos.filter(p => p.categoria === borrarCat.id).length}
+          otras={categorias.filter(c => c.id !== borrarCat.id)}
+          onCerrar={() => setBorrarCat(null)}
+          onEliminar={async op => { await onDeleteCategoria(borrarCat.id, op); if (op.moverA) setSel(op.moverA); else setSel(null) }} />
+      )}
     </div>
   )
 }
