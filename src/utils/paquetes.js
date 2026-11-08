@@ -3,8 +3,9 @@
 // función /api/solicitud (que calcula el total) y la propuesta web (scripts/exportar-paquetes.mjs
 // copia la parte pública a web/appetic/paquetes.json, SIN precios).
 //
-// Precios (D24, S7): la Base es la más cara; todo junto, con el tope, nunca pasa de $99.900. El
-// precio de cada paquete NUNCA se muestra: solo el total de la cotización (D25).
+// Precios (D24, S7, D39): la Base termina en $900 y el resto son números cerrados, así que TODO
+// total termina en 900. Todo junto da exacto $99.900 (el tope queda solo de seguro). El precio de
+// cada paquete NUNCA se muestra: solo el total de la cotización (D25).
 // `pronto` (hoy ninguno, D35: todo sale incluido): un ítem pronto se mostraría con «Próximamente» y
 // un paquete pronto no se podría elegir ni se cobraría.
 
@@ -31,7 +32,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'domicilios', nombre: 'Domicilios', icono: '🛵', precio: 16900,
+    id: 'domicilios', nombre: 'Domicilios', icono: '🛵', precio: 16000,
     resumen: 'Para el negocio que tiene domiciliario.',
     incluye: [
       { t: 'Pedidos a domicilio desde tu menú', d: 'Sin comisión: cada peso es tuyo.' },
@@ -42,7 +43,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'contabilidad', nombre: 'Contabilidad y registro', icono: '💰', precio: 16900,
+    id: 'contabilidad', nombre: 'Contabilidad y registro', icono: '💰', precio: 16000,
     resumen: 'Para saber cuánto ganas, sin cuaderno ni calculadora.',
     incluye: [
       { t: 'Cajeros con su propio acceso', d: '' },
@@ -57,7 +58,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'cocina', nombre: 'Cocina', icono: '👨‍🍳', precio: 12900,
+    id: 'cocina', nombre: 'Cocina', icono: '👨‍🍳', precio: 13000,
     resumen: 'Las comandas llegan solas a la cocina.',
     incluye: [
       { t: 'Pantalla de cocina', d: 'Comandas en orden, con su reloj; se tacha plato por plato.' },
@@ -67,7 +68,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'salon', nombre: 'Salón', icono: '🍽️', precio: 11900,
+    id: 'salon', nombre: 'Salón', icono: '🍽️', precio: 12000,
     resumen: 'Para el restaurante con mesas y meseros.',
     incluye: [
       { t: 'Meseros en su celular', d: 'Meseros sin límite.' },
@@ -76,7 +77,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'inventario', nombre: 'Inventario', icono: '📦', precio: 12900, requiere: ['contabilidad'],
+    id: 'inventario', nombre: 'Inventario', icono: '📦', precio: 13000, requiere: ['contabilidad'],
     resumen: 'Cada venta descuenta lo que gasta.',
     incluye: [
       { t: 'Inventario con recetas', d: 'Costo y ganancia de cada plato.' },

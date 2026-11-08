@@ -77,6 +77,7 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
 | D36 | **La propuesta web se reorganiza por paquetes:** una sección por paquete (Base → Domicilios → Contabilidad → Cocina → Salón → Inventario), cada una interactiva y enfocada, para que el vendedor explique rápido y se salte lo que el local no necesita. Que se vea bien en celular, tablet y PC. | Mensaje del usuario (7-nov). |
 | D37 | **El formulario empieza directo en los datos**, sin las dos tarjetas de «¿quién eres?». Arriba va el selector «Soy el dueño / Soy vendedor de Swiftfly». **El dueño llena casi nada:** negocio y WhatsApp (su nombre, opcional). **El vendedor llena todo:** su nombre, el dueño, el WhatsApp, el negocio, la ciudad, el barrio, la foto del lugar, la carta y la ubicación; el logo queda opcional. | El usuario, en el chat (7-nov): «el dueño ponga casi nada de datos y el vendedor sí los deba colocar todos». |
 | D38 | **Sale «Tipo de negocio»** del formulario. | El usuario, en el chat: ya no hace falta con los paquetes. |
+| D39 | **Los totales siempre terminan en $900:** la Base vale $29.900 y el resto son números cerrados (Domicilios $16.000, Contabilidad $16.000, Cocina $13.000, Inventario $13.000, Salón $12.000). Todo junto da exacto $99.900. Deja sin efecto los precios de S7. | El usuario, en el chat (7-nov). Verificado: las 32 combinaciones terminan en 900. |
 | D34 | **El permiso de notificaciones se le pide al cliente después de su primer pedido o al marcar el local como favorito.** | S3. |
 
 ---
