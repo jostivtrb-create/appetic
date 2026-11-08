@@ -5,7 +5,7 @@
 
 - **Tarea:** decidir qué funciones agregar a Appetic tras compararlo con Loggro Restobar, y construirlas.
 - **Inicio:** 7 de noviembre de 2026
-- **Estado:** 🔵 Construyendo — paso 1 hecho y probado en local, sin publicar (faltan el commit, el push y desplegar las reglas)
+- **Estado:** 🔵 Construyendo — pasos 1 y 2 publicados el 7-nov (`ecbf9ff` + reglas); sigue el paso 3, la impresora térmica
 - **Proyecto:** `~/Apps Zeven/Swiftfly Solutions/Appetic`
 
 ---
@@ -160,7 +160,7 @@ Subir Appetic para que también le sirva a **restaurantes formales**, sin perder
 
 Va de lo más pequeño y seguro a lo que depende de terceros. Cada paso se audita y se publica por separado.
 
-- [x] 1 · **Contar la caja (arqueo)** (D17, D18, S7). Hecho el 7-nov, falta publicarlo.
+- [x] 1 · **Contar la caja (arqueo)** (D17, D18, S7). Hecho y publicado el 7-nov.
   - `utils/arqueo.js`: denominaciones, limpiar y sumar el conteo, y el ajuste.
   - `api/arqueo.js`: el esperado lo pone el servidor.
   - En `services/cuentas.js`: `contarCaja`, `escucharArqueos` y `revisarArqueo`, con el motor de Firestore y el de la demo.
@@ -203,3 +203,7 @@ Va de lo más pequeño y seguro a lo que depende de terceros. Cada paso se audit
   - **Prueba con datos a mano:** el descuento de $10.001 repartido en 3 líneas suma $54.999, exacto; la cortesía sale con total 0.
   - **Prueba en el navegador** (sin descargar nada, se capturó el archivo): 160 líneas en el mes de ejemplo de Sabor del Día.
   - El usuario pidió **publicar los pasos 1 y 2 juntos**.
+- **7-nov-2026 · publicación.**
+  - **Reglas primero** (cambio puramente aditivo): `--only firestore:rules` con `jostivtrb@gmail.com`; el cruce `163250707814` coincidió. `released rules` a la primera.
+  - **Después el push** `ecbf9ff` → Vercel. `/api/arqueo` respondió 401 «Sesión inválida» = la llave ya estaba puesta.
+  - **Prueba en producción con el local demo:** se contaron $4.100.000 contra $4.080.000 → «Sobran $20.000». «Dejar así» pasó por las reglas sin error y quedó en Cuentas → Saldos como «Dejado así por Visitante». La consola, sin errores.
