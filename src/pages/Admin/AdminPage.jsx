@@ -397,7 +397,7 @@ export default function AdminPage() {
 
   // ---------- Panel ----------
   return (
-    <div className="admin">
+    <div className={`admin${seccion === 'config' && (sub || 'catalogo') === 'catalogo' && !local.menuExterno ? ' admin--ancho' : ''}`}>
       {local.esDemo && <DemoLetrero local={local} vista="duenio" />}
       <header className="admin-top">
         <div className="admin-top-izq">
@@ -463,7 +463,7 @@ export default function AdminPage() {
           : seccion === 'domicilios' ? <AdminDomicilios key={local.id} local={local} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} onUpdate={updateLocal} demo={demo} />
           : seccion === 'config' ? (
-            <AdminAjustes slug={slug} sub={sub} conMenu={!tieneBarra}>
+            <AdminAjustes slug={slug} sub={sub} conMenu={!tieneBarra} catalogoPropio={!local.menuExterno}>
               {vista => vista === 'catalogo' ? catalogo
                 : vista === 'equipo' ? (
                   <div className="aj-equipo">
