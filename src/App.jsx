@@ -20,6 +20,7 @@ import ConfirmCambioLocal from './components/ConfirmCambioLocal/ConfirmCambioLoc
 import AvisoListo from './components/AvisoListo/AvisoListo.jsx'
 import Recorrido from './components/Demo/Recorrido'
 import InicioEquipo from './components/InicioEquipo.jsx'
+import VersionNueva from './components/VersionNueva/VersionNueva.jsx'
 
 // 📺 La pantalla de TV va aparte: sin barra, sin avisos ni instalar, y en su propio archivo
 // para que el menú del cliente no cargue su código.
@@ -57,6 +58,8 @@ export default function App() {
   return (
     <div className="app-shell">
       <InstallPrompt />
+      {/* 🔄 Versión nueva lista: botón para aplicarla, solo en el panel y el superadmin. */}
+      <VersionNueva />
       {/* 🎮 Recorrido guiado de la demo para clientes (solo se pinta dentro de /demo). */}
       <Recorrido />
       {/* 🧑‍🍳 Mesero / cocina / domiciliario: al abrir la app caen en su pantalla. */}

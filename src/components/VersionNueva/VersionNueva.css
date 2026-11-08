@@ -1,0 +1,4 @@
+.vn { position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top, 0px)); transform: translateX(-50%); z-index: 400; display: flex; align-items: center; gap: 10px; max-width: calc(100vw - 20px); padding: 8px 8px 8px 14px; border-radius: 999px; background: #1F1A17; color: #fff; font-size: 14px; font-weight: 700; box-shadow: 0 12px 30px rgba(0, 0, 0, .3); animation: vnEntra .35s ease; }
+.vn button { font: inherit; font-weight: 800; padding: 8px 14px; border-radius: 999px; border: 0; background: var(--brand-orange, #ED7D2B); color: #fff; cursor: pointer; white-space: nowrap; }
+.vn button:disabled { opacity: .6; }
+@keyframes vnEntra { from { opacity: 0; transform: translate(-50%, -10px); } }

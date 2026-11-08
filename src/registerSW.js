@@ -24,7 +24,7 @@ let ocultaDesde = document.visibilityState === 'hidden' ? Date.now() : null
 
 const actualizar = registerSW({
   immediate: true,
-  onNeedRefresh() { hayVersionNueva = true },
+  onNeedRefresh() { hayVersionNueva = true; window.dispatchEvent(new Event('appetic:version-nueva')) },
   onRegisteredSW(swUrl, registration) {
     if (!registration) return
 
@@ -70,3 +70,8 @@ export function aplicarVersionNueva() {
   actualizar(true)
   return true
 }
+
+// 🔄 Para el aviso «Hay una versión nueva · Actualizar» del panel (components/VersionNueva.jsx):
+// el dueño o el superadmin la aplican con un toque, sin tener que cerrar la app instalada.
+export const versionNuevaLista = () => hayVersionNueva
+export function actualizarAhora() { actualizar(true) }
