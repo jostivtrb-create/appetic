@@ -51,14 +51,19 @@ import { hoyBogota, sumarDias } from '../src/utils/plan.js'
 // para mostrar la cotización en la pantalla de quien cotiza. `comentarioVendedor`: solo de vendedor.
 const numeroAP = n => `AP-${String(n).padStart(4, '0')}`
 // ✂️ BarberIA (guía «Propuesta de Legends» D11, D12, S8): la propuesta de barberías usa este mismo
-// formulario con `producto: 'barberia'`. Un solo precio con todo incluido, su propio consecutivo
-// BI-0001 (contador config/cotizaciones-barberia) y la misma promo de Appetic.
+// formulario con `producto: 'barberia'`. Todo incluido, su propio consecutivo BI-0001 (contador
+// config/cotizaciones-barberia) y la misma promo de Appetic.
+// Precio (8-nov-2026): $39.900 con 1 barbero incluido + $10.000 por cada barbero adicional. Espejo de
+// BarberIA/src/lib/plan.js y de web/barberia/app.js: si cambia uno, cambian los tres.
 const PRODUCTOS = ['appetic', 'barberia']
-const PRECIO_BARBERIA = 59900
+const PLAN_BARBERIA = { base: 39900, incluidos: 1, extra: 10000 }
+const precioBarberia = n => PLAN_BARBERIA.base + (Math.max(PLAN_BARBERIA.incluidos, n) - PLAN_BARBERIA.incluidos) * PLAN_BARBERIA.extra
+// Número exacto de barberos (1 a 50). Las páginas viejas mandaban rangos: se toma el piso del rango.
+const RANGOS_VIEJOS = { '1-2': 1, '3-5': 3, '6-10': 6, 'mas-10': 11 }
+const numBarberos = v => { const n = RANGOS_VIEJOS[v] ?? parseInt(v, 10); return Number.isInteger(n) && n >= 1 && n <= 50 ? n : 0 }
 const numeroBI = n => `BI-${String(n).padStart(4, '0')}`
-const BARBEROS = ['1-2', '3-5', '6-10', 'mas-10']
 const SEDES = ['1', '2', '3+']
-const respuestaCot = (id, d) => ({ ok: true, id, numero: d.numero, paquetes: d.paquetes, total: d.total, ahorro: d.ahorro || 0, promo: d.promo || '', vence: d.venceDia })
+const respuestaCot = (id, d) => ({ ok: true, id, numero: d.numero, paquetes: d.paquetes, total: d.total, ahorro: d.ahorro || 0, promo: d.promo || '', vence: d.venceDia, ...(d.desglose ? { desglose: d.desglose } : {}) })
 
 const ID_VALIDO = /^[A-Za-z0-9_-]{8,40}$/
 const ORIGENES = ['vendedor', 'dueno']
@@ -147,7 +152,7 @@ export default async function handler(req, res) {
       motivo: esVisita ? deLista(b.motivo, MOTIVOS_VISITA) : '',
       motivoTexto: esVisita ? texto(b.motivoTexto, 300) : '',
       comentarioVendedor: origen === 'vendedor' && !esVisita ? texto(b.comentarioVendedor, 1000) : '',
-      ...(esBarberia ? { barberos: deLista(String(b.barberos ?? ''), BARBEROS), sedes: deLista(String(b.sedes ?? ''), SEDES) } : {}),
+      ...(esBarberia ? { barberos: numBarberos(String(b.barberos ?? '')) || '', sedes: deLista(String(b.sedes ?? ''), SEDES) } : {}),
     }
     // La página nueva manda los paquetes; la vieja (con `plan`) no.
     const conPaquetes = !esVisita && (esBarberia || Array.isArray(b.paquetes))
@@ -204,7 +209,9 @@ export default async function handler(req, res) {
     }
     if (conPaquetes && esBarberia) {
       const hoy = hoyBogota()
-      Object.assign(doc, { paquetes: ['barberia'], suma: PRECIO_BARBERIA, total: PRECIO_BARBERIA, ahorro: 0, promo: hoy <= PROMO.hasta ? PROMO.texto : '', venceDia: sumarDias(hoy, VALIDEZ_DIAS) })
+      const n = doc.barberos || PLAN_BARBERIA.incluidos
+      const total = precioBarberia(n)
+      Object.assign(doc, { paquetes: ['barberia'], suma: total, total, ahorro: 0, desglose: { ...PLAN_BARBERIA, barberos: n }, promo: hoy <= PROMO.hasta ? PROMO.texto : '', venceDia: sumarDias(hoy, VALIDEZ_DIAS) })
     } else if (conPaquetes) {
       const hoy = hoyBogota()
       const c = cotizar(b.paquetes, hoy)

@@ -38,6 +38,8 @@ const TIPOS = { trailer: '🚚 Tráiler', local: '🏪 Local', restaurante: '�
 const esBarberia = s => s.producto === 'barberia'
 const nombreProducto = s => (esBarberia(s) ? 'BarberIA' : 'Appetic')
 const BARBEROS = { '1-2': '1–2 barberos', '3-5': '3–5 barberos', '6-10': '6–10 barberos', 'mas-10': 'Más de 10 barberos' }
+// Desde el 8-nov-2026 llega el número exacto (el precio va por barbero); las viejas traían rango.
+const textoBarberos = v => BARBEROS[v] || (Number(v) ? `${v} ${Number(v) === 1 ? 'barbero' : 'barberos'}` : v)
 const SEDES = { 1: '1 sede', 2: '2 sedes', '3+': '3 sedes o más' }
 const PLANES = {
   emprendedor: 'Plan Emprendedor', comerciante: 'Plan Comerciante', empresario: 'Plan Empresario',
@@ -109,7 +111,7 @@ function linkCotizacionBarberia(s) {
   if (digitos.length === 10) digitos = `57${digitos}`
   const nombre = String(s.dueno || '').trim().split(/\s+/)[0]
   const promo = s.promo ? `\n🎁 Promoción: ${s.promo}.` : ''
-  const texto = `¡Hola${nombre ? ` ${nombre}` : ''}! 👋 Soy de Swiftfly Solutions. Te comparto la cotización ${s.numero} de BarberIA para «${s.local}». 💈\n\n✅ Todo incluido: reservas, agenda, caja, comisiones de barberos, inventario, reportes, varias sedes y el Asesor de Look IA.\n💰 ${cop(s.total)} al mes.${promo}\n📆 Si pagas 6 meses, pagas 5; si pagas 12, pagas 10.\n\nVálida hasta el ${s.venceDia}. Si quieres, nos reunimos y te mostramos la app en persona. ¿Qué día te queda bien?`
+  const texto = `¡Hola${nombre ? ` ${nombre}` : ''}! 👋 Soy de Swiftfly Solutions. Te comparto la cotización ${s.numero} de BarberIA para «${s.local}». 💈\n\n✅ Todo incluido: reservas, agenda, caja, comisiones de barberos, inventario, reportes, varias sedes y el Asesor de Look IA.\n💰 ${cop(s.total)} al mes${s.desglose ? ` (${textoBarberos(s.desglose.barberos)}: ${cop(s.desglose.base)} con 1 barbero incluido + ${cop(s.desglose.extra)} por cada barbero adicional)` : ''}.${promo}\n📆 Si pagas 6 meses, pagas 5; si pagas 12, pagas 10.\n\nVálida hasta el ${s.venceDia}. Si quieres, nos reunimos y te mostramos la app en persona. ¿Qué día te queda bien?`
   return `https://wa.me/${digitos}?text=${encodeURIComponent(texto)}`
 }
 
@@ -218,7 +220,7 @@ function Tarjeta({ s, onEstado, onCrearBarberia }) {
           {(s.tipo || s.plan || s.barberos || s.sedes) && (
             <div className="sa-sol-chips">
               {s.tipo && <span className="sa-sol-chip">{TIPOS[s.tipo] || s.tipo}</span>}
-              {s.barberos && <span className="sa-sol-chip">✂️ {BARBEROS[s.barberos] || s.barberos}</span>}
+              {s.barberos && <span className="sa-sol-chip">✂️ {textoBarberos(s.barberos)}</span>}
               {s.sedes && <span className="sa-sol-chip">📍 {SEDES[s.sedes] || s.sedes}</span>}
               {s.plan && <span className="sa-sol-chip sa-sol-chip--plan">{PLANES[s.plan] || s.plan}</span>}
             </div>

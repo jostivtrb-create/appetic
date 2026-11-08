@@ -235,7 +235,7 @@ export default function Superadmin() {
 
       {/* 📋 Cotizaciones que llegan de la propuesta web (switflysolutions.com/appetic → /api/solicitud) */}
       <Solicitudes simulado={simulado} onCrearBarberia={(s) => {
-        setNuevaBarberia({ nombre: s.local, whatsapp: s.celular, solicitudId: s.id, numero: s.numero })
+        setNuevaBarberia({ nombre: s.local, whatsapp: s.celular, solicitudId: s.id, numero: s.numero, barberos: Number(s.desglose?.barberos || s.barberos) || 1 })
         setTimeout(() => document.getElementById('barberias')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
       }} />
 
