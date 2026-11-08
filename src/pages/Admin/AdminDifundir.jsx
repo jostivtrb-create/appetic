@@ -7,6 +7,8 @@ import { abrirHojaMesas } from '../../utils/mesaQR'
 import { tiene, ofreceDomicilio } from '../../utils/plan'
 import { Candado } from './PlanAvisos'
 import AvisosClientes from './AvisosClientes'
+import { PanelHero, PanelCuerpo, PanelLado, useEntrar } from './PanelPagina'
+import './Difundir.css'
 
 // Dónde se recuerda, POR LOCAL, qué estilo de publicidad tocó la última vez.
 const claveVariante = slug => `appetic_pub_variante_${slug}`
@@ -14,6 +16,8 @@ const claveVariante = slug => `appetic_pub_variante_${slug}`
 // 📣 Difundir: el dueño del local consigue aquí todo lo que necesita para que sus
 // clientes lleguen al menú: el QR (descargable), un afiche de DOMICILIOS listo
 // para imprimir, el link para copiar y un mensaje de bienvenida para WhatsApp.
+// Diseño (guía «Diseño de pantallas del panel», 8-nov): cada bloque es una opción de la lista de la
+// izquierda (en el celular, lista que entra al detalle) y se ve uno a la vez. Lo de adentro no cambió.
 export default function AdminDifundir({ local, slug, onUpdate, demo }) {
   const url = menuUrl(slug)
   const urlTV = `${url.replace(/\/$/, '')}/tv`
@@ -105,11 +109,34 @@ export default function AdminDifundir({ local, slug, onUpdate, demo }) {
     else window.open(base + texto, '_blank')
   }
 
+  const entrar = useEntrar()
+  const [parte, setParte] = useState('avisos')
+  const elegir = id => { setParte(id); entrar.abrir() }
+  const PARTES = [
+    { id: 'avisos', icono: '🔔', nombre: 'Avisos a tus clientes', nota: 'Promociones al celular de tus clientes' },
+    { id: 'link', icono: '🔗', nombre: 'El link de tu menú', nota: 'Para compartir por donde quieras' },
+    { id: 'qr', icono: '📱', nombre: 'Tu código QR', nota: 'Para imprimir o descargar' },
+    { id: 'tv', icono: '📺', nombre: 'Menú en Pantalla', nota: 'Tu menú en el TV del local' },
+    { id: 'mesas', icono: '🪑', nombre: 'QR por mesa', nota: 'Cada mesa pide desde su QR' },
+    { id: 'afiche', icono: '🖨️', nombre: 'Afiche de domicilios', nota: 'PDF listo para imprimir' },
+    { id: 'publicidad', icono: '📢', nombre: 'Publicidad para tus redes', nota: 'Una imagen con IA' },
+    { id: 'mensaje', icono: '💬', nombre: 'Mensaje de bienvenida', nota: 'Para mandar por WhatsApp' },
+  ]
+  const actual = PARTES.find(x => x.id === parte)
+
   return (
-    <div className="dif">
+    <div className={`dif dif2${entrar.abierto ? ' pp-dentro' : ''}`}>
+      <PanelHero miga={local.nombre} icono="📣" titulo="Difundir" sub="Todo para que tus clientes lleguen a tu menú: link, QR, afiches, avisos y publicidad" chips={[
+        { t: `🔗 ${url.replace(/^https?:\/\//, '')}` },
+      ]} />
+      <PanelCuerpo entrar={entrar} titulo={actual.nombre} lado={
+        <PanelLado icono="📣" titulo="Difundir" sel={parte} onSel={elegir} grupos={[{ items: PARTES }]} />
+      }>
+          {parte === 'avisos' && <div className="dif2-card">
       {/* 🔔 Avisos a los clientes (paquete Base, D9) */}
       <AvisosClientes local={local} demo={demo} />
-
+          </div>}
+          {parte === 'link' && <div className="dif2-card">
       {/* ---- Link del menú ---- */}
       <section className="ac-sec">
         <h3>🔗 El link de tu menú</h3>
@@ -121,7 +148,8 @@ export default function AdminDifundir({ local, slug, onUpdate, demo }) {
           </button>
         </div>
       </section>
-
+          </div>}
+          {parte === 'qr' && <div className="dif2-card">
       {/* ---- Código QR ---- */}
       <section className="ac-sec">
         <h3>📱 Tu código QR</h3>
@@ -138,7 +166,8 @@ export default function AdminDifundir({ local, slug, onUpdate, demo }) {
           ⬇️ Descargar QR (PNG)
         </button>
       </section>
-
+          </div>}
+          {parte === 'tv' && <div className="dif2-card">
       {/* ---- Pantalla de TV (Guía para la Pantalla de TV.md, S8) ---- */}
       <section className="ac-sec">
         <h3>📺 Menú en Pantalla</h3>
@@ -173,7 +202,8 @@ export default function AdminDifundir({ local, slug, onUpdate, demo }) {
           <span className="dif-afiche-arrow">→</span>
         </Link>
       </section>
-
+          </div>}
+          {parte === 'mesas' && <div className="dif2-card">
       {/* ---- QR por mesa (plan Empresario) ---- */}
       <section className="ac-sec">
         <h3>🪑 QR por mesa</h3>
@@ -199,7 +229,8 @@ export default function AdminDifundir({ local, slug, onUpdate, demo }) {
         </button>
         </>}
       </section>
-
+          </div>}
+          {parte === 'afiche' && <div className="dif2-card">
       {/* ---- Afiche de domicilios (PDF imprimible, plan Comerciante) ---- */}
       <section className="ac-sec">
         <h3>🖨️ Afiche de domicilios</h3>
@@ -223,7 +254,8 @@ export default function AdminDifundir({ local, slug, onUpdate, demo }) {
         </button>
         </>}
       </section>
-
+          </div>}
+          {parte === 'publicidad' && <div className="dif2-card">
       {/* ---- Publicidad para redes sociales (imagen con IA) ---- */}
       <section className="ac-sec">
         <h3>📢 Publicidad para tus redes</h3>
@@ -272,7 +304,8 @@ export default function AdminDifundir({ local, slug, onUpdate, demo }) {
         )}
         </>}
       </section>
-
+          </div>}
+          {parte === 'mensaje' && <div className="dif2-card">
       {/* ---- Mensaje de bienvenida para WhatsApp ---- */}
       <section className="ac-sec">
         <h3>💬 Mensaje de bienvenida</h3>
@@ -292,6 +325,8 @@ export default function AdminDifundir({ local, slug, onUpdate, demo }) {
           </button>
         </div>
       </section>
+          </div>}
+      </PanelCuerpo>
     </div>
   )
 }

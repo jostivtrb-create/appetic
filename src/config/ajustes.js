@@ -17,4 +17,4 @@ export const SECCIONES_AJUSTES = [
 export const AJUSTES_ANCHOS = ['catalogo', 'menu-del-dia', 'negocio', 'apariencia', 'pagos', 'impresora', 'pantalla', 'equipo', 'plan']
 
 // Las secciones del panel (fuera de Configuración) ya rehechas: también van a todo el ancho.
-export const SECCIONES_ANCHAS = ['cuentas', 'inventario']
+export const SECCIONES_ANCHAS = ['cuentas', 'inventario', 'difundir', 'caja', 'mesero']

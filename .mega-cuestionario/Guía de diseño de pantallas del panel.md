@@ -6,7 +6,7 @@
 > páginas de la app»*. Toda pantalla nueva o que se rehaga sigue esto.
 
 - **Inicio:** 2026-11-08
-- **Estado:** ✅ Configuración completa (8-nov). Siguiente: las demás secciones del panel (Caja, Cuentas, Inventario, Mesero, Cocina, Domicilios, Difundir) cuando el usuario diga.
+- **Estado:** ✅ Panel completo (8-nov): Configuración + Cuentas, Inventario, Difundir; Caja y Mesero solo a todo el ancho. Las secciones anchas fuera de Configuración van en `SECCIONES_ANCHAS` (`src/config/ajustes.js`).
 
 ---
 
@@ -141,6 +141,11 @@ principal ocupa todo el ancho y los filtros van de a dos.
 | Configuración → Menú en Pantalla | ✅ 8-nov | El link del TV va en el hero (Copiar / Abrir). Lado: Vista · Transición · Categorías · Pedidos listos · Anuncios. Los anuncios en tarjetas y su editor en `Ventana`. |
 | Configuración → Equipo | ✅ 8-nov | Página nueva `ConfigEquipo.jsx`: roles a la izquierda (con candado si el plan no lo trae), la gente del rol a la derecha (`EquipoEnLinea`, sin cambios). |
 | Configuración → Mi plan | ✅ 8-nov | Sin lista: precio y estado en el hero (tarjeta «Pagas»); paquetes en cuadrícula verde «✓ Lo tienes» / «＋ Agregarlo». |
+| Panel → Cuentas | ✅ 8-nov | Saldos en el hero; lista Día · Mes · Saldos · Nómina · Horario. Lo de adentro igual. |
+| Panel → Inventario | ✅ 8-nov | Resumen en el hero (insumos, por acabarse, valor); lista Insumos · Recetas · Contar · Proveedores. |
+| Panel → Difundir | ✅ 8-nov | Los 8 bloques (avisos, link, QR, TV, QR por mesa, afiche, publicidad, mensaje) son la lista; uno a la vez. |
+| Panel → Caja y Mesero | ✅ 8-nov (solo ancho) | NO se rediseñan: siguen el POS de La Catrina que al usuario le encanta. Solo se les quitó el límite de 1120 px. |
+| Panel → Cocina y Domicilios | — | Ya usaban todo el ancho; son pantallas de operación sencillas. Sin cambios. |
 
 ---
 

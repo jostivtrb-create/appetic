@@ -1,0 +1,9 @@
+/* 📣 Difundir con el diseño nuevo (guía «Diseño de pantallas del panel», 8-nov). */
+.dif.dif2 { display: block !important; columns: auto !important; }
+.dif2-card { min-width: 0; display: grid; gap: 16px; }
+.dif2-card > section, .dif2-card > .ac-sec {
+  margin: 0 !important; padding: 20px 22px !important; border-radius: 24px !important; width: auto !important;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+}
+.dif2-card .ac-sec h3 { font-size: 21px; font-weight: 900; margin-bottom: 6px; }
+@media (max-width: 1023px) { .dif2-card > section, .dif2-card > .ac-sec { padding: 16px !important; border-radius: 20px !important; } }
