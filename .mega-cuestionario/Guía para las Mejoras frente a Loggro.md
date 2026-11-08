@@ -5,7 +5,7 @@
 
 - **Tarea:** decidir qué funciones agregar a Appetic tras compararlo con Loggro Restobar, y construirlas.
 - **Inicio:** 7 de noviembre de 2026
-- **Estado:** 🔵 Construyendo — pasos 1 y 2 publicados el 7-nov; paso 3 (impresora) hecho y probado en local, sin publicar
+- **Estado:** 🔵 Pasos 1-4 publicados (7-nov) · faltan 5-8 (cobro en línea, datáfono, Bold/Mercado Pago, cuadro comparativo)
 - **Proyecto:** `~/Apps Zeven/Swiftfly Solutions/Appetic`
 
 ---
@@ -173,7 +173,7 @@ Va de lo más pequeño y seguro a lo que depende de terceros. Cada paso se audit
   - El cliente va como «Consumidor final 222222222222».
   - El descuento se reparte entre las líneas para que sumen exacto el total.
   - La propina y el total de la venta van solo en la primera línea de cada venta.
-- [x] 3 · **Impresora térmica** (D6, S8). Hecho el 7-nov, sin publicar.
+- [x] 3 · **Impresora térmica** (D6, S8). Hecho y publicado el 7-nov (falta probar con una impresora física).
   - `utils/impresora/`:
     - `documento.js`: arma el ticket, la comanda (con «CAMBIO») y la prueba;
     - `escpos.js`: los pasa a ESC/POS con la página de códigos PC850 para las tildes;
@@ -186,7 +186,7 @@ Va de lo más pequeño y seguro a lo que depende de terceros. Cada paso se audit
     - el ticket al cobrar.
   - **Lo que se imprime a mano:** «Imprimir ticket» en el detalle de Ventas y «Reimprimir» en cada comanda.
   - **Plan:** `impresora` y `arqueo` quedan en Empresario (S5), con su candado; `/api/arqueo` también lo exige.
-- [x] 4 · **Inventario con recetas** (D7, D8, D13, S6). Hecho el 7-nov, sin publicar.
+- [x] 4 · **Inventario con recetas** (D7, D8, D13, S6). Hecho y publicado el 7-nov.
   - `utils/inventario.js` (los cálculos), `services/inventario.js` (motor de Firestore y motor de la demo) y `AdminInventario.jsx`, con sus pestañas: Insumos, Recetas (costo y ganancia por plato), Contar y Proveedores (pedir por WhatsApp).
   - **Ventas:** descuentan con `increment` dentro de la transacción de la venta; la venta guarda `inventario[]` y, si se elimina, lo devuelve.
   - **Compras:** desde Caja → Gastos, con «Es compra de insumos», usando el costo promedio ponderado.

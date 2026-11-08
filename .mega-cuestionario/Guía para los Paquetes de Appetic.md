@@ -5,7 +5,7 @@
 
 - **Tarea:** cambiar los planes en escalera (Emprendedor, Comerciante, Empresario) por **paquetes** que cada negocio combina según lo que pide. Primero el contenido de cada paquete y después los precios.
 - **Inicio:** 7 de noviembre de 2026
-- **Estado:** 🔵 Fase A, propuesta por paquetes (D36) e Inventario (C3) hechos y probados en local, SIN publicar · siguen la fase B y lo que falta de la C
+- **Estado:** 🔵 Fases A y B, propuesta por paquetes e Inventario PUBLICADOS (7-nov) · faltan B3, C1, C2 y C4
 - **Proyecto:** `~/Apps Zeven/Swiftfly Solutions/Appetic` (app) y `web/appetic/` (propuesta)
 - **Relacionada:** «Guía para las Mejoras frente a Loggro», cuya S5 dice que lo nuevo queda en Empresario mientras se definen los planes.
 
@@ -207,7 +207,7 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
 
 - [ ] C1 · Notificaciones del dueño a los clientes (D9, D31, D34).
 - [ ] C2 · Horario semanal del personal (D10).
-- [x] C3 · Inventario con recetas y proveedores (D13 y paso 4 de la guía de Loggro). Hecho el 7-nov, sin publicar.
+- [x] C3 · Inventario con recetas y proveedores (D13 y paso 4 de la guía de Loggro). Publicado el 7-nov.
 - [ ] C4 · Cobro en línea y datáfono (pasos 5 a 7 de Loggro), solo si las empresas de pagos dejan conectarse.
 
 ---
