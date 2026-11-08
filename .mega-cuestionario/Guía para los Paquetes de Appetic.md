@@ -75,6 +75,8 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
 | D33 | **Cada cotización lleva un número consecutivo: AP-0001, AP-0002…** | S2. |
 | D35 | **Nada dice «Próximamente» en la propuesta: todo sale incluido**, también el Inventario, que se construye hoy (7-nov). Deja sin efecto S8. | El usuario, en el chat. Lo que aún no existe pasa a la cola de la fase C y debe estar listo antes de entregárselo a un cliente: notificaciones, horario semanal, cobro en línea y datáfono (estos dos dependen de las empresas de pagos). |
 | D36 | **La propuesta web se reorganiza por paquetes:** una sección por paquete (Base → Domicilios → Contabilidad → Cocina → Salón → Inventario), cada una interactiva y enfocada, para que el vendedor explique rápido y se salte lo que el local no necesita. Que se vea bien en celular, tablet y PC. | Mensaje del usuario (7-nov). |
+| D37 | **El formulario empieza directo en los datos**, sin las dos tarjetas de «¿quién eres?». Arriba va el selector «Soy el dueño / Soy vendedor de Swiftfly». **El dueño llena casi nada:** negocio y WhatsApp (su nombre, opcional). **El vendedor llena todo:** su nombre, el dueño, el WhatsApp, el negocio, la ciudad, el barrio, la foto del lugar, la carta y la ubicación; el logo queda opcional. | El usuario, en el chat (7-nov): «el dueño ponga casi nada de datos y el vendedor sí los deba colocar todos». |
+| D38 | **Sale «Tipo de negocio»** del formulario. | El usuario, en el chat: ya no hace falta con los paquetes. |
 | D34 | **El permiso de notificaciones se le pide al cliente después de su primer pedido o al marcar el local como favorito.** | S3. |
 
 ---
@@ -258,4 +260,5 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
   - **Prueba real** de `/api/solicitud`: **AP-0001** «PRUEBA Swiftfly (borrar)» con los 6 paquetes → total $99.900, ahorro $1.500, 2.º mes gratis, vence el 22-nov. Hay que marcarla «Cerrada» en el superadmin.
   - **La propuesta web queda por subir por FTP.** Lo hace el usuario con su clave, con el comando que se le dio en el chat.
   - **Ícono de Inventario:** recortado y puesto. **El de Cocina:** salió como una taza de té; está el prompt v2 en `.prompts-imagenes/propuesta-paquetes.md`, y mientras tanto se usa `ico-comandas`.
+- **7-nov-2026 · el formulario, otra vez (D37, D38).** Pasos: dueño = datos → paquetes; vendedor = datos → fotos → paquetes → comentarios; visita = datos → fotos → revisar. Probado en local con la API simulada (los dos caminos, la carta obligatoria y el celular). Hay que subirlo por FTP (`index.html`, `app.js`, `estilos.css`).
 - **Pendiente de la guía de Loggro:** el paso 3 (impresora) está en un commit local `ea34889` sin publicar. Conviene publicarlo cuando se defina en qué paquete va.
