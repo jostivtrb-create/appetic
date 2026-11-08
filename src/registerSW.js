@@ -20,6 +20,7 @@ const PERIODO_MS = 60 * 60 * 1000
 const VOLVER_MS = 15 * 60 * 1000
 
 let hayVersionNueva = false
+let registro = null // el registro del SW, para pedirle a la versión que espera que entre ya
 let ocultaDesde = document.visibilityState === 'hidden' ? Date.now() : null
 
 const actualizar = registerSW({
@@ -27,6 +28,7 @@ const actualizar = registerSW({
   onNeedRefresh() { hayVersionNueva = true; window.dispatchEvent(new Event('appetic:version-nueva')) },
   onRegisteredSW(swUrl, registration) {
     if (!registration) return
+    registro = registration
 
     const buscarActualizacion = async () => {
       // Si ya hay una instalación en curso, o no hay conexión, no hacemos nada.
@@ -74,4 +76,15 @@ export function aplicarVersionNueva() {
 // 🔄 Para el aviso «Hay una versión nueva · Actualizar» del panel (components/VersionNueva.jsx):
 // el dueño o el superadmin la aplican con un toque, sin tener que cerrar la app instalada.
 export const versionNuevaLista = () => hayVersionNueva
-export function actualizarAhora() { actualizar(true) }
+// Se quedaba en «Actualizando…» para siempre (8-nov) cuando la página no estaba controlada por el
+// service worker (recarga forzada, otra pestaña abierta): el aviso de «ya tomé el control» nunca
+// llegaba y no se recargaba. Ahora: se le pide directo a la versión que espera que entre, se
+// recarga apenas tome el control y, si en 3 s no pasó nada, se recarga igual.
+export function actualizarAhora() {
+  let listo = false
+  const recargar = () => { if (listo) return; listo = true; window.location.reload() }
+  try { navigator.serviceWorker?.addEventListener('controllerchange', recargar, { once: true }) } catch { /* nada */ }
+  try { registro?.waiting?.postMessage({ type: 'SKIP_WAITING' }) } catch { /* nada */ }
+  try { actualizar(true) } catch { /* nada */ }
+  setTimeout(recargar, 3000)
+}
