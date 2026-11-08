@@ -5,7 +5,7 @@ import { Candado, SalirEnBuscador } from './PlanAvisos'
 import { tiene } from '../../utils/plan'
 import { construirPromptImagenIA } from '../../utils/promptIA'
 import { estaAbierto } from '../../utils/horario'
-import { PanelHero, PanelCuerpo, PanelLado, PanelTarjeta, PanelSwitch, useEntrar } from './PanelPagina'
+import { PanelHero, PanelCuerpo, PanelLado, PanelTarjeta, PanelSwitch, PanelGuardar, useEntrar } from './PanelPagina'
 import './AdminConfig.css'
 
 // 🛵 Cuánto sube el domicilio por cada medio kilómetro cuando el dueño usa el
@@ -315,30 +315,56 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
         {actual.id === 'domicilio' && (
           <PanelTarjeta icono="🛵" titulo="Precios del domicilio" sub="Se cobra por tramos de 0,5 km según qué tan lejos esté el cliente.">
             <div className="pp-grid ac2-domi">
-              <div className="pp-sub">
+              <div className="pp-sub ac2-ubic">
                 <h4 className="ac2-h4">📍 Ubicación del local</h4>
-                <p className="pp-ayuda">Desde aquí se mide la distancia a cada cliente. Hazlo estando EN el local.</p>
-                <button className="pp-btn" onClick={capturarUbicacion} disabled={ubicEstado === 'cargando'}>
-                  📍 {ubicEstado === 'cargando' ? 'Obteniendo…' : ubicacion ? 'Actualizar ubicación' : 'Usar mi ubicación actual'}
-                </button>
-                {ubicacion && <p className="ac2-ok">✓ Ubicación lista</p>}
+                {ubicacion ? (
+                  <>
+                    <div className="ac2-mapa">
+                      <iframe title="Ubicación del local" loading="lazy" tabIndex={-1}
+                        src={`https://www.openstreetmap.org/export/embed.html?bbox=${ubicacion.lng - 0.004}%2C${ubicacion.lat - 0.0025}%2C${ubicacion.lng + 0.004}%2C${ubicacion.lat + 0.0025}&layer=mapnik&marker=${ubicacion.lat}%2C${ubicacion.lng}`} />
+                      <button type="button" className="ac2-mapa-editar" onClick={capturarUbicacion} disabled={ubicEstado === 'cargando'}>
+                        {ubicEstado === 'cargando' ? 'Ubicando…' : '✏️ Editar'}
+                      </button>
+                      <a className="ac2-mapa-credito" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">© OpenStreetMap</a>
+                    </div>
+                    <p className="pp-ayuda">Desde aquí se mide la distancia a cada cliente. Para cambiarla, toca <b>Editar</b> estando EN el local.</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="pp-ayuda">Desde aquí se mide la distancia a cada cliente. Ponla estando EN el local.</p>
+                    <button type="button" className="btn btn-primary ac2-poner" onClick={capturarUbicacion} disabled={ubicEstado === 'cargando'}>
+                      📍 {ubicEstado === 'cargando' ? 'Obteniendo…' : 'Poner la ubicación del local'}
+                    </button>
+                    {ubicEstado !== 'error' && <p className="ac2-aviso">⚠️ Sin ubicación no se puede calcular el domicilio.</p>}
+                  </>
+                )}
                 {ubicEstado === 'error' && <p className="ac2-aviso">No se pudo obtener. Activa el permiso de ubicación.</p>}
-                {!ubicacion && ubicEstado !== 'error' && <p className="ac2-aviso">⚠️ Sin ubicación no se puede calcular el domicilio.</p>}
-                <label className="pp-campo"><span>Distancia máxima de entrega</span>
-                  <div className="pp-plata"><input type="number" inputMode="decimal" step="0.5" min="0.5" value={maxKm} onChange={e => setMaxKm(e.target.value)} /><i className="ac2-km">km</i></div>
-                </label>
               </div>
               <div className="pp-sub ac2-tramos">
-                <h4 className="ac2-h4">💲 Precio por distancia</h4>
+                <div className="ac2-tramos-cab">
+                  <h4 className="ac2-h4">💲 Precio por distancia</h4>
+                  <div className="ac2-paso" role="group" aria-label="Distancia máxima de entrega">
+                    <small>Hasta</small>
+                    <button type="button" onClick={() => setMaxKm(v => String(Math.max(0.5, (Number(v) || 0.5) - 0.5)))} disabled={Number(maxKm) <= 0.5} aria-label="Menos distancia">−</button>
+                    <b>{(Number(maxKm) || 0).toFixed(1).replace('.', ',')} km</b>
+                    <button type="button" onClick={() => setMaxKm(v => String(Math.min(30, (Number(v) || 0) + 0.5)))} disabled={Number(maxKm) >= 30} aria-label="Más distancia">+</button>
+                  </div>
+                </div>
                 <p className="pp-ayuda">Escribe 0 si ese tramo es gratis.{hayFill ? ` El ↓ rellena los de abajo sumando ${fmtPesos(ESCALON_DOMICILIO)} cada medio kilómetro.` : ''}</p>
-                <div className="ac2-tramos-lista">
+                <div className={`ac2-tramos-lista${hayFill ? ' con-fill' : ''}`}>
                   {keys.map((k, i) => {
                     const mostrarFill = !!tarifas[k] && keys.slice(i + 1).some(kk => !tarifas[kk])
                     return (
                       <div key={k} className={`ac2-tramo${conPrecio(tarifas[k]) ? '' : ' vacio'}`}>
-                        <span>Hasta <b>{k} km</b></span>
-                        <div className="pp-plata"><i>$</i><input inputMode="numeric" placeholder="sin precio" value={tarifas[k] ?? ''} onChange={e => setTarifa(k, e.target.value)} /></div>
-                        {mostrarFill ? <button className="ac2-fill" onClick={() => rellenarDesde(k)} title={`Rellenar los de abajo sumando ${fmtPesos(ESCALON_DOMICILIO)}`}>↓</button> : <span />}
+                        <span className="ac2-tramo-km"><small>hasta</small>{k.replace('.', ',')} km</span>
+                        <div className="pp-plata ac2-tramo-plata">
+                          <i>$</i>
+                          <input inputMode="numeric" placeholder="Sin precio" value={tarifas[k] ?? ''} onChange={e => setTarifa(k, e.target.value)} aria-label={`Precio hasta ${k} km`} />
+                          {conPrecio(tarifas[k]) && Number(tarifas[k]) === 0 && <em className="ac2-gratis">Gratis</em>}
+                        </div>
+                        {mostrarFill
+                          ? <button className="ac2-fill" onClick={() => rellenarDesde(k)} title={`Rellenar los de abajo sumando ${fmtPesos(ESCALON_DOMICILIO)}`} aria-label="Rellenar los de abajo">↓</button>
+                          : hayFill ? <span aria-hidden="true" /> : null}
                       </div>
                     )
                   })}
@@ -399,14 +425,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
           </PanelTarjeta>
         )}
 
-        {(sinGuardar || guardado) && (
-          <div className={`ac2-guardar${guardado && !sinGuardar ? ' ok' : ''}`}>
-            <span>{guardado && !sinGuardar ? '✓ Cambios guardados' : 'Tienes cambios sin guardar'}</span>
-            <button className="btn btn-primary" onClick={guardar} disabled={guardando || !sinGuardar}>
-              {guardando ? 'Guardando…' : guardado && !sinGuardar ? 'Guardado ✓' : 'Guardar cambios'}
-            </button>
-          </div>
-        )}
+        <PanelGuardar sinGuardar={sinGuardar} estado={guardando ? 'guardando' : guardado ? 'ok' : ''} onGuardar={guardar} />
       </PanelCuerpo>
     </div>
   )
