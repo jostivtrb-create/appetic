@@ -3,6 +3,7 @@
 // así los dos escriben exactamente lo mismo. Ver services/pedidos.js para el modelo completo.
 import { precioItem } from './price.js'
 import { resumenSeleccion } from './selectionSummary.js'
+import { linkDeCuenta } from './cuentasDinero.js'
 
 export const primerNombre = n => String(n || '').trim().split(/\s+/)[0] || ''
 
@@ -51,6 +52,8 @@ export function armarPedido(local, pedido, codigo) {
     metodoPagoNombre: pedido.pago?.nombre || '',
     metodoPagoTipo: pedido.pago?.tipo || '',
     efectivoCon: pedido.pago?.tipo === 'efectivo' ? (pedido.pago?.cashAmount || 0) : 0,
+    // Paga con el link del negocio y sube el comprobante en «Mi pedido» (api/comprobante.js).
+    pagoLink: linkDeCuenta(local, pedido.pago?.id),
     total: pedido.total || 0,
     cantidadItems: items.reduce((s, it) => s + it.cantidad, 0),
   }
@@ -71,5 +74,7 @@ export function publicoDe(p) {
     domicilioAConvenir: !!p.domicilioAConvenir,
     total: p.total || 0,
     metodoPagoNombre: p.metodoPagoNombre || '',
+    pagoLink: p.pagoLink || '',
+    comprobante: !!p.comprobanteUrl,
   }
 }

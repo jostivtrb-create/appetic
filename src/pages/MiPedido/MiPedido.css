@@ -69,3 +69,17 @@
 .mp-hecho.ya .mp-hecho-tit { margin: 0; font-size: 16px; }
 .mp-wa { width: 100%; padding: 16px; border-radius: 16px; font-size: 17px; font-weight: 900; background: #25D366; color: #fff; }
 .mp-soydel { font-size: 14px; color: var(--text-soft); text-decoration: underline; padding: 8px; }
+
+/* 🔗 Pago con el link del negocio + comprobante */
+.mp-pagolink { display: grid; gap: 10px; border: 2px solid var(--mp-primary); }
+.mp-pagolink.enviado { border-color: #1E9E5A; }
+.mp-pagolink h2 { font-size: 17px; }
+.mp-pagolink p { font-size: 14.5px; color: var(--text-soft); line-height: 1.45; }
+.mp-pl-ok { color: #12703F !important; font-weight: 800; }
+.mp-pl-acc { display: flex; gap: 8px; flex-wrap: wrap; }
+.mp-pl-acc > * { flex: 1 1 150px; display: grid; place-items: center; min-height: 48px; border-radius: 14px; font-weight: 900; font-size: 15px; text-align: center; cursor: pointer; text-decoration: none; }
+.mp-pl-pagar { background: var(--mp-primary); color: #fff; }
+.mp-pl-subir { border: 2px dashed var(--mp-primary); color: var(--text); background: var(--surface); }
+.mp-pl-subir.cargando { opacity: .6; cursor: progress; }
+.mp-comprobante { display: grid; grid-template-columns: 72px 1fr; gap: 12px; align-items: center; padding: 10px; border-radius: 16px; border: 2px solid #1E9E5A; background: #EAF8F0; color: #0F4D2C; text-decoration: none; font-size: 14px; line-height: 1.4; }
+.mp-comprobante img { width: 72px; height: 72px; object-fit: cover; border-radius: 10px; background: #fff; }

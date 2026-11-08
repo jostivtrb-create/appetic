@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { cuentasCliente } from '../../utils/cuentasDinero'
+import { cuentasCliente, linkDeCuenta } from '../../utils/cuentasDinero'
 import { useCart } from '../../contexts/CartContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { cop } from '../../utils/money'
@@ -118,6 +118,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
   const costoEnvio = entrega === 'domicilio' && domicilio?.ok ? (envioServidor ?? domicilio.costo) : 0
   const total = subtotal + costoEnvio
   const pago = pagosCliente.find(p => p.id === pagoId)
+  const linkPago = linkDeCuenta(local, pagoId)
   const cashNum = Number(String(cash).replace(/\D/g, '')) || 0
 
   // 🛵 Si la ubicación FALLA (permiso denegado o error), no bloqueamos el pedido:
@@ -263,7 +264,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
     // 🍔 En la demo NO se abre WhatsApp: se muestra cómo le llega el mensaje al restaurante.
     const wa = local.esDemo ? { url: '', abierto: true } : abrirPedidoWhatsApp(local, pedido)
     clear()
-    setExito({ url: wa.url, waAbierto: wa.abierto, codigo, miPedido: `/p/${local.slug}/${id}`, chat: local.esDemo ? textoPedido(local, pedido) : '' })
+    setExito({ url: wa.url, waAbierto: wa.abierto, codigo, miPedido: `/p/${local.slug}/${id}`, linkPago, total: pedido.total, chat: local.esDemo ? textoPedido(local, pedido) : '' })
     avisarDemo('pedido-app')
     enviandoRef.current = false
     setEnviando(false)
@@ -276,6 +277,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
         <h2>¡Pedido enviado!</h2>
         <p>Así le llega tu pedido al WhatsApp del restaurante, completo y ordenado:</p>
         <ChatWhatsApp nombre={local.nombre} foto={local.icono || local.logo} texto={exito.chat} />
+        {exito.linkPago && <PagarConLink link={exito.linkPago} total={exito.total} miPedido={exito.miPedido} />}
         {exito.miPedido && (
           <Link className="btn btn-primary co-exito-seguir" to={exito.miPedido} onClick={() => avisarDemo('mi-pedido')}>📍 Ver en qué va mi pedido</Link>
         )}
@@ -291,6 +293,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
         {exito.codigo && (
           <p className="co-exito-codigo">Tu código de pedido: <strong>{exito.codigo}</strong></p>
         )}
+        {exito.linkPago && <PagarConLink link={exito.linkPago} total={exito.total} miPedido={exito.miPedido} />}
         {exito.waAbierto ? (
           <p>Abrimos WhatsApp con tu pedido listo. Solo dale enviar al chat de <strong>{local.nombre}</strong> para confirmar.</p>
         ) : (
@@ -410,6 +413,9 @@ export default function Checkout({ local, onClose, abierto = true }) {
               <input type="radio" name="pago" checked={pagoId === p.id} onChange={() => setPagoId(p.id)} />
             </label>
           ))}
+          {linkPago && (
+            <p className="co-pago-link">🔗 Al enviar el pedido te damos el botón para <b>pagar con el link de {local.nombre}</b> y subir la foto del comprobante.</p>
+          )}
           {pago?.tipo === 'efectivo' && (
             <div className="co-cash">
               <input
@@ -478,6 +484,17 @@ export default function Checkout({ local, onClose, abierto = true }) {
             : `Enviar por WhatsApp · ${cop(total)}${domicilioAConvenir ? ' (sin domicilio)' : ''}`}
         </button>
       </footer>
+    </div>
+  )
+}
+
+// 🔗 El negocio cobra con su propio link (Bold, Wompi…): se paga ahí y el comprobante se sube en «Mi pedido».
+function PagarConLink({ link, total, miPedido }) {
+  return (
+    <div className="co-pagar-link">
+      <b>Paga {total ? cop(total) : 'tu pedido'} con el link del local</b>
+      <a className="btn btn-primary" href={link} target="_blank" rel="noopener noreferrer">💳 Pagar ahora</a>
+      <small>Después sube la foto del comprobante en <Link to={miPedido}>«Mi pedido»</Link>.</small>
     </div>
   )
 }

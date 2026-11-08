@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TIPOS_CUENTA, cuentasDe, emojiCuenta, idCuentaNueva } from '../../utils/cuentasDinero'
+import { TIPOS_CUENTA, cuentasDe, emojiCuenta, idCuentaNueva, linkPagoValido } from '../../utils/cuentasDinero'
 import { tiene } from '../../utils/plan'
 import { Candado } from './PlanAvisos'
 import './ConfigPagos.css'
@@ -32,14 +32,16 @@ export default function ConfigPagos({ local, onUpdate }) {
   }
 
   const sinNombre = lista.some(c => !c.nombre.trim())
+  const linkMalo = lista.some(c => c.tipo !== 'efectivo' && c.link?.trim() && !linkPagoValido(c.link))
   const ningunaCliente = !lista.some(c => c.alCliente)
   async function guardar() {
-    if (sinNombre || ningunaCliente) return
+    if (sinNombre || ningunaCliente || linkMalo) return
     setEstado('guardando')
     try {
       const pagos = lista.map(c => ({
         id: c.id, nombre: c.nombre.trim(), tipo: c.tipo, alCliente: c.alCliente !== false,
         ...(c.llave?.trim() ? { llave: c.llave.trim() } : {}),
+        ...(c.tipo !== 'efectivo' && c.link?.trim() ? { link: c.link.trim() } : {}),
       }))
       await onUpdate({ pagos, usaCocina: cocina })
       setEstado('ok')
@@ -65,6 +67,13 @@ export default function ConfigPagos({ local, onUpdate }) {
                     <input aria-label="Número o llave" placeholder="Número o llave (opcional)" value={c.llave || ''} maxLength={40} onChange={e => cambiar(c.id, { llave: e.target.value })} />
                   )}
                 </div>
+                {c.tipo !== 'efectivo' && (
+                  <div className="cp-link">
+                    <input aria-label={`Link de pago de ${c.nombre || 'la cuenta'}`} type="url" inputMode="url" placeholder="🔗 Link de pago (opcional): https://…" value={c.link || ''} maxLength={300}
+                      className={c.link?.trim() && !linkPagoValido(c.link) ? 'mal' : ''} onChange={e => cambiar(c.id, { link: e.target.value })} />
+                    {c.link?.trim() && !linkPagoValido(c.link) && <small className="cp-link-mal">Pega el link completo, que empiece por https://</small>}
+                  </div>
+                )}
                 <label className="cp-check">
                   <input type="checkbox" checked={c.alCliente} onChange={e => cambiar(c.id, { alCliente: e.target.checked })} />
                   👁 El cliente la ve al pedir
@@ -87,6 +96,7 @@ export default function ConfigPagos({ local, onUpdate }) {
           </select>
           <button className="btn btn-ghost" disabled={!nueva.nombre.trim()}>＋ Agregar</button>
         </form>
+        <p className="cp-nota">🔗 <b>Link de pago:</b> si tienes uno (Bold, Wompi, Mercado Pago, tu banco…), pégalo en la cuenta. Cuando el cliente la escoja, le sale el botón para pagar con tu link y subir la foto del comprobante; tú la ves en el pedido antes de confirmarlo.</p>
         <p className="cp-nota">La primera de la lista sale marcada cuando el cliente pide. Las cuentas que ya tienen ventas no se pueden borrar (su historia quedaría sin nombre): si ya no la usas, quítale el 👁.</p>
       </section>
 
@@ -101,7 +111,8 @@ export default function ConfigPagos({ local, onUpdate }) {
       <div className="cp-guardar">
         {sinNombre && <p className="cp-aviso">Ponle nombre a todas las cuentas.</p>}
         {ningunaCliente && <p className="cp-aviso">Deja al menos una cuenta que el cliente vea al pedir.</p>}
-        <button className="btn btn-primary" disabled={estado === 'guardando' || sinNombre || ningunaCliente} onClick={guardar}>
+        {linkMalo && <p className="cp-aviso">Revisa los links de pago: deben empezar por https://</p>}
+        <button className="btn btn-primary" disabled={estado === 'guardando' || sinNombre || ningunaCliente || linkMalo} onClick={guardar}>
           {estado === 'guardando' ? 'Guardando…' : estado === 'ok' ? '✓ Guardado' : 'Guardar cambios'}
         </button>
         {estado === 'error' && <p className="cp-aviso">No se pudo guardar. Revisa el internet.</p>}

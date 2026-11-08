@@ -4,7 +4,11 @@
 // la vez un medio de pago (lo que escoge el cliente o el cajero) y un bolsillo con saldo (lo que
 // ve el dueño en Cuentas). El dueño crea las que quiera: Efectivo, Nequi, Bold, Daviplata, el banco…
 //
-//   { id, nombre, tipo: 'efectivo' | 'transferencia' | 'datafono' | 'otro', llave?, alCliente }
+//   { id, nombre, tipo: 'efectivo' | 'transferencia' | 'datafono' | 'otro', llave?, link?, alCliente }
+//
+// `link`: el link de pago del propio negocio (Bold, Wompi, Mercado Pago, su banco…). Si el cliente
+// escoge esa cuenta, en «Mi pedido» le sale «Pagar» con ese link y «Subir comprobante». Appetic no
+// toca la plata: cada negocio pone el link que quiera.
 //
 // `alCliente` (por defecto sí): si sale en el checkout del cliente. Una cuenta «Banco» donde se
 // consigna puede existir solo para el dueño. Los SALDOS no viven aquí (el documento del local es
@@ -50,4 +54,14 @@ export function idCuentaNueva(nombre, existentes) {
 export const cuentasParaPagar = local => {
   const l = cuentasDe(local).filter(c => c.tipo !== 'datafono')
   return l.length ? l : cuentasDe(local)
+}
+
+// ¿Es un link de pago que se puede abrir? Solo https y sin espacios (lo pega el dueño).
+export const linkPagoValido = url => /^https:\/\/[^\s]{4,300}$/.test(String(url || '').trim())
+
+// El link de pago de una cuenta (o '' si no tiene). Lo usan el servidor y el motor demo al crear el
+// pedido: el link sale del documento del local, nunca de lo que mande el navegador.
+export function linkDeCuenta(local, id) {
+  const c = cuentasDe(local).find(x => x.id === id)
+  return c && c.tipo !== 'efectivo' && linkPagoValido(c.link) ? String(c.link).trim() : ''
 }

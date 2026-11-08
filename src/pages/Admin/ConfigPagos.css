@@ -27,3 +27,8 @@
 .cp-switch small { display: block; font-size: 13.5px; color: var(--text-soft); line-height: 1.45; margin-top: 2px; }
 .cp-guardar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
 .cp-aviso { font-size: 13.5px; font-weight: 700; color: #8A5300; }
+/* 🔗 Link de pago del negocio (Bold, Wompi…): el cliente paga ahí y sube el comprobante. */
+.cp-link { display: grid; gap: 3px; }
+.cp-link input { font: inherit; font-size: 14px; padding: 9px 11px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); min-width: 0; width: 100%; }
+.cp-link input.mal { border-color: #D97706; }
+.cp-link-mal { font-size: 12px; font-weight: 700; color: #8A5300; }

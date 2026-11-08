@@ -217,7 +217,9 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
   - **Datos y reglas:** `horarios/semana`; lo lee el equipo activo y lo escribe el dueño.
   - **Ojo:** primero se creó por error `utils/turnos.js`, que pisó el de los turnos del TV. Se restauró con git y el horario quedó en `utils/horarioSemana.js` y `services/horarioSemana.js`.
 - [x] C3 · Inventario con recetas y proveedores (D13 y paso 4 de la guía de Loggro). Publicado el 7-nov.
-- [ ] C4 · Cobro en línea y datáfono (pasos 5 a 7 de Loggro), solo si las empresas de pagos dejan conectarse.
+- [x] C4a · **Cobro con el link de pago del negocio** (8-nov, pedido del usuario: «cada local pone su link y se envía un comprobante, simple»). Cada cuenta de Cuentas y pagos lleva su link (Bold, Wompi…); el cliente paga ahí y sube la foto del comprobante en «Mi pedido» (`api/comprobante.js`, Storage `comprobantes/`, solo por URL con token); el local la ve antes de confirmar y el domiciliario sabe que no cobra.
+- [ ] C4b · **Cobrar la SUSCRIPCIÓN de Appetic con Wompi (pendiente)**: el usuario aún no tiene cuenta. Plan: cuenta «Independiente» en comercios.wompi.co (cédula, RUT, Bancolombia >30 días o Nequi); fuentes de pago (tarjeta/Nequi) + cobro mensual desde nuestro servidor; llaves en Vercel las pone el usuario. Comisión ≈ 2,65 % + $700 + IVA.
+- [ ] C4c · Datáfono: confirmar qué proveedores dejan conectarse.
 
 ---
 

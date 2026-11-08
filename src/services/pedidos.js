@@ -22,6 +22,7 @@ import { db } from '../config/firebase'
 import { registrarPedidoStats } from './stats'
 import { armarPedido, publicoDe, primerNombre } from '../utils/pedidoDoc.js'
 import { escucharConReintento } from './comandas'
+import { fotoComprobante, enviarComprobante } from './comprobante'
 
 // Los pedidos se auto-borran a los 2 días (política TTL de Firestore sobre `ttl`).
 const DIAS_VIDA = 2
@@ -199,6 +200,10 @@ function firestoreApi(localId) {
         { items: publicoDe({ items }).items, subtotal, total })
       return { antes: p.total || 0, ahora: total, pedido: { id: snap.id, ...p, items, subtotal, total } }
     },
+    // El cliente sube la foto del comprobante (pago con el link del negocio). Va por el servidor.
+    async subirComprobante(id, file) {
+      await enviarComprobante(localId, id, await fotoComprobante(file))
+    },
     async getPedido(id) {
       const s = await getDoc(doc(col(), id))
       return s.exists() ? { id: s.id, ...s.data() } : null
@@ -231,6 +236,10 @@ function demoApi(localId) {
     },
     escucharPublico(id, cb) { return suscribir(() => { const p = uno(id); return p ? { id, ...publicoDe(p), createdAt: ts(p.createdAt) } : null }, cb) },
     escucharPedido(id, cb) { return suscribir(() => { const p = uno(id); return p ? hidratar(p) : null }, cb) },
+    async subirComprobante(id, file) {
+      const foto = await fotoComprobante(file, { demo: true })
+      cambiar(id, p => ({ ...p, comprobanteUrl: foto, comprobanteEn: Date.now(), comprobanteVeces: (p.comprobanteVeces || 0) + 1 }))
+    },
     escucharDomicilios(cb) { return suscribir(() => leer().filter(p => p.entrega === 'domicilio' && ESTADOS_VIVOS_DOMICILIO.includes(p.estado)).sort((a, b) => a.createdAt - b.createdAt).map(hidratar), cb) },
     escucharEntregados(cb) { return suscribir(() => leer().filter(p => p.entrega === 'domicilio' && p.estado === 'entregado').sort((a, b) => b.actualizadoEn - a.actualizadoEn).slice(0, 10).map(hidratar), cb) },
     async confirmar(id, por, { sinCocina = false } = {}) {

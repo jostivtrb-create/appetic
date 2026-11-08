@@ -9,6 +9,7 @@ export const LIMITES = {
   pedidoCelular: { max: 5, minutos: 10 },
   solicitud: { max: 10, minutos: 60 },     // cotizaciones de la propuesta web (/api/solicitud), por conexión
   archivo: { max: 40, minutos: 60 },       // archivos de la carta/logo (/api/solicitud-archivo), por conexión
+  comprobante: { max: 8, minutos: 30 },    // fotos de comprobantes de pago (/api/comprobante), por conexión
 }
 
 const hash = t => createHash('sha256').update(String(t)).digest('hex').slice(0, 40)

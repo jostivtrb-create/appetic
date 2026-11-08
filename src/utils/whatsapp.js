@@ -113,6 +113,8 @@ export function textoPedido(local, pedido) {
   } else if (pago?.llave) {
     pagoTxt = `${pago.nombre}`
   }
+  // Paga con el link del negocio: el comprobante lo sube en «Mi pedido».
+  if (pago?.tipo !== 'efectivo' && pago?.link) pagoTxt += ' (con el link de pago; subo el comprobante en «Mi pedido»)'
   L.push(`\u{1F4B3} *Pago:* ${pagoTxt}`)
 
   // Items

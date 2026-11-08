@@ -202,6 +202,8 @@ function Domicilio({ p, ahora, accion }) {
 // Qué hace el domiciliario con la plata: si pagó por transferencia no se le cobra otra vez.
 function textoCobro(p) {
   const extra = p.domicilioAConvenir ? ' + el domicilio acordado' : ''
+  // Pagó con el link de pago del negocio: no se cobra, salvo que nunca subió el comprobante.
+  if (p.pagoLink) return p.comprobanteUrl ? `pagó con link (🧾 comprobante enviado)${extra ? ': cobrar solo el domicilio acordado' : ''}` : `pagaría con link pero NO subió comprobante: confirma con el local antes de entregar`
   return p.metodoPagoTipo === 'transferencia'
     ? `pagó por ${p.metodoPagoNombre || 'transferencia'}: revisa que llegaron ${cop(p.total)}${extra}`
     : `cobrar ${cop(p.total)}${extra}`

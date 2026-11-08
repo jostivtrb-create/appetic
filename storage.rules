@@ -30,6 +30,12 @@ service firebase.storage {
     // SOLO el servidor (/api/solicitud con firebase-admin, que no pasa por aquí) y las guarda con
     // token de descarga: esas URL con ?token= se abren igual sin pasar por estas reglas. Por el SDK
     // solo las lee el superadmin; desde el cliente nadie escribe.
+    // 🧾 Comprobantes de pago con el link del negocio: los sube SOLO el servidor (/api/comprobante) y
+    // se abren con la URL con token que queda en el pedido privado. Por el SDK nadie los lee ni lista.
+    match /comprobantes/{allPaths=**} {
+      allow read, write: if false;
+    }
+
     match /solicitudes/{allPaths=**} {
       allow read: if request.auth != null && request.auth.token.email == 'jostivtrb@gmail.com';
       allow write: if false;

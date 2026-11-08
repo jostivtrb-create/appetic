@@ -99,12 +99,44 @@ function VistaCliente({ local, pedidoId, demo, user, entrar }) {
         <p className="mp-hola">{p.clienteNombre ? `¡Hola ${p.clienteNombre}!` : '¡Hola!'} Este es tu pedido <b>{p.codigo}</b></p>
         <Pasos pedido={p} />
       </section>
+      {p.pagoLink && p.estado !== 'rechazado' && <PagoConLink pedido={p} subir={file => api.subirComprobante(pedidoId, file)} />}
       <Resumen pedido={p} />
       {/* Por si quien lo abre es del local y no ha iniciado sesión. */}
       {!user && !demo && (
         <button className="mp-soydel" onClick={entrar}>¿Eres del local? Inicia sesión para confirmarlo</button>
       )}
     </>
+  )
+}
+
+// 🔗 Paga con el link del negocio y sube la foto del comprobante (api/comprobante.js).
+function PagoConLink({ pedido, subir }) {
+  const [estado, setEstado] = useState('')   // '' | subiendo | ok | <mensaje de error>
+  const abierto = ['nuevo', 'en-cocina', 'listo', 'en-camino'].includes(pedido.estado)
+  async function elegir(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setEstado('subiendo')
+    try { await subir(file); setEstado('ok') } catch (err) { setEstado(err?.message || 'No se pudo subir. Intenta de nuevo.') }
+  }
+  const enviado = pedido.comprobante || estado === 'ok'
+  return (
+    <section className={`mp-tarjeta mp-pagolink${enviado ? ' enviado' : ''}`}>
+      <h2>💳 Paga con el link del local</h2>
+      {!enviado && <p>Paga <b>{cop(pedido.total)}</b> con el link y luego sube la foto o el pantallazo del comprobante.</p>}
+      {enviado && <p className="mp-pl-ok">✓ Comprobante enviado. El local lo revisa al confirmar tu pedido.</p>}
+      <div className="mp-pl-acc">
+        {!enviado && <a className="mp-pl-pagar" href={pedido.pagoLink} target="_blank" rel="noopener noreferrer">Pagar {cop(pedido.total)}</a>}
+        {abierto && (
+          <label className={`mp-pl-subir${estado === 'subiendo' ? ' cargando' : ''}`}>
+            <input type="file" accept="image/*" onChange={elegir} disabled={estado === 'subiendo'} hidden />
+            {estado === 'subiendo' ? 'Subiendo…' : enviado ? '🔄 Cambiar la foto' : '📎 Subir comprobante'}
+          </label>
+        )}
+      </div>
+      {estado && !['subiendo', 'ok'].includes(estado) && <p className="mp-error">⚠️ {estado}</p>}
+    </section>
   )
 }
 
@@ -227,6 +259,14 @@ export function VistaPersonal({ local, pedidoId, demo, usuario, compacta = false
       </section>
 
       <Resumen pedido={p} />
+      {p.pagoLink && (
+        p.comprobanteUrl
+          ? <a className="mp-comprobante" href={p.comprobanteUrl} target="_blank" rel="noopener noreferrer">
+              <img src={p.comprobanteUrl} alt="Comprobante de pago" loading="lazy" />
+              <span>🧾 Comprobante del pago con link · <b>revisa que llegaron {cop(p.total)}</b> antes de confirmar. Toca para verlo grande.</span>
+            </a>
+          : <p className="mp-vueltas">🔗 Paga con el link de pago · todavía no sube el comprobante.</p>
+      )}
       {p.efectivoCon > 0 && <p className="mp-vueltas">Paga con {cop(p.efectivoCon)} · vueltas {cop(Math.max(0, p.efectivoCon - p.total))}</p>}
 
       {p.estado === 'nuevo' && !hecho && (

@@ -39,7 +39,7 @@ export const PAQUETES = [
       { t: 'Cobro del envío por distancia', d: 'Tú pones la tarifa por tramos.' },
       { t: 'Panel del domiciliario', d: 'Domiciliarios sin límite.' },
       { t: 'Afiche de domicilios y publicidad con IA', d: '' },
-      { t: 'Cobro en línea al pedir', d: 'Tarjeta, PSE o Nequi; la plata llega directo a tu cuenta.' },
+      { t: 'Cobro con tu link de pago', d: 'El cliente paga con tu link (Bold, Wompi…) y sube el comprobante; la plata llega directo a ti.' },
     ],
   },
   {
