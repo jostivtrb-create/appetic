@@ -1,0 +1,93 @@
+/* 🗂️ Catálogo (Configuración → Catálogo): categorías a la izquierda, productos en tarjetas a la
+   derecha (PC); en el celular las categorías son una fila de pastillas encima de los productos. */
+
+.ck { display: grid; gap: 16px; }
+
+/* Barra de arriba: agregar + buscar */
+.ck-barra { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.ck-add { flex: 0 0 auto; margin: 0; width: auto; padding-inline: 22px; }
+.ck-buscar { flex: 1 1 240px; margin: 0; }
+
+.ck-cuerpo { display: grid; gap: 14px; align-items: start; }
+.ck-num { display: inline-grid; place-items: center; min-width: 26px; height: 22px; padding: 0 8px; border-radius: 999px; background: var(--brand-orange); color: #fff; font-size: 12px; font-weight: 800; }
+.ck-num-gris { background: var(--surface-2); color: var(--text-soft); border: 1px solid var(--border); font-weight: 700; }
+
+/* ── Categorías ── */
+.ck-cats { min-width: 0; }
+.ck-cats-cab { display: none; }
+.ck-cats-lista { list-style: none; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; margin: -2px; }
+.ck-cats-lista::-webkit-scrollbar { display: none; }
+.ck-cat {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 12px 6px 6px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text); font: inherit; font-size: 14px;
+  cursor: pointer; white-space: nowrap; transition: background .15s ease, border-color .15s ease;
+}
+.ck-cat-foto { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; flex: none; display: grid; place-items: center; background: var(--surface-2); }
+.ck-cat-foto img { width: 100%; height: 100%; object-fit: cover; }
+.ck-cat-foto i { font-style: normal; font-size: 17px; }
+.ck-cat-nom { font-weight: 700; flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; }
+.ck-cat-n { font-size: 12.5px; font-weight: 800; color: var(--text-soft); }
+.ck-cat.vacia .ck-cat-n { color: var(--text-faint); }
+.ck-cat.on { background: var(--brand-orange-tint); border-color: var(--brand-orange); color: var(--brand-orange-strong, #C05F17); }
+.ck-cat.on .ck-cat-n { color: var(--brand-orange-strong, #C05F17); }
+
+/* ── Productos ── */
+.ck-prods { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 16px; box-shadow: var(--shadow-sm); scroll-margin-top: 90px; }
+.ck-prods-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.ck-prods-cab h3 { font-size: 17px; font-weight: 900; }
+.ck-prods-cab h3 em { font-style: normal; color: var(--brand-orange); }
+.ck-prods-der { display: flex; align-items: center; gap: 8px; }
+.ck-mover { display: inline-flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.ck-mover button { width: 32px; height: 30px; background: var(--surface); font-weight: 800; cursor: pointer; border: 0; }
+.ck-mover button + button { border-left: 1px solid var(--border); }
+.ck-mover button:disabled { opacity: .3; cursor: default; }
+
+.ck-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.ck-prod {
+  display: grid; grid-template-columns: 84px minmax(0, 1fr); grid-template-rows: 1fr auto; gap: 10px 12px;
+  padding: 10px; border-radius: 16px; border: 1px solid var(--border); background: var(--surface);
+  transition: box-shadow .18s ease, transform .18s ease;
+}
+.ck-prod:hover { box-shadow: 0 8px 22px rgba(42, 33, 28, .09); transform: translateY(-1px); }
+.ck-prod-foto { grid-row: span 2; width: 84px; height: 84px; border-radius: 12px; overflow: hidden; background: var(--surface-2); align-self: start; }
+.ck-prod-foto img { width: 100%; height: 100%; object-fit: cover; }
+.ck-prod-info { min-width: 0; display: grid; gap: 2px; align-content: start; }
+.ck-prod-info h4 { font-size: 15px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.ck-prod-precio { font-size: 14px; font-weight: 700; color: var(--text); }
+.ck-prod-cat { font-size: 12px; color: var(--text-faint); font-weight: 700; }
+.ck-prod-acc { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.ck-estado { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; }
+.ck-estado::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.ck-editar { margin-left: auto; padding: 6px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); cursor: pointer; }
+.ck-prod.off .ck-prod-foto, .ck-prod.off .ck-prod-info { opacity: .55; }
+
+.ck-nuevo {
+  display: grid; place-items: center; align-content: center; gap: 4px; min-height: 106px; padding: 12px;
+  border-radius: 16px; border: 2px dashed var(--border); background: transparent; color: var(--text-soft); font: inherit; cursor: pointer;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.ck-nuevo span { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); font-size: 22px; font-weight: 700; }
+.ck-nuevo b { font-size: 14.5px; color: var(--text); }
+.ck-nuevo small { font-size: 12.5px; }
+.ck-nuevo:hover { border-color: var(--brand-orange); color: var(--brand-orange); background: var(--brand-orange-tint); }
+
+/* PC: dos columnas, la lista de categorías fija mientras se baja */
+@media (min-width: 900px) {
+  .ck-cuerpo { grid-template-columns: 250px minmax(0, 1fr); gap: 18px; }
+  .ck-cats { position: sticky; top: 90px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 12px 10px; box-shadow: var(--shadow-sm); max-height: calc(100vh - 110px); overflow-y: auto; }
+  .ck-cats-cab { display: flex; align-items: center; justify-content: space-between; padding: 2px 8px 10px; }
+  .ck-cats-cab b { font-size: 16px; font-weight: 900; }
+  .ck-cats-lista { flex-direction: column; gap: 2px; overflow: visible; margin: 0; padding: 0; }
+  .ck-cat { border-radius: 12px; border: 0; background: transparent; padding: 7px 10px 7px 7px; }
+  .ck-cat:hover { background: var(--surface-2); }
+  .ck-cat.on { background: var(--brand-orange-tint); box-shadow: inset 3px 0 0 var(--brand-orange); }
+  .ck-cat-foto { width: 34px; height: 34px; border-radius: 10px; }
+  .ck-prods { padding: 18px 20px; }
+}
+
+/* Celular angosto: tarjetas a todo el ancho */
+@media (max-width: 420px) {
+  .ck-add { flex: 1 1 100%; }
+  .ck-grid { grid-template-columns: minmax(0, 1fr); }
+  .ck-prods { padding: 12px; }
+}

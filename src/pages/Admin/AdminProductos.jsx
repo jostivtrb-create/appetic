@@ -4,35 +4,28 @@ import { copRango, rangoPrecio } from '../../utils/money'
 import ImagenApp from '../../components/Imagen/ImagenApp'
 import { construirPromptImagenIA } from '../../utils/promptIA'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
+import './Catalogo.css'
 
+// 🗂️ CATÁLOGO (Configuración → Catálogo), ordenado como un panel profesional (pedido del usuario, 8-nov):
+//   arriba «Agregar producto» y el buscador; a la izquierda la lista de CATEGORÍAS (foto, nombre y
+//   cuántos productos tiene); a la derecha los PRODUCTOS de la categoría elegida en tarjetas, con sus
+//   mismos botones de siempre (Disponible/Agotado y Editar) y una tarjeta para agregar uno ahí mismo.
+//   En el celular las categorías pasan a ser una fila de pastillas que se desliza.
+//   Al buscar, la derecha muestra lo que coincide de TODAS las categorías.
 export default function AdminProductos({ local, slug, productos, onAdd, onUpdate, onDelete, onFoto, onFotoOpcion, onAddCategoria, onReorderCategorias }) {
   const [editando, setEditando] = useState(null) // producto o { nuevo:true }
-  const [menuCatOrden, setMenuCatOrden] = useState(null) // id de la categoría con el menú Subir/Bajar abierto
-  const [expandidas, setExpandidas] = useState(() => new Set()) // ids desplegadas (por defecto: todas minimizadas)
+  const [sel, setSel] = useState(null)           // id de la categoría elegida (null = la primera)
   const [query, setQuery] = useState('')
-
-  function toggleCategoria(id) {
-    setExpandidas(prev => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
-      return next
-    })
-  }
-
   const categorias = local.categorias || []
 
-  // 🖥️ La barra lateral (PC) lleva a …/catalogo#cat-<id>: esa categoría se
-  // despliega y la pantalla baja hasta ella. Se limpia la búsqueda para que
-  // no quede escondida por un filtro viejo.
+  // 🖥️ La barra lateral (PC) lleva a …/catalogo#cat-<id>: se elige esa categoría y se limpia la
+  // búsqueda para que no la esconda un filtro viejo.
   const { hash, key: navKey } = useLocation()
   useEffect(() => {
     if (!hash.startsWith('#cat-')) return
-    const id = decodeURIComponent(hash.slice(5))
     setQuery('')
-    setExpandidas(prev => (prev.has(id) ? prev : new Set(prev).add(id)))
-    requestAnimationFrame(() => {
-      document.getElementById(`cat-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
+    setSel(decodeURIComponent(hash.slice(5)))
+    requestAnimationFrame(() => document.getElementById('ck-productos')?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }, [hash, navKey]) // navKey: tocar otra vez la misma categoría vuelve a bajar
 
   function moverCategoria(i, dir) {
@@ -46,133 +39,117 @@ export default function AdminProductos({ local, slug, productos, onAdd, onUpdate
   // 🔎 Buscador: filtra por nombre o descripción (igual que en el menú).
   const q = query.trim().toLowerCase()
   const buscando = q.length > 0
-  const productosFiltrados = useMemo(() => {
-    if (!buscando) return productos
-    return productos.filter(p =>
-      p.nombre.toLowerCase().includes(q) ||
-      (p.descripcion || '').toLowerCase().includes(q)
-    )
-  }, [buscando, q, productos])
+  const encontrados = useMemo(() => (!buscando ? [] : productos.filter(p =>
+    p.nombre.toLowerCase().includes(q) || (p.descripcion || '').toLowerCase().includes(q))), [buscando, q, productos])
 
-  // 🗂️ Agrupados por categoría en el MISMO orden del menú. Los productos cuya
-  // categoría ya no existe (o que no tienen) caen al final en "Sin categoría".
+  // Las categorías en el MISMO orden del menú, con sus productos. Los que no tienen categoría (o
+  // la suya ya no existe) van al final en «Sin categoría». Se listan también las vacías: así se ve
+  // dónde falta montar productos.
   const grupos = useMemo(() => {
-    const secciones = categorias
-      .map(cat => ({ cat, items: productosFiltrados.filter(p => p.categoria === cat.id) }))
-      .filter(g => g.items.length > 0)
-    const idsValidos = new Set(categorias.map(c => c.id))
-    const sueltos = productosFiltrados.filter(p => !idsValidos.has(p.categoria))
-    if (sueltos.length) secciones.push({ cat: { id: '__sin__', nombre: 'Sin categoría' }, items: sueltos })
-    return secciones
-  }, [categorias, productosFiltrados])
+    const l = categorias.map(cat => ({ cat, items: productos.filter(p => p.categoria === cat.id) }))
+    const ids = new Set(categorias.map(c => c.id))
+    const sueltos = productos.filter(p => !ids.has(p.categoria))
+    if (sueltos.length) l.push({ cat: { id: '__sin__', nombre: 'Sin categoría' }, items: sueltos })
+    return l
+  }, [categorias, productos])
+  const actual = grupos.find(g => g.cat.id === sel) || grupos.find(g => g.items.length) || grupos[0]
+  const idx = actual ? categorias.findIndex(c => c.id === actual.cat.id) : -1
+  const reordenable = onReorderCategorias && categorias.length > 1 && idx >= 0
+  const nombreCat = id => categorias.find(c => c.id === id)?.nombre || 'Sin categoría'
+  const lista = buscando ? encontrados : (actual?.items || [])
+  const nuevo = categoria => setEditando({ nuevo: true, categoria: categoria && categoria !== '__sin__' ? categoria : categorias[0]?.id })
 
   return (
-    <div className="ap">
-      <button className="btn btn-primary ap-add" onClick={() => setEditando({ nuevo: true, categoria: categorias[0]?.id })}>
-        + Agregar producto
-      </button>
+    <div className="ap ck">
+      <div className="ck-barra">
+        <button className="btn btn-primary ck-add" onClick={() => nuevo(actual?.cat.id)}>+ Agregar producto</button>
+        {productos.length > 0 && (
+          <div className="ap-buscar ck-buscar">
+            <svg className="ap-buscar-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
+              <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <input type="search" className="ap-buscar-input" value={query} onChange={e => setQuery(e.target.value)}
+              placeholder="Buscar producto…" aria-label="Buscar producto" />
+            {query && <button className="ap-buscar-clear" onClick={() => setQuery('')} aria-label="Limpiar búsqueda">✕</button>}
+          </div>
+        )}
+      </div>
 
-      {productos.length > 0 && (
-        <div className="ap-buscar">
-          <svg className="ap-buscar-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
-            <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-          <input
-            type="search"
-            className="ap-buscar-input"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Buscar producto…"
-            aria-label="Buscar producto"
-          />
-          {query && (
-            <button className="ap-buscar-clear" onClick={() => setQuery('')} aria-label="Limpiar búsqueda">✕</button>
-          )}
-        </div>
-      )}
+      {productos.length === 0 && !categorias.length
+        ? <p className="ap-vacio">Aún no hay productos. Agrega el primero.</p>
+        : (
+          <div className="ck-cuerpo">
+            {/* ── Categorías ── */}
+            <aside className="ck-cats" aria-label="Categorías">
+              <header className="ck-cats-cab"><b>Categorías</b><span className="ck-num">{grupos.length}</span></header>
+              <ul className="ck-cats-lista">
+                {grupos.map(({ cat, items }) => {
+                  const foto = items.find(p => p.foto)?.foto
+                  const on = !buscando && actual?.cat.id === cat.id
+                  return (
+                    <li key={cat.id}>
+                      <button id={`cat-${cat.id}`} className={`ck-cat${on ? ' on' : ''}${items.length ? '' : ' vacia'}`}
+                        onClick={() => { setSel(cat.id); setQuery('') }} aria-current={on ? 'true' : undefined}>
+                        <span className="ck-cat-foto" aria-hidden="true">
+                          {foto ? <ImagenApp className="ap-item-foto-img" src={foto} alt="" /> : <i>{cat.emoji || '🍽️'}</i>}
+                        </span>
+                        <span className="ck-cat-nom">{cat.nombre}</span>
+                        <span className="ck-cat-n">{items.length}</span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </aside>
 
-      {productos.length === 0 && <p className="ap-vacio">Aún no hay productos. Agrega el primero.</p>}
+            {/* ── Productos ── */}
+            <section id="ck-productos" className="ck-prods">
+              <header className="ck-prods-cab">
+                <h3>{buscando ? <>Resultados para <em>“{query.trim()}”</em></> : <>Productos de <em>{actual?.cat.nombre}</em></>}</h3>
+                <div className="ck-prods-der">
+                  {!buscando && reordenable && (
+                    <span className="ck-mover" role="group" aria-label="Mover la categoría en el menú">
+                      <button disabled={idx === 0} onClick={() => moverCategoria(idx, -1)} title="Subir la categoría en el menú">↑</button>
+                      <button disabled={idx === categorias.length - 1} onClick={() => moverCategoria(idx, 1)} title="Bajar la categoría en el menú">↓</button>
+                    </span>
+                  )}
+                  <span className="ck-num ck-num-gris">{lista.length} {lista.length === 1 ? 'producto' : 'productos'}</span>
+                </div>
+              </header>
 
-      {productos.length > 0 && grupos.length === 0 && (
-        <p className="ap-vacio">No encontramos “<strong>{query}</strong>”.</p>
-      )}
-
-      {grupos.map(({ cat, items }) => {
-        // Índice real de la categoría (para Subir/Bajar). "Sin categoría" (__sin__)
-        // no es una categoría de verdad: no se puede reordenar.
-        const idx = categorias.findIndex(c => c.id === cat.id)
-        const reordenable = onReorderCategorias && categorias.length > 1 && idx >= 0
-        // Por defecto minimizada; se despliega si está en `expandidas`. Al buscar,
-        // se ignora el minimizado para no esconder resultados.
-        const colapsada = !expandidas.has(cat.id) && !buscando
-        return (
-        <section key={cat.id} id={`cat-${cat.id}`} className="ap-grupo-cat">
-          <div className="ap-grupo-cat-head">
-            <button
-              className="ap-grupo-cat-title"
-              onClick={() => toggleCategoria(cat.id)}
-              aria-expanded={!colapsada}
-              title={colapsada ? 'Desplegar' : 'Minimizar'}
-            >
-              <span className={`ap-grupo-cat-chevron ${colapsada ? 'col' : ''}`}>⌄</span>
-              {cat.emoji ? `${cat.emoji} ` : ''}{cat.nombre} <span className="ap-grupo-cat-count">· {items.length}</span>
-            </button>
-            {reordenable && (
-              <div className="ap-cat-orden">
-                <button
-                  className="ap-cat-orden-btn"
-                  onClick={() => setMenuCatOrden(menuCatOrden === cat.id ? null : cat.id)}
-                  aria-haspopup="true"
-                  aria-expanded={menuCatOrden === cat.id}
-                  aria-label="Ordenar categoría"
-                >
-                  ⇅
-                </button>
-                {menuCatOrden === cat.id && (
-                  <div className="ap-cat-orden-menu">
-                    {idx > 0 && (
-                      <button onClick={() => { moverCategoria(idx, -1); setMenuCatOrden(null) }}>↑ Subir</button>
-                    )}
-                    {idx < categorias.length - 1 && (
-                      <button onClick={() => { moverCategoria(idx, 1); setMenuCatOrden(null) }}>↓ Bajar</button>
-                    )}
-                  </div>
+              {buscando && !lista.length && <p className="ap-vacio">No encontramos “<strong>{query}</strong>”.</p>}
+              <div className="ck-grid">
+                {lista.map(p => (
+                  <article key={p.id} className={`ck-prod${p.disponible === false ? ' off' : ''}`}>
+                    <div className="ck-prod-foto"><ImagenApp className="ap-item-foto-img" src={p.foto} alt="" /></div>
+                    <div className="ck-prod-info">
+                      <h4>{p.nombre}</h4>
+                      {/* El dueño ve el mismo rango que ve su cliente en el menú. */}
+                      <span className="ck-prod-precio">{(() => { const { min, max } = rangoPrecio(p); return copRango(min, max) })()}</span>
+                      {buscando && <small className="ck-prod-cat">{nombreCat(p.categoria)}</small>}
+                    </div>
+                    <div className="ck-prod-acc">
+                      <button className={`ap-toggle ck-estado ${p.disponible === false ? 'off' : 'on'}`}
+                        onClick={() => onUpdate(p.id, { disponible: p.disponible === false })}
+                        title={p.disponible === false ? 'Agotado: toca para volver a ofrecerlo' : 'Disponible: toca para marcarlo agotado'}>
+                        {p.disponible === false ? 'Agotado' : 'Disponible'}
+                      </button>
+                      <button className="ap-edit ck-editar" onClick={() => { setEditando(p); avisarDemo('editar-producto') }}>Editar</button>
+                    </div>
+                  </article>
+                ))}
+                {!buscando && actual && (
+                  <button className="ck-nuevo" onClick={() => nuevo(actual.cat.id)}>
+                    <span aria-hidden="true">+</span>
+                    <b>Agregar producto</b>
+                    <small>en {actual.cat.nombre}</small>
+                  </button>
                 )}
               </div>
-            )}
+            </section>
           </div>
-          {!colapsada && (
-          <div className="ap-lista">
-            {items.map(p => (
-              <div key={p.id} className={`ap-item ${p.disponible === false ? 'ap-item-off' : ''}`}>
-                <div className="ap-item-foto">
-                  <ImagenApp className="ap-item-foto-img" src={p.foto} alt="" />
-                </div>
-                <div className="ap-item-info">
-                  <h4>{p.nombre}</h4>
-                  <span className="ap-item-precio">
-                    {/* El dueño ve el mismo rango que ve su cliente en el menú. */}
-                    {(() => { const { min, max } = rangoPrecio(p); return copRango(min, max) })()}
-                  </span>
-                </div>
-                <div className="ap-item-actions">
-                  <button
-                    className={`ap-toggle ${p.disponible === false ? 'off' : 'on'}`}
-                    onClick={() => onUpdate(p.id, { disponible: p.disponible === false })}
-                    title={p.disponible === false ? 'Agotado' : 'Disponible'}
-                  >
-                    {p.disponible === false ? 'Agotado' : 'Disponible'}
-                  </button>
-                  <button className="ap-edit" onClick={() => { setEditando(p); avisarDemo('editar-producto') }}>Editar</button>
-                </div>
-              </div>
-            ))}
-          </div>
-          )}
-        </section>
-        )
-      })}
+        )}
 
       {editando && (
         <EditorProducto
