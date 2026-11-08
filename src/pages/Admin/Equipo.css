@@ -59,3 +59,8 @@
 .eq-como-link { display: block; padding: 8px 10px; border-radius: 10px; background: var(--surface, #fff); font-size: 13px; word-break: break-all; }
 .eq-como-acc { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .eq-btn--wa { background: #25D366; border-color: #25D366; color: #fff; }
+
+/* ── Configuración → Equipo con el diseño nuevo (ConfigEquipo.jsx) ── */
+.ceq-tarjeta .eq-cab h2 { font-size: 21px; font-weight: 900; }
+.ceq-tarjeta .eq-cab p { font-size: 14px; color: var(--text-soft); }
+.ceq-tarjeta > * { min-width: 0; }

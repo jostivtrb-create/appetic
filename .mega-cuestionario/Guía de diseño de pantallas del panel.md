@@ -6,7 +6,7 @@
 > páginas de la app»*. Toda pantalla nueva o que se rehaga sigue esto.
 
 - **Inicio:** 2026-11-08
-- **Estado:** 🔵 Replicando en Configuración (ver §7)
+- **Estado:** ✅ Configuración completa (8-nov). Siguiente: las demás secciones del panel (Caja, Cuentas, Inventario, Mesero, Cocina, Domicilios, Difundir) cuando el usuario diga.
 
 ---
 
@@ -139,10 +139,13 @@ principal ocupa todo el ancho y los filtros van de a dos.
 | Configuración → Apariencia | ✅ 8-nov | Mismo componente (`AdminConfig`). Portada grande + adorno en el hero; animación del logo como lista de opciones al lado de la muestra en vivo. |
 | Configuración → Impresora | ✅ 8-nov | Sin lista (es corta): interruptor en el hero; «Qué se imprime» y «Cómo se ve el ticket» lado a lado. Apagada → estado vacío con botón. |
 | Configuración → Menú en Pantalla | ✅ 8-nov | El link del TV va en el hero (Copiar / Abrir). Lado: Vista · Transición · Categorías · Pedidos listos · Anuncios. Los anuncios en tarjetas y su editor en `Ventana`. |
-| Configuración → Equipo | 🔵 siguiente | |
-| Configuración → Mi plan | ⏳ | |
+| Configuración → Equipo | ✅ 8-nov | Página nueva `ConfigEquipo.jsx`: roles a la izquierda (con candado si el plan no lo trae), la gente del rol a la derecha (`EquipoEnLinea`, sin cambios). |
+| Configuración → Mi plan | ✅ 8-nov | Sin lista: precio y estado en el hero (tarjeta «Pagas»); paquetes en cuadrícula verde «✓ Lo tienes» / «＋ Agregarlo». |
 
 ---
+
+### Lección de esta ronda
+- Varias páginas viejas traían su propio `max-width` (`.pl-mio { max-width: 620px }`, `.cmd { max-width: 760px }`, `.ac` en columnas). Al rehacer una, **anular ese límite** en su clase nueva (`.pl-mio.pl2 { max-width: none }`) o el contenido queda en una columna angosta.
 
 ## 8. Cómo encender una pantalla rehecha
 

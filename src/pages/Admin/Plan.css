@@ -192,3 +192,23 @@
 .pl-paquetes strong { display: block; font-size: 15px; }
 .pl-paquetes small { display: block; font-size: 12.5px; color: var(--text-soft); }
 .pl-paquetes em { font-style: normal; font-size: 12px; font-weight: 800; color: #1B7A43; white-space: nowrap; }
+
+/* ── Configuración → Mi plan con el diseño nuevo (guía «Diseño de pantallas del panel», 8-nov) ── */
+.pl-mio.pl2 { display: block; max-width: none; }
+.pl2-precio { display: grid; gap: 4px; justify-items: start; padding: 16px 20px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm); min-width: 260px; }
+.pl2-precio small { font-size: 12px; font-weight: 800; color: var(--text-faint); text-transform: uppercase; letter-spacing: .05em; }
+.pl2-precio b { font-size: 30px; font-weight: 900; line-height: 1.1; }
+.pl2-precio b span { font-size: 15px; font-weight: 700; color: var(--text-soft); }
+.pl2-precio em { font-style: normal; font-size: 13.5px; color: var(--text-soft); }
+.pl2-precio .btn { margin-top: 8px; }
+@media (max-width: 1023px) { .pl2 .pp-hero { flex-wrap: wrap; } .pl2 .pp-hero-der { flex-basis: 100%; } .pl2-precio { min-width: 0; } }
+.pl2-aviso { margin-bottom: 16px; font-size: 14px; color: #2D5BA8; background: #EAF1FF; border: 1px solid #CFDDF7; border-radius: 14px; padding: 10px 14px; }
+.pl2-paq { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: 1fr auto; gap: 10px 12px; padding: 14px; border-radius: 18px; border: 1px solid var(--border); background: var(--surface); }
+.pl2-paq.si { border-color: #C9EBD7; background: #F3FBF6; }
+.pl2-paq-ico { grid-row: span 2; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 14px; background: var(--surface-2); font-size: 26px; }
+.pl2-paq.si .pl2-paq-ico { background: #E2F5EA; }
+.pl2-paq-txt { display: grid; gap: 3px; }
+.pl2-paq-txt strong { font-size: 16px; }
+.pl2-paq-txt small { font-size: 13px; color: var(--text-soft); line-height: 1.4; }
+.pl2-tiene { justify-self: start; font-size: 13px; font-weight: 800; color: #1E8A4C; background: #E2F5EA; padding: 6px 12px; border-radius: 999px; }
+.pl2-paq .pp-btn { justify-self: start; }

@@ -27,12 +27,12 @@ import AdminCuentas from './AdminCuentas'
 import AdminInventario from './AdminInventario'
 import { HorarioEquipo } from './Horario'
 import ConfigPagos from './ConfigPagos'
+import ConfigEquipo from './ConfigEquipo'
 import ConfigImpresora from './ConfigImpresora'
 import ConfigPantalla from './ConfigPantalla'
 import ConfigMenuDelDia from './ConfigMenuDelDia'
 import AdminDomicilios from './AdminDomicilios'
 import AdminAjustes from './AdminAjustes'
-import { EquipoEnLinea } from './AdminEquipo'
 import { useNavUI } from '../../contexts/NavUIContext'
 import PanelMenuBoton, { usePuedePanel } from '../../components/BottomNav/PanelMenuBoton'
 import { Candado, AvisoPago, PanelApagado, MiPlan } from './PlanAvisos'
@@ -532,12 +532,7 @@ export default function AdminPage() {
             <AdminAjustes slug={slug} sub={sub} conMenu={!tieneBarra} catalogoPropio={!local.menuExterno}>
               {vista => vista === 'catalogo' ? catalogo
                 : vista === 'equipo' ? (
-                  <div className="aj-equipo">
-                    {/* 📦 Solo los roles que traen sus paquetes; los otros, con candado (cada uno su paquete). */}
-                    {['cajero', 'mesero', 'cocina', 'domiciliario'].map(rol => rolPermitido(local, rol)
-                      ? <EquipoEnLinea key={rol} local={local} rol={rol} demo={demo} />
-                      : <Candado key={rol} local={local} funcion={rol} compacto titulo={{ cajero: 'Los cajeros', mesero: 'Los meseros', cocina: 'La pantalla de cocina', domiciliario: 'Los domiciliarios' }[rol]} />)}
-                  </div>
+                  <ConfigEquipo local={local} demo={demo} />
                 )
                 : vista === 'pagos' ? <ConfigPagos local={local} onUpdate={updateLocal} />
                 : vista === 'impresora' ? <ConfigImpresora local={local} onUpdate={updateLocal} />

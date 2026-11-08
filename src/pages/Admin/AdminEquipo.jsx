@@ -3,7 +3,7 @@ import { equipoDe, esCorreo } from '../../services/equipo'
 import { urlWhatsApp } from '../../utils/whatsapp'
 import './Equipo.css'
 
-const TEXTOS = {
+export const TEXTOS_EQUIPO = {
   mesero: { icono: '🧑‍🍳', titulo: 'Meseros', uno: 'mesero', boton: '👥 Meseros', ayuda: 'Entran con su correo de Google y solo ven la pantalla de Mesero.' },
   cocina: { icono: '🍳', titulo: 'Cocina', uno: 'cocina', boton: '👥 Cocina', ayuda: 'Cada tablet o celular de cocina entra con un correo de Google y solo ve la pantalla de Cocina.' },
   domiciliario: { icono: '🛵', titulo: 'Domiciliarios', uno: 'domiciliario', boton: '👥 Domiciliarios', ayuda: 'Entran con su correo de Google y solo ven el panel de Domicilios.' },
@@ -14,7 +14,7 @@ const TEXTOS = {
 // agregar por correo, ver los activos, desactivar/reactivar y eliminar.
 export default function AdminEquipo({ local, rol, demo }) {
   const [abierto, setAbierto] = useState(false)
-  const t = TEXTOS[rol]
+  const t = TEXTOS_EQUIPO[rol]
   return (
     <>
       <button className="eq-abrir" onClick={() => setAbierto(true)}>{t.boton}</button>
@@ -29,7 +29,7 @@ export function EquipoEnLinea({ local, rol, demo }) {
 }
 
 function VentanaEquipo({ local, rol, demo, onCerrar, inline = false }) {
-  const t = TEXTOS[rol]
+  const t = TEXTOS_EQUIPO[rol]
   const api = useMemo(() => equipoDe(local.id, { demo }), [local.id, demo])
   const [lista, setLista] = useState(null)
   const [correo, setCorreo] = useState('')
@@ -119,7 +119,7 @@ function VentanaEquipo({ local, rol, demo, onCerrar, inline = false }) {
 // cliente) y que entre con Google usando el MISMO correo que se agregó aquí.
 function ComoEntra({ local, rol, recien }) {
   const [copiado, setCopiado] = useState(false)
-  const t = TEXTOS[rol]
+  const t = TEXTOS_EQUIPO[rol]
   const link = `${window.location.origin}/${local.slug}/admin`
   const pantalla = { mesero: 'tomar pedidos', cocina: 'ver las comandas', domiciliario: 'ver los domicilios', cajero: 'vender y cobrar' }[rol] || 'trabajar'
   const mensaje = `¡Hola! Ya quedaste como ${t.uno} de ${local.nombre} en Appetic 🧡\n\n` +

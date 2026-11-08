@@ -7,6 +7,7 @@ import {
 } from '../../utils/plan'
 import { cop } from '../../utils/money'
 import { PAQUETES, paquete } from '../../utils/paquetes'
+import { PanelHero, PanelTarjeta } from './PanelPagina'
 import './Plan.css'
 
 // 💳 Lo que el DUEÑO ve de su plan (guía «Planes en la app»):
@@ -126,35 +127,40 @@ export function MiPlan({ local }) {
     gracia: `Venció el ${fechaCorta(p.vence)} · ${p.dias} ${p.dias === 1 ? 'día' : 'días'} de gracia`,
     cortado: 'Apagado',
   }[p.estado]
+  const tono = { cortesia: 'ok', montaje: 'info', 'al-dia': 'ok', 'por-vencer': 'aviso', gracia: 'aviso', cortado: 'aviso' }[p.estado]
+  const aPagar = ['por-vencer', 'gracia', 'montaje'].includes(p.estado)
+  // Diseño nuevo (guía «Diseño de pantallas del panel», 8-nov): el estado y el precio en el encabezado;
+  // los paquetes como tarjetas (los que tienes en verde, los demás con «Agregarlo»).
   return (
-    <div className="pl-mio">
-      <section className={`pl-mio-tarjeta pl-estado--${p.estado}`}>
-        <span className="pl-mio-eyebrow">Tu plan</span>
-        <h3>{nombresPaquetes(mios)}</h3>
-        <p className="pl-mio-precio">{cop(precioMes(local))} <small>/ mes</small></p>
-        <p className="pl-mio-estado">{estadoTxt}</p>
-        {proximos && <p className="ac-hint">Desde tu próximo pago quedas con: {nombresPaquetes(proximos)}.</p>}
-        {['por-vencer', 'gracia', 'montaje'].includes(p.estado) && (
-          <button type="button" className="btn btn-primary" onClick={pagar}>💬 Pagar mi plan</button>
-        )}
-      </section>
+    <div className="pl-mio pl2">
+      <PanelHero icono="💳" titulo="Mi plan" sub="Tu plan de Appetic, hasta cuándo está pago y qué más puedes agregar" chips={[
+        { t: estadoTxt, tono },
+        { t: `${mios.length} ${mios.length === 1 ? 'paquete' : 'paquetes'}` },
+      ]} derecha={
+        <div className={`pl2-precio pl-estado--${p.estado}`}>
+          <small>Pagas</small>
+          <b>{cop(precioMes(local))}<span> / mes</span></b>
+          <em>{nombresPaquetes(mios)}</em>
+          {aPagar && <button type="button" className="btn btn-primary" onClick={pagar}>💬 Pagar mi plan</button>}
+        </div>
+      } />
+      {proximos && <p className="pl2-aviso">📅 Desde tu próximo pago quedas con: <b>{nombresPaquetes(proximos)}</b>.</p>}
 
-      <section className="ac-sec">
-        <h3>Tus paquetes</h3>
-        <ul className="pl-paquetes">
+      <PanelTarjeta icono="📦" titulo="Tus paquetes" sub="Sin contratos: mes a mes. Para agregar o quitar un paquete, o para pagar, escríbenos por WhatsApp.">
+        <div className="pp-grid">
           {PAQUETES.map(pq => {
             const lo = mios.includes(pq.id)
             return (
-              <li key={pq.id} className={lo ? 'si' : 'no'}>
-                <span className="pl-paq-ico" aria-hidden="true">{pq.icono}</span>
-                <div><strong>{pq.nombre}</strong><small>{pq.resumen}</small></div>
-                {lo ? <em>✓ Lo tienes</em> : <button type="button" className="pl-link" onClick={() => pedir(pq)}>Agregarlo</button>}
-              </li>
+              <article key={pq.id} className={`pl2-paq${lo ? ' si' : ''}`}>
+                <span className="pl2-paq-ico" aria-hidden="true">{pq.icono}</span>
+                <div className="pl2-paq-txt"><strong>{pq.nombre}</strong><small>{pq.resumen}</small></div>
+                {lo ? <span className="pl2-tiene">✓ Lo tienes</span>
+                  : <button type="button" className="pp-btn" onClick={() => pedir(pq)}>＋ Agregarlo</button>}
+              </article>
             )
           })}
-        </ul>
-        <p className="ac-hint">Sin contratos: mes a mes. Para agregar o quitar un paquete, o para pagar, escríbenos por WhatsApp.</p>
-      </section>
+        </div>
+      </PanelTarjeta>
     </div>
   )
 }
