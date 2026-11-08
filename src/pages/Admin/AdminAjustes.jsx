@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { NavLink } from 'react-router-dom'
 import './Ajustes.css'
-import { SECCIONES_AJUSTES } from '../../config/ajustes'
+import { SECCIONES_AJUSTES, AJUSTES_ANCHOS } from '../../config/ajustes'
 
 // ⚙️ CONFIGURACIÓN como panel de ajustes de verdad: un menú de secciones (a la izquierda en el PC,
 // arriba como pestañas en el celular) y el contenido de la sección a la derecha.
@@ -12,13 +12,15 @@ import { SECCIONES_AJUSTES } from '../../config/ajustes'
 // desplegable de «Configuración» (pedido del usuario, 3-nov); solo la vista previa sin barra lo pinta aquí.
 export default function AdminAjustes({ slug, sub, conMenu = true, catalogoPropio = false, children }) {
   const actual = SECCIONES_AJUSTES.find(x => x.id === sub) || SECCIONES_AJUSTES[0]
+  // Rehechas con el diseño nuevo: a todo el ancho y con su propio encabezado (el catálogo externo no).
+  const ancho = AJUSTES_ANCHOS.includes(actual.id) && (actual.id !== 'catalogo' || catalogoPropio)
   // En el celular las secciones son pestañas que se desplazan: la activa se trae a la vista.
   const nav = useRef(null)
   useEffect(() => {
     nav.current?.querySelector('.aj-item.on')?.scrollIntoView({ block: 'nearest', inline: 'center' })
   }, [actual.id])
   return (
-    <div className={`aj${conMenu ? '' : ' aj--sin-menu'}${actual.id === 'catalogo' && catalogoPropio ? ' aj--ancho' : ''}`}>
+    <div className={`aj${conMenu ? '' : ' aj--sin-menu'}${ancho ? ' aj--ancho' : ''}`}>
       {conMenu && <nav className="aj-nav" aria-label="Secciones de configuración" ref={nav}>
         {SECCIONES_AJUSTES.map(x => (
           <NavLink key={x.id} to={`/${slug}/admin/config/${x.id}${window.location.search}`} className={() => `aj-item ${x.id === actual.id ? 'on' : ''}`} replace>
@@ -29,7 +31,7 @@ export default function AdminAjustes({ slug, sub, conMenu = true, catalogoPropio
       </nav>}
       <div className="aj-cuerpo">
         {/* El Catálogo trae su propio encabezado grande (AdminProductos). */}
-        {!(actual.id === 'catalogo' && catalogoPropio) && <header className="aj-cab">
+        {!ancho && <header className="aj-cab">
           <h2>{actual.icono} {actual.titulo}</h2>
           <p>{actual.desc}</p>
         </header>}

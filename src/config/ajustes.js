@@ -11,3 +11,7 @@ export const SECCIONES_AJUSTES = [
   { id: 'equipo', icono: '👥', titulo: 'Equipo', desc: 'Cajeros, meseros, cocina y domiciliarios' },
   { id: 'plan', icono: '💳', titulo: 'Mi plan', desc: 'Tu plan, hasta cuándo está pago y cómo subir' },
 ]
+
+// Las secciones ya rehechas con el diseño del Catálogo (guía «Diseño de pantallas del panel»):
+// van a todo el ancho y traen su propio encabezado grande (PanelHero), sin el título pequeño.
+export const AJUSTES_ANCHOS = ['catalogo', 'menu-del-dia']
