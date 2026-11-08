@@ -18,7 +18,7 @@
 //   dueño que llena desde su casa, no.
 //
 //   OPTIONS → 204 con las cabeceras CORS (_lib/cors.js: solo la web de Swiftfly y localhost).
-//   POST { id, registro: 'cotizacion' | 'visita', origen: 'vendedor' | 'dueno', vendedor, local, dueno,
+//   POST { id, producto?: 'appetic' | 'barberia', registro: 'cotizacion' | 'visita', origen: 'vendedor' | 'dueno', vendedor, local, dueno,
 //          celular, ciudad, barrio, tipo, plan, notas, ubicacion: { lat, lng, precision } | null,
 //          motivo: 'no-estaba' | 'ocupados' | 'no-se-dejo-hablar' | 'no-le-intereso' | 'otro' (solo visita),
 //          motivoTexto (≤ 300, opcional; típico con 'otro'),
@@ -42,7 +42,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { conAdmin, cuerpo, ipDe } from './_lib/admin.js'
 import { permitir, LIMITES } from './_lib/limites.js'
 import { cors, origenPermitido } from './_lib/cors.js'
-import { cotizar, VALIDEZ_DIAS } from '../src/utils/paquetes.js'
+import { cotizar, VALIDEZ_DIAS, PROMO } from '../src/utils/paquetes.js'
 import { hoyBogota, sumarDias } from '../src/utils/plan.js'
 
 // 📦 COTIZACIÓN POR PAQUETES (guía «Paquetes de Appetic» D22, D24–D33). Si llegan `paquetes`, el
@@ -50,13 +50,21 @@ import { hoyBogota, sumarDias } from '../src/utils/plan.js'
 // config/cotizaciones) y la deja «pendiente» con vencimiento a los 15 días. Responde lo necesario
 // para mostrar la cotización en la pantalla de quien cotiza. `comentarioVendedor`: solo de vendedor.
 const numeroAP = n => `AP-${String(n).padStart(4, '0')}`
+// ✂️ BarberIA (guía «Propuesta de Legends» D11, D12, S8): la propuesta de barberías usa este mismo
+// formulario con `producto: 'barberia'`. Un solo precio con todo incluido, su propio consecutivo
+// BI-0001 (contador config/cotizaciones-barberia) y la misma promo de Appetic.
+const PRODUCTOS = ['appetic', 'barberia']
+const PRECIO_BARBERIA = 59900
+const numeroBI = n => `BI-${String(n).padStart(4, '0')}`
+const BARBEROS = ['1-2', '3-5', '6-10', 'mas-10']
+const SEDES = ['1', '2', '3+']
 const respuestaCot = (id, d) => ({ ok: true, id, numero: d.numero, paquetes: d.paquetes, total: d.total, ahorro: d.ahorro || 0, promo: d.promo || '', vence: d.venceDia })
 
 const ID_VALIDO = /^[A-Za-z0-9_-]{8,40}$/
 const ORIGENES = ['vendedor', 'dueno']
 const REGISTROS = ['cotizacion', 'visita']
 const MOTIVOS_VISITA = ['no-estaba', 'ocupados', 'no-se-dejo-hablar', 'no-le-intereso', 'otro']
-const TIPOS = ['trailer', 'local', 'restaurante']
+const TIPOS = ['trailer', 'local', 'restaurante', 'barberia']
 const PLANES = ['emprendedor', 'comerciante', 'empresario', 'desarrollador', 'no-sabe']
 const FOTOS = ['lugar', 'carta', 'logo']
 const FOTO_MAX = 1.5 * 1024 * 1024 // bytes ya decodificados
@@ -120,7 +128,10 @@ export default async function handler(req, res) {
     const registro = b.registro == null || b.registro === '' ? 'cotizacion' : String(b.registro)
     if (!REGISTROS.includes(registro)) return res.status(400).json({ error: 'Registro desconocido (cotizacion o visita)' })
     const esVisita = registro === 'visita'
+    const producto = deLista(b.producto, PRODUCTOS) || 'appetic'
+    const esBarberia = producto === 'barberia'
     const datos = {
+      producto,
       registro,
       origen,
       vendedor: texto(b.vendedor, 60),
@@ -136,9 +147,10 @@ export default async function handler(req, res) {
       motivo: esVisita ? deLista(b.motivo, MOTIVOS_VISITA) : '',
       motivoTexto: esVisita ? texto(b.motivoTexto, 300) : '',
       comentarioVendedor: origen === 'vendedor' && !esVisita ? texto(b.comentarioVendedor, 1000) : '',
+      ...(esBarberia ? { barberos: deLista(String(b.barberos ?? ''), BARBEROS), sedes: deLista(String(b.sedes ?? ''), SEDES) } : {}),
     }
     // La página nueva manda los paquetes; la vieja (con `plan`) no.
-    const conPaquetes = !esVisita && Array.isArray(b.paquetes)
+    const conPaquetes = !esVisita && (esBarberia || Array.isArray(b.paquetes))
     if (!datos.local) return res.status(400).json({ error: 'Falta el nombre del local' })
     // En una visita el dueño no dio su número (no quiso cotización): el celular es opcional.
     if (!esVisita && !datos.celular) return res.status(400).json({ error: 'Falta el celular' })
@@ -190,7 +202,10 @@ export default async function handler(req, res) {
       ipHash: hash(ip),
       userAgent: texto(req.headers['user-agent'], 200),
     }
-    if (conPaquetes) {
+    if (conPaquetes && esBarberia) {
+      const hoy = hoyBogota()
+      Object.assign(doc, { paquetes: ['barberia'], suma: PRECIO_BARBERIA, total: PRECIO_BARBERIA, ahorro: 0, promo: hoy <= PROMO.hasta ? PROMO.texto : '', venceDia: sumarDias(hoy, VALIDEZ_DIAS) })
+    } else if (conPaquetes) {
       const hoy = hoyBogota()
       const c = cotizar(b.paquetes, hoy)
       Object.assign(doc, { paquetes: c.paquetes, suma: c.suma, total: c.total, ahorro: c.ahorro, promo: c.promo, venceDia: sumarDias(hoy, VALIDEZ_DIAS) })
@@ -199,10 +214,10 @@ export default async function handler(req, res) {
       if (!conPaquetes) await ref.create(doc)
       else {
         // El número sale de un contador en la MISMA transacción: dos cotizaciones a la vez no se repiten.
-        const contador = db.collection('config').doc('cotizaciones')
+        const contador = db.collection('config').doc(esBarberia ? 'cotizaciones-barberia' : 'cotizaciones')
         await db.runTransaction(async tx => {
           const n = ((await tx.get(contador)).data()?.ultimo || 0) + 1
-          doc.numero = numeroAP(n)
+          doc.numero = esBarberia ? numeroBI(n) : numeroAP(n)
           tx.create(ref, doc)
           tx.set(contador, { ultimo: n }, { merge: true })
         })

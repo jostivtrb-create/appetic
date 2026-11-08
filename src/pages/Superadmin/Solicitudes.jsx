@@ -33,7 +33,12 @@ const ESTADOS = [
   { id: 'enviada', nombre: 'Enviada', emoji: '📤' },
   { id: 'cerrada', nombre: 'Cerrada', emoji: '✅' },
 ]
-const TIPOS = { trailer: '🚚 Tráiler', local: '🏪 Local', restaurante: '🍽️ Restaurante' }
+const TIPOS = { trailer: '🚚 Tráiler', local: '🏪 Local', restaurante: '🍽️ Restaurante', barberia: '💈 Barbería' }
+// ✂️ BarberIA (guía «Propuesta de Legends» S8): llega por este mismo formulario con `producto: 'barberia'`.
+const esBarberia = s => s.producto === 'barberia'
+const nombreProducto = s => (esBarberia(s) ? 'BarberIA' : 'Appetic')
+const BARBEROS = { '1-2': '1–2 barberos', '3-5': '3–5 barberos', '6-10': '6–10 barberos', 'mas-10': 'Más de 10 barberos' }
+const SEDES = { 1: '1 sede', 2: '2 sedes', '3+': '3 sedes o más' }
 const PLANES = {
   emprendedor: 'Plan Emprendedor', comerciante: 'Plan Comerciante', empresario: 'Plan Empresario',
   desarrollador: 'Plan Desarrollador', 'no-sabe': 'Plan: no sabe aún',
@@ -76,13 +81,13 @@ const estadoDe = s => (esVisita(s) ? 'visita' : (VIEJOS[s.estado] || s.estado ||
 const tieneUbicacion = s => !!s.ubicacion && Number.isFinite(Number(s.ubicacion.lat)) && Number.isFinite(Number(s.ubicacion.lng))
 
 // El celular → link de WhatsApp con el saludo listo. Colombia: 10 dígitos → se antepone 57.
-function linkWhatsApp(celular, local, visita) {
+function linkWhatsApp(celular, local, visita, producto = 'Appetic') {
   let digitos = String(celular || '').replace(/\D/g, '')
   if (!digitos) return null
   if (digitos.length === 10) digitos = `57${digitos}`
   const texto = visita
-    ? `Hola, soy de Swiftfly Solutions. Hace poco pasamos por «${local}» a contarles de Appetic. ¿Te queda bien que hablemos ahora?`
-    : `Hola, soy de Swiftfly Solutions. Recibimos tu solicitud de cotización de Appetic para «${local}». ¿Te queda bien que hablemos ahora?`
+    ? `Hola, soy de Swiftfly Solutions. Hace poco pasamos por «${local}» a contarles de ${producto}. ¿Te queda bien que hablemos ahora?`
+    : `Hola, soy de Swiftfly Solutions. Recibimos tu solicitud de cotización de ${producto} para «${local}». ¿Te queda bien que hablemos ahora?`
   return `https://wa.me/${digitos}?text=${encodeURIComponent(texto)}`
 }
 
@@ -97,6 +102,17 @@ function linkEnviarCotizacion(s) {
   return `https://wa.me/${digitos}?text=${encodeURIComponent(texto)}`
 }
 
+// BarberIA no tiene PDF (el de Appetic es de paquetes): la cotización va completa en el mensaje.
+function linkCotizacionBarberia(s) {
+  let digitos = String(s.celular || '').replace(/\D/g, '')
+  if (!digitos) return null
+  if (digitos.length === 10) digitos = `57${digitos}`
+  const nombre = String(s.dueno || '').trim().split(/\s+/)[0]
+  const promo = s.promo ? `\n🎁 Promoción: ${s.promo}.` : ''
+  const texto = `¡Hola${nombre ? ` ${nombre}` : ''}! 👋 Soy de Swiftfly Solutions. Te comparto la cotización ${s.numero} de BarberIA para «${s.local}». 💈\n\n✅ Todo incluido: reservas, agenda, caja, comisiones de barberos, inventario, reportes, varias sedes y el Asesor de Look IA.\n💰 ${cop(s.total)} al mes.${promo}\n📆 Si pagas 6 meses, pagas 5; si pagas 12, pagas 10.\n\nVálida hasta el ${s.venceDia}. Si quieres, nos reunimos y te mostramos la app en persona. ¿Qué día te queda bien?`
+  return `https://wa.me/${digitos}?text=${encodeURIComponent(texto)}`
+}
+
 // Los paquetes y el total de una cotización, a la vista en la tarjeta.
 function Cotizacion({ s, onEnviar }) {
   const pqs = PAQUETES.filter(p => (s.paquetes || []).includes(p.id))
@@ -104,6 +120,11 @@ function Cotizacion({ s, onEnviar }) {
   const vencida = s.venceDia && s.venceDia < new Date(Date.now() - 5 * 3600000).toISOString().slice(0, 10)
   async function enviar() {
     if (enviando) return
+    if (esBarberia(s)) {
+      const wa = linkCotizacionBarberia(s)
+      if (wa) { window.open(wa, '_blank', 'noopener'); onEnviar() }
+      return
+    }
     setEnviando(true)
     // La pestaña de WhatsApp se abre YA, en el toque (después de armar el PDF el navegador la bloquea).
     const wa = linkEnviarCotizacion(s)
@@ -120,7 +141,9 @@ function Cotizacion({ s, onEnviar }) {
   return (
     <div className="sa-cot">
       <div className="sa-cot-pq">
-        {pqs.map(p => <span key={p.id} className="sa-sol-chip">{p.icono} {p.nombre}</span>)}
+        {esBarberia(s)
+          ? <span className="sa-sol-chip">💈 BarberIA · todo incluido</span>
+          : pqs.map(p => <span key={p.id} className="sa-sol-chip">{p.icono} {p.nombre}</span>)}
       </div>
       <div className="sa-cot-total">
         <span>Total al mes{s.promo ? ` · 🎁 ${s.promo}` : ''}</span>
@@ -130,7 +153,7 @@ function Cotizacion({ s, onEnviar }) {
       <button type="button" className="sa-cot-enviar" disabled={enviando} onClick={enviar}>
         {enviando ? 'Armando el PDF…' : estadoDe(s) === 'pendiente' ? '📤 Enviar cotización' : '📤 Enviar otra vez'}
       </button>
-      <small className="sa-sol-faint">Baja el PDF y abre el chat del cliente con el saludo: adjunta el PDF ahí.</small>
+      <small className="sa-sol-faint">{esBarberia(s) ? 'Abre el chat del cliente con la cotización escrita.' : 'Baja el PDF y abre el chat del cliente con el saludo: adjunta el PDF ahí.'}</small>
     </div>
   )
 }
@@ -141,7 +164,7 @@ function Tarjeta({ s, onEstado }) {
   const fecha = momentoDe(s)
   const fotos = FOTOS.filter(([k]) => s.fotos?.[k])
   const grupos = archivosPorClave(s)
-  const wa = linkWhatsApp(s.celular, s.local, visita)
+  const wa = linkWhatsApp(s.celular, s.local, visita, nombreProducto(s))
   const lugar = [s.ciudad, s.barrio].filter(Boolean).join(' · ')
   const estadoActual = ESTADOS.find(e => e.id === estadoDe(s)) || ESTADOS[0]
   const motivo = visita ? (MOTIVOS_VISITA[s.motivo] || s.motivo || 'Sin motivo') : ''
@@ -153,7 +176,7 @@ function Tarjeta({ s, onEstado }) {
           <span className="sa-sol-origen">
             {s.origen === 'vendedor' ? <>🧑‍💼 Vendedor <b>{s.vendedor || '—'}</b></> : <>🏪 Dueño del negocio</>}
           </span>
-          <strong className="sa-sol-local">{s.numero && <span className="sa-cot-num">{s.numero}</span>}{s.local || 'Sin nombre'}</strong>
+          <strong className="sa-sol-local">{esBarberia(s) && <span className="sa-cot-num">💈 BarberIA</span>}{s.numero && <span className="sa-cot-num">{s.numero}</span>}{s.local || 'Sin nombre'}</strong>
           <span className="sa-sol-sub">
             {lugar || 'Sin ciudad'}
             {fecha && <> · {fecha.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}</>}
@@ -189,9 +212,11 @@ function Tarjeta({ s, onEstado }) {
       {abierta && (
         <div className="sa-sol-body">
           {s.numero && <Cotizacion s={s} onEnviar={() => estadoDe(s) === 'pendiente' && onEstado(s.id, 'enviada')} />}
-          {(s.tipo || s.plan) && (
+          {(s.tipo || s.plan || s.barberos || s.sedes) && (
             <div className="sa-sol-chips">
               {s.tipo && <span className="sa-sol-chip">{TIPOS[s.tipo] || s.tipo}</span>}
+              {s.barberos && <span className="sa-sol-chip">✂️ {BARBEROS[s.barberos] || s.barberos}</span>}
+              {s.sedes && <span className="sa-sol-chip">📍 {SEDES[s.sedes] || s.sedes}</span>}
               {s.plan && <span className="sa-sol-chip sa-sol-chip--plan">{PLANES[s.plan] || s.plan}</span>}
             </div>
           )}
