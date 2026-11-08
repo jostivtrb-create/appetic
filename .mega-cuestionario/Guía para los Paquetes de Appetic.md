@@ -46,7 +46,7 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
 | D16 | **El «cierre» es el conteo de billetes que ya existe** (D17 de Loggro). No se abre ni se cierra caja. | S3. |
 | D17 | **El cobro en línea va en Domicilios; el datáfono, en Contabilidad.** Los dos solo si la empresa de pagos deja conectarse. | S4. |
 | D18 | **Las notificaciones en iPhone se venden con su límite** (solo si el cliente agregó Appetic a su pantalla de inicio). | S5. |
-| D19 | **Nadie paga hoy.** Pilotos usa solo la Base y se le vendió sin suscripción. Al migrar, Pilotos queda con la Base; los demás locales son muestras o cortesía. | S6. |
+| D19 | **Nadie paga hoy.** Pilotos queda con **Base + Domicilios** (confirmado el 8-nov); los demás locales son muestras o cortesía. | S6. |
 | D20 | **El Plan Desarrollador se queda aparte**, como está. | S7. |
 | D21 | **Los precios NO se ven en la propuesta.** Los paquetes tampoco aparecen hasta que el cliente toca «Solicitar cotización». | P8. |
 | D22 | **Flujo nuevo de cotización:** | P8. |
@@ -134,7 +134,7 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
   - **el paquete Inventario entero**, que sale en el cotizador pero no se puede elegir hasta que exista.
 - **S9** — **El cotizador lo reutiliza todo:** el «Soy vendedor» (botones, foto, GPS) y el registro de visitas («solo registrar la visita» con motivo) siguen igual. El total lo calcula el servidor, no el navegador.
 - **S10** — **Los paquetes los prende el superadmin en cada local.** Al migrar:
-  - Pilotos queda con la Base (D19);
+  - Pilotos queda con Base + Domicilios (D19, 8-nov);
   - los locales de muestra y la demo quedan con todo, en cortesía.
 - **S6** — **Lo que ya existe y se reutiliza:**
   - el formulario de la propuesta web (vendedores en botones, foto, GPS, visita con motivo);
@@ -285,7 +285,7 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
   - **`firestore.rules`:** `tienePaq()` reemplaza a `nivelPlan()`, con el mismo respaldo por plan viejo. Los roles van por paquete: el cajero ahora exige Contabilidad. 8 de 8 pruebas OK en el emulador. Desplegadas.
   - **Dueño:** el candado dice «Viene en el Paquete …»; «Mi plan» muestra sus paquetes con ✓ o «Agregarlo»; Cuentas, Gastos y los saldos de la cabecera de la Caja dependen de Contabilidad; en Equipo, cada rol tiene su candado.
   - **Superadmin:** «Registrar pago» y «Cambiar paquetes» llevan casillas. Si el precio sube, se activa ya y se cobra la diferencia; si baja, queda para el próximo pago (`bajarA` es ahora una lista).
-  - **Pendiente B3:** Pilotos sigue como Comerciante (Base + Contabilidad + Domicilios); D19 decía que solo compró la Base. Hay que preguntarle al usuario antes de quitarle domicilios y cuentas. Falta renombrar «TV» a «Menú en Pantalla» dentro de la app.
+  - ✅ **B3 resuelto (8-nov):** el usuario confirmó «Pilotos queda Base y Domicilios». En Firestore ya tenía `suscripcion.paquetes: [base, domicilios]` (cortesía), así que no hubo que cambiar nada.
 - **Botones de anterior y siguiente:** el usuario los pidió, luego dijo que la barra de arriba le servía, y después que en el celular no la veía. Se hicieron: botones fijos abajo a la izquierda, «‹ · 3/6 · Contabilidad · ›», visibles solo dentro de los paquetes y escondidos durante el recorrido. El último lleva a «Mi plan». Publicados.
 - **7-nov-2026 · recorrido guiado OCULTO** a pedido del usuario («luego lo perfeccionamos»). Se ocultaron el botón, la caja y los subtítulos con una regla al final de `estilos.css`; el código y la voz siguen en `app.js` y `voz/`. Para volver a mostrarlo basta con borrar esa regla.
 - **Pendiente de la guía de Loggro:** el paso 3 (impresora) está en un commit local `ea34889` sin publicar. Conviene publicarlo cuando se defina en qué paquete va.

@@ -199,7 +199,7 @@ Va de lo más pequeño y seguro a lo que depende de terceros. Cada paso se audit
 - [ ] 5 · **Cobro en línea** (D9, D10, D11, S9): Wompi primero, con las llaves del negocio. El pedido queda «pagado» cuando el aviso de la pasarela llega a `/api`. Siempre opcional, en domicilios y para recoger.
 - [ ] 6 · **Datáfono** (D9, S9): antes de construir, confirmar qué proveedores tienen API.
 - [ ] 7 · **Bold y Mercado Pago** en línea.
-- [ ] 8 · **Cuadro comparativo en la propuesta** (D5, D14, S4), solo con lo ya publicado.
+- [x] 8 · **Cuadro comparativo en la propuesta** (D5, D14, S4), solo con lo ya publicado. Hecho el 8-nov: sección #comparar entre Inventario y la demo, 10 filas, sin nombrar a nadie.
 
 ---
 
