@@ -139,3 +139,17 @@ export function PanelSwitch({ titulo, texto, checked, onChange, grande = false }
     </label>
   )
 }
+
+// R8 · Barra flotante «Guardar cambios». `sinGuardar`: hay cambios; `estado`: '' | 'guardando' | 'ok' | 'error';
+// `problema`: texto que impide guardar (se muestra y deshabilita el botón).
+export function PanelGuardar({ sinGuardar, estado, problema, onGuardar }) {
+  if (!sinGuardar && estado !== 'ok' && estado !== 'error') return null
+  const ok = estado === 'ok' && !sinGuardar
+  return (
+    <div className={`pp-guardar${ok ? ' ok' : ''}`} role="status">
+      <span>{ok ? '✓ Cambios guardados' : estado === 'error' ? 'No se pudo guardar. Revisa el internet.' : 'Tienes cambios sin guardar'}
+        {problema && !ok && <small>{problema}</small>}</span>
+      {!ok && <button className="btn btn-primary" onClick={onGuardar} disabled={estado === 'guardando' || !!problema}>{estado === 'guardando' ? 'Guardando…' : 'Guardar cambios'}</button>}
+    </div>
+  )
+}

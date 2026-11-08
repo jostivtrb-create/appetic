@@ -135,10 +135,10 @@ principal ocupa todo el ancho y los filtros van de a dos.
 | Configuración → Catálogo | ✅ 8-nov | El modelo (`1bcc553`, `3dcfb13`, `417935c`). |
 | Configuración → Menú del día | ✅ 8-nov | Primera con las piezas comunes `PanelPagina.jsx/.css` (PanelHero, PanelCuerpo, PanelLado, PanelTarjeta, PanelSwitch). Lado: Hoy · 7 días con «n/6 partes» · Precio y horario · Qué trae. El interruptor «Ofrecer» y «Se guarda solo» van en el hero. |
 | Configuración → Negocio y horario | ✅ 8-nov | Lado: WhatsApp · Horario · Cómo entregas · Precios del domicilio · Buscador. Los precios del domicilio pasaron de ventana aparte a su tarjeta. «Guardar cambios» flotante abajo SOLO si hay cambios sin guardar (`ac2-guardar`). |
-| Configuración → Cuentas y pagos | 🔵 siguiente | |
+| Configuración → Cuentas y pagos | ✅ 8-nov | Las cuentas son la lista del lado (+ «Nueva cuenta» y «Cocina»). Tipo con botones grandes. Pieza nueva común: `PanelGuardar` (barra flotante). |
 | Configuración → Apariencia | ✅ 8-nov | Mismo componente (`AdminConfig`). Portada grande + adorno en el hero; animación del logo como lista de opciones al lado de la muestra en vivo. |
-| Configuración → Impresora | ⏳ | |
-| Configuración → Menú en Pantalla | ⏳ | |
+| Configuración → Impresora | ✅ 8-nov | Sin lista (es corta): interruptor en el hero; «Qué se imprime» y «Cómo se ve el ticket» lado a lado. Apagada → estado vacío con botón. |
+| Configuración → Menú en Pantalla | 🔵 siguiente | |
 | Configuración → Equipo | ⏳ | |
 | Configuración → Mi plan | ⏳ | |
 

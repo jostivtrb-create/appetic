@@ -32,3 +32,21 @@
 .cp-link input { font: inherit; font-size: 14px; padding: 9px 11px; border-radius: 11px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text); min-width: 0; width: 100%; }
 .cp-link input.mal { border-color: #D97706; }
 .cp-link-mal { font-size: 12px; font-weight: 700; color: #8A5300; }
+
+/* ── Diseño nuevo (guía «Diseño de pantallas del panel», 8-nov) ── */
+.cp.cp2 { display: block; max-width: none; }
+.cp2-grid { align-items: start; }
+.cp2-tipos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.cp2-tipos button { display: flex; align-items: center; gap: 8px; padding: 11px 12px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--surface); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; text-align: left; }
+.cp2-tipos button span { font-size: 18px; }
+.cp2-tipos button.on { border-color: var(--brand-orange); background: var(--brand-orange-tint); }
+.cp2-orden { display: inline-flex; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--surface); }
+.cp2-orden button { width: 36px; height: 34px; font-weight: 800; cursor: pointer; }
+.cp2-orden button + button { border-left: 1px solid var(--border); }
+.cp2-orden button:disabled { opacity: .3; cursor: default; }
+.cp2-quitar:hover { background: #FCEEEE !important; border-color: #F3C7C7 !important; }
+.cp2-mal { border-color: #D97706 !important; }
+.cp2-ayuda { font-weight: 600 !important; color: var(--text-faint) !important; font-size: 12.5px; line-height: 1.4; }
+.cp2-nueva { gap: 14px; max-width: 560px; }
+.cp2 .pp-switch { padding-top: 12px; border-top: 1px solid var(--border); }
+.cp2 .pp-nav-ico { font-size: 18px; }
