@@ -1,11 +1,16 @@
 import { lazy, Suspense, useMemo, useRef, useState } from 'react'
 import { TRANSICIONES, transicionDe } from '../../utils/pantallaTV'
 import { menuUrl } from '../../utils/compartir'
+import { PanelHero, PanelCuerpo, PanelLado, PanelTarjeta, PanelSwitch, useEntrar } from './PanelPagina'
+import { Ventana } from './CatalogoCategorias'
 import './ConfigPantalla.css'
 
 // 📺 Configuración → Pantalla de TV (D3, D18 de la guía «Pantalla de TV»).
 // Todo se guarda al tocar, salvo el anuncio que se está escribiendo (ese tiene su «Guardar»).
 // La vista previa es la misma pantalla del TV, con lo que hay en este momento.
+// Diseño (guía «Diseño de pantallas del panel», 8-nov): el link del TV va en el encabezado; a la
+// izquierda Vista · Transición · Categorías · Pedidos listos · Anuncios; los anuncios se editan en una
+// ventana aparte. Todo se sigue guardando al tocar.
 
 const VistaTV = lazy(() => import('../TV/PantallaTV').then(m => ({ default: m.VistaTV })))
 
@@ -69,112 +74,139 @@ export default function ConfigPantalla({ local, productos, slug, onUpdate, onSub
     setTimeout(() => setCopiado(false), 1800)
   }
 
+  const entrar = useEntrar()
+  const [parte, setParte] = useState('vista')
+  const elegir = id => { setParte(id); entrar.abrir() }
+  const cats = local.categorias || []
+  const visibles = cats.filter(c => !ocultas.has(c.id)).length
+  const prendidos = anuncios.filter(a => a.activo !== false).length
+  const sinCocina = local.usaCocina === false
+  const items = [
+    { id: 'vista', icono: '👀', nombre: 'Así se ve ahora', nota: 'La pantalla en vivo' },
+    { id: 'transicion', icono: '✨', nombre: 'Cómo pasan los platos', nota: TRANSICIONES.find(t => t.id === transicion)?.nombre },
+    { id: 'categorias', icono: '🗂️', nombre: 'Categorías', nota: `${visibles} de ${cats.length} se ven`, tono: visibles ? null : 'aviso' },
+    { id: 'listos', icono: '🔔', nombre: 'Pedidos listos', nota: sinCocina ? 'Necesita la pantalla de cocina' : pantalla.pedidosListos ? 'Se llaman en el TV' : 'Apagado', tono: pantalla.pedidosListos && !sinCocina ? 'ok' : 'off' },
+    { id: 'anuncios', icono: '📢', nombre: 'Anuncios', nota: anuncios.length ? `${prendidos} de ${anuncios.length} prendidos` : 'Ninguno todavía', n: anuncios.length || null },
+  ]
+  const actual = items.find(i => i.id === parte) || items[0]
+  const anuncioEditado = editando === 'nuevo' ? ANUNCIO_VACIO : anuncios.find(a => a.id === editando)
+
   return (
-    <div className="cpt">
-      {errorGuardar && <p className="ac-ubic-warn" role="alert">⚠️ {errorGuardar}</p>}
-      <section className="ac-sec">
-        <h3>👀 Así se ve tu Menú en Pantalla ahora</h3>
-        <Suspense fallback={<div className="cpt-vista-cargando" />}>
-          <VistaTV local={local} productos={productos} />
-        </Suspense>
-        <div className="cpt-link">
+    <div className={`cpt cpt2${entrar.abierto ? ' pp-dentro' : ''}`}>
+      <PanelHero icono="📺" titulo="Menú en Pantalla" sub="Tu menú en vivo en el TV del local, con tus anuncios" chips={[
+        { t: `🗂️ ${visibles} de ${cats.length} categorías`, tono: visibles ? null : 'aviso' },
+        { t: `📢 ${prendidos} ${prendidos === 1 ? 'anuncio' : 'anuncios'}` },
+        !sinCocina && pantalla.pedidosListos ? { t: '🔔 Llama los pedidos', tono: 'ok' } : null,
+      ]} derecha={
+        <div className="cpt2-link">
+          <small>El link del TV</small>
           <code>{link.replace(/^https?:\/\//, '')}</code>
-          <div className="cpt-link-btns">
-            <button className="btn btn-ghost" onClick={copiar}>{copiado ? '✓ Copiado' : 'Copiar link'}</button>
+          <div>
+            <button className="pp-btn" onClick={copiar}>{copiado ? '✓ Copiado' : '📋 Copiar'}</button>
             <a className="btn btn-primary" href={link} target="_blank" rel="noreferrer">Abrir pantalla</a>
           </div>
         </div>
-        <p className="ac-hint">Abre este link en el navegador del TV y déjalo como página de inicio o en favoritos. Siempre es el mismo y no hay que activar nada. En <b>Difundir</b> están los pasos para cada aparato.</p>
-      </section>
+      } />
+      {errorGuardar && <p className="cpt2-error" role="alert">⚠️ {errorGuardar}</p>}
 
-      <section className="ac-sec">
-        <h3>✨ Cómo pasan los platos grandes</h3>
-        <p className="ac-hint cpt-hint-top">Por el lugar grande pasan tus platos ⭐ «Nuestro fuerte» que tengan foto.</p>
-        <div className="cpt-trans">
-          {TRANSICIONES.map(t => (
-            <button
-              key={t.id}
-              className={`cpt-tr ${t.id === transicion ? 'on' : ''}`}
-              onClick={() => guardar({ transicion: t.id })}
-              aria-pressed={t.id === transicion}
-            >
-              <span className={`cpt-tr-ico cpt-tr-${t.id}`} aria-hidden="true"><i /><i /></span>
-              <strong>{t.nombre}</strong>
-              <small>{t.desc}</small>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section className="ac-sec">
-        <h3>🗂️ Categorías en el Menú en Pantalla</h3>
-        <p className="ac-hint cpt-hint-top">Toca una categoría para esconderla o mostrarla en el Menú en Pantalla. En tu menú sigue igual.</p>
-        <div className="cpt-cats">
-          {(local.categorias || []).map(c => {
-            const visible = !ocultas.has(c.id)
-            return (
-              <button key={c.id} className={`cpt-cat ${visible ? 'on' : ''}`} onClick={() => alternarCategoria(c.id)} aria-pressed={visible}>
-                <span>{c.emoji} {c.nombre}</span>
-                <b>{visible ? 'Se ve' : 'Escondida'}</b>
-              </button>
-            )
-          })}
-        </div>
-        <p className="ac-hint">
-          Para esconder un solo plato, ábrelo en <b>Catálogo</b> y apaga «Mostrar en el Menú en Pantalla».
-          {platosOcultos > 0 && <> Ahora tienes <b>{platosOcultos} {platosOcultos === 1 ? 'plato escondido' : 'platos escondidos'}</b>.</>}
-          {' '}Los agotados salen solos del Menú en Pantalla.
-        </p>
-      </section>
-
-      <section className="ac-sec">
-        <h3>🔔 Pedidos listos</h3>
-        {local.usaCocina === false ? (
-          <p className="ac-hint cpt-hint-top">Para llamar los pedidos en el TV hace falta la pantalla de cocina: es la que dice cuándo sale cada uno. Prende <b>«Usamos la pantalla de cocina»</b> en Configuración → Cuentas y pagos.</p>
-        ) : (
-          <>
-            <label className="ac-switch cpt-listos">
-              <span>
-                <b>Llamar los pedidos en el Menú en Pantalla</b>
-                <small>Cada pedido para llevar y cada pedido del QR de la mesa recibe un número de turno del día (1, 2, 3…). Cuando la cocina lo despacha, el número sale en grande en el TV y queda unos minutos en una franja abajo.</small>
-              </span>
-              <input type="checkbox" checked={!!pantalla.pedidosListos} onChange={e => guardar({ pedidosListos: e.target.checked })} />
-            </label>
-            {pantalla.pedidosListos && <p className="ac-hint">La caja y el mesero ven el turno en grande al mandar el pedido, para decírselo al cliente. Los pedidos de mesa que lleva el mesero no se llaman.</p>}
-          </>
+      <PanelCuerpo entrar={entrar} titulo={actual.nombre} lado={
+        <PanelLado icono="📺" titulo="Menú en Pantalla" sel={actual.id} onSel={elegir} grupos={[{ items }]} />
+      }>
+        {actual.id === 'vista' && (
+          <PanelTarjeta icono="👀" titulo="Así se ve tu Menú en Pantalla ahora" sub="Abre el link en el navegador del TV y déjalo como página de inicio o en favoritos. Siempre es el mismo y no hay que activar nada. En Difundir están los pasos para cada aparato.">
+            <div className="cpt2-tv">
+              <Suspense fallback={<div className="cpt-vista-cargando" />}>
+                <VistaTV local={local} productos={productos} />
+              </Suspense>
+            </div>
+          </PanelTarjeta>
         )}
-      </section>
 
-      <section className="ac-sec">
-        <h3>📢 Anuncios</h3>
-        <p className="ac-hint cpt-hint-top">Entran a pantalla completa unos segundos, entre las categorías. Puedes decir qué días y a qué horas sale cada uno.</p>
+        {actual.id === 'transicion' && (
+          <PanelTarjeta icono="✨" titulo="Cómo pasan los platos grandes" sub="Por el lugar grande pasan tus platos ⭐ «Nuestro fuerte» que tengan foto. Se guarda al tocar.">
+            <div className="cpt-trans">
+              {TRANSICIONES.map(t => (
+                <button key={t.id} className={`cpt-tr ${t.id === transicion ? 'on' : ''}`} onClick={() => guardar({ transicion: t.id })} aria-pressed={t.id === transicion}>
+                  <span className={`cpt-tr-ico cpt-tr-${t.id}`} aria-hidden="true"><i /><i /></span>
+                  <strong>{t.nombre}</strong>
+                  <small>{t.desc}</small>
+                </button>
+              ))}
+            </div>
+          </PanelTarjeta>
+        )}
 
-        <div className="cpt-anuncios">
-          {anuncios.map(a => (editando === a.id
-            ? <EditorAnuncio key={a.id} inicial={a} onGuardar={guardarAnuncio} onCancelar={() => setEditando(null)} onSubirImagen={onSubirImagen} />
-            : (
-              <article key={a.id} className={`cpt-an ${a.activo === false ? 'off' : ''}`}>
-                {a.imagen ? <img src={a.imagen} alt="" /> : <span className="cpt-an-sinimg">📢</span>}
-                <div className="cpt-an-txt">
-                  <strong>{a.titulo || 'Sin título'}</strong>
-                  {a.texto && <span>{a.texto}</span>}
-                  <small>{cuandoSale(a)}</small>
-                </div>
-                <div className="cpt-an-acc">
-                  <label className="cpt-mini-sw" title={a.activo === false ? 'Apagado' : 'Prendido'}>
-                    <input type="checkbox" checked={a.activo !== false} onChange={() => alternarAnuncio(a)} aria-label="Prender o apagar el anuncio" />
-                  </label>
-                  <button className="cpt-icon" onClick={() => setEditando(a.id)} aria-label="Editar">✏️</button>
-                  <button className="cpt-icon" onClick={() => borrarAnuncio(a.id)} aria-label="Borrar">🗑️</button>
-                </div>
-              </article>
-            )))}
+        {actual.id === 'categorias' && (
+          <PanelTarjeta icono="🗂️" titulo="Categorías en el Menú en Pantalla" sub="Toca una para esconderla o mostrarla en el TV. En tu menú del celular sigue igual. Se guarda al tocar.">
+            <div className="cpt2-cats">
+              {cats.map(c => {
+                const visible = !ocultas.has(c.id)
+                return (
+                  <button key={c.id} className={`cpt2-cat${visible ? ' on' : ''}`} onClick={() => alternarCategoria(c.id)} aria-pressed={visible}>
+                    <span className="cpt2-cat-ico" aria-hidden="true">{c.emoji || '🍽️'}</span>
+                    <span className="cpt2-cat-nom">{c.nombre}<small>{visible ? 'Se ve en el TV' : 'Escondida'}</small></span>
+                    <i aria-hidden="true">{visible ? '👁' : '🚫'}</i>
+                  </button>
+                )
+              })}
+            </div>
+            <p className="pp-ayuda">
+              Para esconder un solo plato, ábrelo en <b>Catálogo</b> y apaga «Mostrar en el Menú en Pantalla».
+              {platosOcultos > 0 && <> Ahora tienes <b>{platosOcultos} {platosOcultos === 1 ? 'plato escondido' : 'platos escondidos'}</b>.</>}
+              {' '}Los agotados salen solos del TV.
+            </p>
+          </PanelTarjeta>
+        )}
 
-          {editando === 'nuevo'
-            ? <EditorAnuncio inicial={ANUNCIO_VACIO} onGuardar={guardarAnuncio} onCancelar={() => setEditando(null)} onSubirImagen={onSubirImagen} />
-            : <button className="cpt-nuevo" onClick={() => setEditando('nuevo')}>＋ Nuevo anuncio</button>}
-        </div>
-      </section>
+        {actual.id === 'listos' && (
+          <PanelTarjeta icono="🔔" titulo="Pedidos listos" sub="Llamar por número los pedidos cuando la cocina los despacha.">
+            <div className="pp-sub">
+              {sinCocina ? (
+                <p className="pp-ayuda">Para llamar los pedidos en el TV hace falta la pantalla de cocina: es la que dice cuándo sale cada uno. Prende <b>«Usamos la pantalla de cocina»</b> en Configuración → Cuentas y pagos.</p>
+              ) : (
+                <>
+                  <PanelSwitch titulo="Llamar los pedidos en el Menú en Pantalla" checked={!!pantalla.pedidosListos} onChange={v => guardar({ pedidosListos: v })}
+                    texto="Cada pedido para llevar y cada pedido del QR de la mesa recibe un número de turno del día (1, 2, 3…). Cuando la cocina lo despacha, el número sale en grande en el TV y queda unos minutos en una franja abajo." />
+                  {pantalla.pedidosListos && <p className="pp-ayuda">La caja y el mesero ven el turno en grande al mandar el pedido, para decírselo al cliente. Los pedidos de mesa que lleva el mesero no se llaman.</p>}
+                </>
+              )}
+            </div>
+          </PanelTarjeta>
+        )}
+
+        {actual.id === 'anuncios' && (
+          <PanelTarjeta icono="📢" titulo="Anuncios" sub="Entran a pantalla completa unos segundos, entre las categorías. Cada uno puede salir solo ciertos días y horas.">
+            <div className="pp-grid cpt2-anuncios">
+              {anuncios.map(a => (
+                <article key={a.id} className={`cpt2-an${a.activo === false ? ' off' : ''}`}>
+                  <div className="cpt2-an-img">{a.imagen ? <img src={a.imagen} alt="" /> : <span>📢</span>}</div>
+                  <div className="cpt2-an-txt">
+                    <strong>{a.titulo || 'Sin título'}</strong>
+                    {a.texto && <span>{a.texto}</span>}
+                    <small>🕒 {cuandoSale(a)}</small>
+                  </div>
+                  <div className="cpt2-an-acc">
+                    <button className="pp-btn" onClick={() => setEditando(a.id)}>✏️ Editar</button>
+                    <button className="pp-btn cpt2-borrar" onClick={() => borrarAnuncio(a.id)} aria-label={`Borrar ${a.titulo}`}>🗑</button>
+                    <label className="pp-switch cpt2-sw" title={a.activo === false ? 'Apagado' : 'Prendido'}>
+                      <input type="checkbox" checked={a.activo !== false} onChange={() => alternarAnuncio(a)} aria-label="Prender o apagar el anuncio" />
+                    </label>
+                  </div>
+                </article>
+              ))}
+              <button className="cpt2-nuevo" onClick={() => setEditando('nuevo')}>
+                <span aria-hidden="true">+</span><b>Nuevo anuncio</b><small>Ej.: «2×1 en perros los martes»</small>
+              </button>
+            </div>
+          </PanelTarjeta>
+        )}
+      </PanelCuerpo>
+
+      {editando && anuncioEditado && (
+        <Ventana titulo={editando === 'nuevo' ? 'Nuevo anuncio' : 'Editar anuncio'} onCerrar={() => setEditando(null)} ancho={520}>
+          <EditorAnuncio inicial={anuncioEditado} onGuardar={guardarAnuncio} onCancelar={() => setEditando(null)} onSubirImagen={onSubirImagen} />
+        </Ventana>
+      )}
     </div>
   )
 }

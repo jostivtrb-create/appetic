@@ -138,8 +138,8 @@ principal ocupa todo el ancho y los filtros van de a dos.
 | Configuración → Cuentas y pagos | ✅ 8-nov | Las cuentas son la lista del lado (+ «Nueva cuenta» y «Cocina»). Tipo con botones grandes. Pieza nueva común: `PanelGuardar` (barra flotante). |
 | Configuración → Apariencia | ✅ 8-nov | Mismo componente (`AdminConfig`). Portada grande + adorno en el hero; animación del logo como lista de opciones al lado de la muestra en vivo. |
 | Configuración → Impresora | ✅ 8-nov | Sin lista (es corta): interruptor en el hero; «Qué se imprime» y «Cómo se ve el ticket» lado a lado. Apagada → estado vacío con botón. |
-| Configuración → Menú en Pantalla | 🔵 siguiente | |
-| Configuración → Equipo | ⏳ | |
+| Configuración → Menú en Pantalla | ✅ 8-nov | El link del TV va en el hero (Copiar / Abrir). Lado: Vista · Transición · Categorías · Pedidos listos · Anuncios. Los anuncios en tarjetas y su editor en `Ventana`. |
+| Configuración → Equipo | 🔵 siguiente | |
 | Configuración → Mi plan | ⏳ | |
 
 ---

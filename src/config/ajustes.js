@@ -14,4 +14,4 @@ export const SECCIONES_AJUSTES = [
 
 // Las secciones ya rehechas con el diseño del Catálogo (guía «Diseño de pantallas del panel»):
 // van a todo el ancho y traen su propio encabezado grande (PanelHero), sin el título pequeño.
-export const AJUSTES_ANCHOS = ['catalogo', 'menu-del-dia', 'negocio', 'apariencia', 'pagos', 'impresora']
+export const AJUSTES_ANCHOS = ['catalogo', 'menu-del-dia', 'negocio', 'apariencia', 'pagos', 'impresora', 'pantalla']
