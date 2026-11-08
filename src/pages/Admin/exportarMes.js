@@ -1,6 +1,6 @@
 import { cop } from '../../utils/money'
 import { nombreMes, horaCorta } from '../../utils/jornada'
-import { ms } from '../../services/comandas'
+import { ms, etiquetaDestino } from '../../services/comandas'
 import { nombreCuenta } from '../../utils/cuentasDinero'
 
 // ⬇️ DESCARGA DEL MES (guía «Cuentas del negocio» D17 + S22), sin librerías:
@@ -44,11 +44,54 @@ export function descargarExcel({ local, mes, resumen: r, ventas, movimientos }) 
     ['Fecha', 'Hora', 'Tipo', 'Concepto', 'Valor', 'Cuenta', 'Días que cubre', 'Anotó'],
     ...movimientos.map(m => [fecha(m.jornada), horaCorta(ms(m.en)), TIPO_MOV[m.tipo] || m.tipo, m.tipo === 'nomina' ? m.trabajador : m.concepto, m.monto, m.cuentaDestino ? `${nombreCuenta(local, m.cuenta)} → ${nombreCuenta(local, m.cuentaDestino)}` : nombreCuenta(local, m.cuenta), (m.dias || []).map(fecha).join(' '), m.por?.nombre || m.por?.email || '']),
   ]
-  const csv = '﻿' + filas.map(f => f.map(celda).join(';')).join('\r\n')
+  bajarCsv(filas, nombreArchivo(local, mes, 'csv'))
+}
+
+function bajarCsv(filas, nombre) {
+  const csv = '\ufeff' + filas.map(f => f.map(celda).join(';')).join('\r\n')
   const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  const a = Object.assign(document.createElement('a'), { href: url, download: nombreArchivo(local, mes, 'csv') })
+  const a = Object.assign(document.createElement('a'), { href: url, download: nombre })
   document.body.appendChild(a); a.click(); a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 2000)
+}
+
+// 🧾 VENTAS PARA FACTURAR (guía «Mejoras frente a Loggro» D2 y D12): Appetic no factura ante la
+// DIAN; el negocio pasa esto a SU facturador (Alegra, Siigo, el que use). Una tabla plana, sin
+// títulos ni resumen, que cualquier programa importa: UNA FILA POR PRODUCTO, con los datos de la
+// venta repetidos. El descuento de la venta se reparte entre sus líneas (en proporción, el último
+// peso a la última línea) para que la suma de las líneas dé exacto el total cobrado. La propina va
+// aparte y solo en la primera línea de cada venta (no es ingreso del negocio).
+export const CONSUMIDOR_FINAL = { nombre: 'Consumidor final', documento: '222222222222' }
+
+export function filasParaFacturar(ventas) {
+  const filas = [[
+    'Consecutivo', 'Fecha', 'Hora', 'Código de la venta', 'Tipo', 'Cliente', 'Documento del cliente',
+    'Producto', 'Detalle', 'Cantidad', 'Precio unitario', 'Valor de la línea', 'Descuento', 'Total de la línea',
+    'Forma de pago', 'Propina', 'Total de la venta',
+  ]]
+  ventas.forEach((v, n) => {
+    const items = (v.items || []).filter(it => it.cantidad > 0)
+    const subtotal = items.reduce((s, it) => s + (Number(it.precio) || 0), 0)
+    const desc = Math.min(v.descuento?.valor || 0, subtotal)
+    let repartido = 0
+    items.forEach((it, i) => {
+      const precio = Number(it.precio) || 0
+      const d = i === items.length - 1 ? desc - repartido : (subtotal ? Math.round(desc * precio / subtotal) : 0)
+      repartido += d
+      filas.push([
+        n + 1, fecha(v.jornada), horaCorta(ms(v.en)), v.id || '',
+        etiquetaDestino(v.destino) || (v.mesa ? `Mesa ${v.mesa}` : 'Caja'),
+        CONSUMIDOR_FINAL.nombre, CONSUMIDOR_FINAL.documento,
+        it.nombre, it.opciones || '', it.cantidad, Math.round(precio / it.cantidad), precio, d, precio - d,
+        i === 0 ? (pagos(v) || 'Sin pago') : '', i === 0 ? (v.propina?.valor || 0) : '', i === 0 ? v.total : '',
+      ])
+    })
+  })
+  return filas
+}
+
+export function descargarParaFacturar({ local, mes, ventas }) {
+  bajarCsv(filasParaFacturar(ventas), `${local.slug || 'local'}-ventas-para-facturar-${mes}.csv`)
 }
 
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))

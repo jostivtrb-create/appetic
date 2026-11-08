@@ -328,3 +328,37 @@
 .pv-viejas { margin: 0 0 10px; padding: 10px 12px; border-radius: 12px; background: #FFF4D6; border: 1.5px solid #E8B21E; color: #4A3A08; font-size: 13.5px; }
 .pv-envio-acordado input { width: 110px; text-align: right; padding: 6px 8px; border-radius: 8px; border: 1.5px dashed var(--border); background: var(--surface); color: var(--text); font: inherit; font-weight: 700; }
 .pv-envio-acordado input:focus { outline: none; border-style: solid; border-color: var(--brand-orange); }
+
+/* 🧮 Contar la caja (guía «Mejoras frente a Loggro» D17/D18) */
+.pv-contar { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-width: 52px; background: var(--acc-soft); border: 1px solid var(--acc-line); border-radius: 12px; padding: 4px 8px; font: inherit; font-size: 17px; line-height: 1; color: var(--acc); cursor: pointer; box-shadow: var(--shadow-sm); transition: transform .12s; }
+.pv-contar span { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+.pv-contar:active { transform: scale(.95); }
+.ca-hoja { max-height: 92vh; overflow-y: auto; }
+.ca-hoja h2 { margin: 0 0 4px; }
+.ca-lista { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+.ca-fila { display: grid; grid-template-columns: minmax(0, 1fr) auto 84px; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.ca-fila.con { border-color: var(--acc-line); background: var(--acc-soft); }
+.ca-denom { display: flex; align-items: center; gap: 8px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ca-cant { display: flex; align-items: center; gap: 4px; }
+.ca-cant button { width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); font: inherit; font-size: 18px; font-weight: 800; color: var(--acc); cursor: pointer; }
+.ca-cant button:disabled { opacity: .35; cursor: default; }
+.ca-cant input { width: 54px; height: 34px; text-align: center; border: 1px solid var(--border); border-radius: 10px; font: inherit; font-weight: 800; font-variant-numeric: tabular-nums; background: var(--bg, #fff); color: inherit; }
+.ca-sub { text-align: right; font-size: 13px; color: var(--text-soft); font-variant-numeric: tabular-nums; }
+.ca-total { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 4px 12px; font-weight: 700; }
+.ca-total b { font-size: 24px; color: var(--acc); font-variant-numeric: tabular-nums; }
+.ca-resultado { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.ca-res-fila { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 4px; border-bottom: 1px dashed var(--border); font-variant-numeric: tabular-nums; }
+.ca-res-fila.grande { font-size: 18px; border-bottom: 0; }
+.ca-dif { font-weight: 900; white-space: nowrap; }
+.ca-dif.cuadra { color: #1B7A43; }
+.ca-dif.sobra { color: #1F5FAD; }
+.ca-dif.falta { color: var(--danger); }
+.ca-ajustar { flex: 1; }
+.ca-arqueo-acc { display: flex; gap: 14px; margin-top: 2px; }
+@media (max-width: 480px) { .ca-fila { grid-template-columns: minmax(0, 1fr) auto; } .ca-sub { display: none; } }
+@media (max-width: 480px) {
+  .pv-caja > div { min-width: 0; padding: 5px 8px; }
+  .pv-caja b { font-size: 14.5px; }
+  .pv-contar { flex: 0 0 auto; min-width: 42px; padding: 4px 6px; }
+  .pv-contar span { display: none; }
+}

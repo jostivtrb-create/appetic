@@ -10,7 +10,7 @@ import { sumarEn } from '../../utils/cuentasCalculo.js'
 import { cuentasDe, emojiCuenta } from '../../utils/cuentasDinero'
 import { urlWhatsApp } from '../../utils/whatsapp'
 import { coloresComanda } from './comandaUtils'
-import { descargarExcel, descargarPdf } from './exportarMes'
+import { descargarExcel, descargarPdf, descargarParaFacturar } from './exportarMes'
 import CuentasSaldos from './CuentasSaldos'
 import CuentasNomina from './CuentasNomina'
 import './Cobro.css'
@@ -238,6 +238,7 @@ function Mes({ local, api, demo }) {
       const [ventas, movs] = await Promise.all([api.ventasEntre(desde, hasta), api.movimientosEntre(desde, hasta)])
       const datos = { local, mes, resumen: r || {}, ventas: ventas.filter(v => v.estado === 'ok'), movimientos: movs.filter(m => m.estado === 'ok') }
       if (tipo === 'excel') descargarExcel(datos)
+      else if (tipo === 'facturar') descargarParaFacturar(datos)
       else descargarPdf(datos, ventana)
     } catch (e) {
       ventana?.close()
@@ -345,6 +346,16 @@ function Mes({ local, api, demo }) {
               <button type="button" className="pv-mandar" disabled={!!bajando} onClick={() => bajar('pdf')}>{bajando === 'pdf' ? 'Preparando…' : '📄 PDF'}</button>
             </div>
             {errorBajar && <p className="pv-nota cu-error" role="alert">{errorBajar}</p>}
+          </section>
+
+          <section className="pv-card cu-bajar">
+            <div>
+              <h3>🧾 Ventas para facturar</h3>
+              <p className="pv-nota">Appetic no hace facturación electrónica. Este Excel trae cada producto vendido en {nombreMes(mes)}, listo para pasarlo al programa con que facturas (Alegra, Siigo u otro).</p>
+            </div>
+            <div className="cu-bajar-btns">
+              <button type="button" className="pv-mandar" disabled={!!bajando} onClick={() => bajar('facturar')}>{bajando === 'facturar' ? 'Preparando…' : '📗 Excel para facturar'}</button>
+            </div>
           </section>
         </>
       )}

@@ -6,6 +6,7 @@ import { jornadaDe, etiquetaJornada, horaCorta } from '../../utils/jornada'
 import { cuentasDe, emojiCuenta, cuentasParaPagar } from '../../utils/cuentasDinero'
 import { conTope } from '../../utils/conTope'
 import { primerNombre } from './CajaVentas'
+import ArqueosLista from './ArqueosLista'
 
 // 💳 SALDOS (Cuentas, guía «Cuentas del negocio» D7, D24, D25): cuánto hay en cada cuenta. No se
 // abre ni se cierra caja: cada venta suma y el dueño SACA (retiro), METE (ingreso) o MUEVE plata
@@ -58,6 +59,8 @@ export default function CuentasSaldos({ local, api, saldos, usuario }) {
       </div>
       <p className="pv-nota">Las ventas suman solas en la cuenta con que se pagó; los gastos y la nómina restan de la cuenta de donde salieron. Si un saldo no coincide con la realidad, ajústalo con «Meter» o «Sacar».</p>
       {error && <p className="pv-error" role="alert">{error}</p>}
+
+      <ArqueosLista local={local} api={api} usuario={usuario} />
 
       <h2 className="pv-panel-titulo">Movimientos de plata</h2>
       <div className="pv-card pv-ventas">

@@ -29,7 +29,8 @@ import {
   collection, doc, writeBatch, runTransaction, onSnapshot, query, where, orderBy, limit,
   serverTimestamp, increment, arrayUnion, deleteField, getDocs, documentId, setDoc, updateDoc,
 } from 'firebase/firestore'
-import { db } from '../config/firebase'
+import { db, auth } from '../config/firebase'
+import { limpiarConteo, sumarConteo, ajusteDe } from '../utils/arqueo.js'
 import { escucharConReintento, comandasDe } from './comandas'
 import { jornadaDe, horaDe, mesDe } from '../utils/jornada'
 import {
@@ -192,6 +193,36 @@ function firestoreApi(localId) {
       if (id) await updateDoc(doc(col('trabajadores'), id), datos)
       else await setDoc(doc(col('trabajadores')), { ...datos, creadoEn: serverTimestamp() })
     },
+
+    // 🧮 ARQUEO (utils/arqueo.js): lo guarda el servidor, que pone el esperado (el cajero no lee saldos).
+    nuevoIdArqueo: () => doc(col('arqueos')).id,
+    async contarCaja({ id, cuenta, conteo }) {
+      const idToken = await auth.currentUser?.getIdToken()
+      if (!idToken) throw new Error('sin-sesion')
+      let r
+      try {
+        r = await fetch('/api/arqueo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+          body: JSON.stringify({ localId, id, cuenta, conteo }),
+        })
+      } catch { throw new Error('sin-red') }
+      const j = await r.json().catch(() => ({}))
+      if (!r.ok) throw Object.assign(new Error('arqueo'), { detalle: j.error || '' })
+      return j
+    },
+    // Solo el dueño (las reglas no dejan al cajero leerlos).
+    escucharArqueos(cb, onError, { n = 10 } = {}) {
+      return escucharConReintento(query(col('arqueos'), orderBy('en', 'desc'), limit(n)), snap => cb(snap.docs.map(d => ({ id: d.id, ...d.data() }))), onError)
+    },
+    // «Ajustar» deja el saldo igual a lo contado con un Meter/Sacar de id fijo (un reintento no
+    // ajusta dos veces); «Dejar así» solo lo marca revisado.
+    async revisarArqueo(arqueo, accion, por, local) {
+      const ajuste = accion === 'ajustado' ? ajusteDe(arqueo) : null
+      const movimientoId = ajuste ? `arq-${arqueo.id}` : null
+      if (ajuste) await this.registrarMovimiento({ id: movimientoId, ...ajuste }, por, local)
+      await updateDoc(doc(col('arqueos'), arqueo.id), { revisado: { accion, por, en: Date.now(), movimientoId } })
+    },
   }
 }
 
@@ -201,7 +232,7 @@ function demoApi(localId) {
   const KEY = `appetic_demo_cuentas_${localId}`
   const canal = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(KEY) : null
   const oyentes = new Set()
-  const vacio = () => ({ ventas: [], movimientos: [], trabajadores: [], resumen: {} })
+  const vacio = () => ({ ventas: [], movimientos: [], trabajadores: [], resumen: {}, arqueos: [] })
   const leer = () => { try { return { ...vacio(), ...JSON.parse(localStorage.getItem(KEY) || '{}') } } catch { return vacio() } }
   const avisar = () => { for (const fn of oyentes) fn() }
   const escribir = st => {
@@ -299,6 +330,30 @@ function demoApi(localId) {
       else st.trabajadores.push({ id: nuevoId(), nombre: nombre.trim(), activo, creadoEn: Date.now() })
       escribir(st)
     },
+    nuevoIdArqueo: nuevoId,
+    async contarCaja({ id, cuenta, conteo }, por, local) {
+      const st = leer()
+      const ya = st.arqueos.find(a => a.id === id)
+      if (ya) return ya
+      const limpio = limpiarConteo(conteo), contado = sumarConteo(limpio)
+      const esperado = Number(st.resumen.saldos?.[cuenta]) || 0
+      const a = { id, jornada: jornadaDe(Date.now(), local?.horario), en: Date.now(), por, cuenta, conteo: limpio, contado, esperado, diferencia: contado - esperado, revisado: null }
+      st.arqueos.push(a)
+      escribir(st)
+      return a
+    },
+    escucharArqueos(cb, _onError, { n = 10 } = {}) {
+      return suscribir(st => [[...st.arqueos].sort((a, b) => b.en - a.en).slice(0, n)], cb)
+    },
+    async revisarArqueo(arqueo, accion, por, local) {
+      const ajuste = accion === 'ajustado' ? ajusteDe(arqueo) : null
+      const movimientoId = ajuste ? `arq-${arqueo.id}` : null
+      if (ajuste) await this.registrarMovimiento({ id: movimientoId, ...ajuste }, por, local)
+      const st = leer()
+      const a = st.arqueos.find(x => x.id === arqueo.id)
+      if (a) a.revisado = { accion, por, en: Date.now(), movimientoId }
+      escribir(st)
+    },
     // Solo demo: reemplaza todo (datos de ejemplo, S8).
     _sembrar(st) { escribir({ ...vacio(), ...st }) },
     _vacio: () => !localStorage.getItem(KEY),
@@ -322,6 +377,8 @@ export function motivoErrorCuentas(err) {
   if (m === 'pagos-no-cuadran') return 'Los pagos no suman el total.'
   if (m === 'ya-no') return 'Eso ya había cambiado (otra persona lo corrigió o eliminó). Mira la lista de nuevo.'
   if (m === 'monto') return 'Escribe un valor mayor a cero.'
+  if (m === 'sin-sesion') return 'Se cerró la sesión. Vuelve a entrar e intenta de nuevo.'
+  if (m === 'arqueo') return err.detalle ? `No se guardó el conteo: ${err.detalle}.` : 'No se guardó el conteo. Intenta de nuevo.'
   if (m === 'sin-red') return 'Sin internet: no se registró. Revisa la señal y vuelve a cobrar (no se cobra dos veces).'
   if (m === 'ya-cobrada') return 'Esta cuenta ya la cobraron en otra caja. Mira el historial.'
   if (m === 'comanda-cancelada') return 'Una de estas comandas la cancelaron. Revisa la cuenta.'

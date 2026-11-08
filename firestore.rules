@@ -1,6 +1,9 @@
 rules_version = '2';
 
-// Última actualización: 2026-11-04 (SOLICITUDES: guía «Propuesta web de Appetic»)
+// Última actualización: 2026-11-07 (ARQUEOS: guía «Mejoras frente a Loggro» D17/D18)
+// Último cambio: locales/{id}/arqueos/ — conteos de la caja que crea SOLO el servidor (/api/arqueo);
+//   el dueño los lee y marca `revisado`; el cajero no los lee (cuenta a ciegas).
+// Anterior: 2026-11-04 (SOLICITUDES: guía «Propuesta web de Appetic»)
 // Cambios Solicitudes: solicitudes/ (cotizaciones que llegan de switflysolutions.com/appetic) las
 //   crea SOLO el servidor (/api/solicitud); el superadmin las lee y les cambia el estado · limites/
 //   queda negado de forma explícita.
@@ -350,6 +353,17 @@ service cloud.firestore {
         allow update: if puedeAdministrar(localId)
                       || (esCajero(localId) && resource.data.tipo == 'gasto' && reciente()
                           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'eliminado']));
+        allow delete: if esSuperadmin() && esLocalDemo(localId);
+      }
+
+      // 🧮 Arqueos de la caja (guía «Mejoras frente a Loggro» D17/D18). Los CREA solo el servidor
+      // (/api/arqueo pone el esperado con el saldo del momento): el cajero cuenta a ciegas y no los
+      // lee. El dueño los lee y solo marca `revisado` (ajustar = un Meter/Sacar aparte).
+      match /arqueos/{arqueoId} {
+        allow read: if puedeAdministrar(localId);
+        allow update: if puedeAdministrar(localId)
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['revisado']);
+        allow create: if false;
         allow delete: if esSuperadmin() && esLocalDemo(localId);
       }
 
