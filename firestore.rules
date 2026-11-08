@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Última actualización: 2026-11-07 (INVENTARIO: insumos, recetas, proveedores, inventarioMov · antes ARQUEOS)
+// Última actualización: 2026-11-07 (PAQUETES: tienePaq() reemplaza a nivelPlan(); roles por paquete · antes INVENTARIO)
 // Último cambio: locales/{id}/arqueos/ — conteos de la caja que crea SOLO el servidor (/api/arqueo);
 //   el dueño los lee y marca `revisado`; el cajero no los lee (cuenta a ciegas).
 // Anterior: 2026-11-04 (SOLICITUDES: guía «Propuesta web de Appetic»)
@@ -85,8 +85,16 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/locales/$(localId)).data.get('suscripcion', {});
     }
     // Emprendedor 1 · Comerciante 2 · Empresario 3 (sin plan cuenta como Empresario: datos viejos).
-    function nivelPlan(localId) {
-      return {'emprendedor': 1, 'comerciante': 2}.get(susDe(localId).get('plan', 'empresario'), 3);
+    // 📦 ¿El local tiene este PAQUETE? (guía «Paquetes de Appetic», fase B). Espejo de paquetesDe()
+    // y PAQUETE_DE en src/utils/plan.js. Sin `suscripcion.paquetes` (datos de antes) se deduce del
+    // plan viejo: Emprendedor = Base + Contabilidad; Comerciante = + Domicilios; Empresario = todos.
+    function tienePaq(localId, paq) {
+      let s = susDe(localId);
+      return s.get('paquetes', null) != null
+        ? s.get('paquetes', []).hasAny([paq])
+        : {'emprendedor': ['base', 'contabilidad'], 'comerciante': ['base', 'contabilidad', 'domicilios']}
+            .get(s.get('plan', 'empresario'), ['base', 'domicilios', 'contabilidad', 'cocina', 'salon', 'inventario'])
+            .hasAny([paq]);
     }
     // ¿Está prendido? Cortesía (muestras, demo, datos viejos) siempre; montaje y activo hasta su
     // corteEn (vence + 3 días de gracia, o montaje + 7 días). Al cortarse, el dueño y su equipo no
@@ -96,11 +104,13 @@ service cloud.firestore {
       return s.get('estado', 'cortesia') == 'cortesia'
         || (s.get('corteEn', null) == null ? s.get('estado', '') == 'montaje' : request.time < s.corteEn);
     }
-    // ¿El plan trae este rol del equipo? Domiciliario desde Comerciante; mesero y cocina, Empresario.
+    // ¿Sus paquetes traen este rol del equipo? Cajero: Contabilidad · domiciliario: Domicilios ·
+    // mesero: Servicio a la Mesa (`salon`) · cocina: Cocina.
     function rolEnPlan(localId, rol) {
-      return rol == 'cajero'
-        || (rol == 'domiciliario' && nivelPlan(localId) >= 2)
-        || ((rol == 'mesero' || rol == 'cocina') && nivelPlan(localId) >= 3);
+      return (rol == 'cajero' && tienePaq(localId, 'contabilidad'))
+        || (rol == 'domiciliario' && tienePaq(localId, 'domicilios'))
+        || (rol == 'mesero' && tienePaq(localId, 'salon'))
+        || (rol == 'cocina' && tienePaq(localId, 'cocina'));
     }
 
 
@@ -138,7 +148,7 @@ service cloud.firestore {
 
     // 🪑 Cuenta por mesa: solo Empresario (guía «Blindaje», 3-nov). Para llevar o domicilio, todos.
     function mesaEnPlan(localId) {
-      return request.resource.data.get('destino', {}).get('tipo', '') != 'mesa' || nivelPlan(localId) >= 3;
+      return request.resource.data.get('destino', {}).get('tipo', '') != 'mesa' || tienePaq(localId, 'salon');
     }
 
     // 📈 Métricas públicas: lo único que cambia es visitas o interesados, y sube exactamente 1.
@@ -205,7 +215,7 @@ service cloud.firestore {
                       && request.resource.data.total >= 0
                       && request.resource.data.estado == 'nuevo'
                       && localVivo(localId)
-                      && (request.resource.data.get('entrega', 'recoger') != 'domicilio' || nivelPlan(localId) >= 2);
+                      && (request.resource.data.get('entrega', 'recoger') != 'domicilio' || tienePaq(localId, 'domicilios'));
         // El personal del local (admin, mesero, cocina, caja) lo lee completo. El DOMICILIARIO solo
         // ve domicilios ya confirmados: nada de recoger, sin confirmar ni rechazados (teléfono y
         // dirección de clientes que no le tocan). Auditoría «domicilios» H4.

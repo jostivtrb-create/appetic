@@ -635,3 +635,9 @@
 .sa-cot-vence.vencida { color: #C0262D; font-weight: 700; }
 .sa-cot-enviar { font: inherit; font-weight: 800; font-size: 15px; padding: 11px 14px; border-radius: 12px; border: 0; cursor: pointer; color: #fff; background: linear-gradient(135deg, #1FA855, #25D366); box-shadow: 0 8px 18px rgba(37, 211, 102, .25); }
 .sa-cot-enviar:disabled { opacity: .6; cursor: default; }
+/* 📦 Casillas de paquetes (fase B) */
+.sp-paquetes { display: grid; gap: 6px; }
+.sp-paq { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--border, #E3E8F2); cursor: pointer; font-size: 14px; }
+.sp-paq.on { border-color: #E0692A; background: #FFF4EC; }
+.sp-paq.fijo { cursor: default; opacity: .9; }
+.sp-paq small { color: var(--text-soft, #5C7399); font-variant-numeric: tabular-nums; }

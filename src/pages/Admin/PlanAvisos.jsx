@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { WHATSAPP_VENTAS } from '../../config/demo'
 import { urlWhatsApp } from '../../utils/whatsapp'
 import {
-  PLANES, LISTA_PLANES, planDe, planPara, nombrePlan, tiene, estadoPago, fechaCorta, quiereBuscador,
+  planPara, tiene, estadoPago, fechaCorta, quiereBuscador, paquetesDe, precioMes, nombresPaquetes, paquetesProximos,
   DIAS_GRACIA,
 } from '../../utils/plan'
 import { cop } from '../../utils/money'
+import { PAQUETES, paquete } from '../../utils/paquetes'
 import './Plan.css'
 
 // 💳 Lo que el DUEÑO ve de su plan (guía «Planes en la app»):
@@ -26,31 +27,34 @@ const QUE_ES = {
   arqueo: { titulo: 'Contar la caja', texto: 'Cuentan los billetes y monedas cuando quieran y la app les dice si sobra o falta plata.' },
   impresora: { titulo: 'La impresora térmica', texto: 'Las comandas salen en papel en la cocina y el ticket del cliente en la caja, sin instalar nada.' },
   inventario: { titulo: 'El inventario', texto: 'Cada venta descuenta los ingredientes de su receta, te avisa antes de que algo se acabe y le pides al proveedor por WhatsApp.' },
+  cuentas: { titulo: 'Las cuentas del negocio', texto: 'Gastos, saldos, nómina y tu ganancia del día y del mes, sin cuaderno ni calculadora.' },
+  gastos: { titulo: 'Los gastos', texto: 'Anotas lo que compras y la app lo resta de tu ganancia.' },
+  cajero: { titulo: 'Los cajeros', texto: 'Tus cajeros entran con su correo, venden, cobran y anotan gastos.' },
   mesas: { titulo: 'QR por mesa', texto: 'Cada mesa con su QR: el cliente pide desde la mesa y lleva la cuenta de su mesa.' },
 }
 
-// 🔒 «Disponible en el plan Comerciante». `compacto`: una línea dentro de otra pantalla.
+// 🔒 «Viene en el Paquete Domicilios». `compacto`: una línea dentro de otra pantalla.
 export function Candado({ local, funcion, compacto = false, titulo }) {
-  const plan = PLANES[planPara(funcion)]
+  const pq = paquete(planPara(funcion))
   const base = QUE_ES[funcion] || { titulo: 'Esto', texto: '' }
   const q = titulo ? { ...base, titulo } : base
-  const pedir = () => abrirVentas(`¡Hola! Soy de ${local.nombre} y quiero pasarme al plan ${plan.nombre} de Appetic para tener ${q.titulo.toLowerCase()}.`)
+  const pedir = () => abrirVentas(`¡Hola! Soy de ${local.nombre} y quiero agregar el ${pq.nombre} de Appetic para tener ${q.titulo.toLowerCase()}.`)
   if (compacto) {
     return (
       <div className="pl-candado-linea">
-        <span>🔒 <b>{q.titulo}</b> {titulo ? 'vienen' : 'viene'} en el plan <b>{plan.nombre}</b>.</span>
-        <button type="button" className="pl-link" onClick={pedir}>Quiero el plan {plan.nombre}</button>
+        <span>🔒 <b>{q.titulo}</b> {titulo ? 'vienen' : 'viene'} en el <b>{pq.nombre}</b>.</span>
+        <button type="button" className="pl-link" onClick={pedir}>Quiero agregarlo</button>
       </div>
     )
   }
   return (
     <div className="pl-candado">
-      <div className="pl-candado-ico" aria-hidden="true">🔒</div>
-      <h2>{q.titulo} viene en el plan {plan.nombre}</h2>
+      <div className="pl-candado-ico" aria-hidden="true">{pq.icono}</div>
+      <h2>{q.titulo} viene en el {pq.nombre}</h2>
       {q.texto && <p>{q.texto}</p>}
-      <p className="pl-candado-plan">Tu plan hoy: <b>{nombrePlan(planDe(local))}</b> · El {plan.nombre} cuesta <b>{cop(plan.precio)}</b> al mes.</p>
-      <button type="button" className="btn btn-primary" onClick={pedir}>💬 Quiero el plan {plan.nombre}</button>
-      <small>Subes cuando quieras, sin cambiar de app ni perder nada.</small>
+      <p className="pl-candado-plan">Hoy tienes: <b>{nombresPaquetes(paquetesDe(local))}</b>.</p>
+      <button type="button" className="btn btn-primary" onClick={pedir}>💬 Quiero agregar el {pq.nombre}</button>
+      <small>Lo sumas cuando quieras, sin cambiar de app ni perder nada.</small>
     </div>
   )
 }
@@ -58,7 +62,7 @@ export function Candado({ local, funcion, compacto = false, titulo }) {
 // Franja de aviso arriba del panel (solo dueño y superadmin).
 export function AvisoPago({ local }) {
   const p = estadoPago(local)
-  const pagar = () => abrirVentas(`¡Hola! Soy de ${local.nombre} y quiero pagar mi plan ${nombrePlan(planDe(local))} de Appetic.`)
+  const pagar = () => abrirVentas(`¡Hola! Soy de ${local.nombre} y quiero pagar mi plan de Appetic (${nombresPaquetes(paquetesDe(local))}).`)
   let tono, texto
   if (p.estado === 'montaje') {
     tono = 'info'
@@ -107,14 +111,13 @@ export function PanelApagado({ local, esAdmin }) {
   )
 }
 
-// ⚙️ Configuración → Mi plan.
+// ⚙️ Configuración → Mi plan: sus paquetes, lo que paga y lo que le falta (guía «Paquetes», fase B).
 export function MiPlan({ local }) {
-  const actual = planDe(local)
+  const mios = paquetesDe(local)
   const p = estadoPago(local)
-  const bajarA = local.suscripcion?.bajarA
-  const siguiente = LISTA_PLANES.find(x => x.nivel === PLANES[actual].nivel + 1)
-  const pedir = plan => abrirVentas(`¡Hola! Soy de ${local.nombre} y quiero pasarme al plan ${nombrePlan(plan)} de Appetic.`)
-  const pagar = () => abrirVentas(`¡Hola! Soy de ${local.nombre} y quiero pagar mi plan ${nombrePlan(actual)} de Appetic.`)
+  const proximos = paquetesProximos(local)
+  const pedir = pq => abrirVentas(`¡Hola! Soy de ${local.nombre} y quiero agregar el ${pq.nombre} de Appetic.`)
+  const pagar = () => abrirVentas(`¡Hola! Soy de ${local.nombre} y quiero pagar mi plan de Appetic (${nombresPaquetes(mios)}).`)
   const estadoTxt = {
     cortesia: 'Sin vencimiento',
     montaje: `En montaje · ${p.dias} ${p.dias === 1 ? 'día' : 'días'} para el primer pago`,
@@ -127,38 +130,30 @@ export function MiPlan({ local }) {
     <div className="pl-mio">
       <section className={`pl-mio-tarjeta pl-estado--${p.estado}`}>
         <span className="pl-mio-eyebrow">Tu plan</span>
-        <h3>Plan {nombrePlan(actual)}</h3>
-        <p className="pl-mio-precio">{cop(PLANES[actual].precio)} <small>/ mes</small></p>
+        <h3>{nombresPaquetes(mios)}</h3>
+        <p className="pl-mio-precio">{cop(precioMes(local))} <small>/ mes</small></p>
         <p className="pl-mio-estado">{estadoTxt}</p>
-        {bajarA && <p className="ac-hint">Desde tu próximo pago pasas al plan {nombrePlan(bajarA)}.</p>}
+        {proximos && <p className="ac-hint">Desde tu próximo pago quedas con: {nombresPaquetes(proximos)}.</p>}
         {['por-vencer', 'gracia', 'montaje'].includes(p.estado) && (
           <button type="button" className="btn btn-primary" onClick={pagar}>💬 Pagar mi plan</button>
         )}
       </section>
 
       <section className="ac-sec">
-        <h3>Qué trae cada plan</h3>
-        <ul className="pl-escalera">
-          {LISTA_PLANES.map(pl => (
-            <li key={pl.id} className={pl.id === actual ? 'on' : ''}>
-              <div>
-                <strong>{pl.nombre}</strong>
-                <small>{pl.frase}</small>
-              </div>
-              <span>{cop(pl.precio)}</span>
-              {pl.id === actual && <em>Tu plan</em>}
-            </li>
-          ))}
+        <h3>Tus paquetes</h3>
+        <ul className="pl-paquetes">
+          {PAQUETES.map(pq => {
+            const lo = mios.includes(pq.id)
+            return (
+              <li key={pq.id} className={lo ? 'si' : 'no'}>
+                <span className="pl-paq-ico" aria-hidden="true">{pq.icono}</span>
+                <div><strong>{pq.nombre}</strong><small>{pq.resumen}</small></div>
+                {lo ? <em>✓ Lo tienes</em> : <button type="button" className="pl-link" onClick={() => pedir(pq)}>Agregarlo</button>}
+              </li>
+            )
+          })}
         </ul>
-        <ul className="pl-trae">
-          <li className="si">✓ Menú con fotos y QR, pedidos para recoger por WhatsApp, TV, menú del día, caja y cuentas</li>
-          <li className={tiene(local, 'domicilios') ? 'si' : 'no'}>{tiene(local, 'domicilios') ? '✓' : '🔒'} Domicilios con cobro por distancia y domiciliarios</li>
-          <li className={tiene(local, 'mesero') ? 'si' : 'no'}>{tiene(local, 'mesero') ? '✓' : '🔒'} Mesero, pantalla de cocina y QR por mesa</li>
-        </ul>
-        {siguiente && (
-          <button type="button" className="btn btn-primary" onClick={() => pedir(siguiente.id)}>💬 Subir al plan {siguiente.nombre}</button>
-        )}
-        <p className="ac-hint">Sin contratos: mes a mes. Para cambiar de plan o pagar, escríbenos por WhatsApp.</p>
+        <p className="ac-hint">Sin contratos: mes a mes. Para agregar o quitar un paquete, o para pagar, escríbenos por WhatsApp.</p>
       </section>
     </div>
   )

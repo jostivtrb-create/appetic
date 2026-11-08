@@ -196,11 +196,11 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
 
 **Fase B — La app por paquetes**
 
-- [ ] B1 · **`utils/plan.js`:** de escalera a `suscripcion.paquetes[]`.
+- [x] B1 · **`utils/plan.js`:** de escalera a `suscripcion.paquetes[]`.
   - `tiene(local, función)` sale de los paquetes;
   - espejo en `firestore.rules` (`rolEnPlan` y `nivelPlan`);
   - candados con el nombre del paquete.
-- [ ] B2 · **Superadmin:** prender y apagar los paquetes de cada local.
+- [x] B2 · **Superadmin:** prender y apagar los paquetes de cada local.
 - [ ] B3 · **Migración** (S10) y **«Menú en Pantalla»** en la app.
 
 **Fase C — Lo nuevo de los paquetes** (cada uno, su propia guía o paso)
@@ -268,4 +268,14 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
   - Al lado va la etiqueta «Menú real de Pilotos Burger House: lo montamos con su logo, sus colores y su carta».
   - La demostración del pedido sigue igual.
   - Imágenes en `web/appetic/img/pilotos/` (optimizadas, 144 KB). Subido por FTP con `~/.netrc`.
+- **7-nov-2026 · fase B: la app funciona por paquetes.**
+  - **`utils/plan.js`:**
+    - `paquetesDe()` lee `suscripcion.paquetes`; si no existe, sale de `PAQUETES_DE_PLAN` (Emprendedor = Base + Contabilidad; Comerciante = + Domicilios; Empresario = todos), así nadie pierde nada;
+    - `tiene()` usa `PAQUETE_DE` (domicilios y domiciliario → Domicilios; mesero y mesas → `salon`; cocina → Cocina; cuentas, gastos, cajero y arqueo → Contabilidad; inventario → Inventario; impresora → Base);
+    - además `precioMes()`, `nombresPaquetes()` y `paquetesProximos()`, y en DEV `?paquetes=base,cocina`.
+  - **`firestore.rules`:** `tienePaq()` reemplaza a `nivelPlan()`, con el mismo respaldo por plan viejo. Los roles van por paquete: el cajero ahora exige Contabilidad. 8 de 8 pruebas OK en el emulador. Desplegadas.
+  - **Dueño:** el candado dice «Viene en el Paquete …»; «Mi plan» muestra sus paquetes con ✓ o «Agregarlo»; Cuentas, Gastos y los saldos de la cabecera de la Caja dependen de Contabilidad; en Equipo, cada rol tiene su candado.
+  - **Superadmin:** «Registrar pago» y «Cambiar paquetes» llevan casillas. Si el precio sube, se activa ya y se cobra la diferencia; si baja, queda para el próximo pago (`bajarA` es ahora una lista).
+  - **Pendiente B3:** Pilotos sigue como Comerciante (Base + Contabilidad + Domicilios); D19 decía que solo compró la Base. Hay que preguntarle al usuario antes de quitarle domicilios y cuentas. Falta renombrar «TV» a «Menú en Pantalla» dentro de la app.
+- **El usuario pidió botones de anterior y siguiente en la propuesta y después dijo que la barra de arriba ya le sirve.** No se hicieron.
 - **Pendiente de la guía de Loggro:** el paso 3 (impresora) está en un commit local `ea34889` sin publicar. Conviene publicarlo cuando se defina en qué paquete va.

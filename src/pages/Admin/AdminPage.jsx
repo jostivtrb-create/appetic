@@ -369,7 +369,7 @@ export default function AdminPage() {
     return <PanelApagado local={local} esAdmin={esAdmin} />
   }
   // Sección que el plan no trae → candado para el dueño (D18).
-  const funcionSeccion = { mesero: 'mesero', cocina: 'cocina', domicilios: 'domicilios', inventario: 'inventario' }[seccion]
+  const funcionSeccion = { mesero: 'mesero', cocina: 'cocina', domicilios: 'domicilios', inventario: 'inventario', cuentas: 'cuentas' }[seccion]
   const sinPlan = funcionSeccion && !tiene(local, funcionSeccion)
 
   // El catálogo (se muestra en Configuración → Catálogo).
@@ -463,11 +463,10 @@ export default function AdminPage() {
               {vista => vista === 'catalogo' ? catalogo
                 : vista === 'equipo' ? (
                   <div className="aj-equipo">
-                    {/* 💳 Solo los roles que el plan trae; los otros, con candado. */}
+                    {/* 📦 Solo los roles que traen sus paquetes; los otros, con candado (cada uno su paquete). */}
                     {['cajero', 'mesero', 'cocina', 'domiciliario'].map(rol => rolPermitido(local, rol)
                       ? <EquipoEnLinea key={rol} local={local} rol={rol} demo={demo} />
-                      : rol === 'cocina' ? null   // va junto con el mesero: los dos son del Empresario
-                        : <Candado key={rol} local={local} funcion={rol} compacto titulo={rol === 'mesero' ? 'Meseros y cocina' : undefined} />)}
+                      : <Candado key={rol} local={local} funcion={rol} compacto titulo={{ cajero: 'Los cajeros', mesero: 'Los meseros', cocina: 'La pantalla de cocina', domiciliario: 'Los domiciliarios' }[rol]} />)}
                   </div>
                 )
                 : vista === 'pagos' ? <ConfigPagos local={local} onUpdate={updateLocal} />

@@ -4,7 +4,8 @@ import {
   collection, getDocs, doc, updateDoc, writeBatch, Timestamp, serverTimestamp, deleteField, query, orderBy,
 } from 'firebase/firestore'
 import { db } from '../config/firebase'
-import { calcularCorte, calcularPago, hoyBogota, nombrePlan, DIAS_MONTAJE } from '../utils/plan'
+import { calcularCorte, calcularPago, hoyBogota, DIAS_MONTAJE, paquetesDe, nombresPaquetes } from '../utils/plan'
+import { limpiarPaquetes, cotizar } from '../utils/paquetes'
 
 export async function listarTodosLocales() {
   const snap = await getDocs(collection(db, 'locales'))
@@ -24,52 +25,51 @@ export async function listarPagos() {
 // Registra un pago normal: queda ACTIVO, con el plan del pago, y se corre «pagado hasta».
 // Si había una bajada programada, este pago ya es del plan nuevo (D16) y se borra la marca.
 // Devuelve la suscripción nueva (para pintarla sin volver a leer).
-export async function registrarPago(local, { plan, promo, monto, nota = '' }) {
-  const c = calcularPago(local, { plan, promo })
-  const sus = { ...(local.suscripcion || {}), plan, estado: 'activo', pagadoHasta: c.hasta }
+// 📦 Desde la fase B se cobran y se cambian PAQUETES (guía «Paquetes de Appetic»): `suscripcion.paquetes`.
+// El campo viejo `plan` se deja como está (solo lo leen los locales que aún no tienen paquetes).
+export async function registrarPago(local, { paquetes, promo, monto, nota = '' }) {
+  const ids = limpiarPaquetes(paquetes)
+  const c = calcularPago(local, { paquetes: ids, promo })
+  const sus = { ...(local.suscripcion || {}), paquetes: ids, estado: 'activo', pagadoHasta: c.hasta }
   delete sus.bajarA
   const corte = calcularCorte(sus)
   const b = writeBatch(db)
   b.set(doc(collection(db, 'pagos')), {
     localId: local.id, nombre: local.nombre || local.slug, slug: local.slug,
-    tipo: 'pago', plan, promo, meses: c.meses, monto: Number(monto) || 0,
+    tipo: 'pago', paquetes: ids, alMes: cotizar(ids).total, promo, meses: c.meses, monto: Number(monto) || 0,
     fecha: hoyBogota(), desde: c.desde, hasta: c.hasta, nota, en: serverTimestamp(),
   })
   b.update(doc(db, 'locales', local.id), {
-    'suscripcion.plan': plan, 'suscripcion.estado': 'activo', 'suscripcion.pagadoHasta': c.hasta,
+    'suscripcion.paquetes': ids, 'suscripcion.estado': 'activo', 'suscripcion.pagadoHasta': c.hasta,
     'suscripcion.corteEn': ts(corte), 'suscripcion.bajarA': deleteField(), 'suscripcion.activa': deleteField(),
   })
   await b.commit()
   return { ...sus, corteEn: ts(corte) }
 }
 
-// Sube de plan ya. Si hay diferencia que cobrar (pago vigente), queda en el historial (D16, S15).
-export async function subirPlan(local, plan, monto = 0) {
+// Cambia los paquetes YA. Si se cobra diferencia (sumó paquetes con el pago vigente), queda en el historial.
+export async function cambiarPaquetes(local, paquetes, monto = 0) {
+  const ids = limpiarPaquetes(paquetes)
   const b = writeBatch(db)
   if (Number(monto) > 0) {
     b.set(doc(collection(db, 'pagos')), {
       localId: local.id, nombre: local.nombre || local.slug, slug: local.slug,
-      tipo: 'diferencia', plan, desdePlan: local.suscripcion?.plan || null, monto: Number(monto),
+      tipo: 'diferencia', paquetes: ids, desdePaquetes: paquetesDe(local), monto: Number(monto),
       fecha: hoyBogota(), desde: hoyBogota(), hasta: local.suscripcion?.pagadoHasta || null,
-      nota: `Sube de ${nombrePlan(local.suscripcion?.plan)} a ${nombrePlan(plan)}`, en: serverTimestamp(),
+      nota: `Pasa de ${nombresPaquetes(paquetesDe(local))} a ${nombresPaquetes(ids)}`, en: serverTimestamp(),
     })
   }
-  b.update(doc(db, 'locales', local.id), { 'suscripcion.plan': plan, 'suscripcion.bajarA': deleteField() })
+  b.update(doc(db, 'locales', local.id), { 'suscripcion.paquetes': ids, 'suscripcion.bajarA': deleteField() })
   await b.commit()
   const { bajarA: _, ...sus } = local.suscripcion || {}
-  return { ...sus, plan }
+  return { ...sus, paquetes: ids }
 }
-
-// Cambia el plan sin cobrar nada (montaje, cortesía) o programa/cancela una bajada (bajarA).
-export async function setPlanSinCobro(local, plan) {
-  await updateDoc(doc(db, 'locales', local.id), { 'suscripcion.plan': plan, 'suscripcion.bajarA': deleteField() })
-  const { bajarA: _, ...sus } = local.suscripcion || {}
-  return { ...sus, plan }
-}
-export async function programarBajada(local, plan) {
-  await updateDoc(doc(db, 'locales', local.id), { 'suscripcion.bajarA': plan || deleteField() })
+// Programa (o cancela con null) quitar paquetes desde el próximo pago: no se devuelve plata.
+export async function programarBajada(local, paquetes) {
+  const ids = paquetes ? limpiarPaquetes(paquetes) : null
+  await updateDoc(doc(db, 'locales', local.id), { 'suscripcion.bajarA': ids || deleteField() })
   const sus = { ...(local.suscripcion || {}) }
-  if (plan) sus.bajarA = plan; else delete sus.bajarA
+  if (ids) sus.bajarA = ids; else delete sus.bajarA
   return sus
 }
 
@@ -86,7 +86,7 @@ export async function setEstadoLocal(local, estado) {
     sus.corteEn = null
     cambios['suscripcion.corteEn'] = null
   }
-  if (!sus.plan) { sus.plan = 'empresario'; cambios['suscripcion.plan'] = 'empresario' }
+  if (!sus.plan && !Array.isArray(sus.paquetes)) { sus.paquetes = paquetesDe(local); cambios['suscripcion.paquetes'] = sus.paquetes }
   await updateDoc(doc(db, 'locales', local.id), cambios)
   return sus
 }

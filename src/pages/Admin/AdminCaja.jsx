@@ -58,7 +58,7 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
   const [dia, setDia] = useState(null)
   const [saldos, setSaldos] = useState({})
   useEffect(() => cuentasApi.escucharResumen(`d_${hoy}`, setDia, () => {}), [cuentasApi, hoy])
-  useEffect(() => esAdmin ? cuentasApi.escucharSaldos(setSaldos, () => {}) : undefined, [cuentasApi, esAdmin])
+  useEffect(() => esAdmin && tiene(local, 'cuentas') ? cuentasApi.escucharSaldos(setSaldos, () => {}) : undefined, [cuentasApi, esAdmin, local])
   const cuentasTop = cuentasDe(local).slice(0, 2)
   const abiertas = new Set((porCobrar || []).map(c => c.destino?.mesa ? `m${c.destino.mesa}` : c.id)).size
 
@@ -75,7 +75,7 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
           </div>
         </div>
         <div className="pv-caja">
-          {esAdmin && cuentasTop.map(c => (
+          {esAdmin && tiene(local, 'cuentas') && cuentasTop.map(c => (
             <div key={c.id}><small>{c.tipo === 'efectivo' ? 'En caja' : c.nombre}</small><b>{cop(saldos[c.id] || 0)}</b></div>
           ))}
           <div><small>Hoy · {dia?.nVentas || 0}</small><b>{cop(dia?.ventas || 0)}</b></div>
@@ -85,7 +85,7 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
       </header>
 
       <nav className={`pv-vistas${vista === 'vender' ? ' con-cobro' : ''}`} aria-label="Secciones de la caja">
-        {VISTAS.map(t => (
+        {VISTAS.filter(t => t.id !== 'gastos' || tiene(local, 'gastos')).map(t => (
           <button key={t.id} type="button" className={vista === t.id ? 'on' : ''} aria-current={vista === t.id ? 'page' : undefined}
             onClick={() => { setVista(t.id); avisarDemo(`caja-${t.id}`); window.scrollTo?.({ top: 0, behavior: 'smooth' }) }}>
             <span className="pv-vistas-ico" aria-hidden="true">{t.ico}{t.id === 'vender' && abiertas > 0 && <i>{abiertas}</i>}</span>

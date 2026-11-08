@@ -49,7 +49,7 @@ function cargarTodos() {
 // /admin/comandas redirige a /admin/cocina para no romper las tablets ya instaladas.
 const SECCIONES = [
   { id: 'caja', label: 'Caja', Icon: IconCaja, ruta: s => `/${s}/admin/caja`, roles: ['admin', 'cajero'] },
-  { id: 'cuentas', label: 'Cuentas', Icon: IconMetricas, ruta: s => `/${s}/admin/cuentas`, roles: ['admin'] },
+  { id: 'cuentas', label: 'Cuentas', Icon: IconMetricas, ruta: s => `/${s}/admin/cuentas`, roles: ['admin'], funcion: 'cuentas' },
   { id: 'inventario', label: 'Inventario', Icon: IconInventario, ruta: s => `/${s}/admin/inventario`, roles: ['admin'], funcion: 'inventario' },
   { id: 'menu', label: 'Ver menú', Icon: IconMenu, ruta: s => `/${s}`, roles: ['admin', 'mesero', 'cajero'] },
   // `funcion`: lo que pide del plan. Al dueño le sale con candado si su plan no lo trae (D18).

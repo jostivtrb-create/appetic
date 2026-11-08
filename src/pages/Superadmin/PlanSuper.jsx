@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react'
 import {
-  PLANES, LISTA_PLANES, PROMOS, planDe, nombrePlan, estadoPago, fechaCorta, calcularPago, calcularDiferencia,
-  puedeSegundoGratis, quiereBuscador,
+  PROMOS, nombrePlan, estadoPago, fechaCorta, calcularPago, calcularDiferencia,
+  puedeSegundoGratis, quiereBuscador, paquetesDe, paquetesProximos, precioMes, nombresPaquetes,
 } from '../../utils/plan'
-import { registrarPago, subirPlan, setPlanSinCobro, programarBajada, setEstadoLocal } from '../../services/superadmin'
+import { PAQUETES, cotizar, limpiarPaquetes } from '../../utils/paquetes'
+import { registrarPago, cambiarPaquetes, programarBajada, setEstadoLocal } from '../../services/superadmin'
 import { cop } from '../../utils/money'
 import { urlWhatsApp } from '../../utils/whatsapp'
 
 // 💳 SUPERADMIN · Plan y pago de los locales (guía «Planes en la app» D1, D4, D12, D16, D17).
+// 📦 Fase B (guía «Paquetes de Appetic»): se cobran y se cambian PAQUETES, no planes.
 //   <ChipPago>      el estado en una etiqueta (al lado del nombre del local)
 //   <PlanLocal>     dentro de cada local: plan, registrar pago, cambiar plan, estado e historial
 //   <TableroCobros> arriba: «Vencen esta semana» con recordatorio por WhatsApp y lo cobrado por mes
@@ -26,7 +28,7 @@ export function ChipPago({ local }) {
   const [txt, color] = TXT[p.estado]
   return (
     <span className={`sp-chip sp-chip--${color}`}>
-      {nombrePlan(planDe(local))} · {txt}
+      {nombresPaquetes(paquetesDe(local))} · {txt}
     </span>
   )
 }
@@ -45,8 +47,8 @@ export function PlanLocal({ local, pagos, onCambio, onPago }) {
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState('')
   const p = estadoPago(local)
-  const plan = planDe(local)
-  const bajarA = local.suscripcion?.bajarA
+  const mios = paquetesDe(local)
+  const proximos = paquetesProximos(local)
 
   async function correr(fn) {
     setOcupado(true); setError('')
@@ -59,7 +61,7 @@ export function PlanLocal({ local, pagos, onCambio, onPago }) {
       <button className="sa-tags-head" onClick={() => setAbierto(a => !a)}>
         <span className="sa-admin-ico">💳</span>
         <span className="sa-tags-resumen">
-          Plan {nombrePlan(plan)} · {detalle(p)}{bajarA ? ` · Baja a ${nombrePlan(bajarA)} en el próximo pago` : ''}
+          {nombresPaquetes(mios)} · {cop(precioMes(local))}/mes · {detalle(p)}{proximos ? ` · Desde el próximo pago: ${nombresPaquetes(proximos)}` : ''}
           {quiereBuscador(local) ? ' · 🔎 quiere buscador' : ''}
         </span>
         <span className="sa-tags-chevron">{abierto ? '▲' : '▼'}</span>
@@ -69,7 +71,7 @@ export function PlanLocal({ local, pagos, onCambio, onPago }) {
         <div className="sa-tags-body sp-body">
           <div className="sp-botones">
             <button className={`sa-tag ${modo === 'pago' ? 'on' : ''}`} onClick={() => setModo(m => m === 'pago' ? '' : 'pago')}>💵 Registrar pago</button>
-            <button className={`sa-tag ${modo === 'plan' ? 'on' : ''}`} onClick={() => setModo(m => m === 'plan' ? '' : 'plan')}>🔁 Cambiar plan</button>
+            <button className={`sa-tag ${modo === 'plan' ? 'on' : ''}`} onClick={() => setModo(m => m === 'plan' ? '' : 'plan')}>📦 Cambiar paquetes</button>
             {p.estado !== 'montaje' && p.estado !== 'al-dia' && p.estado !== 'por-vencer' && (
               <button className="sa-tag" disabled={ocupado}
                 onClick={() => { if (window.confirm(`¿Poner ${local.nombre} en montaje? Funciona completo ${7} días desde hoy y, si no se registra el pago, se apaga solo.`)) correr(async () => onCambio(await setEstadoLocal(local, 'montaje'))) }}>
@@ -87,8 +89,8 @@ export function PlanLocal({ local, pagos, onCambio, onPago }) {
           {modo === 'pago' && <FormPago local={local} pagos={pagos} ocupado={ocupado}
             onGuardar={datos => correr(async () => { onCambio(await registrarPago(local, datos)); onPago() })} />}
           {modo === 'plan' && <FormPlan local={local} ocupado={ocupado}
-            onSubir={(nuevo, monto) => correr(async () => { onCambio(await subirPlan(local, nuevo, monto)); if (monto > 0) onPago() })}
-            onSinCobro={nuevo => correr(async () => onCambio(await setPlanSinCobro(local, nuevo)))}
+            onSubir={(nuevo, monto) => correr(async () => { onCambio(await cambiarPaquetes(local, nuevo, monto)); if (monto > 0) onPago() })}
+            onSinCobro={nuevo => correr(async () => onCambio(await cambiarPaquetes(local, nuevo, 0)))}
             onBajar={nuevo => correr(async () => onCambio(await programarBajada(local, nuevo)))} />}
           {error && <p className="sa-admin-hint warn">{error}</p>}
 
@@ -99,21 +101,39 @@ export function PlanLocal({ local, pagos, onCambio, onPago }) {
   )
 }
 
+// Casillas de paquetes (la Base va siempre; Inventario arrastra a Contabilidad).
+function ElegirPaquetes({ valor, onCambio }) {
+  const alternar = id => {
+    if (id === 'base') return
+    const s = new Set(valor)
+    if (s.has(id)) { s.delete(id); for (const p of PAQUETES) if ((p.requiere || []).includes(id)) s.delete(p.id) } else s.add(id)
+    onCambio(limpiarPaquetes([...s]))
+  }
+  return (
+    <div className="sp-paquetes">
+      {PAQUETES.map(p => (
+        <label key={p.id} className={`sp-paq${valor.includes(p.id) ? ' on' : ''}${p.id === 'base' ? ' fijo' : ''}`}>
+          <input type="checkbox" checked={valor.includes(p.id)} disabled={p.id === 'base'} onChange={() => alternar(p.id)} />
+          <span>{p.icono} {p.nombre.replace(/^Paquete /, '')}</span>
+          <small>{cop(p.precio)}</small>
+        </label>
+      ))}
+      <p className="sp-resultado">Al mes: <b>{cop(cotizar(valor).total)}</b></p>
+    </div>
+  )
+}
+
 function FormPago({ local, pagos, ocupado, onGuardar }) {
-  const [plan, setPlan] = useState(local.suscripcion?.bajarA || planDe(local))
+  const [paquetes, setPaquetes] = useState(paquetesProximos(local) || paquetesDe(local))
   const primerPago = pagos.filter(x => x.tipo === 'pago').length === 0
   const promos = Object.values(PROMOS).filter(x => x.id !== 'segundo-gratis' || puedeSegundoGratis(primerPago ? 0 : 1))
   const [promo, setPromo] = useState(promos.some(x => x.id === 'segundo-gratis') ? 'segundo-gratis' : 'mes')
-  const calc = useMemo(() => calcularPago(local, { plan, promo }), [local, plan, promo])
+  const calc = useMemo(() => calcularPago(local, { paquetes, promo }), [local, paquetes, promo])
   const [monto, setMonto] = useState(null)        // null = el calculado
   const valor = monto ?? calc.monto
   return (
     <div className="sp-form">
-      <label>Plan
-        <select value={plan} onChange={e => { setPlan(e.target.value); setMonto(null) }}>
-          {LISTA_PLANES.map(x => <option key={x.id} value={x.id}>{x.nombre} · {cop(x.precio)}/mes</option>)}
-        </select>
-      </label>
+      <ElegirPaquetes valor={paquetes} onCambio={v => { setPaquetes(v); setMonto(null) }} />
       <div className="sp-promos">
         {promos.map(x => (
           <button key={x.id} type="button" className={`sa-tag ${promo === x.id ? 'on' : ''}`} onClick={() => { setPromo(x.id); setMonto(null) }}>{x.nombre}</button>
@@ -126,53 +146,54 @@ function FormPago({ local, pagos, ocupado, onGuardar }) {
         Cubre <b>{calc.meses} {calc.meses === 1 ? 'mes' : 'meses'}</b>: del {fechaCorta(calc.desde)} al <b>{fechaCorta(calc.hasta)}</b>.
         {calc.desde !== local.suscripcion?.pagadoHasta && local.suscripcion?.pagadoHasta ? ' Arranca hoy porque ya estaba apagado.' : ''}
       </p>
-      <button className="sa-admin-save sp-guardar" disabled={ocupado} onClick={() => onGuardar({ plan, promo, monto: valor })}>
+      <button className="sa-admin-save sp-guardar" disabled={ocupado} onClick={() => onGuardar({ paquetes, promo, monto: valor })}>
         {ocupado ? 'Guardando…' : `Registrar ${cop(valor)}`}
       </button>
     </div>
   )
 }
 
+// Cambiar paquetes: si sube el precio con el pago vigente, se activa YA y se cobra la diferencia de
+// los días que faltan; si baja, queda para el próximo pago (no se devuelve plata). Sin pago vigente
+// (montaje, cortesía, apagado), cambia ya sin cobro.
 function FormPlan({ local, ocupado, onSubir, onSinCobro, onBajar }) {
-  const actual = planDe(local)
+  const actual = paquetesDe(local)
   const p = estadoPago(local)
   const [nuevo, setNuevo] = useState(actual)
-  const bajarA = local.suscripcion?.bajarA
+  const proximos = paquetesProximos(local)
   const pagando = ['al-dia', 'por-vencer', 'gracia'].includes(p.estado)
-  const sube = PLANES[nuevo].nivel > PLANES[actual].nivel
-  const baja = PLANES[nuevo].nivel < PLANES[actual].nivel
+  const igual = nuevo.join() === actual.join()
+  const precioNuevo = cotizar(nuevo).total, precioActual = precioMes(local)
+  const sube = !igual && precioNuevo >= precioActual
+  const baja = !igual && precioNuevo < precioActual
   const dif = useMemo(() => calcularDiferencia(local, nuevo), [local, nuevo])
   const [monto, setMonto] = useState(null)
   const valor = monto ?? dif.monto
   return (
     <div className="sp-form">
-      <label>Pasar a
-        <select value={nuevo} onChange={e => { setNuevo(e.target.value); setMonto(null) }}>
-          {LISTA_PLANES.map(x => <option key={x.id} value={x.id}>{x.nombre}{x.id === actual ? ' (actual)' : ''}</option>)}
-        </select>
-      </label>
-      {bajarA && <p className="sp-resultado">Tiene programado bajar a <b>{nombrePlan(bajarA)}</b> en el próximo pago. <button type="button" className="sp-link" disabled={ocupado} onClick={() => onBajar(null)}>Cancelar la bajada</button></p>}
-      {nuevo !== actual && !pagando && (
+      <ElegirPaquetes valor={nuevo} onCambio={v => { setNuevo(v); setMonto(null) }} />
+      {proximos && <p className="sp-resultado">Tiene programado quedar con <b>{nombresPaquetes(proximos)}</b> desde el próximo pago. <button type="button" className="sp-link" disabled={ocupado} onClick={() => onBajar(null)}>Cancelar</button></p>}
+      {!igual && !pagando && (
         <>
           <p className="sp-resultado">Está en {TXT[p.estado][0].toLowerCase()}: cambia ya, sin cobro.</p>
-          <button className="sa-admin-save sp-guardar" disabled={ocupado} onClick={() => onSinCobro(nuevo)}>Cambiar a {nombrePlan(nuevo)}</button>
+          <button className="sa-admin-save sp-guardar" disabled={ocupado} onClick={() => onSinCobro(nuevo)}>Guardar paquetes</button>
         </>
       )}
       {sube && pagando && (
         <>
-          <p className="sp-resultado">Se activa ya. Le faltan <b>{dif.dias} {dif.dias === 1 ? 'día' : 'días'}</b> de lo pagado: diferencia de {cop(PLANES[nuevo].precio - PLANES[actual].precio)}/mes ÷ 30 × {dif.dias}.</p>
+          <p className="sp-resultado">Se activa ya. Le faltan <b>{dif.dias} {dif.dias === 1 ? 'día' : 'días'}</b> de lo pagado: diferencia de {cop(precioNuevo - precioActual)}/mes ÷ 30 × {dif.dias}.</p>
           <label>Diferencia a cobrar
             <input type="number" inputMode="numeric" min="0" step="100" value={valor} onChange={e => setMonto(Number(e.target.value) || 0)} />
           </label>
           <button className="sa-admin-save sp-guardar" disabled={ocupado} onClick={() => onSubir(nuevo, valor)}>
-            {valor > 0 ? `Subir y registrar ${cop(valor)}` : 'Subir sin cobrar diferencia'}
+            {valor > 0 ? `Activar y registrar ${cop(valor)}` : 'Activar sin cobrar diferencia'}
           </button>
         </>
       )}
       {baja && pagando && (
         <>
-          <p className="sp-resultado">Sigue en {nombrePlan(actual)} hasta el {fechaCorta(p.vence)}; el próximo pago ya es del plan {nombrePlan(nuevo)}. No se devuelve plata.</p>
-          <button className="sa-admin-save sp-guardar" disabled={ocupado} onClick={() => onBajar(nuevo)}>Programar la bajada</button>
+          <p className="sp-resultado">Sigue con lo de hoy hasta el {fechaCorta(p.vence)}; el próximo pago ya es de {nombresPaquetes(nuevo)} ({cop(precioNuevo)}/mes). No se devuelve plata.</p>
+          <button className="sa-admin-save sp-guardar" disabled={ocupado} onClick={() => onBajar(nuevo)}>Programar para el próximo pago</button>
         </>
       )}
     </div>
@@ -186,7 +207,7 @@ function Historial({ pagos }) {
       {pagos.slice(0, 8).map(x => (
         <li key={x.id}>
           <span>{fechaCorta(x.fecha)}</span>
-          <span>{x.tipo === 'diferencia' ? `Diferencia → ${nombrePlan(x.plan)}` : `${nombrePlan(x.plan)} · ${PROMOS[x.promo]?.nombre || `${x.meses} meses`}`}</span>
+          <span>{x.tipo === 'diferencia' ? `Diferencia → ${x.paquetes ? nombresPaquetes(x.paquetes) : nombrePlan(x.plan)}` : `${x.paquetes ? nombresPaquetes(x.paquetes) : nombrePlan(x.plan)} · ${PROMOS[x.promo]?.nombre || `${x.meses} meses`}`}</span>
           <b>{cop(x.monto)}</b>
         </li>
       ))}
@@ -197,12 +218,12 @@ function Historial({ pagos }) {
 // ─────────────────────────────── Arriba de la lista ───────────────────────────────
 
 const recordatorio = (l, p) => {
-  const plan = PLANES[l.suscripcion?.bajarA || planDe(l)]
+  const ids = paquetesProximos(l) || paquetesDe(l)
   const cuando = p.estado === 'por-vencer' ? `vence el ${fechaCorta(p.vence)}`
     : p.estado === 'gracia' ? `venció el ${fechaCorta(p.vence)} y en ${p.dias} ${p.dias === 1 ? 'día' : 'días'} se apaga el menú`
       : p.estado === 'cortado' ? 'está vencido y el menú está apagado'
         : `está en montaje y le quedan ${p.dias} ${p.dias === 1 ? 'día' : 'días'}`
-  return `¡Hola! Te escribimos de Appetic 👋 El plan ${plan.nombre} de ${l.nombre} ${cuando}. El valor del mes es ${cop(plan.precio)}. ¿Te mandamos los datos para pagar?`
+  return `¡Hola! Te escribimos de Appetic 👋 El plan de ${l.nombre} (${nombresPaquetes(ids)}) ${cuando}. El valor del mes es ${cop(cotizar(ids).total)}. ¿Te mandamos los datos para pagar?`
 }
 
 export function TableroCobros({ locales, pagos }) {
@@ -219,7 +240,7 @@ export function TableroCobros({ locales, pagos }) {
     return Object.entries(m).sort(([a], [b]) => b.localeCompare(a)).slice(0, 6)
   }, [pagos])
   const activos = locales.filter(l => ['al-dia', 'por-vencer', 'gracia'].includes(estadoPago(l).estado))
-  const alMes = activos.reduce((s, l) => s + PLANES[planDe(l)].precio, 0)
+  const alMes = activos.reduce((s, l) => s + precioMes(l), 0)
 
   return (
     <section className="sp-tablero">

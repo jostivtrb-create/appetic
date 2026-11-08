@@ -1,4 +1,8 @@
 // 💳 PLANES Y PAGO de cada local (guía «Planes en la app»).
+// 📦 Desde el 7-nov-2026 lo que trae cada local son PAQUETES (guía «Paquetes de Appetic», fase B):
+//   suscripcion.paquetes = ['base', 'domicilios', …]  (utils/paquetes.js). Sin esa lista (datos de
+//   antes) se deduce del plan viejo con PAQUETES_DE_PLAN, así nadie pierde nada. Los planes siguen
+//   abajo solo para leer locales viejos y su historial de pagos.
 //
 // En locales/{id}:
 //   suscripcion = { plan, estado, montajeDesde, pagadoHasta, corteEn, bajarA }
@@ -14,6 +18,8 @@
 // como EMPRESARIO: así nada se apaga por accidente antes de migrar.
 // ⚠️ Espejo de las funciones `nivelPlan()` y `localVivo()` de firestore.rules: si cambias uno, el otro.
 
+import { PAQUETES, cotizar, limpiarPaquetes } from './paquetes.js'
+
 export const PLANES = {
   emprendedor: { id: 'emprendedor', nombre: 'Emprendedor', nivel: 1, precio: 59900, frase: 'Menú, pedidos y cuentas' },
   comerciante: { id: 'comerciante', nombre: 'Comerciante', nivel: 2, precio: 79900, frase: 'Más domicilios' },
@@ -21,17 +27,26 @@ export const PLANES = {
 }
 export const LISTA_PLANES = Object.values(PLANES)
 
-// Qué plan hace falta para cada función (lo que no está aquí lo traen todos).
-const MINIMO = {
-  domicilios: 'comerciante', // pedidos a domicilio, envío por distancia, afiche de domicilios
-  domiciliario: 'comerciante',
-  mesero: 'empresario',
-  cocina: 'empresario',
-  mesas: 'empresario', // QR por mesa y cuenta por mesa
-  // Guía «Mejoras frente a Loggro» S5: lo nuevo va en Empresario hasta que el usuario cuadre los planes.
-  arqueo: 'empresario', // contar la caja
-  impresora: 'empresario', // comandas y ticket en impresora térmica
-  inventario: 'empresario', // insumos, recetas, compras, conteo y proveedores
+// 📦 Qué paquete trae cada función (lo que no está aquí viene en la Base).
+// ⚠️ Espejo de tienePaq() y rolEnPlan() en firestore.rules: si cambias uno, el otro.
+const PAQUETE_DE = {
+  domicilios: 'domicilios', // pedidos a domicilio, envío por distancia, afiche de domicilios
+  domiciliario: 'domicilios',
+  mesero: 'salon', // Servicio a la Mesa
+  mesas: 'salon', // QR por mesa y cuenta por mesa
+  cocina: 'cocina',
+  cuentas: 'contabilidad', // la pestaña Cuentas (día, mes, saldos, nómina)
+  gastos: 'contabilidad',
+  cajero: 'contabilidad',
+  arqueo: 'contabilidad', // contar la caja
+  inventario: 'inventario',
+  impresora: 'base', // el ticket va en la Base; las comandas en papel salen de la pantalla de Cocina
+}
+// Lo que traía cada plan viejo, en paquetes (para locales sin `suscripcion.paquetes`).
+export const PAQUETES_DE_PLAN = {
+  emprendedor: ['base', 'contabilidad'],
+  comerciante: ['base', 'contabilidad', 'domicilios'],
+  empresario: PAQUETES.map(p => p.id),
 }
 
 export const DIAS_AVISO = 5
@@ -53,12 +68,12 @@ function simulado() {
   if (!import.meta.env?.DEV || typeof window === 'undefined') return {}
   try {
     const q = new URLSearchParams(window.location.search)
-    for (const k of ['plan', 'pago']) {
+    for (const k of ['plan', 'pago', 'paquetes']) {
       const v = q.get(k)
       if (v === '0') sessionStorage.removeItem(`appetic_dev_${k}`)
       else if (v) sessionStorage.setItem(`appetic_dev_${k}`, v)
     }
-    return { plan: sessionStorage.getItem('appetic_dev_plan'), pago: sessionStorage.getItem('appetic_dev_pago') }
+    return { plan: sessionStorage.getItem('appetic_dev_plan'), pago: sessionStorage.getItem('appetic_dev_pago'), paquetes: sessionStorage.getItem('appetic_dev_paquetes') }
   } catch { return {} }
 }
 
@@ -70,18 +85,37 @@ export function planDe(local) {
 }
 export const nombrePlan = id => PLANES[id]?.nombre || id
 
-// ¿Este local tiene esta función en su plan?
-export function tiene(local, funcion) {
-  const min = MINIMO[funcion]
-  return !min || PLANES[planDe(local)].nivel >= PLANES[min].nivel
+// 📦 Los paquetes del local (siempre con la Base y sus dependencias). En DEV: ?paquetes=base,cocina
+export function paquetesDe(local) {
+  const sim = simulado()
+  if (sim.paquetes) return limpiarPaquetes(sim.paquetes.split(','))
+  if (sim.plan && PLANES[sim.plan]) return PAQUETES_DE_PLAN[sim.plan]
+  const l = local?.suscripcion?.paquetes
+  return Array.isArray(l) ? limpiarPaquetes(l) : PAQUETES_DE_PLAN[planDe(local)]
 }
-// El plan más chico que trae la función (para el candado «Disponible en el plan …»).
-export const planPara = funcion => MINIMO[funcion] || 'emprendedor'
+// Lo que paga al mes por sus paquetes.
+export const precioMes = local => cotizar(paquetesDe(local)).total
+// «Paquete Base + Paquete Cocina» (corto: «Base + Cocina»).
+export const nombresPaquetes = (ids, corto = true) =>
+  PAQUETES.filter(p => ids.includes(p.id)).map(p => (corto ? p.nombre.replace(/^Paquete /, '') : p.nombre)).join(' + ')
+// Lo que pasa a tener en el próximo pago, si se programó quitar algo (`bajarA`: lista nueva o plan viejo).
+export function paquetesProximos(local) {
+  const b = local?.suscripcion?.bajarA
+  if (Array.isArray(b)) return limpiarPaquetes(b)
+  if (b && PAQUETES_DE_PLAN[b]) return PAQUETES_DE_PLAN[b]
+  return null
+}
 
-// Los roles del equipo que deja el plan.
+// ¿Este local tiene esta función en sus paquetes?
+export function tiene(local, funcion) {
+  return paquetesDe(local).includes(PAQUETE_DE[funcion] || 'base')
+}
+// El paquete que trae la función (para el candado «Viene en el Paquete …»).
+export const planPara = funcion => PAQUETE_DE[funcion] || 'base'
+
+// Los roles del equipo que dejan sus paquetes.
 export function rolPermitido(local, rol) {
-  if (rol === 'mesero' || rol === 'cocina') return tiene(local, rol)
-  if (rol === 'domiciliario') return tiene(local, 'domiciliario')
+  if (['mesero', 'cocina', 'domiciliario', 'cajero'].includes(rol)) return tiene(local, rol)
   return true
 }
 
@@ -177,21 +211,22 @@ export const puedeSegundoGratis = (pagosPrevios, hoy = hoyBogota()) => pagosPrev
 
 // Lo que queda al registrar un pago normal.
 //   Si está en montaje o ya lo cortaron, el período arranca HOY (D17); si no, sigue desde lo que vencía.
-export function calcularPago(local, { plan, promo }, ahora = Date.now()) {
+export function calcularPago(local, { paquetes, plan, promo }, ahora = Date.now()) {
+  const ids = Array.isArray(paquetes) ? limpiarPaquetes(paquetes) : PAQUETES_DE_PLAN[plan] || paquetesDe(local)
   const p = PROMOS[promo] || PROMOS.mes
   const e = estadoPago(local, ahora).estado
   const hoy = hoyBogota(ahora)
   const vence = local?.suscripcion?.pagadoHasta
   const desde = (e === 'al-dia' || e === 'por-vencer' || e === 'gracia') && vence ? vence : hoy
   const hasta = sumarMeses(desde, p.cubre)
-  return { desde, hasta, meses: p.cubre, monto: PLANES[plan].precio * p.paga }
+  return { desde, hasta, meses: p.cubre, monto: cotizar(ids).total * p.paga }
 }
 
-// Diferencia al SUBIR de plan a mitad de período (D16, S15): días que faltan × diferencia diaria.
-export function calcularDiferencia(local, planNuevo, ahora = Date.now()) {
+// Diferencia al SUMAR paquetes a mitad de período (D16, S15): días que faltan × diferencia diaria.
+export function calcularDiferencia(local, paquetesNuevos, ahora = Date.now()) {
   const vence = local?.suscripcion?.pagadoHasta
   const dias = vence ? Math.max(0, diasEntre(hoyBogota(ahora), vence)) : 0
-  const dif = PLANES[planNuevo].precio - PLANES[planDe(local)].precio
+  const dif = cotizar(paquetesNuevos).total - precioMes(local)
   return { dias, monto: Math.max(0, redondear100((dif / 30) * dias)) }
 }
 
