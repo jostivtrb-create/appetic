@@ -45,7 +45,7 @@ principal ocupa todo el ancho y los filtros van de a dos.
   foto/ícono, nombre y número a la derecha. Lo elegido: fondo naranja suave + raya naranja a la izquierda.
 - **Derecha**: la tarjeta grande de trabajo, con encabezado «Productos de la categoría: **Pizzas**»
   (la parte variable en naranja), acciones de esa cosa a la derecha (✏️ Editar, 🗑, ↑↓) y contador.
-- **En el celular**: la izquierda se vuelve una fila de pastillas que se desliza, encima del trabajo.
+- **En el celular (y tablet) NO hay burbujas/pastillas que se deslizan** — al usuario *«nunca le han gustado»* (8-nov). La izquierda se ve como **lista entera tipo «Ajustes» del celular** (ícono, nombre, nota gris, número y flecha ›); al tocar una opción se **entra** a esa parte en pantalla completa con la barra **«‹ Volver · <nombre>»** y el encabezado grande se esconde. El botón atrás del celular también vuelve a la lista. Pieza: `useEntrar()` + `<PanelCuerpo entrar={entrar} titulo=…>` en `PanelPagina.jsx`; en el Catálogo, lo mismo con «‹ Categorías».
 
 ### R5 · Tarjetas, no formularios sueltos
 - Cada cosa es una **tarjeta** blanca, borde suave, radio 18–24 px, sombra mínima; al pasar el
@@ -120,6 +120,7 @@ principal ocupa todo el ancho y los filtros van de a dos.
 
 ## 6. Lo que NO se hace
 
+- Burbujas/pastillas que se deslizan para navegar en el celular (ver R4): lista que entra al detalle.
 - Columnas de 860 px centradas con medio monitor vacío.
 - Formularios de 12 campos seguidos sin agrupar («collage de configuración»).
 - Botones que el usuario no pidió solo por copiar una maqueta: de la maqueta se copia el **orden**, no los botones.

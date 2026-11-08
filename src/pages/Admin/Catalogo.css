@@ -303,3 +303,22 @@
 .cm-opcion b { font-size: 15px; }
 .cm-opcion small { font-size: 13px; color: var(--text-soft); }
 .cm-opcion select { font: inherit; font-size: 14.5px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--surface); }
+
+/* ═══════ Celular y tablet: categorías como lista tipo «Ajustes» (sin burbujas, 8-nov) ═══════
+   Se toca una categoría y se entra a sus productos con «‹ Categorías» (useEntrar). */
+.ck-cat-flecha { display: none; }
+@media (max-width: 1023px) {
+  .ck-dentro .ck-hero, .ck-dentro .ck-barra { display: none; }
+  .ck-cats { display: block; background: var(--surface); border: 1px solid var(--border); border-radius: 22px; padding: 8px; box-shadow: var(--shadow-sm); }
+  .ck-cats-cab { display: flex; align-items: center; gap: 10px; padding: 6px 8px 10px; }
+  .ck-cats-cab b { flex: 1; font-size: 17px; font-weight: 900; }
+  .ck-cats > .ck-cats-lista { flex-direction: column; gap: 2px; overflow: visible; margin: 0; padding: 0; }
+  .ck-cat { border: 0; border-radius: 14px; background: transparent; padding: 9px 10px 9px 8px; white-space: normal; font-size: 15.5px; gap: 12px; }
+  .ck-cat:active { background: var(--surface-2); }
+  .ck-cat.on { background: transparent; color: var(--text); }
+  .ck-cat.on .ck-cat-n { color: var(--text-soft); }
+  .ck-cat-foto { width: 42px; height: 42px; border-radius: 12px; }
+  .ck-cat-flecha { display: block; font-size: 22px; line-height: 1; color: var(--text-faint); }
+  .ck-cat-nueva { width: 100%; justify-content: center; margin-top: 8px; border-radius: 14px; padding: 11px; }
+  .ck-dentro .ck-prods { border: 0; background: transparent; box-shadow: none; padding: 0; }
+}

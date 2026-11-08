@@ -114,3 +114,11 @@
 .cmd .cmd-chip { cursor: pointer; }
 .cmd .pp-vacio .btn { margin-top: 8px; }
 @media (max-width: 1023px) { .cmd-hero-der { justify-items: stretch; min-width: 0; } .pp-hero { flex-wrap: wrap; } .pp-hero-der { flex-basis: 100%; } }
+/* Celular: la fila de la proteína (nombre + recargo + ✕) cabe sin salirse */
+@media (max-width: 600px) {
+  .cmd .cmd-op { gap: 4px; }
+  .cmd .cmd-recargo { flex: 0 0 72px; }
+  .cmd .cmd-x { width: 28px; }
+  .cmd .cmd-parte { padding: 12px; }
+  .cmd .cmd-parte-cab .cmd-link { margin-left: 0; }
+}

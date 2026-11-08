@@ -7,6 +7,7 @@ import { categoriaActiva, textoHorarioCat } from '../../utils/categorias'
 import EditorProducto from './EditorProducto'
 import { CategoriaHoja, EliminarCategoria } from './CatalogoCategorias'
 import { useArrastre } from './useArrastre'
+import { useEntrar } from './PanelPagina'
 import './Catalogo.css'
 
 // 🗂️ CATÁLOGO (Configuración → Catálogo), armado como un panel profesional según la maqueta que
@@ -45,6 +46,8 @@ export default function AdminProductos({
   const [hojaCat, setHojaCat] = useState(null)   // null | { nueva: true } | { categoria }
   const [borrarCat, setBorrarCat] = useState(null)
   const [menuCat, setMenuCat] = useState(null)   // id de la categoría con el menú ⋯ abierto
+  // 📱 Celular: lista de categorías → se entra a sus productos con «‹ Categorías» (sin burbujas).
+  const entrar = useEntrar()
   const categorias = local.categorias || []
 
   // 🖥️ La barra lateral (PC) lleva a …/catalogo#cat-<id>: se elige esa categoría y se limpia la
@@ -124,8 +127,12 @@ export default function AdminProductos({
   ]
   const nuevo = categoria => setEditando({ nuevo: true, categoria: categoria && categoria !== '__sin__' ? categoria : categorias[0]?.id })
 
+  const movil = !entrar.esPC
+  const verLista = !movil || (!entrar.abierto && !buscando)
+  const verProds = !movil || entrar.abierto || buscando
+
   return (
-    <div className="ap ck">
+    <div className={`ap ck${entrar.abierto ? ' ck-dentro' : ''}`}>
       {/* ── Encabezado ── */}
       <header className="ck-hero">
         <div className="ck-hero-txt">
@@ -181,7 +188,7 @@ export default function AdminProductos({
         : (
           <div className="ck-cuerpo">
             {/* ── Categorías ── */}
-            <div className="ck-lado">
+            {verLista && <div className="ck-lado">
               <aside className="ck-cats" aria-label="Categorías">
                 <header className="ck-cats-cab">
                   <span className="ck-tile" aria-hidden="true">🗂️</span>
@@ -201,12 +208,13 @@ export default function AdminProductos({
                       return (
                         <li key={cat.id} data-arr="cats" data-id={cat.id} className={`${arrCats.agarrado === cat.id ? 'ck-agarrado' : ''}${menuCat === cat.id ? ' ck-menu-abierto' : ''}`}>
                           <button id={`cat-${cat.id}`} className={`ck-cat${on ? ' on' : ''}${items.length ? '' : ' vacia'}${apagada ? ' apagada' : ''}`}
-                            onClick={() => { setSel(cat.id); setQuery('') }} aria-current={on ? 'true' : undefined}>
+                            onClick={() => { setSel(cat.id); setQuery(''); entrar.abrir() }} aria-current={on ? 'true' : undefined}>
                             <span className="ck-cat-foto" aria-hidden="true">
                               {foto ? <ImagenApp className="ap-item-foto-img" src={foto} alt="" /> : <i>{cat.emoji || '🍽️'}</i>}
                             </span>
                             <span className="ck-cat-nom">{cat.nombre}{nota && <small className={cat.pausada ? 'pausa' : ''}>{cat.pausada ? '⏸️ ' : '🕒 '}{nota}</small>}</span>
                             <span className="ck-cat-n">{items.length}</span>
+                            <span className="ck-cat-flecha" aria-hidden="true">›</span>
                           </button>
                           {real && <>
                             <button className="ck-cat-mas" aria-label={`Opciones de ${cat.nombre}`} aria-haspopup="menu" aria-expanded={menuCat === cat.id}
@@ -232,10 +240,16 @@ export default function AdminProductos({
                   <button type="button" onClick={cerrarConsejo} aria-label="Cerrar consejo">✕</button>
                 </div>
               )}
-            </div>
+            </div>}
 
             {/* ── Productos ── */}
-            <section id="ck-productos" className="ck-prods">
+            {verProds && <section id="ck-productos" className="ck-prods">
+              {movil && entrar.abierto && !buscando && (
+                <div className="pp-volver">
+                  <button type="button" onClick={entrar.volver}>‹ Categorías</button>
+                  <b>{actual?.cat.nombre}</b>
+                </div>
+              )}
               <header className="ck-prods-cab">
                 <span className="ck-tile" aria-hidden="true">🍽️</span>
                 <h3>{buscando
@@ -312,7 +326,7 @@ export default function AdminProductos({
                   </button>
                 )}
               </div>
-            </section>
+            </section>}
           </div>
         )}
 
@@ -351,7 +365,7 @@ export default function AdminProductos({
           onGuardar={async c => {
             if (hojaCat.categoria) { await onEditCategoria(hojaCat.categoria.id, c); return }
             const id = await onAddCategoria(c.nombre, c.emoji, { ...(c.pausada ? { pausada: true } : {}), ...(c.horario ? { horario: c.horario } : {}) })
-            if (id) { setSel(id); setQuery('') }
+            if (id) { setSel(id); setQuery(''); entrar.abrir() }
           }} />
       )}
       {borrarCat && (
@@ -359,7 +373,7 @@ export default function AdminProductos({
           cuantos={productos.filter(p => p.categoria === borrarCat.id).length}
           otras={categorias.filter(c => c.id !== borrarCat.id)}
           onCerrar={() => setBorrarCat(null)}
-          onEliminar={async op => { await onDeleteCategoria(borrarCat.id, op); if (op.moverA) setSel(op.moverA); else setSel(null) }} />
+          onEliminar={async op => { await onDeleteCategoria(borrarCat.id, op); if (op.moverA) setSel(op.moverA); else { setSel(null); if (entrar.abierto) entrar.volver() } }} />
       )}
     </div>
   )

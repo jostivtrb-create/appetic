@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import './PanelPagina.css'
 
 // 🧱 PIEZAS COMUNES de las pantallas del panel (guía «Diseño de pantallas del panel», R2 y R4).
@@ -31,18 +33,57 @@ export function PanelHero({ miga = 'Configuración', icono, titulo, sub, chips =
   )
 }
 
-// R4 · Dos columnas: el lado (pegado al bajar) y el trabajo.
-export function PanelCuerpo({ lado, children }) {
+// 📱 En el celular NO hay burbujas que se deslizan (al usuario nunca le han gustado, 8-nov): la lista
+// del lado se ve entera, como los Ajustes del celular, y al tocar una opción se ENTRA a esa parte en
+// pantalla completa con «‹ Volver». El botón atrás del celular también vuelve a la lista.
+// En el PC no cambia nada: lista a la izquierda y trabajo a la derecha.
+export function useEntrar() {
+  const esPC = useEsEscritorio()
+  const [abierto, setAbierto] = useState(false)
+  useEffect(() => {
+    if (!abierto || esPC) return
+    const alVolver = () => setAbierto(false)
+    window.addEventListener('popstate', alVolver)
+    return () => window.removeEventListener('popstate', alVolver)
+  }, [abierto, esPC])
+  function abrir() {
+    if (esPC) return
+    try { window.history.pushState({ ...(window.history.state || {}), ppEntrar: 1 }, '') } catch { /* nada */ }
+    setAbierto(true)
+    window.scrollTo({ top: 0 })
+  }
+  function volver() {
+    if (window.history.state?.ppEntrar) window.history.back()
+    else setAbierto(false)
+    window.scrollTo({ top: 0 })
+  }
+  return { esPC, abierto: !esPC && abierto, abrir, volver }
+}
+
+// R4 · Dos columnas: el lado (pegado al bajar) y el trabajo. Con `entrar` (useEntrar), en el celular
+// se ve O la lista O el detalle, con la barra «‹ Volver · <titulo>».
+export function PanelCuerpo({ lado, children, entrar, titulo }) {
+  const movil = entrar && !entrar.esPC && lado
   return (
-    <div className={`pp-cuerpo${lado ? '' : ' solo'}`}>
-      {lado && <div className="pp-lado">{lado}</div>}
-      <div className="pp-trabajo">{children}</div>
+    <div className={`pp-cuerpo${lado ? '' : ' solo'}${movil ? (entrar.abierto ? ' movil-detalle' : ' movil-lista') : ''}`}>
+      {lado && (!movil || !entrar.abierto) && <div className="pp-lado">{lado}</div>}
+      {(!movil || entrar.abierto) && (
+        <div className="pp-trabajo">
+          {movil && (
+            <div className="pp-volver">
+              <button type="button" onClick={entrar.volver}>‹ Volver</button>
+              {titulo && <b>{titulo}</b>}
+            </div>
+          )}
+          {children}
+        </div>
+      )}
     </div>
   )
 }
 
 // La lista del lado, por grupos. Ítem: { id, icono, nombre, nota?, n?, tono? ('ok'|'aviso'|'off') }
-// En el celular se vuelve una fila de pastillas que se desliza.
+// En el celular es la lista entera tipo «Ajustes» (con flecha ›) y se entra al detalle (useEntrar).
 export function PanelLado({ icono, titulo, grupos, sel, onSel, pie }) {
   return (
     <nav className="pp-nav" aria-label={titulo}>
@@ -58,6 +99,7 @@ export function PanelLado({ icono, titulo, grupos, sel, onSel, pie }) {
                   <span className="pp-nav-ico" aria-hidden="true">{it.icono}</span>
                   <span className="pp-nav-nom">{it.nombre}{it.nota && <small>{it.nota}</small>}</span>
                   {it.n != null && <span className="pp-nav-n">{it.n}</span>}
+                  <span className="pp-nav-flecha" aria-hidden="true">›</span>
                 </button>
               </li>
             ))}

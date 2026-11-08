@@ -4,7 +4,7 @@ import {
   ahoraBogota, idOpcion,
 } from '../../utils/menuDelDia'
 import { cop } from '../../utils/money'
-import { PanelHero, PanelCuerpo, PanelLado, PanelTarjeta, PanelSwitch } from './PanelPagina'
+import { PanelHero, PanelCuerpo, PanelLado, PanelTarjeta, PanelSwitch, useEntrar } from './PanelPagina'
 import './ConfigMenuDelDia.css'
 
 // 🍲 Configuración → Menú del día (el corrientazo). Guía «Pantalla de TV», Etapa B.
@@ -51,6 +51,8 @@ export default function ConfigMenuDelDia({ local, onUpdate, onSubirFoto }) {
 
   const ahora = ahoraBogota()
   const [vista, setVista] = useState('hoy') // 'hoy' | 'lun'…'dom' | 'precio' | 'partes'
+  const entrar = useEntrar() // celular: lista → entrar al detalle con «‹ Volver»
+  const elegir = v => { setVista(v); entrar.abrir() }
   const partes = partesActivas(md)
   const dia = DIAS_MD.find(d => d.k === vista)
   const llenas = k => partes.filter(p => (md.semana?.[k]?.[p.id] || []).length).length
@@ -65,7 +67,7 @@ export default function ConfigMenuDelDia({ local, onUpdate, onSubirFoto }) {
   ] : [{ t: 'Apagado', tono: 'off' }]
 
   return (
-    <div className="cmd">
+    <div className={`cmd${entrar.abierto ? ' pp-dentro' : ''}`}>
       <PanelHero icono="🍲" titulo="Menú del día" sub="El almuerzo a precio fijo: qué hay hoy, la semana y el precio" chips={chips}
         derecha={<div className="cmd-hero-der">
           <PanelSwitch grande titulo="Ofrecer menú del día" texto={md.activo ? 'Sale en tu menú, la caja, el mesero y el Menú en Pantalla' : 'Apagado: no sale en ninguna parte'}
@@ -85,8 +87,8 @@ export default function ConfigMenuDelDia({ local, onUpdate, onSubirFoto }) {
           </div>
         </PanelCuerpo>
       ) : (
-        <PanelCuerpo lado={
-          <PanelLado icono="🍲" titulo="Menú del día" sel={vista} onSel={setVista} grupos={[
+        <PanelCuerpo entrar={entrar} titulo={vista === 'hoy' ? `Hoy, ${NOMBRE_DIA[ahora.dia]}` : dia ? dia.full : vista === 'precio' ? 'Precio y horario' : 'Qué trae el almuerzo'} lado={
+          <PanelLado icono="🍲" titulo="Menú del día" sel={vista} onSel={elegir} grupos={[
             { items: [{ id: 'hoy', icono: '⚡', nombre: `Hoy, ${NOMBRE_DIA[ahora.dia]}`, nota: estadoHoy.corto, tono: estadoHoy.tono === 'ok' ? 'ok' : estadoHoy.tono === 'aviso' ? 'aviso' : null }] },
             { titulo: 'Semana tipo', items: DIAS_MD.map(d => {
               const n = llenas(d.k)
