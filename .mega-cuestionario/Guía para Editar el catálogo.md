@@ -5,7 +5,7 @@
 
 - **Tarea:** que editar productos sea fácil y ordenado («que no se vea como un collage de configuración»), y que desde el panel de categorías se puedan agregar, editar, mover y eliminar categorías.
 - **Inicio:** 2026-11-08
-- **Estado:** 🔵 Construyendo
+- **Estado:** ✅ Terminada y publicada (8-nov, `417935c`)
 - **Proyecto:** Appetic (`src/pages/Admin/AdminProductos.jsx`, `Catalogo.css`, `AdminPage.jsx`)
 
 ---
@@ -89,7 +89,7 @@ Lo que averigüé leyendo el código (8-nov) y no se pregunta:
 - [x] 5 · Editor en panel lateral derecho con pestañas General · Precios · Adiciones · Dónde sale (D1, D2, S9); Duplicar (D9); aviso al salir sin guardar (D10).
 - [x] 6 · Pestaña Adiciones con la biblioteca (D11, S13–S15).
 - [x] 7 · Respetar la pausa y el horario en el menú del cliente, el Menú en Pantalla, Caja/Mesero y el servidor (S16).
-- [ ] 8 · Probar en el navegador (PC y celular), compilar, publicar.
+- [x] 8 · Probar en el navegador (PC y celular), compilar, publicar.
 
 ---
 
