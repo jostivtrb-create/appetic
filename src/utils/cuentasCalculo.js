@@ -1,6 +1,7 @@
 // 💰 Cálculos de las cuentas del negocio, sin Firebase (guía «Cuentas del negocio»).
 // Los usan services/cuentas.js (los dos motores) y el reinicio de la demo en el servidor (api/demo.js).
 import { jornadaDe, horaDe, mesDe } from './jornada.js'
+import { limpiarConsumo } from './inventario.js'
 
 // ─────────────────────────────── Deltas (comunes a los dos motores) ───────────────────────────────
 
@@ -95,6 +96,8 @@ export function armarVenta(datos, por, local) {
     items, subtotal, descuento: desc, total, pagos,
     propina: datos.propina?.valor > 0 ? { valor: Math.round(datos.propina.valor), cuenta: datos.propina.cuenta, nombre: datos.propina.nombre } : null,
     recibido: datos.recibido > 0 ? Math.round(datos.recibido) : null,
+    // 📦 Lo que gasta del inventario (guía «Mejoras frente a Loggro» paso 4): se devuelve si se elimina.
+    ...(limpiarConsumo(datos.inventario).length ? { inventario: limpiarConsumo(datos.inventario) } : {}),
     estado: 'ok',
   }
 }

@@ -21,6 +21,7 @@ import AdminMesero from './AdminMesero'
 import AdminComandas from './AdminComandas'
 import AdminCaja from './AdminCaja'
 import AdminCuentas from './AdminCuentas'
+import AdminInventario from './AdminInventario'
 import ConfigPagos from './ConfigPagos'
 import ConfigImpresora from './ConfigImpresora'
 import ConfigPantalla from './ConfigPantalla'
@@ -40,6 +41,7 @@ import { useEnLinea } from '../../utils/conTope'
 const SECCIONES = {
   caja: 'Caja',
   cuentas: 'Cuentas',
+  inventario: 'Inventario',
   mesero: 'Mesero',
   cocina: 'Cocina',
   domicilios: 'Domicilios',
@@ -367,7 +369,7 @@ export default function AdminPage() {
     return <PanelApagado local={local} esAdmin={esAdmin} />
   }
   // Sección que el plan no trae → candado para el dueño (D18).
-  const funcionSeccion = { mesero: 'mesero', cocina: 'cocina', domicilios: 'domicilios' }[seccion]
+  const funcionSeccion = { mesero: 'mesero', cocina: 'cocina', domicilios: 'domicilios', inventario: 'inventario' }[seccion]
   const sinPlan = funcionSeccion && !tiene(local, funcionSeccion)
 
   // El catálogo (se muestra en Configuración → Catálogo).
@@ -436,6 +438,7 @@ export default function AdminPage() {
         <nav className="admin-tabs">
           <button className={seccion === 'caja' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/caja${location.search}`)}>💵 Caja</button>
           <button className={seccion === 'cuentas' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/cuentas${location.search}`)}>📊 Cuentas</button>
+          <button className={seccion === 'inventario' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/inventario${location.search}`)}>📦 Inventario</button>
           <button className={seccion === 'mesero' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/mesero${location.search}`)}>🧑‍🍳 Mesero</button>
           <button className={seccion === 'cocina' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/cocina${location.search}`)}>🍳 Cocina</button>
           <button className={seccion === 'domicilios' ? 'on' : ''} onClick={() => navigate(`/${slug}/admin/domicilios${location.search}`)}>🛵 Domicilios</button>
@@ -452,6 +455,7 @@ export default function AdminPage() {
           : seccion === 'cocina' ? <AdminComandas key={local.id} local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
           : seccion === 'caja' ? <AdminCaja key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'cuentas' ? <AdminCuentas key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} />
+          : seccion === 'inventario' ? <AdminInventario key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} />
           : seccion === 'domicilios' ? <AdminDomicilios key={local.id} local={local} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} onUpdate={updateLocal} />
           : seccion === 'config' ? (

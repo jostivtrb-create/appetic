@@ -31,6 +31,7 @@ import {
 } from 'firebase/firestore'
 import { db, auth } from '../config/firebase'
 import { limpiarConteo, sumarConteo, ajusteDe } from '../utils/arqueo.js'
+import { aplicarConsumoEn, inventarioDe } from './inventario'
 import { escucharConReintento, comandasDe } from './comandas'
 import { jornadaDe, horaDe, mesDe } from '../utils/jornada'
 import {
@@ -85,6 +86,7 @@ function firestoreApi(localId) {
         }
         tx.set(refVenta, { ...v, en: serverTimestamp() })
         aplicar(tx, v.jornada, deltaVenta(v, 1), saldosVenta(v, 1))
+        if (v.inventario) aplicarConsumoEn(tx, localId, v.inventario, -1)
         for (const r of refs) tx.update(r, { porCobrar: false, cobradaEn: serverTimestamp(), cobradaPor: por, ventaId: id })
       })
       return id
@@ -117,6 +119,7 @@ function firestoreApi(localId) {
         if (!snap.exists() || snap.data().estado !== 'ok') throw new Error('ya-no')
         const v = snap.data()
         aplicar(tx, v.jornada, deltaVenta(v, -1), saldosVenta(v, -1))
+        if (v.inventario) aplicarConsumoEn(tx, localId, v.inventario, 1)
         tx.update(ref, { estado: 'eliminada', eliminada: { por, motivo: motivo.trim(), en: Date.now() } })
         if (devolverComandas) for (const cid of v.comandaIds || []) {
           tx.update(comandaRef(cid), { porCobrar: true, cobradaEn: deleteField(), cobradaPor: deleteField(), ventaId: deleteField() })
@@ -263,6 +266,7 @@ function demoApi(localId) {
       st.ventas.push({ id, ...v, en: Date.now() })
       aplicar(st, v.jornada, deltaVenta(v, 1), saldosVenta(v, 1))
       escribir(st)
+      if (v.inventario) inventarioDe(localId, { demo: true })._aplicarVenta(v.inventario, -1)
       for (const c of datos.comandas || []) await comandas.cobrar(c, por, id)
       return id
     },
@@ -280,6 +284,7 @@ function demoApi(localId) {
       const st = leer()
       const v = st.ventas.find(x => x.id === venta.id)
       if (!v || v.estado !== 'ok') throw new Error('ya-no')
+      if (v.inventario) inventarioDe(localId, { demo: true })._aplicarVenta(v.inventario, 1)
       aplicar(st, v.jornada, deltaVenta(v, -1), saldosVenta(v, -1))
       Object.assign(v, { estado: 'eliminada', eliminada: { por, motivo: motivo.trim(), en: Date.now() } })
       escribir(st)

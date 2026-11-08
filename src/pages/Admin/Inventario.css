@@ -1,0 +1,68 @@
+/* 📦 Inventario (guía «Mejoras frente a Loggro» paso 4) */
+.inv-rojo { color: var(--danger, #C0262D) !important; }
+.inv-aviso { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: #FFF4E5; border: 1px solid #F5C77E; color: #7A4A00; font-size: 14px; }
+.inv-aviso span { font-size: 13px; }
+.inv-aviso.suave { background: var(--surface); border-style: dashed; color: var(--text-soft); }
+.inv-lista { display: grid; padding: 4px; }
+.inv-fila { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; width: 100%; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-bottom: 1px solid var(--border); padding: 11px 10px; cursor: pointer; }
+.inv-fila:last-child { border-bottom: 0; }
+.inv-fila:disabled { cursor: default; opacity: .6; }
+.inv-fila.inactivo { opacity: .5; }
+.inv-fila-nombre { min-width: 0; display: grid; gap: 2px; background: none; border: 0; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.inv-fila-nombre b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-fila-nombre small { font-size: 12.5px; color: var(--text-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-fila-stock { display: grid; gap: 4px; justify-items: end; font-variant-numeric: tabular-nums; }
+.inv-fila-stock b { font-size: 15px; }
+.inv-fila-stock small { font-size: 11.5px; color: var(--text-soft); }
+.inv-barra { width: 74px; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.inv-barra i { display: block; height: 100%; border-radius: 3px; background: #1B7A43; }
+.inv-barra.bajo i { background: #D97706; }
+.inv-barra.agotado i { background: #C0262D; }
+.inv-chip { font-size: 11.5px; font-weight: 800; padding: 4px 9px; border-radius: 999px; white-space: nowrap; background: var(--acc-soft); color: var(--acc); border: 1px solid var(--acc-line); }
+.inv-chip.ok { background: #1B7A4314; color: #1B7A43; border-color: #1B7A4340; }
+.inv-chip.bajo { background: #D9770614; color: #B45309; border-color: #D9770655; }
+.inv-chip.agotado { background: #C0262D12; color: #C0262D; border-color: #C0262D45; }
+.inv-hoja h2 { margin-bottom: 8px; }
+.inv-form { display: grid; gap: 12px; }
+.inv-form label { display: grid; gap: 5px; font-size: 13.5px; font-weight: 800; }
+.inv-form input, .inv-form select, .inv-buscar, .inv-receta select, .inv-receta input, .inv-contar-in input { font: inherit; font-weight: 500; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: inherit; min-width: 0; }
+.inv-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.inv-unidades, .inv-surte { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.inv-unidades small, .inv-surte small { width: 100%; font-size: 13.5px; font-weight: 800; }
+.inv-unidades button, .inv-surte button { font: inherit; font-size: 13.5px; font-weight: 700; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: inherit; cursor: pointer; }
+.inv-unidades button.on, .inv-surte button.on { border-color: var(--acc); background: var(--acc-soft); color: var(--acc); }
+.inv-check { display: flex !important; grid-template-columns: none; align-items: center; gap: 8px; font-weight: 600 !important; }
+.inv-check input { width: 18px; height: 18px; }
+.inv-guardar { min-width: 140px; }
+.inv-buscar { width: 100%; }
+.inv-receta { display: grid; gap: 8px; margin: 6px 0 12px; }
+.inv-receta-fila { display: grid; grid-template-columns: minmax(0, 1fr) 84px 34px auto; gap: 6px; align-items: center; }
+.inv-receta-u { font-size: 13px; color: var(--text-soft); }
+.inv-costo { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+.inv-costo div { display: grid; gap: 2px; padding: 10px; border-radius: 12px; background: var(--acc-soft); text-align: center; }
+.inv-costo span { font-size: 11.5px; color: var(--text-soft); font-weight: 700; }
+.inv-costo b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.inv-contar { cursor: default; }
+.inv-contar-in { display: flex; align-items: center; gap: 4px; }
+.inv-contar-in input { width: 84px; text-align: right; }
+.inv-contar-in small { font-size: 12px; color: var(--text-soft); width: 26px; }
+.inv-dif { min-width: 64px; text-align: right; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; color: #1B7A43; }
+.inv-dif.mas { color: #1F5FAD; }
+.inv-dif.menos { color: #C0262D; }
+.inv-prov { cursor: default; }
+.inv-wa { font: inherit; font-weight: 800; font-size: 13.5px; padding: 8px 12px; border-radius: 12px; border: 0; color: #fff; background: #1FA855; cursor: pointer; white-space: nowrap; }
+.inv-wa:disabled { opacity: .45; cursor: default; }
+@media (max-width: 480px) {
+  .inv-fila { grid-template-columns: minmax(0, 1fr) auto; }
+  .inv-fila .inv-chip { grid-column: 1 / -1; justify-self: start; }
+  .inv-fila.inv-contar { grid-template-columns: minmax(0, 1fr) auto; }
+  .inv-fila.inv-contar .inv-dif { grid-column: 1 / -1; text-align: left; }
+  .inv-dos, .inv-costo { grid-template-columns: 1fr; }
+  .inv-barra { width: 56px; }
+}
+.inv-aviso-caja { width: 100%; text-align: left; font: inherit; cursor: pointer; margin-top: 10px; }
+.pv-gasto-compra { display: grid; gap: 8px; padding: 10px; border-radius: 12px; border: 1px dashed var(--border); }
+.pv-gasto-compra-campos { display: grid; grid-template-columns: minmax(0, 1fr) 130px; gap: 8px; }
+.pv-gasto-compra-campos select, .pv-gasto-compra-campos input { font: inherit; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: inherit; min-width: 0; width: 100%; }
+.pv-gasto-compra-campos label { display: flex; align-items: center; gap: 4px; }
+.pv-gasto-compra-campos small { font-size: 12px; color: var(--text-soft); min-width: 24px; }

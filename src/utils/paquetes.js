@@ -5,8 +5,8 @@
 //
 // Precios (D24, S7): la Base es la más cara; todo junto, con el tope, nunca pasa de $99.900. El
 // precio de cada paquete NUNCA se muestra: solo el total de la cotización (D25).
-// `pronto`: todavía no existe (S8). Un ítem pronto se muestra con «Próximamente»; un paquete
-// pronto se ve pero no se puede elegir ni se cobra.
+// `pronto` (hoy ninguno, D35: todo sale incluido): un ítem pronto se mostraría con «Próximamente» y
+// un paquete pronto no se podría elegir ni se cobraría.
 
 export const TOPE = 99900
 export const DESDE = 29900
@@ -26,7 +26,7 @@ export const PAQUETES = [
       { t: 'Caja para vender y cobrar', d: 'Efectivo, Nequi o tarjeta, propinas, descuentos e historial.' },
       { t: 'Ticket en impresora térmica', d: 'Sin instalar nada.' },
       { t: 'Apareces en el buscador de Appetic', d: '' },
-      { t: 'Notificaciones a tus clientes', d: 'Hasta 3 por semana, sin saturar.', pronto: true },
+      { t: 'Notificaciones a tus clientes', d: 'Hasta 3 por semana, sin saturar.' },
       { t: 'Soporte por WhatsApp', d: '' },
     ],
   },
@@ -38,7 +38,7 @@ export const PAQUETES = [
       { t: 'Cobro del envío por distancia', d: 'Tú pones la tarifa por tramos.' },
       { t: 'Panel del domiciliario', d: 'Domiciliarios sin límite.' },
       { t: 'Afiche de domicilios y publicidad con IA', d: '' },
-      { t: 'Cobro en línea al pedir', d: 'Tarjeta, PSE o Nequi; la plata llega directo a tu cuenta.', pronto: true },
+      { t: 'Cobro en línea al pedir', d: 'Tarjeta, PSE o Nequi; la plata llega directo a tu cuenta.' },
     ],
   },
   {
@@ -49,11 +49,11 @@ export const PAQUETES = [
       { t: 'Contar la caja', d: 'Billetes y monedas: la app te dice si sobra o falta.' },
       { t: 'Gastos, compras y saldos', d: 'Efectivo, Nequi y bancos, cada uno con su saldo.' },
       { t: 'Nómina de tu equipo', d: '' },
-      { t: 'Horario de la semana del personal', d: '', pronto: true },
+      { t: 'Horario de la semana del personal', d: '' },
       { t: 'Estadísticas de ventas', d: 'Por hora, por plato y por tipo de pedido.' },
       { t: 'Ganancia del día y del mes', d: '' },
       { t: 'Excel y PDF para tu contador y para facturar', d: 'No es facturación electrónica.' },
-      { t: 'Datáfono conectado a la caja', d: '', pronto: true },
+      { t: 'Datáfono conectado a la caja', d: '' },
     ],
   },
   {
@@ -76,7 +76,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'inventario', nombre: 'Inventario', icono: '📦', precio: 12900, pronto: true, requiere: ['contabilidad'],
+    id: 'inventario', nombre: 'Inventario', icono: '📦', precio: 12900, requiere: ['contabilidad'],
     resumen: 'Cada venta descuenta lo que gasta.',
     incluye: [
       { t: 'Inventario con recetas', d: 'Costo y ganancia de cada plato.' },

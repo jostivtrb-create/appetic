@@ -186,13 +186,16 @@ Va de lo más pequeño y seguro a lo que depende de terceros. Cada paso se audit
     - el ticket al cobrar.
   - **Lo que se imprime a mano:** «Imprimir ticket» en el detalle de Ventas y «Reimprimir» en cada comanda.
   - **Plan:** `impresora` y `arqueo` quedan en Empresario (S5), con su candado; `/api/arqueo` también lo exige.
-- [ ] 4 · **Inventario con recetas** (D7, D8, D13, S6):
-  - insumos, recetas por producto y por opción;
-  - la venta descuenta y el gasto suma;
-  - conteo físico y merma;
-  - aviso de stock bajo y costo y ganancia por plato.
-
-  Grande; se hace por etapas.
+- [x] 4 · **Inventario con recetas** (D7, D8, D13, S6). Hecho el 7-nov, sin publicar.
+  - `utils/inventario.js` (los cálculos), `services/inventario.js` (motor de Firestore y motor de la demo) y `AdminInventario.jsx`, con sus pestañas: Insumos, Recetas (costo y ganancia por plato), Contar y Proveedores (pedir por WhatsApp).
+  - **Ventas:** descuentan con `increment` dentro de la transacción de la venta; la venta guarda `inventario[]` y, si se elimina, lo devuelve.
+  - **Compras:** desde Caja → Gastos, con «Es compra de insumos», usando el costo promedio ponderado.
+  - **Aviso de recarga** en la cabecera de la Caja (D8: solo avisa).
+  - **Reglas:** el cajero solo toca `stock` y `costoUnit` y solo crea movimientos de compra. 14 de 14 pruebas OK en el emulador.
+  - **Decidido sobre la marcha:**
+    - la receta es por PRODUCTO, no por opción (la venta guarda las opciones como texto);
+    - un insumo no se borra: se marca «ya no lo usamos»;
+    - el cajero puede leer el costo de los insumos, pero ninguna pantalla suya lo muestra.
 - [ ] 5 · **Cobro en línea** (D9, D10, D11, S9): Wompi primero, con las llaves del negocio. El pedido queda «pagado» cuando el aviso de la pasarela llega a `/api`. Siempre opcional, en domicilios y para recoger.
 - [ ] 6 · **Datáfono** (D9, S9): antes de construir, confirmar qué proveedores tienen API.
 - [ ] 7 · **Bold y Mercado Pago** en línea.

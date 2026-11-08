@@ -24,7 +24,7 @@ import { armarPedido, publicoDe } from '../src/utils/pedidoDoc.js'
 const ID = DEMO_SLUG
 const SIN_USO = 30 * 60000
 // Lo que el visitante puede ensuciar (pedidosPublicos se borra con los mismos ids de pedidos).
-const SUBCOLECCIONES = ['comandas', 'pedidos', 'equipo', 'productos', 'stats', 'ventas', 'movimientos', 'trabajadores', 'resumen', 'pantalla', 'arqueos']
+const SUBCOLECCIONES = ['comandas', 'pedidos', 'equipo', 'productos', 'stats', 'ventas', 'movimientos', 'trabajadores', 'resumen', 'pantalla', 'arqueos', 'insumos', 'recetas', 'proveedores', 'inventarioMov']
 
 // La URL de Storage → su ruta («locales/demo/platos/x.webp»).
 const rutaDe = url => { try { return decodeURIComponent(new URL(url).pathname.split('/o/')[1] || '') } catch { return '' } }

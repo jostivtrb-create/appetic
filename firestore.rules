@@ -356,6 +356,34 @@ service cloud.firestore {
         allow delete: if esSuperadmin() && esLocalDemo(localId);
       }
 
+      // 📦 INVENTARIO (guía «Mejoras frente a Loggro» paso 4 · modelo en src/utils/inventario.js).
+      // Insumos y recetas los lee la caja: al vender descuenta el stock (increment) y al anotar una
+      // compra suma stock y recalcula el costo. El cajero SOLO toca esos campos; el resto, el dueño.
+      // Nada se borra (un insumo que ya no se usa se marca inactivo).
+      match /insumos/{insumoId} {
+        allow read: if puedeCaja(localId);
+        allow create, update: if puedeAdministrar(localId)
+                              || (esCajero(localId)
+                                  && request.resource.data.diff(resource == null ? {} : resource.data).affectedKeys()
+                                       .hasOnly(['stock', 'costoUnit', 'actualizado']));
+        allow delete: if esSuperadmin() && esLocalDemo(localId);
+      }
+      match /recetas/{productoId} {
+        allow read: if puedeCaja(localId);
+        allow write: if puedeAdministrar(localId);
+      }
+      match /proveedores/{proveedorId} {
+        allow read, write: if puedeAdministrar(localId);
+      }
+      // El rastro: compras (también del cajero, desde el gasto), conteos y mermas. No se editan.
+      match /inventarioMov/{movId} {
+        allow read: if puedeAdministrar(localId) || (esCajero(localId) && resource == null);
+        allow create: if (puedeAdministrar(localId)
+                          || (esCajero(localId) && request.resource.data.tipo == 'compra'))
+                      && request.resource.data.tipo in ['compra', 'conteo', 'merma', 'ajuste'];
+        allow delete: if esSuperadmin() && esLocalDemo(localId);
+      }
+
       // 🧮 Arqueos de la caja (guía «Mejoras frente a Loggro» D17/D18). Los CREA solo el servidor
       // (/api/arqueo pone el esperado con el saldo del momento): el cajero cuenta a ciegas y no los
       // lee. El dueño los lee y solo marca `revisado` (ajustar = un Meter/Sacar aparte).

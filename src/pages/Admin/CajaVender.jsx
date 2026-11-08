@@ -18,6 +18,8 @@ import { tiene } from '../../utils/plan'
 import { Candado } from './PlanAvisos'
 import { armarVenta } from '../../utils/cuentasCalculo.js'
 import { ticketDe } from '../../utils/impresora/documento'
+import { inventarioDe } from '../../services/inventario'
+import { consumoDe } from '../../utils/inventario'
 
 // 🛒 VENDER (Caja, guía «Cuentas del negocio» D6, D19, D20 y D29 — el orden de La Catrina):
 //
@@ -86,6 +88,10 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
   const conMesas = tiene(local, 'mesas')
   const esPC = useEsEscritorio()
   const por = useMemo(() => ({ email: (usuario?.email || '').toLowerCase(), nombre: usuario?.displayName || '' }), [usuario])
+  // 📦 Recetas: cada venta descuenta del inventario lo que gastan sus platos (solo en la Caja).
+  const conInventario = modo === 'caja' && tiene(local, 'inventario')
+  const [recetas, setRecetas] = useState({})
+  useEffect(() => conInventario ? inventarioDe(local.id, { demo }).escucharRecetas(setRecetas, () => {}) : undefined, [conInventario, local.id, demo])
   const idsMenu = useMemo(() => new Set(productos.map(p => p.id)), [productos])
 
   // ── Carritos por cuenta (sobreviven si se cambia de pantalla o se cierra la app) ──
@@ -323,6 +329,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
       origen: destino?.tipo === 'mesa' ? 'mesa' : cobro.comandas.length ? 'comanda' : 'caja',
       comandas, items, destino, mesa: destino?.mesa || null,
       ...datos,
+      ...(conInventario ? { inventario: consumoDe(items, recetas) } : {}),
     }, por, local)
     if (lista.length) sumarFrec(lista)
     // 🖨️ Ticket al cobrar, si este aparato tiene impresora directa y lo pidió (guía «Mejoras

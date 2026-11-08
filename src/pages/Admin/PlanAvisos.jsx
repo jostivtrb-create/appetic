@@ -25,6 +25,7 @@ const QUE_ES = {
   cocina: { titulo: 'Pantalla de cocina', texto: 'Las comandas llegan solas a la tablet de la cocina, en orden y con su reloj.' },
   arqueo: { titulo: 'Contar la caja', texto: 'Cuentan los billetes y monedas cuando quieran y la app les dice si sobra o falta plata.' },
   impresora: { titulo: 'La impresora térmica', texto: 'Las comandas salen en papel en la cocina y el ticket del cliente en la caja, sin instalar nada.' },
+  inventario: { titulo: 'El inventario', texto: 'Cada venta descuenta los ingredientes de su receta, te avisa antes de que algo se acabe y le pides al proveedor por WhatsApp.' },
   mesas: { titulo: 'QR por mesa', texto: 'Cada mesa con su QR: el cliente pide desde la mesa y lleva la cuenta de su mesa.' },
 }
 

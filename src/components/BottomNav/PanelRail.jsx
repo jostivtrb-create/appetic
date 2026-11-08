@@ -50,6 +50,7 @@ function cargarTodos() {
 const SECCIONES = [
   { id: 'caja', label: 'Caja', Icon: IconCaja, ruta: s => `/${s}/admin/caja`, roles: ['admin', 'cajero'] },
   { id: 'cuentas', label: 'Cuentas', Icon: IconMetricas, ruta: s => `/${s}/admin/cuentas`, roles: ['admin'] },
+  { id: 'inventario', label: 'Inventario', Icon: IconInventario, ruta: s => `/${s}/admin/inventario`, roles: ['admin'], funcion: 'inventario' },
   { id: 'menu', label: 'Ver menú', Icon: IconMenu, ruta: s => `/${s}`, roles: ['admin', 'mesero', 'cajero'] },
   // `funcion`: lo que pide del plan. Al dueño le sale con candado si su plan no lo trae (D18).
   { id: 'mesero', label: 'Mesero', Icon: IconMesero, ruta: s => `/${s}/admin/mesero`, roles: ['admin', 'mesero'], funcion: 'mesero' },
@@ -419,6 +420,9 @@ function IconMenu() {
 }
 function IconMesero() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M4 17h16" /><path {...sw} d="M5.5 17a6.5 6.5 0 0 1 13 0" /><path {...sw} d="M12 8.5V7" /><path {...sw} d="M10.5 7h3" /><path {...sw} d="M3 20h18" /></svg>
+}
+function IconInventario() {
+  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M3.5 8 12 4l8.5 4v8L12 20l-8.5-4z" /><path {...sw} d="M3.5 8 12 12l8.5-4M12 12v8" /></svg>
 }
 function IconCaja() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><rect {...sw} x="3" y="11" width="18" height="9" rx="2" /><path {...sw} d="M6 11V6.5A1.5 1.5 0 0 1 7.5 5h9A1.5 1.5 0 0 1 18 6.5V11" /><path {...sw} d="M9 8h6" /><path {...sw} d="M7 15h2M11 15h2M15 15h2" /></svg>

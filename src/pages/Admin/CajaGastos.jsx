@@ -7,13 +7,25 @@ import { cuentasDe, cuentaEfectivo, emojiCuenta, cuentasParaPagar } from '../../
 import { primerNombre } from './CajaVentas'
 import { conTope } from '../../utils/conTope'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
+import { tiene } from '../../utils/plan'
+import { inventarioDe, motivoErrorInventario } from '../../services/inventario'
+import { UNIDADES, aBase, cantidadTxt } from '../../utils/inventario'
 
 // 💸 GASTOS (Caja, guía «Cuentas del negocio» D9 + S13): concepto y valor, y de qué cuenta salió
 // la plata (por defecto el efectivo). Lista por día como las ventas. Equivocarse se arregla
 // eliminando con motivo (queda tachado, con quién y por qué); el cajero solo los de hoy.
 const numero = t => Number(String(t).replace(/\D/g, '')) || 0
 
-export default function CajaGastos({ local, cuentasApi, usuario, esAdmin }) {
+export default function CajaGastos({ local, cuentasApi, usuario, esAdmin, demo }) {
+  // 📦 Compra de insumos (guía «Mejoras frente a Loggro» D7): el mismo gasto suma al inventario.
+  const conInventario = tiene(local, 'inventario')
+  const inv = useMemo(() => (conInventario ? inventarioDe(local.id, { demo }) : null), [conInventario, local.id, demo])
+  const [insumos, setInsumos] = useState([])
+  useEffect(() => inv?.escucharInsumos(l => setInsumos(l.filter(i => i.activo !== false)), () => {}), [inv])
+  const [compra, setCompra] = useState(null) // { insumoId, cantidad }
+  const insumoCompra = insumos.find(i => i.id === compra?.insumoId)
+  const cantCompra = insumoCompra ? aBase(compra.cantidad, insumoCompra.unidad, !!UNIDADES[insumoCompra.unidad]?.grande) : 0
+  const compraIncompleta = !!compra && !(insumoCompra && cantCompra > 0)
   const cuentas = cuentasDe(local)
   const cuentasSalida = cuentasParaPagar(local)   // sin el datáfono
   const [concepto, setConcepto] = useState('')
@@ -40,17 +52,21 @@ export default function CajaGastos({ local, cuentasApi, usuario, esAdmin }) {
   const ocupado = useRef(false)
   async function anotar(e) {
     e.preventDefault()
-    if (!concepto.trim() || !numero(valor) || ocupado.current) return
+    if (!concepto.trim() || !numero(valor) || compraIncompleta || ocupado.current) return
     ocupado.current = true
     if (!idGasto.current) idGasto.current = cuentasApi.nuevoIdMovimiento()
     setEstado('guardando'); setError('')
     try {
       await conTope(cuentasApi.registrarMovimiento({ id: idGasto.current, tipo: 'gasto', concepto, monto: numero(valor), cuenta }, por, local), 12000)
+      if (compra && insumoCompra) {
+        try { await conTope(inv.registrarCompra({ insumoId: insumoCompra.id, cantidad: cantCompra, monto: numero(valor), por, idMov: `compra-${idGasto.current}` }), 12000) }
+        catch (err2) { setError(`El gasto quedó, pero no entró al inventario: ${motivoErrorInventario(err2)}`); return }
+      }
       idGasto.current = null
       avisarDemo('gasto')
-      setOk(`✓ ${concepto.trim()} · ${cop(numero(valor))}`)
-      setTimeout(() => setOk(''), 3000)
-      setConcepto(''); setValor('')
+      setOk(`✓ ${concepto.trim()} · ${cop(numero(valor))}${compra && insumoCompra ? ` · +${cantidadTxt(cantCompra, insumoCompra.unidad)} de ${insumoCompra.nombre}` : ''}`)
+      setTimeout(() => setOk(''), 3500)
+      setConcepto(''); setValor(''); setCompra(null)
     } catch (err) { setError(motivoErrorCuentas(err)) } finally { ocupado.current = false; setEstado('') }
   }
   const [eliminando, setEliminando] = useState(false)
@@ -77,7 +93,21 @@ export default function CajaGastos({ local, cuentasApi, usuario, esAdmin }) {
             ))}
           </div>
         )}
-        <button className="pv-cobrar" disabled={!concepto.trim() || !numero(valor) || estado === 'guardando'}>
+        {conInventario && insumos.length > 0 && (
+          <div className="pv-gasto-compra">
+            <label className="inv-check"><input type="checkbox" checked={!!compra} onChange={e => { idGasto.current = null; setCompra(e.target.checked ? { insumoId: '', cantidad: '' } : null) }} /> 📦 Es compra de insumos (suma al inventario)</label>
+            {compra && (
+              <div className="pv-gasto-compra-campos">
+                <select value={compra.insumoId} onChange={e => { idGasto.current = null; const i = insumos.find(x => x.id === e.target.value); setCompra(c => ({ ...c, insumoId: e.target.value })); if (i && !concepto.trim()) setConcepto(`Compra de ${i.nombre}`) }} aria-label="Qué se compró">
+                  <option value="">¿Qué se compró?</option>
+                  {insumos.map(i => <option key={i.id} value={i.id}>{i.nombre}</option>)}
+                </select>
+                <label><input inputMode="decimal" placeholder="Cantidad" value={compra.cantidad} onChange={e => { idGasto.current = null; setCompra(c => ({ ...c, cantidad: e.target.value })) }} aria-label="Cantidad comprada" /><small>{insumoCompra ? (UNIDADES[insumoCompra.unidad]?.grande || 'und') : ''}</small></label>
+              </div>
+            )}
+          </div>
+        )}
+        <button className="pv-cobrar" disabled={!concepto.trim() || !numero(valor) || compraIncompleta || estado === 'guardando'}>
           {estado === 'guardando' ? 'Anotando…' : `Anotar gasto${numero(valor) ? ` · ${cop(numero(valor))}` : ''}`}
         </button>
         {ok && <p className="pv-ok" role="status">{ok}</p>}

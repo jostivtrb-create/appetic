@@ -13,6 +13,9 @@ import CajaGastos from './CajaGastos'
 import ContarCaja from './ContarCaja'
 import ImpresoraBoton, { useImpresora } from './Impresora'
 import { tiene } from '../../utils/plan'
+import { inventarioDe } from '../../services/inventario'
+import { porAcabarse, cantidadTxt } from '../../utils/inventario'
+import './Inventario.css'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 import './Cobro.css'
 import './Caja.css'
@@ -41,6 +44,11 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
   const [vista, setVista] = useState('vender')
   const [contando, setContando] = useState(false)
   const impresora = useImpresora(local, 'caja')
+  // 📦 Aviso de recarga (D8): lo que se está acabando, a la vista del dueño y del cajero.
+  const conInventario = tiene(local, 'inventario')
+  const [faltan, setFaltan] = useState([])
+  const [verFaltan, setVerFaltan] = useState(false)
+  useEffect(() => conInventario ? inventarioDe(local.id, { demo }).escucharInsumos(l => setFaltan(porAcabarse(l)), () => {}) : undefined, [conInventario, local.id, demo])
   const [porCobrar, setPorCobrar] = useState(null)
   const [errorEscucha, setErrorEscucha] = useState('')
   useEffect(() => api.escucharPorCobrar(l => { setPorCobrar(l); setErrorEscucha('') }, e => setErrorEscucha(motivoError(e))), [api])
@@ -87,12 +95,18 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
       </nav>
 
       {errorEscucha && <p className="pv-error" role="alert">{errorEscucha}</p>}
+      {faltan.length > 0 && (
+        <button type="button" className="inv-aviso inv-aviso-caja" onClick={() => setVerFaltan(v => !v)} aria-expanded={verFaltan}>
+          <b>📦 {faltan.length === 1 ? 'Se está acabando 1 insumo' : `Se están acabando ${faltan.length} insumos`} {verFaltan ? '▲' : '▼'}</b>
+          {verFaltan && <span>{faltan.map(i => `${i.nombre}: ${cantidadTxt(i.stock, i.unidad)}`).join(' · ')}</span>}
+        </button>
+      )}
 
       {vista === 'vender' && (
         <CajaVender local={localVenta} productos={productosVenta} api={api} cuentasApi={cuentasApi} demo={demo} usuario={usuario} porCobrar={porCobrar} impresora={impresora} />
       )}
       {vista === 'ventas' && <CajaVentas local={local} cuentasApi={cuentasApi} usuario={usuario} esAdmin={esAdmin} impresora={impresora} />}
-      {vista === 'gastos' && <CajaGastos local={local} cuentasApi={cuentasApi} usuario={usuario} esAdmin={esAdmin} />}
+      {vista === 'gastos' && <CajaGastos local={local} cuentasApi={cuentasApi} usuario={usuario} esAdmin={esAdmin} demo={demo} />}
       {contando && <ContarCaja local={local} cuentasApi={cuentasApi} usuario={usuario} esAdmin={esAdmin} onCerrar={() => setContando(false)} />}
     </div>
   )

@@ -31,6 +31,7 @@ const MINIMO = {
   // Guía «Mejoras frente a Loggro» S5: lo nuevo va en Empresario hasta que el usuario cuadre los planes.
   arqueo: 'empresario', // contar la caja
   impresora: 'empresario', // comandas y ticket en impresora térmica
+  inventario: 'empresario', // insumos, recetas, compras, conteo y proveedores
 }
 
 export const DIAS_AVISO = 5

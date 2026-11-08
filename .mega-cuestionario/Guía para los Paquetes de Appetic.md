@@ -73,6 +73,8 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
 | D31 | **Las notificaciones del dueño les llegan a quien marcó el local como favorito y a quien le ha pedido**, si aceptó recibirlas. | P8. |
 | D32 | **La cotización vale 15 días.** | S1. |
 | D33 | **Cada cotización lleva un número consecutivo: AP-0001, AP-0002…** | S2. |
+| D35 | **Nada dice «Próximamente» en la propuesta: todo sale incluido**, también el Inventario, que se construye hoy (7-nov). Deja sin efecto S8. | El usuario, en el chat. Lo que aún no existe pasa a la cola de la fase C y debe estar listo antes de entregárselo a un cliente: notificaciones, horario semanal, cobro en línea y datáfono (estos dos dependen de las empresas de pagos). |
+| D36 | **La propuesta web se reorganiza por paquetes:** una sección por paquete (Base → Domicilios → Contabilidad → Cocina → Salón → Inventario), cada una interactiva y enfocada, para que el vendedor explique rápido y se salte lo que el local no necesita. Que se vea bien en celular, tablet y PC. | Mensaje del usuario (7-nov). |
 | D34 | **El permiso de notificaciones se le pide al cliente después de su primer pedido o al marcar el local como favorito.** | S3. |
 
 ---
@@ -200,7 +202,7 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
 
 - [ ] C1 · Notificaciones del dueño a los clientes (D9, D31, D34).
 - [ ] C2 · Horario semanal del personal (D10).
-- [ ] C3 · Inventario con recetas y proveedores (D13 y paso 4 de la guía de Loggro).
+- [x] C3 · Inventario con recetas y proveedores (D13 y paso 4 de la guía de Loggro). Hecho el 7-nov, sin publicar.
 - [ ] C4 · Cobro en línea y datáfono (pasos 5 a 7 de Loggro), solo si las empresas de pagos dejan conectarse.
 
 ---
@@ -231,4 +233,5 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
     - en el navegador, con la API simulada: dueño, vendedor con comentarios y visita, en PC y en celular;
     - el superadmin en modo simulado.
   - **Sin probar:** contra la API real en producción (necesita publicar).
+- **7-nov-2026** — El usuario pide que la propuesta web vaya **por paquetes**: una sección por paquete, de la Base hacia abajo, interactiva y completa en celular, tablet y PC. Se puede usar /Generar_Imagen. Esto es D36 y entra como fase A2.
 - **Pendiente de la guía de Loggro:** el paso 3 (impresora) está en un commit local `ea34889` sin publicar. Conviene publicarlo cuando se defina en qué paquete va.
