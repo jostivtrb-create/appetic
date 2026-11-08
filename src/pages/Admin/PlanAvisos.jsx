@@ -160,7 +160,8 @@ export function MiPlan({ local }) {
 }
 
 // 🔎 ¿Sale en el buscador de Appetic? (Configuración → Negocio, D6)
-export function SalirEnBuscador({ local, onUpdate }) {
+// `sinMarco`: solo el interruptor y sus avisos (para meterlo en una tarjeta del diseño nuevo).
+export function SalirEnBuscador({ local, onUpdate, sinMarco = false }) {
   const [on, setOn] = useState(quiereBuscador(local))
   const [msg, setMsg] = useState('')
   const p = estadoPago(local).estado
@@ -169,9 +170,10 @@ export function SalirEnBuscador({ local, onUpdate }) {
     setOn(v); setMsg('')
     try { await onUpdate({ enBuscador: v }); setMsg('Guardado ✓') } catch { setOn(!v); setMsg('No se pudo guardar') }
   }
+  const Marco = sinMarco ? 'div' : 'section'
   return (
-    <section className="ac-sec">
-      <h3>🔎 Buscador de Appetic</h3>
+    <Marco className={sinMarco ? 'pl-buscador' : 'ac-sec'}>
+      {!sinMarco && <h3>🔎 Buscador de Appetic</h3>}
       <label className="pl-switch">
         <span>
           <strong>Salir en el buscador</strong>
@@ -186,6 +188,6 @@ export function SalirEnBuscador({ local, onUpdate }) {
       </label>
       {on && p === 'montaje' && <p className="ac-hint">Vas a aparecer cuando terminemos de montar tu local y se registre el primer pago.</p>}
       {msg && <p className="ac-hint">{msg}</p>}
-    </section>
+    </Marco>
   )
 }

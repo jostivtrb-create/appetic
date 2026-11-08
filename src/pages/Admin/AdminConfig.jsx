@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { LOGO_ANIMS, resolverLogoAnim } from '../../utils/logoAnim'
 import MuestraLogo from './MuestraLogo'
 import { Candado, SalirEnBuscador } from './PlanAvisos'
 import { tiene } from '../../utils/plan'
 import { construirPromptImagenIA } from '../../utils/promptIA'
+import { estaAbierto } from '../../utils/horario'
+import { PanelHero, PanelCuerpo, PanelLado, PanelTarjeta, PanelSwitch, useEntrar } from './PanelPagina'
+import './AdminConfig.css'
 
 // 🛵 Cuánto sube el domicilio por cada medio kilómetro cuando el dueño usa el
 // botón ↓ para rellenar los tramos de abajo. Es solo un punto de partida
@@ -42,7 +45,22 @@ function diasIniciales(guardados) {
 }
 
 const fmtPesos = (n) => `$${Number(n || 0).toLocaleString('es-CO')}`
+const hora12 = hhmm => { const [h, m] = String(hhmm || '0:0').split(':').map(Number); return `${((h + 11) % 12) + 1}${m ? ':' + String(m).padStart(2, '0') : ''} ${h >= 12 ? 'p. m.' : 'a. m.'}` }
+// «Todos los días», «Lun a Sáb», «Lun, Mié, Vie»…
+function textoDias(dias) {
+  const on = DIAS_SEMANA.filter(d => dias[d.k])
+  if (on.length === 7) return 'Todos los días'
+  if (!on.length) return 'Ningún día'
+  const idx = on.map(d => DIAS_SEMANA.indexOf(d))
+  const seguidos = idx.every((v, i) => !i || v === idx[i - 1] + 1)
+  const c = d => d.full.slice(0, 3)
+  return seguidos && on.length > 2 ? `${c(on[0])} a ${c(on[on.length - 1])}` : on.map(c).join(', ')
+}
 
+// Diseño (guía «Diseño de pantallas del panel», 8-nov): encabezado grande con resumen, lista a la
+// izquierda (en el celular: lista que entra al detalle) y una parte a la vez en tarjetas. Los precios
+// del domicilio ya no van en una ventana aparte: caben en su tarjeta. «Guardar cambios» aparece abajo
+// solo cuando hay algo sin guardar. La lógica de guardado no cambió.
 // `vista`: qué parte de los ajustes se muestra dentro de Configuración (ver AdminAjustes):
 //   'negocio'    → WhatsApp, horario, entrega y domicilio por distancia
 //   'apariencia' → portada (banner) y animación del logo
@@ -68,16 +86,23 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
     return limpio
   })
   const [logoAnim, setLogoAnim] = useState(resolverLogoAnim(local))
-  const [logoMenuAbierto, setLogoMenuAbierto] = useState(false)
   const [ubicacion, setUbicacion] = useState(local.ubicacion || null)
   const [ubicEstado, setUbicEstado] = useState('idle') // idle | cargando | ok | error
-  const [preciosAbierto, setPreciosAbierto] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [guardado, setGuardado] = useState(false)
   // 🖼️ Banner del local
   const [bannerPreview, setBannerPreview] = useState(local.banner || '')
   const [subiendoBanner, setSubiendoBanner] = useState(false)
   const [avisoBannerIA, setAvisoBannerIA] = useState(null) // null | { prompt }
+  // Diseño nuevo (guía «Diseño de pantallas del panel»): lista a la izquierda, una parte a la vez.
+  const entrar = useEntrar()
+  const [parte, setParte] = useState(vista === 'apariencia' ? 'portada' : 'whatsapp')
+  useEffect(() => { setParte(vista === 'apariencia' ? 'portada' : 'whatsapp') }, [vista])
+  const elegir = id => { setParte(id); entrar.abrir() }
+  // ¿Hay cambios sin guardar? (lo que guarda «Guardar cambios»; banner y buscador se guardan solos)
+  const foto = JSON.stringify({ whatsapp, abre, cierra, dias, domicilio, recoger, maxKm, tarifas, logoAnim, ubicacion })
+  const inicial = useRef(foto)
+  const sinGuardar = foto !== inicial.current
 
   const keys = useMemo(() => intervalosHasta(maxKm), [maxKm])
   // ¿Algún tramo mostrará el botón ↓? (tiene precio y hay vacíos debajo)
@@ -100,14 +125,6 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
   function toggleDia(k) {
     setDias(d => ({ ...d, [k]: !d[k] }))
   }
-
-  // Bloquea el scroll del fondo mientras el modal de precios está abierto.
-  useEffect(() => {
-    if (!preciosAbierto) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [preciosAbierto])
 
   function setTarifa(key, valor) {
     setTarifas(t => ({ ...t, [key]: valor.replace(/\D/g, '') }))
@@ -171,6 +188,7 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
     }
     if (ubicacion) cambios.ubicacion = ubicacion
     await onUpdate(cambios)
+    inicial.current = foto
     setGuardando(false)
     setGuardado(true)
     setTimeout(() => setGuardado(false), 1800)
@@ -200,246 +218,196 @@ export default function AdminConfig({ local, onUpdate, onSubirBanner, vista = 'n
     setAvisoBannerIA({ prompt })
   }
 
+  const conDomicilio = tiene(local, 'domicilios')
+  const wa = whatsapp.replace(/\D/g, '')
+  const abiertoAhora = !ningunDia && estaAbierto({ abre, cierra, dias })
+  const horarioTxt = `${textoDias(dias)} · ${hora12(abre)} – ${hora12(cierra)}`
+  const entregaTxt = [domicilio && conDomicilio && 'Domicilio', recoger && 'Recoger'].filter(Boolean).join(' y ') || 'Ninguna'
+  const faltaDomicilio = domicilio && conDomicilio && (!ubicacion || keys.some(k => !conPrecio(tarifas[k])))
+  const conAnim = local.tema?.hero === 'logo'
+  const animTxt = LOGO_ANIMS.find(o => o.id === logoAnim)?.label || 'Elegir…'
+
+  const negocio = vista !== 'apariencia'
+  const items = negocio ? [
+    { id: 'whatsapp', icono: '📲', nombre: 'WhatsApp para pedidos', nota: wa || 'Falta el número', tono: wa ? null : 'aviso' },
+    { id: 'horario', icono: '🕒', nombre: 'Horario de atención', nota: ningunDia ? 'Marca al menos un día' : horarioTxt, tono: ningunDia ? 'aviso' : null },
+    { id: 'entrega', icono: '🛍️', nombre: 'Cómo entregas', nota: entregaTxt },
+    ...(domicilio && conDomicilio ? [{ id: 'domicilio', icono: '🛵', nombre: 'Precios del domicilio', nota: !ubicacion ? 'Falta la ubicación' : resumenPrecios, tono: faltaDomicilio ? 'aviso' : null }] : []),
+    { id: 'buscador', icono: '🔎', nombre: 'Buscador de Appetic', nota: local.enBuscador === false ? 'No sales' : 'Sales en el buscador' },
+  ] : [
+    { id: 'portada', icono: '🖼️', nombre: 'Portada del local', nota: bannerPreview ? 'Con foto' : 'Sin foto', tono: bannerPreview ? null : 'aviso' },
+    ...(conAnim ? [{ id: 'logo', icono: '✨', nombre: 'Animación del logo', nota: animTxt }] : []),
+  ]
+  const actual = items.find(i => i.id === parte) || items[0]
+
+  const chips = negocio ? [
+    { t: ningunDia ? 'Sin días de atención' : abiertoAhora ? '● Abierto ahora' : '● Cerrado ahora', tono: ningunDia ? 'aviso' : abiertoAhora ? 'ok' : 'off' },
+    { t: wa ? `📲 ${wa}` : '⚠️ Sin WhatsApp', tono: wa ? null : 'aviso' },
+    { t: `🛍️ ${entregaTxt}` },
+  ] : [
+    { t: bannerPreview ? '🖼️ Con portada' : '🖼️ Sin portada', tono: bannerPreview ? 'ok' : 'aviso' },
+    conAnim ? { t: `✨ ${animTxt}` } : null,
+  ]
+
   return (
-    <div className="ac">
-      {ver('negocio') && <section className="ac-sec">
-        <h3>📱 Datos del negocio</h3>
-        <p className="ac-hint">El WhatsApp donde te llegan los pedidos de tus clientes. Va anclado a tu local.</p>
-        <label className="ac-maxkm">
-          📲 WhatsApp para pedidos
-          <input
-            type="tel"
-            inputMode="numeric"
-            placeholder="Ej: 3208435143"
-            value={whatsapp}
-            onChange={e => setWhatsapp(e.target.value)}
-            disabled={local.esDemo}
-          />
-        </label>
-        {local.esDemo && <span className="ac-hint">🔒 En la demo, los pedidos llegan a Appetic. En tu local, aquí va tu WhatsApp.</span>}
-        {!whatsapp.replace(/\D/g, '') && (
-          <span className="ac-ubic-warn">⚠️ Sin WhatsApp, los pedidos no pueden enviarse.</span>
+    <div className={`ac ac2${entrar.abierto ? ' pp-dentro' : ''}`}>
+      {negocio
+        ? <PanelHero icono="🏪" titulo="Negocio y horario" sub="Dónde te llegan los pedidos, cuándo abres y cómo entregas" chips={chips} />
+        : <PanelHero icono="🎨" titulo="Apariencia" sub="Cómo se ve tu local: la portada y la animación del logo" chips={chips}
+            derecha={bannerPreview ? <div className="ac2-hero-portada"><img src={bannerPreview} alt="" /></div> : null} />}
+
+      <PanelCuerpo entrar={entrar} titulo={actual.nombre} lado={
+        <PanelLado icono={negocio ? '🏪' : '🎨'} titulo={negocio ? 'Tu negocio' : 'Apariencia'} sel={actual.id} onSel={elegir} grupos={[{ items }]} />
+      }>
+        {actual.id === 'whatsapp' && (
+          <PanelTarjeta icono="📲" titulo="WhatsApp para pedidos" sub="El número donde te llegan los pedidos de tus clientes. Va anclado a tu local.">
+            <label className="pp-campo"><span>Número de WhatsApp</span>
+              <input type="tel" inputMode="numeric" placeholder="Ej: 3208435143" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} disabled={local.esDemo} />
+            </label>
+            {local.esDemo && <p className="pp-ayuda">🔒 En la demo, los pedidos llegan a Appetic. En tu local, aquí va tu WhatsApp.</p>}
+            {!wa && <p className="ac2-aviso">⚠️ Sin WhatsApp, los pedidos no pueden enviarse.</p>}
+          </PanelTarjeta>
         )}
-      </section>}
 
-      {ver('apariencia') && <section className="ac-sec">
-        <h3>🖼️ Portada del local (banner)</h3>
-        <p className="ac-hint">La foto grande que representa tu local en el inicio. Sube una tuya o créala con IA (queda a tono con tu marca).</p>
-        <div className="ac-banner-preview">
-          {bannerPreview ? <img src={bannerPreview} alt="" /> : <span className="ac-banner-ph">🖼️</span>}
-          {subiendoBanner && <span className="ac-banner-subiendo">Subiendo…</span>}
-        </div>
-        <div className="ap-foto-acciones">
-          <label className="ap-foto-btn">
-            📱 Del dispositivo
-            <input type="file" accept="image/*" onChange={elegirBanner} hidden />
-          </label>
-          <button type="button" className="ap-foto-btn ap-foto-btn-ia" onClick={crearBannerConIA}>
-            ✨ Crear con IA
-          </button>
-        </div>
-        {avisoBannerIA && (
-          <div className="ap-ia-aviso">
-            <button className="ap-ia-aviso-x" onClick={() => setAvisoBannerIA(null)} aria-label="Cerrar">✕</button>
-            <p className="ap-ia-aviso-tit">✨ Abrimos <strong>Gemini</strong> en otra pestaña</p>
-            <ol className="ap-ia-aviso-pasos">
-              <li>Pega el prompt (ya copiado) con <strong>Ctrl/Cmd + V</strong> y envía.</li>
-              <li>Cuando Gemini genere la imagen (horizontal), <strong>descárgala</strong>.</li>
-              <li>Vuelve aquí y súbela con <strong>📱 Del dispositivo</strong>.</li>
-            </ol>
-            <button
-              type="button"
-              className="ap-ia-aviso-copiar"
-              onClick={() => { try { navigator.clipboard?.writeText(avisoBannerIA.prompt) } catch {} }}
-            >
-              📋 Copiar el prompt de nuevo
-            </button>
-          </div>
+        {actual.id === 'horario' && (
+          <PanelTarjeta icono="🕒" titulo="Horario de atención" sub="Fuera del horario, los clientes ven el menú pero no pueden pedir.">
+            {local.esDemo && <p className="pp-ayuda">🔒 En la demo está abierta las 24 horas para que la puedas probar cuando quieras.</p>}
+            <fieldset className="ac-bloqueo ac2-horario" disabled={local.esDemo}>
+              <div className="pp-sub">
+                <h4 className="ac2-h4">Días que abres</h4>
+                <div className="ac2-dias">
+                  {DIAS_SEMANA.map(d => (
+                    <button key={d.k} type="button" className={dias[d.k] ? 'on' : ''} onClick={() => toggleDia(d.k)} aria-pressed={dias[d.k]} title={d.full}>
+                      <b>{d.full.slice(0, 3)}</b>
+                    </button>
+                  ))}
+                </div>
+                {ningunDia && <p className="ac2-aviso">⚠️ Marca al menos un día de atención.</p>}
+              </div>
+              <div className="pp-sub">
+                <h4 className="ac2-h4">Horas</h4>
+                <div className="pp-fila">
+                  <label className="pp-campo"><span>Abre</span><input type="time" value={abre} onChange={e => setAbre(e.target.value)} /></label>
+                  <label className="pp-campo"><span>Cierra</span><input type="time" value={cierra} onChange={e => setCierra(e.target.value)} /></label>
+                </div>
+                <p className="pp-ayuda">Si cierras después de medianoche (ej.: 6 p. m. a 2 a. m.) también funciona.</p>
+              </div>
+            </fieldset>
+          </PanelTarjeta>
         )}
-      </section>}
 
-      {ver('negocio') && <section className="ac-sec">
-        <h3>🕒 Horario de atención</h3>
-        <p className="ac-hint">Fuera del horario, los clientes ven el menú pero no pueden pedir.</p>
-        {local.esDemo && <p className="ac-hint">🔒 En la demo está abierta las 24 horas para que la puedas probar cuando quieras.</p>}
-        <fieldset className="ac-bloqueo" disabled={local.esDemo}>
+        {actual.id === 'entrega' && (
+          <PanelTarjeta icono="🛍️" titulo="Cómo entregas" sub="Lo que el cliente puede escoger al pedir.">
+            <div className="pp-sub ac2-switches">
+              {conDomicilio
+                ? <PanelSwitch titulo="🛵 Domicilio" texto="Llevas el pedido a la casa del cliente. El precio se calcula por distancia." checked={domicilio} onChange={setDomicilio} />
+                : <Candado local={local} funcion="domicilios" compacto />}
+              <PanelSwitch titulo="🏪 Recoger en el local" texto="El cliente pide y pasa a recogerlo." checked={recoger} onChange={setRecoger} />
+            </div>
+            {domicilio && conDomicilio && (
+              <button type="button" className="ac2-ir" onClick={() => setParte('domicilio')}>
+                <span>🛵</span><b>Precios del domicilio</b><small>{!ubicacion ? '⚠️ Falta la ubicación' : resumenPrecios}</small><i>›</i>
+              </button>
+            )}
+          </PanelTarjeta>
+        )}
 
-        <span className="ac-sub">Días que abres</span>
-        <div className="ac-dias">
-          {DIAS_SEMANA.map(d => (
-            <button
-              key={d.k}
-              type="button"
-              className={`ac-dia ${dias[d.k] ? 'on' : ''}`}
-              onClick={() => toggleDia(d.k)}
-              aria-pressed={dias[d.k]}
-              aria-label={d.full}
-              title={d.full}
-            >
-              {d.l}
-            </button>
-          ))}
-        </div>
-        {ningunDia && <span className="ac-ubic-warn">⚠️ Marca al menos un día de atención.</span>}
+        {actual.id === 'domicilio' && (
+          <PanelTarjeta icono="🛵" titulo="Precios del domicilio" sub="Se cobra por tramos de 0,5 km según qué tan lejos esté el cliente.">
+            <div className="pp-grid ac2-domi">
+              <div className="pp-sub">
+                <h4 className="ac2-h4">📍 Ubicación del local</h4>
+                <p className="pp-ayuda">Desde aquí se mide la distancia a cada cliente. Hazlo estando EN el local.</p>
+                <button className="pp-btn" onClick={capturarUbicacion} disabled={ubicEstado === 'cargando'}>
+                  📍 {ubicEstado === 'cargando' ? 'Obteniendo…' : ubicacion ? 'Actualizar ubicación' : 'Usar mi ubicación actual'}
+                </button>
+                {ubicacion && <p className="ac2-ok">✓ Ubicación lista</p>}
+                {ubicEstado === 'error' && <p className="ac2-aviso">No se pudo obtener. Activa el permiso de ubicación.</p>}
+                {!ubicacion && ubicEstado !== 'error' && <p className="ac2-aviso">⚠️ Sin ubicación no se puede calcular el domicilio.</p>}
+                <label className="pp-campo"><span>Distancia máxima de entrega</span>
+                  <div className="pp-plata"><input type="number" inputMode="decimal" step="0.5" min="0.5" value={maxKm} onChange={e => setMaxKm(e.target.value)} /><i className="ac2-km">km</i></div>
+                </label>
+              </div>
+              <div className="pp-sub ac2-tramos">
+                <h4 className="ac2-h4">💲 Precio por distancia</h4>
+                <p className="pp-ayuda">Escribe 0 si ese tramo es gratis.{hayFill ? ` El ↓ rellena los de abajo sumando ${fmtPesos(ESCALON_DOMICILIO)} cada medio kilómetro.` : ''}</p>
+                <div className="ac2-tramos-lista">
+                  {keys.map((k, i) => {
+                    const mostrarFill = !!tarifas[k] && keys.slice(i + 1).some(kk => !tarifas[kk])
+                    return (
+                      <div key={k} className={`ac2-tramo${conPrecio(tarifas[k]) ? '' : ' vacio'}`}>
+                        <span>Hasta <b>{k} km</b></span>
+                        <div className="pp-plata"><i>$</i><input inputMode="numeric" placeholder="sin precio" value={tarifas[k] ?? ''} onChange={e => setTarifa(k, e.target.value)} /></div>
+                        {mostrarFill ? <button className="ac2-fill" onClick={() => rellenarDesde(k)} title={`Rellenar los de abajo sumando ${fmtPesos(ESCALON_DOMICILIO)}`}>↓</button> : <span />}
+                      </div>
+                    )
+                  })}
+                </div>
+                {keys.length === 0 && <p className="pp-ayuda">Sube la distancia máxima para definir tramos.</p>}
+                {keys.some(k => !conPrecio(tarifas[k])) && <p className="ac2-aviso">⚠️ A un cliente en un tramo sin precio no le sale el domicilio: ponle precio a todos o baja la distancia máxima.</p>}
+              </div>
+            </div>
+          </PanelTarjeta>
+        )}
 
-        <span className="ac-sub">Horas</span>
-        <div className="ac-horas">
-          <label>Abre<input type="time" value={abre} onChange={e => setAbre(e.target.value)} /></label>
-          <label>Cierra<input type="time" value={cierra} onChange={e => setCierra(e.target.value)} /></label>
-        </div>
-        </fieldset>
-      </section>}
+        {actual.id === 'buscador' && (
+          <PanelTarjeta icono="🔎" titulo="Buscador de Appetic" sub="Se guarda al instante.">
+            <div className="pp-sub"><SalirEnBuscador local={local} onUpdate={onUpdate} sinMarco /></div>
+          </PanelTarjeta>
+        )}
 
-      {ver('negocio') && <SalirEnBuscador local={local} onUpdate={onUpdate} />}
+        {actual.id === 'portada' && (
+          <PanelTarjeta icono="🖼️" titulo="Portada del local" sub="La foto grande que representa tu local en el inicio. Se guarda al subirla.">
+            <div className="ac2-portada">
+              <div className="ac2-portada-ver">
+                {bannerPreview ? <img src={bannerPreview} alt="" /> : <span>🖼️<small>Sin portada</small></span>}
+                {subiendoBanner && <em>Subiendo…</em>}
+              </div>
+              <div className="ac2-portada-acc">
+                <label className="pp-btn">📱 Subir del dispositivo<input type="file" accept="image/*" onChange={elegirBanner} hidden /></label>
+                <button type="button" className="pp-btn ac2-ia" onClick={crearBannerConIA}>✨ Crear con IA</button>
+                <p className="pp-ayuda">Horizontal y bien iluminada. Con IA queda a tono con tu marca.</p>
+              </div>
+            </div>
+            {avisoBannerIA && (
+              <div className="ap-ia-aviso">
+                <button className="ap-ia-aviso-x" onClick={() => setAvisoBannerIA(null)} aria-label="Cerrar">✕</button>
+                <p className="ap-ia-aviso-tit">✨ Abrimos <strong>Gemini</strong> en otra pestaña</p>
+                <ol className="ap-ia-aviso-pasos">
+                  <li>Pega el prompt (ya copiado) con <strong>Ctrl/Cmd + V</strong> y envía.</li>
+                  <li>Cuando Gemini genere la imagen (horizontal), <strong>descárgala</strong>.</li>
+                  <li>Vuelve aquí y súbela con <strong>📱 Subir del dispositivo</strong>.</li>
+                </ol>
+                <button type="button" className="ap-ia-aviso-copiar" onClick={() => { try { navigator.clipboard?.writeText(avisoBannerIA.prompt) } catch { /* nada */ } }}>📋 Copiar el prompt de nuevo</button>
+              </div>
+            )}
+          </PanelTarjeta>
+        )}
 
-      {ver('negocio') && <section className="ac-sec">
-        <h3>🛍️ Entrega</h3>
-        {/* 💳 El domicilio es del plan Comerciante en adelante. */}
-        {tiene(local, 'domicilios') ? (
-          <label className="ac-switch">
-            <span>🛵 Domicilio disponible</span>
-            <input type="checkbox" checked={domicilio} onChange={e => setDomicilio(e.target.checked)} />
-          </label>
-        ) : <Candado local={local} funcion="domicilios" compacto />}
-        <label className="ac-switch">
-          <span>🏪 Recoger en el local</span>
-          <input type="checkbox" checked={recoger} onChange={e => setRecoger(e.target.checked)} />
-        </label>
-      </section>}
-
-      {/* Solo tiene sentido cuando el hero es el logo grande. */}
-      {ver('apariencia') && local.tema?.hero === 'logo' && (
-        <section className="ac-sec">
-          <h3>✨ Animación del logo</h3>
-          <p className="ac-hint">Cómo aparece tu logo al abrir el menú. Elige una y mírala aquí abajo antes de guardar.</p>
-          <div className="ac-select">
-            <button
-              type="button"
-              className="ac-select-head"
-              onClick={() => setLogoMenuAbierto(o => !o)}
-              aria-haspopup="listbox"
-              aria-expanded={logoMenuAbierto}
-            >
-              <span>{LOGO_ANIMS.find(o => o.id === logoAnim)?.label || 'Elegir…'}</span>
-              <span className={`ac-select-chevron ${logoMenuAbierto ? 'open' : ''}`}>⌄</span>
-            </button>
-            {logoMenuAbierto && (
-              <div className="ac-select-panel" role="listbox">
+        {actual.id === 'logo' && (
+          <PanelTarjeta icono="✨" titulo="Animación del logo" sub="Cómo aparece tu logo al abrir el menú. Elige una y mírala aquí al lado antes de guardar.">
+            <div className="ac2-logo">
+              <div className="ac2-anims" role="radiogroup" aria-label="Animación del logo">
                 {LOGO_ANIMS.map(op => (
-                  <button
-                    key={op.id}
-                    type="button"
-                    role="option"
-                    aria-selected={logoAnim === op.id}
-                    className={`ac-select-item ${logoAnim === op.id ? 'on' : ''}`}
-                    onClick={() => { setLogoAnim(op.id); setLogoMenuAbierto(false) }}
-                  >
-                    <span>{op.label}</span>
-                    {logoAnim === op.id && <span className="ac-opcion-check">✓</span>}
+                  <button key={op.id} type="button" role="radio" aria-checked={logoAnim === op.id} className={logoAnim === op.id ? 'on' : ''} onClick={() => setLogoAnim(op.id)}>
+                    <span className="ac2-radio" aria-hidden="true" />{op.label}
                   </button>
                 ))}
               </div>
-            )}
-          </div>
-          {/* 👀 Muestra en vivo: la misma cabecera del menú, con la animación elegida. */}
-          <MuestraLogo local={local} anim={logoAnim} />
-        </section>
-      )}
+              <div className="ac2-muestra"><MuestraLogo local={local} anim={logoAnim} /></div>
+            </div>
+          </PanelTarjeta>
+        )}
 
-      {/* Domicilio por radio: ubicación + tarifas por distancia */}
-      {ver('negocio') && domicilio && tiene(local, 'domicilios') && (
-        <section className="ac-sec">
-          <h3>🛵 Domicilio por distancia</h3>
-          <p className="ac-hint">
-            Pon la ubicación de tu local y el precio del domicilio según qué tan lejos esté el cliente.
-            Se cobra por tramos de 0,5 km.
-          </p>
-
-          {/* Ubicación del local */}
-          <div className="ac-ubic">
-            <button className="ac-ubic-btn" onClick={capturarUbicacion} disabled={ubicEstado === 'cargando'}>
-              📍 {ubicEstado === 'cargando' ? 'Obteniendo…' : ubicacion ? 'Actualizar ubicación del local' : 'Usar mi ubicación actual'}
+        {(sinGuardar || guardado) && (
+          <div className={`ac2-guardar${guardado && !sinGuardar ? ' ok' : ''}`}>
+            <span>{guardado && !sinGuardar ? '✓ Cambios guardados' : 'Tienes cambios sin guardar'}</span>
+            <button className="btn btn-primary" onClick={guardar} disabled={guardando || !sinGuardar}>
+              {guardando ? 'Guardando…' : guardado && !sinGuardar ? 'Guardado ✓' : 'Guardar cambios'}
             </button>
-            {ubicacion && <span className="ac-ubic-ok">Ubicación lista ✓</span>}
-            {ubicEstado === 'error' && <span className="ac-ubic-err">No se pudo obtener. Activa el permiso de ubicación.</span>}
-            {!ubicacion && ubicEstado !== 'error' && <span className="ac-ubic-warn">⚠️ Sin ubicación no se puede calcular el domicilio.</span>}
           </div>
-
-          {/* Tarjeta resumen: abre el modal para editar distancia y precios */}
-          <button type="button" className="ac-tarifas-card" onClick={() => setPreciosAbierto(true)}>
-            <span className="ac-tarifas-card-icon">🛵</span>
-            <div className="ac-tarifas-card-info">
-              <strong>Precios del domicilio</strong>
-              <span>{resumenPrecios}</span>
-            </div>
-            <span className="ac-tarifas-card-edit">Editar ›</span>
-          </button>
-        </section>
-      )}
-
-      <button className="btn btn-primary ac-guardar" onClick={guardar} disabled={guardando}>
-        {guardando ? 'Guardando…' : guardado ? 'Guardado ✓' : 'Guardar cambios'}
-      </button>
-
-      {/* Modal de precios del domicilio (se guarda con "Guardar cambios") */}
-      {preciosAbierto && (
-        <div className="ac-modal-overlay" onClick={() => setPreciosAbierto(false)}>
-          <div className="ac-modal-sheet" onClick={e => e.stopPropagation()}>
-            <div className="ac-modal-head">
-              <h3>Precios del domicilio</h3>
-              <button className="ac-modal-close" onClick={() => setPreciosAbierto(false)} aria-label="Cerrar">✕</button>
-            </div>
-
-            <div className="ac-modal-body">
-              <label className="ac-maxkm">
-                Distancia máxima de entrega (km)
-                <input
-                  type="number" inputMode="decimal" step="0.5" min="0.5"
-                  value={maxKm}
-                  onChange={e => setMaxKm(e.target.value)}
-                />
-              </label>
-              <p className="ac-hint">Se cobra por tramos de 0,5 km según qué tan lejos esté el cliente. Escribe 0 si ese tramo es gratis.</p>
-
-              <div className="ac-tarifas">
-                <div className="ac-tarifas-head">
-                  <span>Hasta…</span><span>Precio del domicilio</span>
-                </div>
-                {keys.map((k, i) => {
-                  // El ↓ solo sirve si esta fila tiene precio y hay tramos vacíos debajo.
-                  const mostrarFill = !!tarifas[k] && keys.slice(i + 1).some(kk => !tarifas[kk])
-                  return (
-                    <div key={k} className="ac-tarifa-row">
-                      <span className="ac-tarifa-km">{k} km</span>
-                      <div className="ac-tarifa-input">
-                        <span className="ac-tarifa-cur">$</span>
-                        <input
-                          inputMode="numeric"
-                          placeholder="sin precio"
-                          value={tarifas[k] ?? ''}
-                          onChange={e => setTarifa(k, e.target.value)}
-                        />
-                        {mostrarFill && (
-                          <button className="ac-tarifa-fill" onClick={() => rellenarDesde(k)} title={`Rellenar los tramos de abajo sumando ${fmtPesos(ESCALON_DOMICILIO)} en cada uno`}>↓</button>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-                {keys.length === 0 && <p className="ac-hint">Sube la distancia máxima para definir tramos.</p>}
-                {keys.some(k => !conPrecio(tarifas[k])) && (
-                  <p className="ac-hint">⚠️ A un cliente en un tramo sin precio no le sale el domicilio: ponle precio a todos o baja la distancia máxima.</p>
-                )}
-              </div>
-              {hayFill && <p className="ac-hint">El botón ↓ rellena los tramos de abajo sumando {fmtPesos(ESCALON_DOMICILIO)} en cada medio kilómetro.</p>}
-            </div>
-
-            <div className="ac-modal-foot">
-              <button className="btn btn-primary" onClick={() => setPreciosAbierto(false)}>Listo</button>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </PanelCuerpo>
     </div>
   )
 }
