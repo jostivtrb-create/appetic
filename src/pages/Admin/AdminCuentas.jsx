@@ -13,6 +13,7 @@ import { coloresComanda } from './comandaUtils'
 import { descargarExcel, descargarPdf, descargarParaFacturar } from './exportarMes'
 import CuentasSaldos from './CuentasSaldos'
 import CuentasNomina from './CuentasNomina'
+import { HorarioEditor } from './Horario'
 import './Cobro.css'
 import './Caja.css'
 import './Cuentas.css'
@@ -31,6 +32,7 @@ const VISTAS = [
   { id: 'mes', ico: '🗓️', label: 'Mes' },
   { id: 'saldos', ico: '💳', label: 'Saldos' },
   { id: 'nomina', ico: '👥', label: 'Nómina' },
+  { id: 'horario', ico: '🗓️', label: 'Horario' },
 ]
 const ganancia = r => (r?.ventas || 0) - (r?.gastos || 0) - (r?.nomina || 0)
 
@@ -72,6 +74,7 @@ export default function AdminCuentas({ local, productos, demo, usuario }) {
       {vista === 'mes' && <Mes local={local} api={api} demo={demo} />}
       {vista === 'saldos' && <CuentasSaldos local={local} api={api} saldos={saldos} usuario={usuario} />}
       {vista === 'nomina' && <CuentasNomina local={local} api={api} usuario={usuario} />}
+      {vista === 'horario' && <HorarioEditor local={local} api={api} demo={demo} usuario={usuario} />}
     </div>
   )
 }

@@ -22,6 +22,7 @@ import AdminComandas from './AdminComandas'
 import AdminCaja from './AdminCaja'
 import AdminCuentas from './AdminCuentas'
 import AdminInventario from './AdminInventario'
+import { HorarioEquipo } from './Horario'
 import ConfigPagos from './ConfigPagos'
 import ConfigImpresora from './ConfigImpresora'
 import ConfigPantalla from './ConfigPantalla'
@@ -42,6 +43,7 @@ const SECCIONES = {
   caja: 'Caja',
   cuentas: 'Cuentas',
   inventario: 'Inventario',
+  horario: 'Horario',
   mesero: 'Mesero',
   cocina: 'Cocina',
   domicilios: 'Domicilios',
@@ -103,6 +105,7 @@ export default function AdminPage() {
     || (seccion === 'mesero' && rolesEquipo.includes('mesero'))
     || (seccion === 'cocina' && rolesEquipo.includes('cocina'))
     || (seccion === 'domicilios' && rolesEquipo.includes('domiciliario'))
+    || (seccion === 'horario' && rolesEquipo.length > 0)
   const entraComoSuperadmin = !demo && esSuperadmin(usuario?.email) && !local?.admins?.includes(usuario?.email)
 
   useEffect(() => {
@@ -369,7 +372,7 @@ export default function AdminPage() {
     return <PanelApagado local={local} esAdmin={esAdmin} />
   }
   // Sección que el plan no trae → candado para el dueño (D18).
-  const funcionSeccion = { mesero: 'mesero', cocina: 'cocina', domicilios: 'domicilios', inventario: 'inventario', cuentas: 'cuentas' }[seccion]
+  const funcionSeccion = { mesero: 'mesero', cocina: 'cocina', domicilios: 'domicilios', inventario: 'inventario', cuentas: 'cuentas', horario: 'cuentas' }[seccion]
   const sinPlan = funcionSeccion && !tiene(local, funcionSeccion)
 
   // El catálogo (se muestra en Configuración → Catálogo).
@@ -455,6 +458,7 @@ export default function AdminPage() {
           : seccion === 'cocina' ? <AdminComandas key={local.id} local={local} demo={demo} esAdmin={esAdmin} onUpdateLocal={updateLocal} />
           : seccion === 'caja' ? <AdminCaja key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'cuentas' ? <AdminCuentas key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} />
+          : seccion === 'horario' ? <HorarioEquipo key={local.id} local={local} demo={demo} />
           : seccion === 'inventario' ? <AdminInventario key={local.id} local={local} productos={productos} demo={demo} usuario={usuario} />
           : seccion === 'domicilios' ? <AdminDomicilios key={local.id} local={local} demo={demo} usuario={usuario} esAdmin={esAdmin} />
           : seccion === 'difundir' ? <AdminDifundir local={local} slug={slug} onUpdate={updateLocal} />

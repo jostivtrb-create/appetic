@@ -405,6 +405,14 @@ service cloud.firestore {
         allow delete: if esSuperadmin() && esLocalDemo(localId);
       }
 
+      // 🗓️ Horario de la semana del personal (guía «Paquetes» D10): lo arma el dueño y lo lee todo
+      // el equipo activo (también el domiciliario). Solo nombres y horas, nada de plata.
+      match /horarios/{docId} {
+        allow read: if esPersonal(localId) || equipoActivo(localId, 'domiciliario');
+        allow write: if puedeAdministrar(localId);
+        allow delete: if esSuperadmin() && esLocalDemo(localId);
+      }
+
       // La gente de la nómina: solo el dueño.
       match /trabajadores/{tId} {
         allow read, write: if puedeAdministrar(localId);

@@ -50,6 +50,8 @@ function cargarTodos() {
 const SECCIONES = [
   { id: 'caja', label: 'Caja', Icon: IconCaja, ruta: s => `/${s}/admin/caja`, roles: ['admin', 'cajero'] },
   { id: 'cuentas', label: 'Cuentas', Icon: IconMetricas, ruta: s => `/${s}/admin/cuentas`, roles: ['admin'], funcion: 'cuentas' },
+  // 🗓️ El horario de la semana: para el EQUIPO (el dueño lo arma en Cuentas → Horario).
+  { id: 'horario', label: 'Horario', Icon: IconHorario, ruta: s => `/${s}/admin/horario`, roles: ['mesero', 'cocina', 'cajero', 'domiciliario'], funcion: 'cuentas' },
   { id: 'inventario', label: 'Inventario', Icon: IconInventario, ruta: s => `/${s}/admin/inventario`, roles: ['admin'], funcion: 'inventario' },
   { id: 'menu', label: 'Ver menú', Icon: IconMenu, ruta: s => `/${s}`, roles: ['admin', 'mesero', 'cajero'] },
   // `funcion`: lo que pide del plan. Al dueño le sale con candado si su plan no lo trae (D18).
@@ -420,6 +422,9 @@ function IconMenu() {
 }
 function IconMesero() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M4 17h16" /><path {...sw} d="M5.5 17a6.5 6.5 0 0 1 13 0" /><path {...sw} d="M12 8.5V7" /><path {...sw} d="M10.5 7h3" /><path {...sw} d="M3 20h18" /></svg>
+}
+function IconHorario() {
+  return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><rect {...sw} x="3.5" y="5" width="17" height="15" rx="2.5" /><path {...sw} d="M3.5 10h17M8 3v4M16 3v4M8 14h3M13 14h3M8 17h3" /></svg>
 }
 function IconInventario() {
   return <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path {...sw} d="M3.5 8 12 4l8.5 4v8L12 20l-8.5-4z" /><path {...sw} d="M3.5 8 12 12l8.5-4M12 12v8" /></svg>

@@ -1,0 +1,33 @@
+/* 🗓️ Horario de la semana (guía «Paquetes de Appetic» D10) */
+.hr-lista { display: grid; gap: 10px; }
+.hr-persona { padding: 12px; display: grid; gap: 10px; }
+.hr-persona header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.hr-persona header b { font-size: 15.5px; }
+.hr-persona header small { font-size: 12px; color: var(--text-soft); }
+.hr-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.hr-dia { display: grid; gap: 2px; justify-items: center; padding: 7px 2px; border-radius: 10px; border: 1px dashed var(--border); background: var(--surface); font: inherit; color: var(--text-soft); min-width: 0; }
+button.hr-dia { cursor: pointer; transition: transform .12s, border-color .2s; }
+button.hr-dia:active { transform: scale(.94); }
+.hr-dia small { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
+.hr-dia b { font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.hr-dia.trabaja { border-style: solid; border-color: var(--acc-line); background: var(--acc-soft); color: var(--text); }
+.hr-dia.trabaja b { color: var(--acc); }
+.hr-dia.hoy { box-shadow: 0 0 0 2px var(--acc); }
+.hr-hoy { padding: 12px 14px; }
+.hr-hoy h3 { font-size: 15px; font-weight: 900; color: var(--acc); margin: 0 0 8px; }
+.hr-hoy ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.hr-hoy li { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.hr-hoy li span { color: var(--text-soft); font-variant-numeric: tabular-nums; }
+.hr-guardar { display: flex; justify-content: flex-end; align-items: center; gap: 12px; flex-wrap: wrap; }
+.hr-guardar .pv-cobrar { min-width: 190px; }
+.hr-hoja h2 { margin-bottom: 12px; }
+.hr-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.hr-presets button, .hr-alcance button { font: inherit; font-weight: 800; font-size: 13.5px; padding: 9px 6px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: inherit; cursor: pointer; display: grid; gap: 2px; }
+.hr-presets small { font-weight: 500; font-size: 11px; color: var(--text-soft); }
+.hr-presets button.on, .hr-alcance button.on { border-color: var(--acc); background: var(--acc-soft); color: var(--acc); }
+.hr-horas { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0; }
+.hr-horas label { display: grid; gap: 5px; font-size: 13px; font-weight: 800; }
+.hr-horas input { font: inherit; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); color: inherit; }
+.hr-alcance { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+.hr-poner { flex: 1; }
+@media (max-width: 420px) { .hr-dia b { font-size: 11px; } .hr-dias { gap: 3px; } .hr-alcance { grid-template-columns: 1fr; } }
