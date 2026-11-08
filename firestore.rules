@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Última actualización: 2026-11-07 (ARQUEOS: guía «Mejoras frente a Loggro» D17/D18)
+// Última actualización: 2026-11-07 (INVENTARIO: insumos, recetas, proveedores, inventarioMov · antes ARQUEOS)
 // Último cambio: locales/{id}/arqueos/ — conteos de la caja que crea SOLO el servidor (/api/arqueo);
 //   el dueño los lee y marca `revisado`; el cajero no los lee (cuenta a ciegas).
 // Anterior: 2026-11-04 (SOLICITUDES: guía «Propuesta web de Appetic»)
