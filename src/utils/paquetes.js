@@ -16,7 +16,7 @@ export const PROMO = { texto: '2.º mes gratis', hasta: '2026-12-31' }
 
 export const PAQUETES = [
   {
-    id: 'base', nombre: 'Base', icono: '🏠', precio: 29900, obligatorio: true,
+    id: 'base', nombre: 'Paquete Base', icono: '🏠', precio: 29900, obligatorio: true,
     resumen: 'Tu menú digital, tu caja y tu menú en pantalla. Lo lleva todo negocio.',
     incluye: [
       { t: 'Menú digital con fotos', d: 'Nosotros montamos tu carta, tomamos las fotos y diseñamos el menú.' },
@@ -32,7 +32,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'domicilios', nombre: 'Domicilios', icono: '🛵', precio: 16000,
+    id: 'domicilios', nombre: 'Paquete Domicilios', icono: '🛵', precio: 16000,
     resumen: 'Para el negocio que tiene domiciliario.',
     incluye: [
       { t: 'Pedidos a domicilio desde tu menú', d: 'Sin comisión: cada peso es tuyo.' },
@@ -43,7 +43,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'contabilidad', nombre: 'Contabilidad y registro', icono: '💰', precio: 16000,
+    id: 'contabilidad', nombre: 'Paquete Contabilidad y Registro', icono: '💰', precio: 16000,
     resumen: 'Para saber cuánto ganas, sin cuaderno ni calculadora.',
     incluye: [
       { t: 'Cajeros con su propio acceso', d: '' },
@@ -58,7 +58,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'cocina', nombre: 'Cocina', icono: '👨‍🍳', precio: 13000,
+    id: 'cocina', nombre: 'Paquete Cocina', icono: '👨‍🍳', precio: 13000,
     resumen: 'Las comandas llegan solas a la cocina.',
     incluye: [
       { t: 'Pantalla de cocina', d: 'Comandas en orden, con su reloj; se tacha plato por plato.' },
@@ -68,7 +68,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'salon', nombre: 'Salón', icono: '🍽️', precio: 12000,
+    id: 'salon', nombre: 'Paquete Servicio a la Mesa', icono: '🍽️', precio: 12000,
     resumen: 'Para el restaurante con mesas y meseros.',
     incluye: [
       { t: 'Meseros en su celular', d: 'Meseros sin límite.' },
@@ -77,7 +77,7 @@ export const PAQUETES = [
     ],
   },
   {
-    id: 'inventario', nombre: 'Inventario', icono: '📦', precio: 13000, requiere: ['contabilidad'],
+    id: 'inventario', nombre: 'Paquete Inventario', icono: '📦', precio: 13000, requiere: ['contabilidad'],
     resumen: 'Cada venta descuenta lo que gasta.',
     incluye: [
       { t: 'Inventario con recetas', d: 'Costo y ganancia de cada plato.' },
