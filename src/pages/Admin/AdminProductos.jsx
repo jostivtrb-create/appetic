@@ -482,7 +482,7 @@ function EditorProducto({ producto, local, categorias, onAddCategoria, onCerrar,
           <p className="ac-hint">Resáltalo como el plato estrella de su categoría. Solo uno por categoría: al marcar este, se quita el de los demás.</p>
 
           <label className="ac-switch">
-            <span>📺 Mostrar en la pantalla de TV</span>
+            <span>📺 Mostrar en el Menú en Pantalla</span>
             <input type="checkbox" checked={enTV} onChange={e => setEnTV(e.target.checked)} />
           </label>
 

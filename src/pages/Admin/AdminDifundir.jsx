@@ -141,7 +141,7 @@ export default function AdminDifundir({ local, slug, onUpdate, demo }) {
 
       {/* ---- Pantalla de TV (Guía para la Pantalla de TV.md, S8) ---- */}
       <section className="ac-sec">
-        <h3>📺 Tu menú en el TV</h3>
+        <h3>📺 Menú en Pantalla</h3>
         <p className="ac-hint">Tu menú en vivo en el televisor del local: cambia solo cuando cambias un precio o agotas un plato. Es un link fijo, sin activar nada.</p>
         <div className="dif-link">
           <span className="dif-link-url">{urlTV.replace(/^https?:\/\//, '')}</span>

@@ -73,7 +73,7 @@ export default function ConfigPantalla({ local, productos, slug, onUpdate, onSub
     <div className="cpt">
       {errorGuardar && <p className="ac-ubic-warn" role="alert">⚠️ {errorGuardar}</p>}
       <section className="ac-sec">
-        <h3>👀 Así se ve tu TV ahora</h3>
+        <h3>👀 Así se ve tu Menú en Pantalla ahora</h3>
         <Suspense fallback={<div className="cpt-vista-cargando" />}>
           <VistaTV local={local} productos={productos} />
         </Suspense>
@@ -107,8 +107,8 @@ export default function ConfigPantalla({ local, productos, slug, onUpdate, onSub
       </section>
 
       <section className="ac-sec">
-        <h3>🗂️ Categorías en el TV</h3>
-        <p className="ac-hint cpt-hint-top">Toca una categoría para esconderla o mostrarla en el TV. En tu menú sigue igual.</p>
+        <h3>🗂️ Categorías en el Menú en Pantalla</h3>
+        <p className="ac-hint cpt-hint-top">Toca una categoría para esconderla o mostrarla en el Menú en Pantalla. En tu menú sigue igual.</p>
         <div className="cpt-cats">
           {(local.categorias || []).map(c => {
             const visible = !ocultas.has(c.id)
@@ -121,9 +121,9 @@ export default function ConfigPantalla({ local, productos, slug, onUpdate, onSub
           })}
         </div>
         <p className="ac-hint">
-          Para esconder un solo plato, ábrelo en <b>Catálogo</b> y apaga «Mostrar en la pantalla de TV».
+          Para esconder un solo plato, ábrelo en <b>Catálogo</b> y apaga «Mostrar en el Menú en Pantalla».
           {platosOcultos > 0 && <> Ahora tienes <b>{platosOcultos} {platosOcultos === 1 ? 'plato escondido' : 'platos escondidos'}</b>.</>}
-          {' '}Los agotados salen solos del TV.
+          {' '}Los agotados salen solos del Menú en Pantalla.
         </p>
       </section>
 
@@ -135,7 +135,7 @@ export default function ConfigPantalla({ local, productos, slug, onUpdate, onSub
           <>
             <label className="ac-switch cpt-listos">
               <span>
-                <b>Llamar los pedidos en el TV</b>
+                <b>Llamar los pedidos en el Menú en Pantalla</b>
                 <small>Cada pedido para llevar y cada pedido del QR de la mesa recibe un número de turno del día (1, 2, 3…). Cuando la cocina lo despacha, el número sale en grande en el TV y queda unos minutos en una franja abajo.</small>
               </span>
               <input type="checkbox" checked={!!pantalla.pedidosListos} onChange={e => guardar({ pedidosListos: e.target.checked })} />

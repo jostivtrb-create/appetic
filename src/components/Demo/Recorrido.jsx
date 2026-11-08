@@ -128,7 +128,7 @@ export const RECORRIDOS = {
     ],
   },
   tv: {
-    servicio: 'tv', nombre: 'Menú en el TV', plan: 'emprendedor',
+    servicio: 'tv', nombre: 'Menú en Pantalla', plan: 'emprendedor',
     pasos: [
       { emoji: '📺', titulo: 'Tu menú en vivo, en tu TV',
         texto: 'Una pantalla con todo tu menú y tus precios de hoy, en el televisor que ya tienes. Sale sola de tu menú: no diseñas nada.',

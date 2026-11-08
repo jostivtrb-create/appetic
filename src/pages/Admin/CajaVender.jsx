@@ -678,7 +678,7 @@ export default function CajaVender({ local, productos, api, cuentasApi, demo, us
             <small>Dile al cliente su turno</small>
             <b>{turnoDado.turno}</b>
             {turnoDado.nombre && <span>{turnoDado.nombre}</span>}
-            <p>Cuando la cocina lo despache, sale en el TV.</p>
+            <p>Cuando la cocina lo despache, sale en el Menú en Pantalla.</p>
             <button className="btn btn-primary" onClick={() => setTurnoDado(null)}>Listo</button>
           </div>
         </div>

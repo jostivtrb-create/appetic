@@ -86,7 +86,7 @@ export default function CheckoutMesa({ local, mesa, onClose, abierto = true }) {
           <div className="co-turno">
             <small>Tu turno</small>
             <b>{listo.turno}</b>
-            <span>Cuando esté listo, sale en el TV del local.</span>
+            <span>Cuando esté listo, sale en la pantalla del local.</span>
           </div>
         )}
         <p className="co-hint">¿Quieres algo más? Puedes volver al menú y pedir otra vez desde aquí.</p>

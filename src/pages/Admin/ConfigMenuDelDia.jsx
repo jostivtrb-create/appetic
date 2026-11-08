@@ -62,7 +62,7 @@ export default function ConfigMenuDelDia({ local, onUpdate, onSubirFoto }) {
         <label className="ac-switch cmd-on">
           <span>
             <b>Ofrecer menú del día</b>
-            <small>Un almuerzo armado a precio fijo. Sale de primero en tu menú, en la caja, con el mesero y en el TV, solo en su horario.</small>
+            <small>Un almuerzo armado a precio fijo. Sale de primero en tu menú, en la caja, con el mesero y en el Menú en Pantalla, solo en su horario.</small>
           </span>
           <input type="checkbox" checked={md.activo} onChange={e => cambiar({ activo: e.target.checked }, true)} />
         </label>
@@ -177,7 +177,7 @@ function Hoy({ md, ahora, cambiar }) {
         <p className="ac-hint">Todavía no hay nada para hoy. Cárgalo en la semana tipo, aquí abajo.</p>
       ) : (
         <>
-          <p className="ac-hint cmd-hint-top">¿Se acabó algo? Tócalo y desaparece del menú y del TV. Mañana vuelve solo.</p>
+          <p className="ac-hint cmd-hint-top">¿Se acabó algo? Tócalo y desaparece de tu menú y de la pantalla. Mañana vuelve solo.</p>
           <div className="cmd-hoy-partes">
             {partes.filter(p => (ops[p.id] || []).length).map(p => (
               <div key={p.id} className="cmd-hoy-parte">
@@ -288,9 +288,9 @@ function PrecioYHorario({ md, cambiar, onSubirFoto }) {
         <label>Desde<input type="time" value={md.franja?.desde || ''} onChange={e => cambiar({ franja: { ...md.franja, desde: e.target.value } })} /></label>
         <label>Hasta<input type="time" value={md.franja?.hasta || ''} onChange={e => cambiar({ franja: { ...md.franja, hasta: e.target.value } })} /></label>
       </div>
-      <p className="ac-hint">Fuera de este horario no se puede pedir y no sale en el TV.</p>
+      <p className="ac-hint">Fuera de este horario no se puede pedir y no sale en el Menú en Pantalla.</p>
 
-      <span className="ac-sub">Foto <small>(opcional: con foto pasa en grande por el TV)</small></span>
+      <span className="ac-sub">Foto <small>(opcional: con foto pasa en grande por el Menú en Pantalla)</small></span>
       <div className="cmd-foto">
         {md.foto && <img src={md.foto} alt="" />}
         <button type="button" className="btn btn-ghost" onClick={() => archivo.current?.click()} disabled={subiendo}>
