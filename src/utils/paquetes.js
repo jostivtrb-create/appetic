@@ -54,7 +54,6 @@ export const PAQUETES = [
       { t: 'Estadísticas de ventas', d: 'Por hora, por plato y por tipo de pedido.' },
       { t: 'Ganancia del día y del mes', d: '' },
       { t: 'Excel y PDF para tu contador y para facturar', d: 'No es facturación electrónica.' },
-      { t: 'Datáfono conectado a la caja', d: '' },
     ],
   },
   {

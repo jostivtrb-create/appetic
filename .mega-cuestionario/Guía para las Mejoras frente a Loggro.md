@@ -197,7 +197,7 @@ Va de lo más pequeño y seguro a lo que depende de terceros. Cada paso se audit
     - un insumo no se borra: se marca «ya no lo usamos»;
     - el cajero puede leer el costo de los insumos, pero ninguna pantalla suya lo muestra.
 - [x] 5 · **Cobro en línea → versión simple (8-nov):** el usuario eligió que cada negocio ponga SU link de pago y el cliente suba el comprobante (ver guía de Paquetes, C4a). Sin pasarela integrada por ahora.
-- [ ] 6 · **Datáfono** (D9, S9): antes de construir, confirmar qué proveedores tienen API.
+- [x] 6 · ❌ **Datáfono descartado (8-nov)**: ver guía de Paquetes, C4c.
 - [x] 7 · Bold y Mercado Pago: cubiertos con el link de pago de cada negocio (C4a).
 - [x] 8 · **Cuadro comparativo en la propuesta** (D5, D14, S4), solo con lo ya publicado. Hecho el 8-nov: sección #comparar entre Inventario y la demo, 10 filas, sin nombrar a nadie.
 

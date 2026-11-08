@@ -219,7 +219,7 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
 - [x] C3 · Inventario con recetas y proveedores (D13 y paso 4 de la guía de Loggro). Publicado el 7-nov.
 - [x] C4a · **Cobro con el link de pago del negocio** (8-nov, pedido del usuario: «cada local pone su link y se envía un comprobante, simple»). Cada cuenta de Cuentas y pagos lleva su link (Bold, Wompi…); el cliente paga ahí y sube la foto del comprobante en «Mi pedido» (`api/comprobante.js`, Storage `comprobantes/`, solo por URL con token); el local la ve antes de confirmar y el domiciliario sabe que no cobra.
 - [ ] C4b · **Cobrar la SUSCRIPCIÓN de Appetic con Wompi (pendiente)**: el usuario aún no tiene cuenta. Plan: cuenta «Independiente» en comercios.wompi.co (cédula, RUT, Bancolombia >30 días o Nequi); fuentes de pago (tarjeta/Nequi) + cobro mensual desde nuestro servidor; llaves en Vercel las pone el usuario. Comisión ≈ 2,65 % + $700 + IVA.
-- [ ] C4c · Datáfono: confirmar qué proveedores dejan conectarse.
+- [x] C4c · ❌ **Datáfono descartado (8-nov)**: el usuario lo quitó de la app y de la propuesta («está complicado y no lo vale»). Solo Mercado Pago Point tiene API pública; Bold solo por convenio; Redeban/Credibanco piden agente en Windows. La Caja sigue registrando el cobro manual con la cuenta «Tarjeta / datáfono».
 
 ---
 
