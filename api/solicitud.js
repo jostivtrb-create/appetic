@@ -42,6 +42,15 @@ import { createHash, randomUUID } from 'node:crypto'
 import { conAdmin, cuerpo, ipDe } from './_lib/admin.js'
 import { permitir, LIMITES } from './_lib/limites.js'
 import { cors, origenPermitido } from './_lib/cors.js'
+import { cotizar, VALIDEZ_DIAS } from '../src/utils/paquetes.js'
+import { hoyBogota, sumarDias } from '../src/utils/plan.js'
+
+// 📦 COTIZACIÓN POR PAQUETES (guía «Paquetes de Appetic» D22, D24–D33). Si llegan `paquetes`, el
+// servidor calcula el total (nunca el navegador), le da el número consecutivo AP-0001 (contador en
+// config/cotizaciones) y la deja «pendiente» con vencimiento a los 15 días. Responde lo necesario
+// para mostrar la cotización en la pantalla de quien cotiza. `comentarioVendedor`: solo de vendedor.
+const numeroAP = n => `AP-${String(n).padStart(4, '0')}`
+const respuestaCot = (id, d) => ({ ok: true, id, numero: d.numero, paquetes: d.paquetes, total: d.total, ahorro: d.ahorro || 0, promo: d.promo || '', vence: d.venceDia })
 
 const ID_VALIDO = /^[A-Za-z0-9_-]{8,40}$/
 const ORIGENES = ['vendedor', 'dueno']
@@ -126,7 +135,10 @@ export default async function handler(req, res) {
       ubicacion: ubicacionDe(b.ubicacion),
       motivo: esVisita ? deLista(b.motivo, MOTIVOS_VISITA) : '',
       motivoTexto: esVisita ? texto(b.motivoTexto, 300) : '',
+      comentarioVendedor: origen === 'vendedor' && !esVisita ? texto(b.comentarioVendedor, 1000) : '',
     }
+    // La página nueva manda los paquetes; la vieja (con `plan`) no.
+    const conPaquetes = !esVisita && Array.isArray(b.paquetes)
     if (!datos.local) return res.status(400).json({ error: 'Falta el nombre del local' })
     // En una visita el dueño no dio su número (no quiso cotización): el celular es opcional.
     if (!esVisita && !datos.celular) return res.status(400).json({ error: 'Falta el celular' })
@@ -141,7 +153,8 @@ export default async function handler(req, res) {
     const db = getFirestore()
     const ref = db.collection('solicitudes').doc(id)
     // Reintento de la cola sin señal: ya está guardada, no se toca ni gasta cupo.
-    if ((await ref.get()).exists) return res.status(200).json({ ok: true, id, repetida: true })
+    const ya = await ref.get()
+    if (ya.exists) return res.status(200).json(ya.data().numero ? { ...respuestaCot(id, ya.data()), repetida: true } : { ok: true, id, repetida: true })
 
     // 🚦 Límite por conexión (guía «Blindaje» D4): nadie llena la base desde un solo sitio.
     const ip = ipDe(req)
@@ -169,7 +182,7 @@ export default async function handler(req, res) {
     const doc = {
       ...datos,
       // Las visitas no pasan por nueva → contactada → cerrada: quedan con su propio estado.
-      estado: esVisita ? 'visita' : 'nueva',
+      estado: esVisita ? 'visita' : conPaquetes ? 'pendiente' : 'nueva',
       creadaEn: FieldValue.serverTimestamp(),
       llenadaEn: Number.isNaN(llenada.getTime()) ? null : Timestamp.fromDate(llenada),
       fotos,
@@ -177,14 +190,32 @@ export default async function handler(req, res) {
       ipHash: hash(ip),
       userAgent: texto(req.headers['user-agent'], 200),
     }
+    if (conPaquetes) {
+      const hoy = hoyBogota()
+      const c = cotizar(b.paquetes, hoy)
+      Object.assign(doc, { paquetes: c.paquetes, suma: c.suma, total: c.total, ahorro: c.ahorro, promo: c.promo, venceDia: sumarDias(hoy, VALIDEZ_DIAS) })
+    }
     try {
-      await ref.create(doc)
+      if (!conPaquetes) await ref.create(doc)
+      else {
+        // El número sale de un contador en la MISMA transacción: dos cotizaciones a la vez no se repiten.
+        const contador = db.collection('config').doc('cotizaciones')
+        await db.runTransaction(async tx => {
+          const n = ((await tx.get(contador)).data()?.ultimo || 0) + 1
+          doc.numero = numeroAP(n)
+          tx.create(ref, doc)
+          tx.set(contador, { ultimo: n }, { merge: true })
+        })
+      }
     } catch (e) {
       // Dos reintentos a la vez con el mismo id: ganó el otro.
-      if (e?.code === 6 || /ALREADY_EXISTS/i.test(String(e?.message))) return res.status(200).json({ ok: true, id, repetida: true })
+      if (e?.code === 6 || /ALREADY_EXISTS/i.test(String(e?.message))) {
+        const otro = (await ref.get()).data()
+        return res.status(200).json(otro?.numero ? { ...respuestaCot(id, otro), repetida: true } : { ok: true, id, repetida: true })
+      }
       throw e
     }
-    return res.status(200).json({ ok: true, id })
+    return res.status(200).json(conPaquetes ? respuestaCot(id, doc) : { ok: true, id })
   } catch (err) {
     console.error('solicitud:', err)
     return res.status(500).json({ error: 'Error interno' })

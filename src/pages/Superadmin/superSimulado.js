@@ -68,7 +68,10 @@ export async function solicitudesSimuladas() {
         { clave: 'carta', nombre: 'carta-pagina-2.jpg', url: '/locales/demo/platos/choriperro.webp', tipo: 'imagen', bytes: 392_000, en: Date.now() - 1.9 * 3600000 + 4000 },
         { clave: 'carta', nombre: 'Carta Doña Rosa 2026.pdf', url: '/locales/demo/carta-simulada.pdf', tipo: 'pdf', bytes: 1_250_000, en: Date.now() - 1.9 * 3600000 + 9000 },
       ],
-      llenadaEn: hoyA(2), creadaEn: hoyA(1.9), estado: 'nueva',
+      llenadaEn: hoyA(2), creadaEn: hoyA(1.9), estado: 'pendiente',
+      // Cotización por paquetes (guía «Paquetes de Appetic»).
+      numero: 'AP-0007', paquetes: ['base', 'domicilios', 'contabilidad'], suma: 63700, total: 63700, ahorro: 0,
+      promo: '2.º mes gratis', venceDia: sumarDias(hoyBogota(), 15), comentarioVendedor: 'Quiere empezar en diciembre; preguntó si se puede pagar por Nequi.',
     },
     {
       id: 'sim-visita-2', registro: 'visita', origen: 'vendedor', vendedor: 'Camilo', local: 'Asadero El Buen Pollo',

@@ -5,7 +5,7 @@
 import { collection, doc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore'
 import { db } from '../config/firebase'
 
-export const ESTADOS_SOLICITUD = ['nueva', 'contactada', 'cerrada']
+export const ESTADOS_SOLICITUD = ['pendiente', 'enviada', 'cerrada'] // antes nueva → contactada (guía «Paquetes» S5)
 
 // Por qué una visita no terminó en cotización (guía «Propuesta web» D22). Espejo de api/solicitud.js.
 export const MOTIVOS_VISITA = {
@@ -41,7 +41,7 @@ export async function listarSolicitudes() {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }))
 }
 
-// nueva → contactada → cerrada (o de vuelta). Guarda cuándo se movió.
+// pendiente → enviada → cerrada (o de vuelta). Guarda cuándo se movió.
 export async function cambiarEstadoSolicitud(id, estado) {
   if (!ESTADOS_SOLICITUD.includes(estado)) throw new Error(`Estado desconocido: ${estado}`)
   await updateDoc(doc(db, 'solicitudes', id), { estado, estadoEn: serverTimestamp() })

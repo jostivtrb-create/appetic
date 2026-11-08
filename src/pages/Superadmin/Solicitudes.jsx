@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import { cambiarEstadoSolicitud, listarSolicitudes, MOTIVOS_VISITA, recorridoUrls } from '../../services/solicitudes'
+import { PAQUETES } from '../../utils/paquetes'
+import { cop } from '../../utils/money'
 
 // 📋 Solicitudes de cotización (guía «Propuesta web de Appetic»): lo que llega del formulario
 // «Solicitar cotización formal» de switflysolutions.com/appetic. Las llenan los vendedores en la
 // calle (con foto de la fachada, GPS y fotos de la carta y el logo) o dueños curiosos (solo datos).
-// Aquí se ven, se contactan por WhatsApp y se mueven de estado: nueva → contactada → cerrada.
+// Aquí se ven, se contactan por WhatsApp y se mueven de estado: pendiente → enviada → cerrada
+// (guía «Paquetes de Appetic» S5). Las COTIZACIONES por paquetes traen número (AP-0001), paquetes,
+// total y el comentario del vendedor; «Enviar cotización» baja su PDF y abre el chat del cliente con
+// el saludo (D27). Las viejas («nueva», «contactada») se leen como pendiente y enviada.
 //
 // La carta y el logo llegan como `archivos[]` (uno por petición a /api/solicitud-archivo: la carta
 // puede ser un PDF o varias fotos) y se pintan agrupados por clave; `fotos.carta/logo` de la página
@@ -17,15 +22,15 @@ import { cambiarEstadoSolicitud, listarSolicitudes, MOTIVOS_VISITA, recorridoUrl
 // En modo simulado (?super=1) muestra inventadas sin leer Firestore.
 
 const FILTROS = [
-  { id: 'nueva', nombre: 'Nuevas' },
-  { id: 'contactada', nombre: 'Contactadas' },
+  { id: 'pendiente', nombre: 'Pendientes' },
+  { id: 'enviada', nombre: 'Enviadas' },
   { id: 'cerrada', nombre: 'Cerradas' },
   { id: 'visita', nombre: 'Visitas' },
   { id: 'todas', nombre: 'Todas' },
 ]
 const ESTADOS = [
-  { id: 'nueva', nombre: 'Nueva', emoji: '🆕' },
-  { id: 'contactada', nombre: 'Contactada', emoji: '📞' },
+  { id: 'pendiente', nombre: 'Pendiente', emoji: '🕒' },
+  { id: 'enviada', nombre: 'Enviada', emoji: '📤' },
   { id: 'cerrada', nombre: 'Cerrada', emoji: '✅' },
 ]
 const TIPOS = { trailer: '🚚 Tráiler', local: '🏪 Local', restaurante: '🍽️ Restaurante' }
@@ -66,7 +71,8 @@ const archivosPorClave = s => ARCHIVOS
   .map(([k, titulo]) => [k, titulo, (Array.isArray(s.archivos) ? s.archivos : []).filter(a => a?.clave === k && a.url)])
   .filter(([, , lista]) => lista.length > 0)
 const esVisita = s => s.registro === 'visita' || s.estado === 'visita'
-const estadoDe = s => (esVisita(s) ? 'visita' : (s.estado || 'nueva'))
+const VIEJOS = { nueva: 'pendiente', contactada: 'enviada' }
+const estadoDe = s => (esVisita(s) ? 'visita' : (VIEJOS[s.estado] || s.estado || 'pendiente'))
 const tieneUbicacion = s => !!s.ubicacion && Number.isFinite(Number(s.ubicacion.lat)) && Number.isFinite(Number(s.ubicacion.lng))
 
 // El celular → link de WhatsApp con el saludo listo. Colombia: 10 dígitos → se antepone 57.
@@ -80,6 +86,55 @@ function linkWhatsApp(celular, local, visita) {
   return `https://wa.me/${digitos}?text=${encodeURIComponent(texto)}`
 }
 
+// 📤 El saludo de «Enviar cotización» (D27): mientras se descarga el PDF se va saludando, y se
+// ofrece la reunión en persona.
+function linkEnviarCotizacion(s) {
+  let digitos = String(s.celular || '').replace(/\D/g, '')
+  if (!digitos) return null
+  if (digitos.length === 10) digitos = `57${digitos}`
+  const nombre = String(s.dueno || '').trim().split(/\s+/)[0]
+  const texto = `¡Hola${nombre ? ` ${nombre}` : ''}! 👋 Soy de Swiftfly Solutions. Te comparto la cotización ${s.numero} de Appetic para «${s.local}», con los paquetes que elegiste. 📄\n\nSi quieres, podemos reunirnos y explicarte todo el sistema en persona. ¿Qué día te queda bien?`
+  return `https://wa.me/${digitos}?text=${encodeURIComponent(texto)}`
+}
+
+// Los paquetes y el total de una cotización, a la vista en la tarjeta.
+function Cotizacion({ s, onEnviar }) {
+  const pqs = PAQUETES.filter(p => (s.paquetes || []).includes(p.id))
+  const [enviando, setEnviando] = useState(false)
+  const vencida = s.venceDia && s.venceDia < new Date(Date.now() - 5 * 3600000).toISOString().slice(0, 10)
+  async function enviar() {
+    if (enviando) return
+    setEnviando(true)
+    // La pestaña de WhatsApp se abre YA, en el toque (después de armar el PDF el navegador la bloquea).
+    const wa = linkEnviarCotizacion(s)
+    if (wa) window.open(wa, '_blank', 'noopener')
+    try {
+      const { descargarCotizacionPdf } = await import('../../services/cotizacionPdf')
+      await descargarCotizacionPdf(s)
+      onEnviar()
+    } catch (e) {
+      console.error('[cotización] no se armó el PDF:', e)
+      alert('No se pudo armar el PDF. Intenta de nuevo.')
+    } finally { setEnviando(false) }
+  }
+  return (
+    <div className="sa-cot">
+      <div className="sa-cot-pq">
+        {pqs.map(p => <span key={p.id} className="sa-sol-chip">{p.icono} {p.nombre}</span>)}
+      </div>
+      <div className="sa-cot-total">
+        <span>Total al mes{s.promo ? ` · 🎁 ${s.promo}` : ''}</span>
+        <b>{cop(s.total)}</b>
+      </div>
+      <small className={`sa-cot-vence${vencida ? ' vencida' : ''}`}>{vencida ? '⚠️ Venció' : 'Válida hasta'} el {s.venceDia}</small>
+      <button type="button" className="sa-cot-enviar" disabled={enviando} onClick={enviar}>
+        {enviando ? 'Armando el PDF…' : estadoDe(s) === 'pendiente' ? '📤 Enviar cotización' : '📤 Enviar otra vez'}
+      </button>
+      <small className="sa-sol-faint">Baja el PDF y abre el chat del cliente con el saludo: adjunta el PDF ahí.</small>
+    </div>
+  )
+}
+
 function Tarjeta({ s, onEstado }) {
   const [abierta, setAbierta] = useState(false)
   const visita = esVisita(s)
@@ -88,7 +143,7 @@ function Tarjeta({ s, onEstado }) {
   const grupos = archivosPorClave(s)
   const wa = linkWhatsApp(s.celular, s.local, visita)
   const lugar = [s.ciudad, s.barrio].filter(Boolean).join(' · ')
-  const estadoActual = ESTADOS.find(e => e.id === s.estado) || ESTADOS[0]
+  const estadoActual = ESTADOS.find(e => e.id === estadoDe(s)) || ESTADOS[0]
   const motivo = visita ? (MOTIVOS_VISITA[s.motivo] || s.motivo || 'Sin motivo') : ''
 
   return (
@@ -98,7 +153,7 @@ function Tarjeta({ s, onEstado }) {
           <span className="sa-sol-origen">
             {s.origen === 'vendedor' ? <>🧑‍💼 Vendedor <b>{s.vendedor || '—'}</b></> : <>🏪 Dueño del negocio</>}
           </span>
-          <strong className="sa-sol-local">{s.local || 'Sin nombre'}</strong>
+          <strong className="sa-sol-local">{s.numero && <span className="sa-cot-num">{s.numero}</span>}{s.local || 'Sin nombre'}</strong>
           <span className="sa-sol-sub">
             {lugar || 'Sin ciudad'}
             {fecha && <> · {fecha.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}</>}
@@ -128,8 +183,12 @@ function Tarjeta({ s, onEstado }) {
         </div>
       )}
 
+      {/* 🗒️ Lo que dijo el vendedor (D29), siempre a la vista. */}
+      {s.comentarioVendedor && <p className="sa-cot-comentario">🗒️ {s.comentarioVendedor}</p>}
+
       {abierta && (
         <div className="sa-sol-body">
+          {s.numero && <Cotizacion s={s} onEnviar={() => estadoDe(s) === 'pendiente' && onEstado(s.id, 'enviada')} />}
           {(s.tipo || s.plan) && (
             <div className="sa-sol-chips">
               {s.tipo && <span className="sa-sol-chip">{TIPOS[s.tipo] || s.tipo}</span>}
@@ -192,8 +251,8 @@ function Tarjeta({ s, onEstado }) {
               {ESTADOS.map(e => (
                 <button
                   key={e.id}
-                  className={`sa-sol-estado-btn ${s.estado === e.id ? 'on' : ''}`}
-                  disabled={s.estado === e.id || s.guardando}
+                  className={`sa-sol-estado-btn ${estadoDe(s) === e.id ? 'on' : ''}`}
+                  disabled={estadoDe(s) === e.id || s.guardando}
                   onClick={() => onEstado(s.id, e.id)}
                 >{e.emoji} {e.nombre}</button>
               ))}
@@ -298,7 +357,7 @@ function Recorridos({ items }) {
 export default function Solicitudes({ simulado = false }) {
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [items, setItems] = useState([])
-  const [filtro, setFiltro] = useState('nueva')
+  const [filtro, setFiltro] = useState('pendiente')
 
   useEffect(() => {
     let activo = true
@@ -308,7 +367,7 @@ export default function Solicitudes({ simulado = false }) {
     return () => { activo = false }
   }, [simulado])
 
-  const nuevas = useMemo(() => items.filter(s => estadoDe(s) === 'nueva').length, [items])
+  const nuevas = useMemo(() => items.filter(s => estadoDe(s) === 'pendiente').length, [items])
   const visitasHoy = useMemo(() => {
     const hoy = diaBogota(new Date())
     return items.filter(s => esVisita(s) && diaBogota(momentoDe(s)) === hoy).length
@@ -321,7 +380,7 @@ export default function Solicitudes({ simulado = false }) {
 
   // Cambio de estado OPTIMISTA: se pinta ya; si Firestore falla, vuelve al anterior y avisa.
   async function cambiarEstado(id, nuevo) {
-    const anterior = items.find(s => s.id === id)?.estado || 'nueva'
+    const anterior = items.find(s => s.id === id)?.estado || 'pendiente'
     setItems(ls => ls.map(s => s.id === id ? { ...s, estado: nuevo, guardando: true, errorEstado: false } : s))
     try {
       if (!simulado) await cambiarEstadoSolicitud(id, nuevo)
@@ -368,7 +427,7 @@ export default function Solicitudes({ simulado = false }) {
         <p className="sa-sol-vacio">
           {items.length === 0
             ? '🌱 Todavía no ha llegado ninguna solicitud. Cuando alguien llene el formulario de la propuesta, aparece aquí.'
-            : filtro === 'nueva' ? '🎉 Nada nuevo por contactar. ¡Todo al día!'
+            : filtro === 'pendiente' ? '🎉 No hay cotizaciones pendientes. ¡Todo al día!'
               : filtro === 'visita' ? 'Ningún vendedor ha registrado visitas todavía.'
                 : 'No hay solicitudes en este estado.'}
         </p>
