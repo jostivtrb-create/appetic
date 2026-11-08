@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Última actualización: 2026-11-07 (PAQUETES: tienePaq() reemplaza a nivelPlan(); roles por paquete · antes INVENTARIO)
+// Última actualización: 2026-11-08 (HORARIOS y AVISOS a clientes: horarios/, suscriptores/, avisos/, avisosSemana/ · antes PAQUETES)
 // Último cambio: locales/{id}/arqueos/ — conteos de la caja que crea SOLO el servidor (/api/arqueo);
 //   el dueño los lee y marca `revisado`; el cajero no los lee (cuenta a ciegas).
 // Anterior: 2026-11-04 (SOLICITUDES: guía «Propuesta web de Appetic»)
