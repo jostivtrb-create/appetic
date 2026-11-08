@@ -153,3 +153,16 @@
 .cpt2-nuevo b { font-size: 16px; color: var(--text); }
 .cpt2-nuevo:hover { border-color: var(--brand-orange); background: var(--brand-orange-tint); }
 .cm-cuerpo .cpt-editor { border: 0; padding: 0; background: none; box-shadow: none; }
+
+/* 👀 Vista del TV siempre al lado de las opciones (8-nov) */
+.cpt2-dos { display: grid; gap: 16px; align-items: start; }
+.cpt2-opciones { min-width: 0; display: grid; gap: 16px; }
+.cpt2-vivo { display: grid; gap: 8px; padding: 12px; border-radius: 22px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+.cpt2-vivo-cab { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; font-weight: 900; }
+.cpt2-vivo-cab a { font-size: 13px; font-weight: 800; color: var(--brand-orange-strong, #C05F17); text-decoration: none; }
+.cpt2-tv { aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #111; }
+.cpt2-tv .tv-vista { width: 100%; height: 100%; }
+@media (min-width: 1200px) {
+  .cpt2-dos { grid-template-columns: minmax(0, 1fr) minmax(360px, 44%); }
+  .cpt2-vivo { order: 2; position: sticky; top: 96px; }
+}

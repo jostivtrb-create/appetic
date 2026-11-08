@@ -75,14 +75,13 @@ export default function ConfigPantalla({ local, productos, slug, onUpdate, onSub
   }
 
   const entrar = useEntrar()
-  const [parte, setParte] = useState('vista')
+  const [parte, setParte] = useState('transicion')
   const elegir = id => { setParte(id); entrar.abrir() }
   const cats = local.categorias || []
   const visibles = cats.filter(c => !ocultas.has(c.id)).length
   const prendidos = anuncios.filter(a => a.activo !== false).length
   const sinCocina = local.usaCocina === false
   const items = [
-    { id: 'vista', icono: '👀', nombre: 'Así se ve ahora', nota: 'La pantalla en vivo' },
     { id: 'transicion', icono: '✨', nombre: 'Cómo pasan los platos', nota: TRANSICIONES.find(t => t.id === transicion)?.nombre },
     { id: 'categorias', icono: '🗂️', nombre: 'Categorías', nota: `${visibles} de ${cats.length} se ven`, tono: visibles ? null : 'aviso' },
     { id: 'listos', icono: '🔔', nombre: 'Pedidos listos', nota: sinCocina ? 'Necesita la pantalla de cocina' : pantalla.pedidosListos ? 'Se llaman en el TV' : 'Apagado', tono: pantalla.pedidosListos && !sinCocina ? 'ok' : 'off' },
@@ -112,16 +111,19 @@ export default function ConfigPantalla({ local, productos, slug, onUpdate, onSub
       <PanelCuerpo entrar={entrar} titulo={actual.nombre} lado={
         <PanelLado icono="📺" titulo="Menú en Pantalla" sel={actual.id} onSel={elegir} grupos={[{ items }]} />
       }>
-        {actual.id === 'vista' && (
-          <PanelTarjeta icono="👀" titulo="Así se ve tu Menú en Pantalla ahora" sub="Abre el link en el navegador del TV y déjalo como página de inicio o en favoritos. Siempre es el mismo y no hay que activar nada. En Difundir están los pasos para cada aparato.">
-            <div className="cpt2-tv">
-              <Suspense fallback={<div className="cpt-vista-cargando" />}>
-                <VistaTV local={local} productos={productos} />
-              </Suspense>
-            </div>
-          </PanelTarjeta>
-        )}
-
+        {/* La vista del TV siempre al lado (pequeña): se cambia algo y se ve al instante, sin ir y
+            volver a otra parte (pedido del usuario, 8-nov). En el celular va arriba. */}
+        <div className="cpt2-dos">
+        <aside className="cpt2-vivo" aria-label="Así se ve tu Menú en Pantalla ahora">
+          <div className="cpt2-vivo-cab"><span>👀 Así se ve ahora</span><a href={link} target="_blank" rel="noreferrer">Abrir ↗</a></div>
+          <div className="cpt2-tv">
+            <Suspense fallback={<div className="cpt-vista-cargando" />}>
+              <VistaTV local={local} productos={productos} />
+            </Suspense>
+          </div>
+          <p className="pp-ayuda">Abre el link en el navegador del TV y déjalo en favoritos. En <b>Difundir</b> están los pasos para cada aparato.</p>
+        </aside>
+        <div className="cpt2-opciones">
         {actual.id === 'transicion' && (
           <PanelTarjeta icono="✨" titulo="Cómo pasan los platos grandes" sub="Por el lugar grande pasan tus platos ⭐ «Nuestro fuerte» que tengan foto. Se guarda al tocar.">
             <div className="cpt-trans">
@@ -200,6 +202,8 @@ export default function ConfigPantalla({ local, productos, slug, onUpdate, onSub
             </div>
           </PanelTarjeta>
         )}
+        </div>
+        </div>
       </PanelCuerpo>
 
       {editando && anuncioEditado && (

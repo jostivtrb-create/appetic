@@ -72,6 +72,7 @@ principal ocupa todo el ancho y los filtros van de a dos.
 - **Botones**: naranja = la acción; borde = secundaria; rojo solo para borrar y siempre pregunta antes.
 - **Arrastrar** con manija ⠿ (`useArrastre.js`, mouse y dedo) en el PC.
 - **Dejar oprimido** un ítem de una lista (o clic derecho en el PC) abre una **hoja de opciones** desde abajo: mover (⤒ ↑ ↓ ⤓ con «está de 4 de 21»), editar, pausar y eliminar — **sin tener que entrar** al ítem. Pedido del usuario (8-nov): *«inorgánico tener que entrar a una categoría y desde ahí darle subir o bajar»*. Modelo: categorías del Catálogo (`opcionesCat` en `AdminProductos.jsx`, 450 ms, se cancela si el dedo se mueve > 10 px para no pelear con el scroll).
+- **Vista previa SIEMPRE al lado** cuando lo que se configura se ve en otra pantalla (Menú en Pantalla): la muestra pequeña y pegada a la derecha mientras se cambian las opciones, nunca como una opción más de la lista a la que hay que ir y volver (pedido del usuario, 8-nov). En el celular, arriba de cada opción.
 - **Avisos flotantes** (versión nueva, guardar): tarjeta de UNA línea abajo, nunca píldoras negras arriba que se parten en el celular.
 
 ### R8 · Que se sienta vivo y seguro
