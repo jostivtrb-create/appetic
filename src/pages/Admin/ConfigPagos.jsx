@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TIPOS_CUENTA, cuentasDe, emojiCuenta, idCuentaNueva, linkPagoValido } from '../../utils/cuentasDinero'
+import { TIPOS_CUENTA, cuentasDe, emojiCuenta, idCuentaNueva, linkPagoValido, usaLinkPago } from '../../utils/cuentasDinero'
 import { tiene } from '../../utils/plan'
 import { Candado } from './PlanAvisos'
 import './ConfigPagos.css'
@@ -15,6 +15,7 @@ export default function ConfigPagos({ local, onUpdate }) {
   // Lo que el dueño eligió (sin mirar el plan): si sube al Empresario, su elección sigue ahí.
   const [cocina, setCocina] = useState(local?.usaCocina !== false)
   const conCocina = tiene(local, 'cocina')
+  const conLink = usaLinkPago(local) // el link de pago viene con el Paquete Domicilios
   const [nueva, setNueva] = useState({ nombre: '', tipo: 'transferencia', llave: '' })
   const [estado, setEstado] = useState('')
   // Las cuentas que ya existían no se borran desde aquí (sus ventas y su saldo quedarían «Cuenta
@@ -32,7 +33,7 @@ export default function ConfigPagos({ local, onUpdate }) {
   }
 
   const sinNombre = lista.some(c => !c.nombre.trim())
-  const linkMalo = lista.some(c => c.tipo !== 'efectivo' && c.link?.trim() && !linkPagoValido(c.link))
+  const linkMalo = conLink && lista.some(c => c.tipo !== 'efectivo' && c.link?.trim() && !linkPagoValido(c.link))
   const ningunaCliente = !lista.some(c => c.alCliente)
   async function guardar() {
     if (sinNombre || ningunaCliente || linkMalo) return
@@ -67,7 +68,7 @@ export default function ConfigPagos({ local, onUpdate }) {
                     <input aria-label="Número o llave" placeholder="Número o llave (opcional)" value={c.llave || ''} maxLength={40} onChange={e => cambiar(c.id, { llave: e.target.value })} />
                   )}
                 </div>
-                {c.tipo !== 'efectivo' && (
+                {conLink && c.tipo !== 'efectivo' && (
                   <div className="cp-link">
                     <input aria-label={`Link de pago de ${c.nombre || 'la cuenta'}`} type="url" inputMode="url" placeholder="🔗 Link de pago (opcional): https://…" value={c.link || ''} maxLength={300}
                       className={c.link?.trim() && !linkPagoValido(c.link) ? 'mal' : ''} onChange={e => cambiar(c.id, { link: e.target.value })} />
@@ -96,7 +97,8 @@ export default function ConfigPagos({ local, onUpdate }) {
           </select>
           <button className="btn btn-ghost" disabled={!nueva.nombre.trim()}>＋ Agregar</button>
         </form>
-        <p className="cp-nota">🔗 <b>Link de pago:</b> si tienes uno (Bold, Wompi, Mercado Pago, tu banco…), pégalo en la cuenta. Cuando el cliente la escoja, le sale el botón para pagar con tu link y subir la foto del comprobante; tú la ves en el pedido antes de confirmarlo.</p>
+        {!conLink && <Candado local={local} funcion="domicilios" titulo="Los links de pago (con comprobante del cliente)" compacto />}
+        {conLink && <p className="cp-nota">🔗 <b>Link de pago:</b> si tienes uno (Bold, Wompi, Mercado Pago, tu banco…), pégalo en la cuenta. Cuando el cliente la escoja, le sale el botón para pagar con tu link y subir la foto del comprobante; tú la ves en el pedido antes de confirmarlo.</p>}
         <p className="cp-nota">La primera de la lista sale marcada cuando el cliente pide. Las cuentas que ya tienen ventas no se pueden borrar (su historia quedaría sin nombre): si ya no la usas, quítale el 👁.</p>
       </section>
 

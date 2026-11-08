@@ -10,6 +10,8 @@
 // escoge esa cuenta, en «Mi pedido» le sale «Pagar» con ese link y «Subir comprobante». Appetic no
 // toca la plata: cada negocio pone el link que quiera.
 //
+import { tiene } from './plan.js'
+
 // `alCliente` (por defecto sí): si sale en el checkout del cliente. Una cuenta «Banco» donde se
 // consigna puede existir solo para el dueño. Los SALDOS no viven aquí (el documento del local es
 // público): van en locales/{id}/resumen/saldos.
@@ -61,7 +63,10 @@ export const linkPagoValido = url => /^https:\/\/[^\s]{4,300}$/.test(String(url 
 
 // El link de pago de una cuenta (o '' si no tiene). Lo usan el servidor y el motor demo al crear el
 // pedido: el link sale del documento del local, nunca de lo que mande el navegador.
+// Viene con el Paquete Domicilios (decisión del usuario, 8-nov): sin ese paquete no hay link.
+export const usaLinkPago = local => tiene(local, 'domicilios')
 export function linkDeCuenta(local, id) {
+  if (!usaLinkPago(local)) return ''
   const c = cuentasDe(local).find(x => x.id === id)
   return c && c.tipo !== 'efectivo' && linkPagoValido(c.link) ? String(c.link).trim() : ''
 }
