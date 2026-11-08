@@ -263,4 +263,9 @@ En sus palabras: *«sacarla por secciones, no por planes, porque cada negocio no
   - **La propuesta web queda por subir por FTP.** Lo hace el usuario con su clave, con el comando que se le dio en el chat.
   - **Ícono de Inventario:** recortado y puesto. **El de Cocina:** salió como una taza de té; está el prompt v2 en `.prompts-imagenes/propuesta-paquetes.md`, y mientras tanto se usa `ico-comandas`.
 - **7-nov-2026 · el formulario, otra vez (D37, D38).** Pasos: dueño = datos → paquetes; vendedor = datos → fotos → paquetes → comentarios; visita = datos → fotos → revisar. Probado en local con la API simulada (los dos caminos, la carta obligatoria y el celular). Hay que subirlo por FTP (`index.html`, `app.js`, `estilos.css`).
+- **7-nov-2026 · el celular del Paquete Base muestra a Pilotos.**
+  - Es el menú REAL de Pilotos Burger House: su logo con su animación «lado» (tres bloques que entran alternando, copiada de `LogoEpico.css`), su banner, su piel oscura «jet» (vino #8A1212 y dorado #E8A03D), sus hamburguesas con fotos y precios reales, y su nombre en el WhatsApp.
+  - Al lado va la etiqueta «Menú real de Pilotos Burger House: lo montamos con su logo, sus colores y su carta».
+  - La demostración del pedido sigue igual.
+  - Imágenes en `web/appetic/img/pilotos/` (optimizadas, 144 KB). Subido por FTP con `~/.netrc`.
 - **Pendiente de la guía de Loggro:** el paso 3 (impresora) está en un commit local `ea34889` sin publicar. Conviene publicarlo cuando se defina en qué paquete va.
