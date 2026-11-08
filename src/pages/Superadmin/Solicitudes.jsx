@@ -158,7 +158,7 @@ function Cotizacion({ s, onEnviar }) {
   )
 }
 
-function Tarjeta({ s, onEstado }) {
+function Tarjeta({ s, onEstado, onCrearBarberia }) {
   const [abierta, setAbierta] = useState(false)
   const visita = esVisita(s)
   const fecha = momentoDe(s)
@@ -212,6 +212,9 @@ function Tarjeta({ s, onEstado }) {
       {abierta && (
         <div className="sa-sol-body">
           {s.numero && <Cotizacion s={s} onEnviar={() => estadoDe(s) === 'pendiente' && onEstado(s.id, 'enviada')} />}
+          {esBarberia(s) && !visita && onCrearBarberia && (
+            <button type="button" className="sa-sol-crear-bi" onClick={() => onCrearBarberia(s)}>💈 Crear su barbería en BarberIA</button>
+          )}
           {(s.tipo || s.plan || s.barberos || s.sedes) && (
             <div className="sa-sol-chips">
               {s.tipo && <span className="sa-sol-chip">{TIPOS[s.tipo] || s.tipo}</span>}
@@ -379,7 +382,7 @@ function Recorridos({ items }) {
   )
 }
 
-export default function Solicitudes({ simulado = false }) {
+export default function Solicitudes({ simulado = false, onCrearBarberia }) {
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [items, setItems] = useState([])
   const [filtro, setFiltro] = useState('pendiente')
@@ -459,7 +462,7 @@ export default function Solicitudes({ simulado = false }) {
       )}
       {estado === 'ok' && visibles.length > 0 && (
         <ul className="sa-sol-lista">
-          {visibles.map(s => <Tarjeta key={s.id} s={s} onEstado={cambiarEstado} />)}
+          {visibles.map(s => <Tarjeta key={s.id} s={s} onEstado={cambiarEstado} onCrearBarberia={onCrearBarberia} />)}
         </ul>
       )}
     </section>

@@ -10,6 +10,7 @@ import PanelMenuBoton from '../../components/BottomNav/PanelMenuBoton'
 import { devSuper } from '../../components/BottomNav/PanelRail'
 import DemoTarjeta from './DemoTarjeta'
 import Solicitudes from './Solicitudes'
+import Barberias from './Barberias'
 import './Superadmin.css'
 
 // 🗂️ Editor de ETIQUETAS (chips del inicio) + ⭐ prioridad de un local.
@@ -96,6 +97,8 @@ export default function Superadmin() {
     else window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [hash, superadmin])
 
+  // 💈 Al tocar «Crear su barbería» en una solicitud de BarberIA, el formulario llega lleno.
+  const [nuevaBarberia, setNuevaBarberia] = useState(null)
   const [estado, setEstado] = useState('cargando') // cargando | ok | error
   const [locales, setLocales] = useState([])
   const [busqueda, setBusqueda] = useState('')
@@ -231,7 +234,13 @@ export default function Superadmin() {
       <DemoTarjeta />
 
       {/* 📋 Cotizaciones que llegan de la propuesta web (switflysolutions.com/appetic → /api/solicitud) */}
-      <Solicitudes simulado={simulado} />
+      <Solicitudes simulado={simulado} onCrearBarberia={(s) => {
+        setNuevaBarberia({ nombre: s.local, whatsapp: s.celular, solicitudId: s.id, numero: s.numero })
+        setTimeout(() => document.getElementById('barberias')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+      }} />
+
+      {/* 💈 BarberIA: las barberías viven en su propio Firebase; aquí se manejan por su API. */}
+      {!simulado && <Barberias prefill={nuevaBarberia} />}
 
       {estado === 'ok' && <TableroCobros locales={locales.filter(l => !l.esDemo)} pagos={pagos} />}
 
