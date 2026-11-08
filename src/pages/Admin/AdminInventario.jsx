@@ -8,6 +8,7 @@ import { coloresComanda } from './comandaUtils'
 import { horaCorta, etiquetaJornada, jornadaDe } from '../../utils/jornada'
 import { primerNombre } from './CajaVentas'
 import { conTope } from '../../utils/conTope'
+import { PanelHero, PanelCuerpo, PanelLado, useEntrar } from './PanelPagina'
 import './Caja.css'
 import './Inventario.css'
 
@@ -18,11 +19,13 @@ import './Inventario.css'
 //   🚚 Proveedores → la lista, y pedirle por WhatsApp lo que se está acabando.
 // Las COMPRAS entran desde el gasto de la Caja (D7) y las VENTAS descuentan solas (receta × cantidad).
 // Cuando algo llega al mínimo solo se AVISA (D8): aquí y en la cabecera de la Caja.
+// Diseño (guía «Diseño de pantallas del panel», 8-nov): encabezado con el resumen; las 4 partes son la
+// lista de la izquierda (en el celular, lista que entra al detalle). Lo de adentro no cambió.
 const VISTAS = [
-  { id: 'insumos', ico: '📦', label: 'Insumos' },
-  { id: 'recetas', ico: '🍳', label: 'Recetas' },
-  { id: 'contar', ico: '🧮', label: 'Contar' },
-  { id: 'proveedores', ico: '🚚', label: 'Proveedores' },
+  { id: 'insumos', ico: '📦', label: 'Insumos', nota: 'Lo que hay, el mínimo y el costo' },
+  { id: 'recetas', ico: '🍳', label: 'Recetas', nota: 'Cuánto gasta cada plato' },
+  { id: 'contar', ico: '🧮', label: 'Contar', nota: 'Conteo físico y ajuste' },
+  { id: 'proveedores', ico: '🚚', label: 'Proveedores', nota: 'Pedirles por WhatsApp' },
 ]
 const ESTADO = { ok: { t: 'Bien', c: 'ok' }, bajo: { t: 'Por acabarse', c: 'bajo' }, agotado: { t: 'Agotado', c: 'agotado' } }
 const TIPO_MOV = { compra: '🛒 Compra', conteo: '🧮 Conteo', merma: '🗑️ Merma', ajuste: '✏️ Ajuste' }
@@ -48,34 +51,34 @@ export default function AdminInventario({ local, productos = [], demo, usuario }
   const valor = activos.reduce((s, i) => s + Math.max(0, Number(i.stock) || 0) * (Number(i.costoUnit) || 0), 0)
   const comun = { local, api, insumos: activos, porId, recetas, proveedores, por, productos }
 
-  return (
-    <div className="pv inv" style={coloresComanda(local).vars}>
-      <header className="pv-top">
-        <div className="pv-marca">
-          <span className="pv-marca-logo" aria-hidden="true">{local.icono || local.logo ? <img src={local.icono || local.logo} alt="" /> : '📦'}</span>
-          <div><b>{local.nombre}</b><small>Inventario</small></div>
-        </div>
-        <div className="pv-caja">
-          <div><small>Insumos</small><b>{activos.length}</b></div>
-          <div><small>Por acabarse</small><b className={faltan.length ? 'inv-rojo' : ''}>{faltan.length}</b></div>
-          <div><small>Lo que hay vale</small><b>{cop(valor)}</b></div>
-        </div>
-      </header>
+  const entrar = useEntrar()
+  const elegir = id => { setVista(id); entrar.abrir() }
+  const actual = VISTAS.find(v => v.id === vista)
 
-      <nav className="pv-vistas" aria-label="Secciones del inventario">
-        {VISTAS.map(t => (
-          <button key={t.id} type="button" className={vista === t.id ? 'on' : ''} aria-current={vista === t.id ? 'page' : undefined}
-            onClick={() => { setVista(t.id); window.scrollTo?.({ top: 0, behavior: 'smooth' }) }}>
-            <span className="pv-vistas-ico" aria-hidden="true">{t.ico}{t.id === 'insumos' && faltan.length > 0 && <i>{faltan.length}</i>}</span><span>{t.label}</span>
-          </button>
-        ))}
-      </nav>
+  return (
+    <div className={`pv inv inv2${entrar.abierto ? ' pp-dentro' : ''}`} style={coloresComanda(local).vars}>
+      <PanelHero miga={local.nombre} icono="📦" titulo="Inventario" sub="Lo que compras para cocinar, lo que gasta cada plato y lo que se está acabando" chips={[
+        { t: `📦 ${activos.length} insumos` },
+        { t: faltan.length ? `⚠️ ${faltan.length} por acabarse` : '✓ Nada por acabarse', tono: faltan.length ? 'aviso' : 'ok' },
+        { t: `💰 Lo que hay vale ${cop(valor)}` },
+      ]} />
       {error && <p className="pv-error" role="alert">{error}</p>}
 
-      {vista === 'insumos' && <Insumos {...comun} cargando={insumos === null} todos={insumos || []} faltan={faltan} />}
-      {vista === 'recetas' && <Recetas {...comun} />}
-      {vista === 'contar' && <Contar {...comun} />}
-      {vista === 'proveedores' && <Proveedores {...comun} />}
+      <PanelCuerpo entrar={entrar} titulo={actual.label} lado={
+        <PanelLado icono="📦" titulo="Inventario" sel={vista} onSel={elegir} grupos={[{ items: VISTAS.map(v => ({
+          id: v.id, icono: v.ico, nombre: v.label,
+          nota: v.id === 'insumos' && faltan.length ? `${faltan.length} por acabarse` : v.nota,
+          tono: v.id === 'insumos' && faltan.length ? 'aviso' : null,
+          n: v.id === 'insumos' ? activos.length : v.id === 'proveedores' ? proveedores.length : null,
+        })) }]} />
+      }>
+        <div className="inv2-trabajo">
+          {vista === 'insumos' && <Insumos {...comun} cargando={insumos === null} todos={insumos || []} faltan={faltan} />}
+          {vista === 'recetas' && <Recetas {...comun} />}
+          {vista === 'contar' && <Contar {...comun} />}
+          {vista === 'proveedores' && <Proveedores {...comun} />}
+        </div>
+      </PanelCuerpo>
     </div>
   )
 }
