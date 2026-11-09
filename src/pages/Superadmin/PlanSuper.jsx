@@ -41,8 +41,8 @@ function detalle(p) {
   return `Pagado hasta el ${fechaCorta(p.vence)}.`
 }
 
-export function PlanLocal({ local, pagos, onCambio, onPago }) {
-  const [abierto, setAbierto] = useState(false)
+export function PlanLocal({ local, pagos, onCambio, onPago, abiertoInicial = false }) {
+  const [abierto, setAbierto] = useState(abiertoInicial)
   const [modo, setModo] = useState('')          // '' | pago | plan
   const [ocupado, setOcupado] = useState(false)
   const [error, setError] = useState('')

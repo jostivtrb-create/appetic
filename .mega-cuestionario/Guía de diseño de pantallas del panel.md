@@ -56,6 +56,7 @@ principal ocupa todo el ancho y los filtros van de a dos.
 - Encabezado de tarjeta = **baldosa de ícono** (38 px, fondo naranja suave) + título en negrita 900.
 
 ### R6 · El detalle se abre aparte, organizado en pestañas
+- **Regla general (8-nov):** en una lista de cosas (productos, locales…) la tarjeta solo MUESTRA; editar es tocarla y abrir su panel. Nunca formularios dentro de cada tarjeta de la lista.
 - Editar algo con muchos campos → **panel lateral desde la derecha** (pantalla completa en el
   celular) con **pestañas** (General · Precios · Adiciones · Dónde sale), cabecera con la foto y el
   nombre en vivo, y **pie fijo**: acciones secundarias a la izquierda (Borrar, Duplicar), Cancelar y
@@ -149,7 +150,7 @@ principal ocupa todo el ancho y los filtros van de a dos.
 | Panel → Difundir | ✅ 8-nov | Los 8 bloques (avisos, link, QR, TV, QR por mesa, afiche, publicidad, mensaje) son la lista; uno a la vez. |
 | Panel → Caja y Mesero | ✅ 8-nov (solo ancho) | NO se rediseñan: siguen el POS de La Catrina que al usuario le encanta. Solo se les quitó el límite de 1120 px. |
 | Panel → Cocina y Domicilios | — | Ya usaban todo el ancho; son pantallas de operación sencillas. Sin cambios. |
-| Superadmin → Locales y planes | ✅ 8-nov | Hero con locales / en buscador / pagando y la propuesta a la derecha; lista Locales · Cobros · Cotizaciones · BarberIA · Demo. Locales en tarjetas con la etiqueta del plan debajo del nombre. Ojo: la página ya tenía una variable `entrar` (login): la de navegación se llama `navegar`. |
+| Superadmin → Locales y planes | ✅ 8-nov | Hero con locales / en buscador / pagando y la propuesta a la derecha; lista Locales · Cobros · Cotizaciones · BarberIA · Demo. Locales: tarjetas LIMPIAS (logo, nombre, plan, 👤 dueños o ⚠️ «Sin dueño») y al tocar una se abre su panel lateral con pestañas Dueños · Plan y pagos · Etiquetas y el pie «Ver local / Editar menú» (pedido del usuario: «ver los locales y al darle ver ahí sí las opciones para editar»). Ojo: la página ya tenía una variable `entrar` (login): la de navegación se llama `navegar`. |
 
 ---
 

@@ -674,3 +674,30 @@
 .sa2 .sa-item-main .sp-chip { grid-column: 1 / -1; justify-self: start; max-width: 100%; white-space: normal; line-height: 1.35; position: static; }
 .sa2 .sa-item-info strong { font-size: 16.5px; }
 .sa2 .sa-item { padding: 16px 18px; border-radius: 22px; }
+
+/* 🏪 Locales: tarjetas limpias; el detalle se abre en un panel lateral (8-nov) */
+.sa2-locales { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.sa2-local {
+  display: grid; grid-template-columns: 56px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; width: 100%;
+  padding: 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); box-shadow: var(--shadow-sm);
+  font: inherit; text-align: left; cursor: pointer; transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+.sa2-local:hover { box-shadow: 0 14px 30px rgba(42, 33, 28, .1); transform: translateY(-2px); border-color: #F3D9C2; }
+.sa2-local-logo { width: 56px; height: 56px; border-radius: 16px; overflow: hidden; display: grid; place-items: center; background: var(--surface-2); font-size: 26px; }
+.sa2-local-logo img { width: 100%; height: 100%; object-fit: cover; }
+.sa2-local-txt { display: grid; gap: 3px; min-width: 0; justify-items: start; }
+.sa2-local-txt b { font-size: 16px; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.sa2-local-txt small { font-size: 12.5px; color: var(--text-faint); }
+.sa2-local-txt .sp-chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sa2-local-duenos { font-size: 12.5px; font-weight: 800; color: var(--text-soft); background: var(--surface-2); padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+.sa2-local-duenos.falta { color: #9A5A0E; background: #FFF4E5; }
+.sa2-local-flecha { font-size: 22px; color: var(--text-faint); }
+.sa2-panel .ed-sec .sp-chip { justify-self: start; white-space: normal; }
+.sa2-panel .ed-cuerpo > .sa-tags, .sa2-panel .ed-cuerpo > div:not(.ed-sec) { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 14px 16px; }
+/* Dentro del panel: todo cabe (la línea de resumen del plan se parte en renglones) */
+.sa2-panel .ed-cuerpo { overflow-x: hidden; }
+.sa2-panel .sa-tags { min-width: 0; }
+.sa2-panel .sa-tags-head { width: 100%; min-width: 0; align-items: flex-start; }
+.sa2-panel .sa-tags-resumen { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; min-width: 0; line-height: 1.45; }
+.sa2-panel .sp-historial li { grid-template-columns: 56px minmax(0, 1fr) auto; }
+.sa2-panel .sp-historial li > * { min-width: 0; overflow-wrap: anywhere; }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
@@ -12,14 +13,15 @@ import { devSuper } from '../../components/BottomNav/PanelRail'
 import DemoTarjeta from './DemoTarjeta'
 import Solicitudes from './Solicitudes'
 import Barberias from './Barberias'
+import '../Admin/EditorProducto.css'
 import './Superadmin.css'
 
 // 🗂️ Editor de ETIQUETAS (chips del inicio) + ⭐ prioridad de un local.
 // Etiquetas: toggle sobre el catálogo curado, guarda al tocar (optimista).
 // Prioridad: el boost sutil del inicio (badge "Recomendado"); normalmente solo
 // el local bandera la tiene (10). Se edita aquí para no tocar código.
-function EtiquetasEditor({ local, onChange }) {
-  const [abierto, setAbierto] = useState(false)
+function EtiquetasEditor({ local, onChange, abiertoInicial = false }) {
+  const [abierto, setAbierto] = useState(abiertoInicial)
   const [guardando, setGuardando] = useState(false)
   const etiquetas = local.etiquetas || []
   const prioridad = Number(local.prioridad) || 0
@@ -110,6 +112,10 @@ export default function Superadmin() {
   const [busqueda, setBusqueda] = useState('')
   const [adminEdits, setAdminEdits] = useState({}) // localId -> [correo1, correo2] en edición
   const [adminMsg, setAdminMsg] = useState({})     // localId -> 'guardando' | 'ok' | 'err' | 'dup'
+  // El local abierto en el panel lateral y su pestaña (diseño nuevo, 8-nov).
+  const [abierto, setAbierto] = useState(null)
+  const [pestana, setPestana] = useState('duenos')
+  useEffect(() => { setPestana('duenos') }, [abierto])
 
   const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)
 
@@ -215,6 +221,7 @@ export default function Superadmin() {
     { id: 'demo', icono: '🍔', nombre: 'Demo para clientes', nota: 'Visitas y reiniciar' },
   ]
   const actual = PARTES.find(x => x.id === parte) || PARTES[0]
+  const localAbierto = locales.find(x => x.id === abierto)
 
   return (
     <div className={`sa sa2${navegar.abierto ? ' pp-dentro' : ''}`}>
@@ -255,25 +262,53 @@ export default function Superadmin() {
       {estado === 'error' && <div className="home-empty"><span className="home-empty-emoji">📡</span><p>No se pudieron cargar los locales.</p></div>}
 
       {estado === 'ok' && (
-        <ul className="sa-lista">
+        <ul className="sa2-locales">
           {filtrados.map(l => {
-            const adminsActuales = normalizar(l.admins || [])
-            const valoresAdmin = adminEdits[l.id] ?? casillas(l.admins)
-            const cambiado = normalizar(valoresAdmin).join('|') !== adminsActuales.join('|')
-            const msg = adminMsg[l.id]
+            const n = normalizar(l.admins || []).length
             return (
-              <li key={l.id} className="sa-item">
-                <div className="sa-item-main">
-                  <div className="sa-item-logo">
-                    {(l.icono || l.logo) ? <img src={l.icono || l.logo} alt="" /> : <span>🍽️</span>}
-                  </div>
-                  <div className="sa-item-info">
-                    <strong>{l.nombre}</strong>
-                    <span>/{l.slug}</span>
-                  </div>
-                  <ChipPago local={l} />
-                </div>
+              <li key={l.id}>
+                <button type="button" className="sa2-local" onClick={() => setAbierto(l.id)}>
+                  <span className="sa2-local-logo">{(l.icono || l.logo) ? <img src={l.icono || l.logo} alt="" /> : '🍽️'}</span>
+                  <span className="sa2-local-txt">
+                    <b>{l.nombre}</b>
+                    <small>/{l.slug}</small>
+                    <ChipPago local={l} />
+                  </span>
+                  <span className={`sa2-local-duenos${n ? '' : ' falta'}`}>{n ? `👤 ${n}` : '⚠️ Sin dueño'}</span>
+                  <span className="sa2-local-flecha" aria-hidden="true">›</span>
+                </button>
+              </li>
+            )
+          })}
+          {filtrados.length === 0 && <li className="sa-vacio">Sin resultados.</li>}
+        </ul>
+      )}
 
+      {/* El detalle de un local, en un panel lateral con pestañas (como el editor del Catálogo). */}
+      {localAbierto && (() => {
+        const l = localAbierto
+        const adminsActuales = normalizar(l.admins || [])
+        const valoresAdmin = adminEdits[l.id] ?? casillas(l.admins)
+        const cambiado = normalizar(valoresAdmin).join('|') !== adminsActuales.join('|')
+        const msg = adminMsg[l.id]
+        return createPortal(
+          <div className="ed-fondo" onClick={() => setAbierto(null)}>
+            <aside className="ed sa2-panel" role="dialog" aria-modal="true" aria-label={l.nombre} onClick={e => e.stopPropagation()}>
+              <header className="ed-cab">
+                <div className="ed-cab-foto" aria-hidden="true">{(l.icono || l.logo) ? <img src={l.icono || l.logo} alt="" /> : '🍽️'}</div>
+                <div className="ed-cab-txt"><small>/{l.slug}</small><h2>{l.nombre}</h2></div>
+                <button type="button" className="ed-x" onClick={() => setAbierto(null)} aria-label="Cerrar">✕</button>
+              </header>
+              <nav className="ed-tabs" role="tablist" aria-label="Partes del local">
+                {[['duenos', '👤', 'Dueños'], ...(!l.esDemo ? [['plan', '💳', 'Plan y pagos']] : []), ['etiquetas', '🗂️', 'Etiquetas']].map(([id, ic, t]) => (
+                  <button type="button" key={id} role="tab" aria-selected={pestana === id} className={pestana === id ? 'on' : ''} onClick={() => setPestana(id)}><span aria-hidden="true">{ic}</span>{t}</button>
+                ))}
+              </nav>
+              <div className="ed-cuerpo">
+                <section className="ed-sec"><ChipPago local={l} /></section>
+                {pestana === 'duenos' && <section className="ed-sec">
+                  <h3>Quién entra al panel de {l.nombre}</h3>
+                  <p className="ed-ayuda">Hasta dos correos de Google: el dueño y, si quiere, su socio o encargado. Los dos mandan igual.</p>
                 {/* 👤 Hasta DOS correos de admin: el dueño y (opcional) su socio o
                     encargado. Los dos mandan igual. Se guardan juntos con un botón. */}
                 <div className="sa-admins">
@@ -319,30 +354,27 @@ export default function Superadmin() {
                 )}
                 {!adminsActuales.length && msg !== 'ok' && <p className="sa-admin-hint warn">Sin admin asignado.</p>}
 
+</section>}
                 {/* 💳 Plan, pagos e historial */}
-                {!l.esDemo && (
+                {pestana === 'plan' && !l.esDemo && (
                   <PlanLocal local={l} pagos={pagos.filter(x => x.localId === l.id)}
-                    onCambio={sus => cambiarSuscripcion(l.id, sus)} onPago={cargarPagos} />
+                    onCambio={sus => cambiarSuscripcion(l.id, sus)} onPago={cargarPagos} abiertoInicial />
                 )}
 
                 {/* 🗂️ Etiquetas del inicio + ⭐ prioridad */}
-                <EtiquetasEditor
+                {pestana === 'etiquetas' && <EtiquetasEditor abiertoInicial
                   local={l}
                   onChange={cambios => setLocales(ls => ls.map(x => x.id === l.id ? { ...x, ...cambios } : x))}
-                />
-
-                {/* Atajos: el superadmin administra cualquier local como si fuera el dueño
-                    (roles.js → puedeAdministrarLocal + firestore.rules → puedeAdministrar). */}
-                <div className="sa-acciones">
-                  <Link to={`/${l.slug}/admin`} className="sa-accion sa-accion--editar">✏️ Editar menú</Link>
-                  <Link to={`/${l.slug}`} className="sa-accion">👀 Ver local</Link>
-                </div>
-              </li>
-            )
-          })}
-          {filtrados.length === 0 && <li className="sa-vacio">Sin resultados.</li>}
-        </ul>
-      )}
+                />}
+              </div>
+              <footer className="ed-pie">
+                <div className="ed-pie-izq" />
+                <Link to={`/${l.slug}`} className="ed-btn">👀 Ver local</Link>
+                <Link to={`/${l.slug}/admin`} className="ed-btn primario">✏️ Editar menú</Link>
+              </footer>
+            </aside>
+          </div>, document.body)
+      })()}
       </>}
       </PanelCuerpo>
     </div>
