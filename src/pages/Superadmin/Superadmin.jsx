@@ -4,7 +4,8 @@ import { useAuth } from '../../contexts/AuthContext'
 import { esSuperadmin } from '../../config/roles'
 import { listarTodosLocales, listarPagos, setAdminEmails, setEtiquetas, setPrioridad } from '../../services/superadmin'
 import { ChipPago, PlanLocal, TableroCobros } from './PlanSuper'
-import { apareceEnBuscador } from '../../utils/plan'
+import { apareceEnBuscador, estadoPago } from '../../utils/plan'
+import { PanelHero, PanelCuerpo, PanelLado, useEntrar } from '../Admin/PanelPagina'
 import { CATEGORIAS_LOCALES } from '../../config/categoriasLocales'
 import PanelMenuBoton from '../../components/BottomNav/PanelMenuBoton'
 import { devSuper } from '../../components/BottomNav/PanelRail'
@@ -90,11 +91,16 @@ export default function Superadmin() {
 
   // El router no baja solo a un ancla (#…): lo hacemos aquí (y arriba del todo sin ancla).
   // (Los domiciliarios globales se retiraron el 29-oct-2026: ahora cada local tiene los suyos.)
+  // Diseño nuevo (guía «Diseño de pantallas del panel», 8-nov): una parte a la vez, elegida en la
+  // lista de la izquierda (en el celular, lista que entra al detalle). El #… del link elige la parte.
+  const navegar = useEntrar()
+  const [parte, setParte] = useState(() => ({ '#barberias': 'barberias', '#solicitudes': 'solicitudes', '#cobros': 'cobros', '#demo': 'demo' }[window.location.hash] || 'locales'))
+  const elegir = id => { setParte(id); navegar.abrir() }
   useEffect(() => {
     if (!superadmin) return
-    const el = hash ? document.getElementById(hash.slice(1)) : null
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    else window.scrollTo({ top: 0, behavior: 'smooth' })
+    const p = { '#barberias': 'barberias', '#solicitudes': 'solicitudes', '#cobros': 'cobros', '#demo': 'demo' }[hash]
+    if (p) setParte(p)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [hash, superadmin])
 
   // 💈 Al tocar «Crear su barbería» en una solicitud de BarberIA, el formulario llega lleno.
@@ -200,50 +206,46 @@ export default function Superadmin() {
     )
   }
 
+  const pagando = locales.filter(l => !l.esDemo && ['al-dia', 'por-vencer', 'gracia'].includes(estadoPago(l).estado))
+  const PARTES = [
+    { id: 'locales', icono: '🏪', nombre: 'Locales', nota: 'Dueños, planes y etiquetas', n: locales.length },
+    { id: 'cobros', icono: '💳', nombre: 'Cobros', nota: 'Quién paga y quién vence' },
+    { id: 'solicitudes', icono: '📋', nombre: 'Cotizaciones', nota: 'Las que llegan de la propuesta' },
+    ...(!simulado ? [{ id: 'barberias', icono: '💈', nombre: 'BarberIA', nota: 'Las barberías de la plataforma' }] : []),
+    { id: 'demo', icono: '🍔', nombre: 'Demo para clientes', nota: 'Visitas y reiniciar' },
+  ]
+  const actual = PARTES.find(x => x.id === parte) || PARTES[0]
+
   return (
-    <div className="sa">
-      <header className="sa-top">
-        {/* En el celular el ☰ abre el cajón del panel (Cuenta incluida). En PC no
-            se pinta: la barra ya está al lado. */}
-        <PanelMenuBoton />
-        <div>
-          <span className="sa-eyebrow">👑 Superadmin</span>
-          <h1>Locales y planes</h1>
-        </div>
-      </header>
+    <div className={`sa sa2${navegar.abierto ? ' pp-dentro' : ''}`}>
+      <div className="sa2-menu"><PanelMenuBoton /></div>
+      <PanelHero miga="👑 Superadmin" icono="🏪" titulo="Locales y planes" sub="Todos los locales de Appetic, sus dueños, sus planes y lo que entra" chips={[
+        { t: `🏪 ${locales.length} locales` },
+        { t: `🔎 ${enBuscador} en el buscador` },
+        { t: `💳 ${pagando.length} pagando`, tono: pagando.length ? 'ok' : null },
+      ]} derecha={
+        <a className="sa2-propuesta" href="https://switflysolutions.com/#proyectos" target="_blank" rel="noopener noreferrer">
+          <span aria-hidden="true">📄</span><b>Propuesta de Appetic</b><small>En la web de Swiftfly ↗</small>
+        </a>
+      } />
 
-      <div className="sa-resumen">
-        <strong>{enBuscador}</strong> de <strong>{locales.length}</strong> locales salen en el buscador
-      </div>
-
-      {/* La propuesta comercial ya no vive aquí: desde el 27-oct-2026 las propuestas
-          de todos los productos se publican en la web de Swiftfly (decisión P9). */}
-      <a
-        className="sa-descarga"
-        href="https://switflysolutions.com/#proyectos"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <span className="sa-descarga-ico">📄</span>
-        <span className="sa-descarga-txt">
-          <strong>Propuesta de Appetic</strong>
-          <small>Está en la web de Swiftfly Solutions, en la sección de proyectos.</small>
-        </span>
-      </a>
-
-      <DemoTarjeta />
+      <PanelCuerpo entrar={navegar} titulo={actual.nombre} lado={
+        <PanelLado icono="👑" titulo="Superadmin" sel={actual.id} onSel={elegir} grupos={[{ items: PARTES }]} />
+      }>
+      {actual.id === 'demo' && <DemoTarjeta />}
 
       {/* 📋 Cotizaciones que llegan de la propuesta web (switflysolutions.com/appetic → /api/solicitud) */}
-      <Solicitudes simulado={simulado} onCrearBarberia={(s) => {
+      {actual.id === 'solicitudes' && <Solicitudes simulado={simulado} onCrearBarberia={(s) => {
         setNuevaBarberia({ nombre: s.local, whatsapp: s.celular, solicitudId: s.id, numero: s.numero, barberos: Number(s.desglose?.barberos || s.barberos) || 1 })
-        setTimeout(() => document.getElementById('barberias')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
-      }} />
+        setParte('barberias')
+      }} />}
 
       {/* 💈 BarberIA: las barberías viven en su propio Firebase; aquí se manejan por su API. */}
-      {!simulado && <Barberias prefill={nuevaBarberia} />}
+      {actual.id === 'barberias' && !simulado && <Barberias prefill={nuevaBarberia} />}
 
-      {estado === 'ok' && <TableroCobros locales={locales.filter(l => !l.esDemo)} pagos={pagos} />}
+      {actual.id === 'cobros' && estado === 'ok' && <TableroCobros locales={locales.filter(l => !l.esDemo)} pagos={pagos} />}
 
+      {actual.id === 'locales' && <>
       <div className="sa-search">
         <span>🔎</span>
         <input placeholder="Buscar local…" value={busqueda} onChange={e => setBusqueda(e.target.value)} />
@@ -341,6 +343,8 @@ export default function Superadmin() {
           {filtrados.length === 0 && <li className="sa-vacio">Sin resultados.</li>}
         </ul>
       )}
+      </>}
+      </PanelCuerpo>
     </div>
   )
 }

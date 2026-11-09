@@ -149,6 +149,7 @@ principal ocupa todo el ancho y los filtros van de a dos.
 | Panel → Difundir | ✅ 8-nov | Los 8 bloques (avisos, link, QR, TV, QR por mesa, afiche, publicidad, mensaje) son la lista; uno a la vez. |
 | Panel → Caja y Mesero | ✅ 8-nov (solo ancho) | NO se rediseñan: siguen el POS de La Catrina que al usuario le encanta. Solo se les quitó el límite de 1120 px. |
 | Panel → Cocina y Domicilios | — | Ya usaban todo el ancho; son pantallas de operación sencillas. Sin cambios. |
+| Superadmin → Locales y planes | ✅ 8-nov | Hero con locales / en buscador / pagando y la propuesta a la derecha; lista Locales · Cobros · Cotizaciones · BarberIA · Demo. Locales en tarjetas con la etiqueta del plan debajo del nombre. Ojo: la página ya tenía una variable `entrar` (login): la de navegación se llama `navegar`. |
 
 ---
 
