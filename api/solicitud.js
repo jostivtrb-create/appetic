@@ -53,16 +53,18 @@ const numeroAP = n => `AP-${String(n).padStart(4, '0')}`
 // ✂️ BarberIA (guía «Propuesta de Legends» D11, D12, S8): la propuesta de barberías usa este mismo
 // formulario con `producto: 'barberia'`. Todo incluido, su propio consecutivo BI-0001 (contador
 // config/cotizaciones-barberia) y la misma promo de Appetic.
-// Precio (8-nov-2026): $39.900 con 1 barbero incluido + $10.000 por cada barbero adicional. Espejo de
-// BarberIA/src/lib/plan.js y de web/barberia/app.js: si cambia uno, cambian los tres.
+// Precio (9-nov-2026): cada sede es un plan aparte de $39.900 con 1 barbero incluido, + $10.000 por
+// cada barbero adicional. Espejo de BarberIA/src/lib/plan.js y de web/barberia/app.js: si cambia uno,
+// cambian los tres.
 const PRODUCTOS = ['appetic', 'barberia']
 const PLAN_BARBERIA = { base: 39900, incluidos: 1, extra: 10000 }
-const precioBarberia = n => PLAN_BARBERIA.base + (Math.max(PLAN_BARBERIA.incluidos, n) - PLAN_BARBERIA.incluidos) * PLAN_BARBERIA.extra
+const precioBarberia = (n, s = 1) => s * PLAN_BARBERIA.base + (Math.max(s * PLAN_BARBERIA.incluidos, n) - s * PLAN_BARBERIA.incluidos) * PLAN_BARBERIA.extra
 // Número exacto de barberos (1 a 50). Las páginas viejas mandaban rangos: se toma el piso del rango.
 const RANGOS_VIEJOS = { '1-2': 1, '3-5': 3, '6-10': 6, 'mas-10': 11 }
 const numBarberos = v => { const n = RANGOS_VIEJOS[v] ?? parseInt(v, 10); return Number.isInteger(n) && n >= 1 && n <= 50 ? n : 0 }
 const numeroBI = n => `BI-${String(n).padStart(4, '0')}`
-const SEDES = ['1', '2', '3+']
+// Número exacto de sedes (1 a 20). Las páginas viejas mandaban '3+': se toma 3.
+const numSedes = v => { const n = v === '3+' ? 3 : parseInt(v, 10); return Number.isInteger(n) && n >= 1 && n <= 20 ? n : 0 }
 const respuestaCot = (id, d) => ({ ok: true, id, numero: d.numero, paquetes: d.paquetes, total: d.total, ahorro: d.ahorro || 0, promo: d.promo || '', vence: d.venceDia, ...(d.desglose ? { desglose: d.desglose } : {}) })
 
 const ID_VALIDO = /^[A-Za-z0-9_-]{8,40}$/
@@ -152,7 +154,7 @@ export default async function handler(req, res) {
       motivo: esVisita ? deLista(b.motivo, MOTIVOS_VISITA) : '',
       motivoTexto: esVisita ? texto(b.motivoTexto, 300) : '',
       comentarioVendedor: origen === 'vendedor' && !esVisita ? texto(b.comentarioVendedor, 1000) : '',
-      ...(esBarberia ? { barberos: numBarberos(String(b.barberos ?? '')) || '', sedes: deLista(String(b.sedes ?? ''), SEDES) } : {}),
+      ...(esBarberia ? { barberos: numBarberos(String(b.barberos ?? '')) || '', sedes: numSedes(String(b.sedes ?? '')) || '' } : {}),
     }
     // La página nueva manda los paquetes; la vieja (con `plan`) no.
     const conPaquetes = !esVisita && (esBarberia || Array.isArray(b.paquetes))
@@ -209,9 +211,9 @@ export default async function handler(req, res) {
     }
     if (conPaquetes && esBarberia) {
       const hoy = hoyBogota()
-      const n = doc.barberos || PLAN_BARBERIA.incluidos
-      const total = precioBarberia(n)
-      Object.assign(doc, { paquetes: ['barberia'], suma: total, total, ahorro: 0, desglose: { ...PLAN_BARBERIA, barberos: n }, promo: hoy <= PROMO.hasta ? PROMO.texto : '', venceDia: sumarDias(hoy, VALIDEZ_DIAS) })
+      const s = doc.sedes || 1, n = Math.max(doc.barberos || PLAN_BARBERIA.incluidos, s * PLAN_BARBERIA.incluidos)
+      const total = precioBarberia(n, s)
+      Object.assign(doc, { paquetes: ['barberia'], suma: total, total, ahorro: 0, desglose: { ...PLAN_BARBERIA, barberos: n, sedes: s }, promo: hoy <= PROMO.hasta ? PROMO.texto : '', venceDia: sumarDias(hoy, VALIDEZ_DIAS) })
     } else if (conPaquetes) {
       const hoy = hoyBogota()
       const c = cotizar(b.paquetes, hoy)

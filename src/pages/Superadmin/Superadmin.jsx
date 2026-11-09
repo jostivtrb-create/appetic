@@ -243,7 +243,7 @@ export default function Superadmin() {
 
       {/* 📋 Cotizaciones que llegan de la propuesta web (switflysolutions.com/appetic → /api/solicitud) */}
       {actual.id === 'solicitudes' && <Solicitudes simulado={simulado} onCrearBarberia={(s) => {
-        setNuevaBarberia({ nombre: s.local, whatsapp: s.celular, solicitudId: s.id, numero: s.numero, barberos: Number(s.desglose?.barberos || s.barberos) || 1 })
+        setNuevaBarberia({ nombre: s.local, whatsapp: s.celular, solicitudId: s.id, numero: s.numero, barberos: Number(s.desglose?.barberos || s.barberos) || 1, sedes: Number(s.desglose?.sedes || (s.sedes === '3+' ? 3 : s.sedes)) || 1 })
         setParte('barberias')
       }} />}
 

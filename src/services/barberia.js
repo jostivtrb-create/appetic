@@ -22,7 +22,7 @@ async function llamar(cuerpo) {
 export const listarBarberias = () => llamar({ accion: 'listar' }).then((d) => d.barberias)
 export const crearBarberia = (b) => llamar({ accion: 'crear', ...b })
 export const cambiarAdminsBarberia = (slug, admins) => llamar({ accion: 'admins', slug, admins })
-export const cambiarSuscripcionBarberia = (slug, activa, vence, barberos) => llamar({ accion: 'suscripcion', slug, activa, vence, barberos })
+export const cambiarSuscripcionBarberia = (slug, activa, vence, barberos, sedes) => llamar({ accion: 'suscripcion', slug, activa, vence, barberos, sedes })
 
 /** «Barbería El Patrón #1» → «barberia-el-patron-1» (mismo criterio que BarberIA). */
 export function aSlug(texto) {
