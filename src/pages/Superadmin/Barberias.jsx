@@ -9,6 +9,26 @@ import {
 // (BarberIA/src/lib/plan.js).
 const mensualidad = (n, s = 1) => s * 39900 + (Math.max(s, n) - s) * 10000
 const cop = (n) => `$${Math.round(n).toLocaleString('es-CO')}`
+// Vencimiento: aviso 5 días antes, 3 días de gracia y luego se pausa sola. Copia de
+// estadoSuscripcion en BarberIA/src/lib/plan.js: si cambia allá, cambia aquí.
+const AVISO_DIAS = 5, GRACIA_DIAS = 3
+const hoyBogota = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date())
+function estadoSuscripcion(s = {}, hoy = hoyBogota()) {
+  if (s.activa === false) return { estado: 'pausada', dias: 0 }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s.vence || '')) return { estado: 'activa', dias: null }
+  const faltan = Math.round((Date.parse(`${s.vence}T00:00:00Z`) - Date.parse(`${hoy}T00:00:00Z`)) / 86400000)
+  if (faltan >= 0) return { estado: faltan <= AVISO_DIAS ? 'vence-pronto' : 'activa', dias: faltan }
+  const quedan = GRACIA_DIAS + faltan + 1
+  return quedan > 0 ? { estado: 'gracia', dias: quedan } : { estado: 'vencida', dias: 0 }
+}
+const dias = (n) => `${n} ${n === 1 ? 'día' : 'días'}`
+function textoVence({ estado, dias: n }) {
+  if (estado === 'vence-pronto') return n === 0 ? '⏳ Vence hoy' : `⏳ Vence en ${dias(n)}`
+  if (estado === 'gracia') return `⚠ En gracia · se pausa en ${dias(n)}`
+  if (estado === 'vencida') return '⛔ Vencida · pausada sola'
+  return null
+}
+
 const correoOk = (c) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)
 
 function Nueva({ prefill, onCreada }) {
@@ -69,6 +89,7 @@ function Item({ b, onCambio }) {
   const [pagados, setPagados] = useState(b.suscripcion?.barberos || 1)
   const [sedes, setSedes] = useState(b.suscripcion?.sedes || 1)
   const activa = b.suscripcion?.activa !== false
+  const aviso = textoVence(estadoSuscripcion(b.suscripcion))
   const cambiado = admins.map((x) => x.trim().toLowerCase()).filter(Boolean).join('|') !== b.admins.join('|')
 
   async function guardarAdmins() {
@@ -91,6 +112,7 @@ function Item({ b, onCambio }) {
           {activa ? '● Activa' : '○ Pausada'}
         </button>
       </div>
+      {aviso && <p className={`sa-bi-aviso ${aviso.startsWith('⏳') ? '' : 'fuerte'}`}>{aviso}{b.suscripcion?.vence ? ` (${b.suscripcion.vence})` : ''} · escríbele para renovar</p>}
       <div className="sa-admins">
         {admins.map((valor, i) => (
           <div className="sa-admin" key={i}>
@@ -142,7 +164,7 @@ export default function Barberias({ prefill }) {
         <span className="sa-sol-ico">💈</span>
         <div className="sa-sol-cab-txt">
           <strong>BarberIA</strong>
-          <small>{estado === 'cargando' ? 'Cargando…' : estado === 'error' ? 'No se pudo conectar con BarberIA.' : `${lista.length} ${lista.length === 1 ? 'barbería' : 'barberías'} · ${lista.filter((b) => b.suscripcion?.activa !== false).length} activas`}</small>
+          <small>{estado === 'cargando' ? 'Cargando…' : estado === 'error' ? 'No se pudo conectar con BarberIA.' : `${lista.length} ${lista.length === 1 ? 'barbería' : 'barberías'} · ${lista.filter((b) => b.suscripcion?.activa !== false).length} activas${(() => { const n = lista.filter((b) => ['vence-pronto', 'gracia', 'vencida'].includes(estadoSuscripcion(b.suscripcion).estado)).length; return n ? ` · ${n} por renovar` : '' })()}`}</small>
         </div>
       </div>
       {creada && (
