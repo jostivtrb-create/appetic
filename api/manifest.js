@@ -4,9 +4,11 @@
 // a su menú. index.html y src/utils/appDelLocal.js apuntan el <link rel="manifest"> a esta dirección
 // cuando se está en el link de un local.
 //
-// El «scope» sigue siendo toda la app (/), no solo /<slug>: el cliente sale del menú a Cuenta, Mis
-// pedidos o «Mi pedido» (/p/…), y con un scope más angosto Android le pondría la barra del navegador.
-// Lo que distingue una app de otra es el «id».
+// El «scope» es el link del local (/<slug>), no toda la app: Android decide si una app «ya está
+// instalada» mirando si la dirección cae dentro del scope de alguna instalada. Con scope «/», el
+// primer local instalado (o Appetic) tapaba a todos los demás y Chrome respondía «Ya se instaló
+// esta app». El costo: al salir del menú a Cuenta o Mis pedidos, Android muestra una barrita con
+// la dirección arriba.
 //
 // Si algo falla, responde el manifest general de Appetic para que instalar nunca se rompa.
 import { conAdmin } from './_lib/admin.js'
@@ -35,7 +37,7 @@ export function manifestDe(slug, l) {
     // Debajo del ícono caben unas 12 letras: si el nombre es largo, lo que quepa en palabras enteras.
     short_name: nombre.length > 12 ? (nombre.split(/\s+/).reduce((a, p) => ((a + ' ' + p).trim().length <= 12 ? (a + ' ' + p).trim() : a), '') || nombre.slice(0, 12)) : nombre,
     description: `Mira el menú de ${nombre} y pide en segundos.`,
-    start_url: `/${slug}`, theme_color: fondo, background_color: fondo,
+    start_url: `/${slug}`, scope: `/${slug}`, theme_color: fondo, background_color: fondo,
     icons: (l.icono || l.logo)
       ? [icono(192, 'any'), icono(512, 'any'), icono(192, 'maskable'), icono(512, 'maskable')]
       : GENERAL.icons,
