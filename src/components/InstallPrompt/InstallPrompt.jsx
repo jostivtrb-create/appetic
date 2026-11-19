@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { useNavUI } from '../../contexts/NavUIContext.jsx'
+import { alAvisoDeInstalar, avisoUsado, slugDeRuta } from '../../utils/instalacion.js'
 import './InstallPrompt.css'
 import logo from '../../assets/appetic-logo.png'
 
@@ -8,12 +11,17 @@ const yaInstalada = () =>
   window.navigator.standalone === true
 
 // 🔕 Al cerrarlo, no volver a molestar por un tiempo (para que no reaparezca
-// en cada entrada). Se guarda la fecha en el dispositivo.
+// en cada entrada). Se guarda la fecha en el dispositivo, aparte para Appetic y
+// para cada local (quien cerró el de Appetic aún puede querer la app de su local).
 const SNOOZE_KEY = 'appetic_install_snooze'
 const SNOOZE_MS = 14 * 24 * 60 * 60 * 1000 // 14 días
-const enSnooze = () => {
+const clave = (slug) => (slug ? `${SNOOZE_KEY}_${slug}` : SNOOZE_KEY)
+// Y si lo cerró, tampoco vuelve a salir en esta visita aunque cambie de local.
+let cerradoEstaVisita = false
+const enSnooze = (slug) => {
+  if (cerradoEstaVisita) return true
   try {
-    const t = Number(localStorage.getItem(SNOOZE_KEY))
+    const t = Number(localStorage.getItem(clave(slug)))
     return Boolean(t) && (Date.now() - t) < SNOOZE_MS
   } catch { return false }
 }
@@ -55,56 +63,51 @@ export default function InstallPrompt() {
   const [visible, setVisible] = useState(false)
   const [cerrando, setCerrando] = useState(false)
   const [deferred, setDeferred] = useState(null)
-  const [ios, setIos] = useState(false)
+  const [ios] = useState(esIOS)
+  // 📲 En el link de un local se instala ESE local (su manifest: api/manifest.js), así que el
+  // aviso sale con su ícono y su nombre.
+  const { pathname } = useLocation()
+  const { activeLocal } = useNavUI()
+  const slug = slugDeRuta(pathname)
+  const nombre = activeLocal?.slug === slug ? activeLocal.nombre : ''
 
   useEffect(() => {
+    setVisible(false)
+    setCerrando(false)
     if (yaInstalada()) return // ya la tiene, no molestamos
-    if (enSnooze()) return // la cerró hace poco: no reaparecer en cada entrada
-
-    const ipad = esIOS()
-    setIos(ipad)
+    if (enSnooze(slug)) return // la cerró hace poco: no reaparecer en cada entrada
 
     let timer
-
-    // Android / Chrome de escritorio: el navegador nos avisa que es instalable.
-    const onBeforeInstall = (e) => {
-      e.preventDefault()
+    // Android / Chrome de escritorio: el navegador nos avisa que es instalable (el aviso se
+    // guarda desde el arranque en utils/instalacion.js). Si la instalan, llega null.
+    const dejar = alAvisoDeInstalar((e) => {
       setDeferred(e)
-      timer = setTimeout(() => setVisible(true), 900)
-    }
-    // Si la instalan, escondemos el banner.
-    const onInstalled = () => {
-      setVisible(false)
-      setDeferred(null)
-    }
-
-    window.addEventListener('beforeinstallprompt', onBeforeInstall)
-    window.addEventListener('appinstalled', onInstalled)
-
-    // iOS no dispara 'beforeinstallprompt': mostramos las instrucciones a mano.
-    if (ipad) {
-      timer = setTimeout(() => setVisible(true), 1200)
-    }
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstall)
-      window.removeEventListener('appinstalled', onInstalled)
       clearTimeout(timer)
-    }
-  }, [])
+      if (e) timer = setTimeout(() => setVisible(true), 900)
+      else setVisible(false)
+    })
+    // iOS no dispara 'beforeinstallprompt': mostramos las instrucciones a mano.
+    if (ios) timer = setTimeout(() => setVisible(true), 1200)
+
+    return () => { dejar(); clearTimeout(timer) }
+  }, [slug, ios])
 
   const cerrar = () => {
-    try { localStorage.setItem(SNOOZE_KEY, String(Date.now())) } catch { /* nada */ }
+    cerradoEstaVisita = true
+    try { localStorage.setItem(clave(slug), String(Date.now())) } catch { /* nada */ }
     setCerrando(true)
     setTimeout(() => setVisible(false), 260)
   }
 
   const instalar = async () => {
     if (!deferred) return
-    deferred.prompt()
     try {
+      await deferred.prompt()
       await deferred.userChoice
+    } catch (e) {
+      console.error('[instalar]', e)
     } finally {
+      avisoUsado()
       setDeferred(null)
       setVisible(false)
     }
@@ -114,6 +117,7 @@ export default function InstallPrompt() {
 
   // iPhone en un navegador que no es Safari: no se puede instalar ahí.
   const iosFueraDeSafari = ios && !esSafari()
+  const titulo = nombre ? `Instala ${nombre}` : 'Instala la app'
 
   return (
     <div className={`ip-wrap ${cerrando ? 'is-closing' : ''}`} role="dialog" aria-label="Instalar la app">
@@ -123,12 +127,18 @@ export default function InstallPrompt() {
         </button>
 
         <div className="ip-icon">
-          <img src={logo} alt="" />
+          <img
+            key={slug}
+            className={slug ? 'ip-icon-local' : undefined}
+            src={slug ? `/api/icono?slug=${slug}&t=192&p=apple` : logo}
+            onError={(e) => { if (!e.currentTarget.src.endsWith(logo)) e.currentTarget.src = logo }}
+            alt=""
+          />
         </div>
 
         {ios ? (
           <div className="ip-body">
-            <strong className="ip-title">Instala la app</strong>
+            <strong className="ip-title">{titulo}</strong>
             {iosFueraDeSafari ? (
               <span className="ip-text">
                 Ábrela en <b>Safari</b> y toca <ShareIcon /> para instalarla.
@@ -142,7 +152,7 @@ export default function InstallPrompt() {
         ) : (
           <>
             <div className="ip-body">
-              <strong className="ip-title">Instala la app</strong>
+              <strong className="ip-title">{titulo}</strong>
               <span className="ip-text">Ábrela desde tu inicio, sin abrir el navegador.</span>
             </div>
             <button className="ip-cta" onClick={instalar}>Instalar</button>

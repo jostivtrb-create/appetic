@@ -64,6 +64,9 @@
   filter: drop-shadow(0 4px 10px rgba(42, 33, 28, 0.18));
 }
 
+/* El ícono de un local viene cuadrado y con su fondo: esquinas redondas, como en el celular. */
+.ip-icon img.ip-icon-local { border-radius: 12px; }
+
 /* Texto */
 .ip-body {
   flex: 1;

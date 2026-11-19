@@ -56,7 +56,7 @@ export default function LocalMenu({ local: localBase, productos: productosBase, 
   // salgas a Buscar/Cuenta, para que "Menú" y el carrito sigan apuntando aquí
   // y la barra recuerde sus colores.
   useEffect(() => {
-    setActiveLocal({ id: local.id, slug: local.slug, nombre: local.nombre, tema: local.tema })
+    setActiveLocal({ id: local.id, slug: local.slug, nombre: local.nombre, tema: local.tema, icono: local.icono || local.logo || '' })
   }, [local, setActiveLocal])
 
   // Mantiene el contador del carrito en la barra.

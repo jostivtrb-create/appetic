@@ -2,6 +2,7 @@ import { useEffect, lazy, Suspense } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { useNavUI } from './contexts/NavUIContext.jsx'
 import { appThemeVars } from './utils/theme.js'
+import { slugDeRuta, ponerAppDe } from './utils/instalacion.js'
 import Home from './pages/Home/Home.jsx'
 import LocalPage from './pages/Local/LocalPage.jsx'
 import AdminPage from './pages/Admin/AdminPage.jsx'
@@ -43,6 +44,12 @@ export default function App() {
     keys.forEach(k => el.style.setProperty(k, vars[k]))
     return () => keys.forEach(k => el.style.removeProperty(k))
   }, [activeLocal, enPanel])
+
+  // 📲 En el link de un local, lo que se instala es ESE local, con su nombre y su ícono; fuera,
+  // Appetic. (index.html ya lo deja puesto al entrar directo; esto lo sigue al navegar.)
+  const slugRuta = slugDeRuta(pathname)
+  const nombreRuta = activeLocal?.slug === slugRuta ? activeLocal.nombre : ''
+  useEffect(() => { ponerAppDe(slugRuta, nombreRuta) }, [slugRuta, nombreRuta])
 
   if (RUTA_TV.test(pathname)) {
     return (

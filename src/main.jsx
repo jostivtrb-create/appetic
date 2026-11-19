@@ -13,6 +13,8 @@ import { NavUIProvider } from './contexts/NavUIContext.jsx'
 // de @media (min-width: …): por debajo de 768px este archivo no pinta nada.
 import './styles/desktop.css'
 import './registerSW.js'
+// 📲 Desde el arranque: guarda el aviso de instalar del navegador (llega una sola vez y muy pronto).
+import './utils/instalacion.js'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

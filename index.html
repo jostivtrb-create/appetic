@@ -25,6 +25,19 @@
     <title>Appetic — el menú de tu barrio</title>
   </head>
   <body>
+    <script>
+      // 📲 Antes de que el navegador lea el manifest: en el link de un local, el suyo (api/manifest.js),
+      // para que lo que se instale sea ese local con su ícono. Lista espejo de src/utils/instalacion.js.
+      (function () {
+        var s = location.pathname.split('/')[1] || ''
+        var no = ['api', 'assets', 'icons', 'locales', 'cuenta', 'pedidos', 'favoritos', 'datos', 'superadmin', 'domiciliario', 'r', 'p', 'cartilla', 'propuesta', 'planes', 'barberia', 'demo-servicios']
+        if (!/^[a-z0-9-]{2,60}$/.test(s) || no.indexOf(s) >= 0) return
+        var m = document.querySelector('link[rel="manifest"]')
+        if (m) m.href = '/' + s + '/manifest.webmanifest'
+        var a = document.querySelector('link[rel="apple-touch-icon"]')
+        if (a) a.href = '/api/icono?slug=' + s + '&t=180&p=apple'
+      })()
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -15,6 +15,9 @@ function apiLocal() {
       const llave = 'scripts/serviceAccount.base64.txt'
       if (!process.env.FIREBASE_SERVICE_ACCOUNT && existsSync(llave)) process.env.FIREBASE_SERVICE_ACCOUNT = readFileSync(llave, 'utf8')
       server.middlewares.use(async (req, res, next) => {
+        // Igual que el rewrite de vercel.json: el manifest de cada local.
+        const mf = /^\/([a-z0-9-]+)\/manifest\.webmanifest(?:\?|$)/.exec(req.url || '')
+        if (mf) req.url = `/api/manifest?slug=${mf[1]}`
         const m = /^\/api\/([\w-]+)(?:\?|$)/.exec(req.url || '')
         if (!m || !existsSync(`api/${m[1]}.js`)) return next()
         let cuerpo = ''
