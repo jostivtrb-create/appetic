@@ -1,3 +1,4 @@
+import { ruta } from '../../utils/appLocal'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
@@ -39,7 +40,7 @@ export default function Cuenta() {
     return (
       <div className="cuenta-login">
         <div className="cuenta-login-glow" />
-        <Link to="/" className="cuenta-volver">‹ Inicio</Link>
+        <Link to={ruta('/')} className="cuenta-volver">‹ Inicio</Link>
         <div className="cuenta-login-card">
           <img className="cuenta-login-logo" src={logo} alt="Appetic" />
           <h1>Tu cuenta Appetic</h1>
@@ -53,7 +54,7 @@ export default function Cuenta() {
             <li>🏪 Administra tu local si eres dueño</li>
             <li>🧡 Más rápido en cada pedido</li>
           </ul>
-          <Link to="/pedidos" className="cuenta-login-pedidos">🧾 Ver mis pedidos</Link>
+          <Link to={ruta('/pedidos')} className="cuenta-login-pedidos">🧾 Ver mis pedidos</Link>
         </div>
       </div>
     )
@@ -63,7 +64,7 @@ export default function Cuenta() {
   return (
     <div className="cuenta">
       <header className="cuenta-top">
-        {!adminCargando && !esDueno && <Link to="/" className="cuenta-volver-chip">‹</Link>}
+        {!adminCargando && !esDueno && <Link to={ruta('/')} className="cuenta-volver-chip">‹</Link>}
         <h1>{esDueno ? 'Administración' : 'Mi cuenta'}</h1>
       </header>
 
@@ -127,7 +128,7 @@ export default function Cuenta() {
       ) : (
         <>
           {/* Cliente: historial y datos personales */}
-          <Link to="/pedidos" className="cuenta-rol cuenta-rol-pedidos">
+          <Link to={ruta('/pedidos')} className="cuenta-rol cuenta-rol-pedidos">
             <span className="cuenta-rol-emoji">🧾</span>
             <div>
               <strong>Mis pedidos</strong>
@@ -135,7 +136,7 @@ export default function Cuenta() {
             </div>
             <span className="cuenta-rol-go">›</span>
           </Link>
-          <Link to="/datos" className="cuenta-rol cuenta-rol-datos">
+          <Link to={ruta('/datos')} className="cuenta-rol cuenta-rol-datos">
             <span className="cuenta-rol-emoji">📇</span>
             <div>
               <strong>Mis datos</strong>

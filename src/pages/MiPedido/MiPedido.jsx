@@ -1,3 +1,4 @@
+import { ruta, appLocal } from '../../utils/appLocal'
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
@@ -73,7 +74,7 @@ export default function MiPedido() {
 }
 
 function Centro({ children }) {
-  return <div className="mp-centro"><p>{children}</p><Link to="/">Ir a Appetic</Link></div>
+  return <div className="mp-centro"><p>{children}</p><Link to={ruta('/')}>{appLocal() ? 'Ir al menú' : 'Ir a Appetic'}</Link></div>
 }
 
 // ─────────────────────────────── Cliente ───────────────────────────────

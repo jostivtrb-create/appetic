@@ -1,3 +1,4 @@
+import { ruta } from '../../utils/appLocal'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { cuentasCliente, linkDeCuenta } from '../../utils/cuentasDinero'
 import { useCart } from '../../contexts/CartContext'
@@ -264,7 +265,7 @@ export default function Checkout({ local, onClose, abierto = true }) {
     // 🍔 En la demo NO se abre WhatsApp: se muestra cómo le llega el mensaje al restaurante.
     const wa = local.esDemo ? { url: '', abierto: true } : abrirPedidoWhatsApp(local, pedido)
     clear()
-    setExito({ url: wa.url, waAbierto: wa.abierto, codigo, miPedido: `/p/${local.slug}/${id}`, linkPago, total: pedido.total, chat: local.esDemo ? textoPedido(local, pedido) : '' })
+    setExito({ url: wa.url, waAbierto: wa.abierto, codigo, miPedido: ruta(`/p/${local.slug}/${id}`), linkPago, total: pedido.total, chat: local.esDemo ? textoPedido(local, pedido) : '' })
     avisarDemo('pedido-app')
     enviandoRef.current = false
     setEnviando(false)

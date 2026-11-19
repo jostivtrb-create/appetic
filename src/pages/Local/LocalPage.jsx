@@ -1,3 +1,4 @@
+import { appLocal } from '../../utils/appLocal'
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getLocalBySlug } from '../../services/locales'
@@ -54,6 +55,10 @@ export default function LocalPage() {
       if (atrasEsDelCajon()) return
       if (cerrarCapaRef.current()) {
         window.history.pushState(window.history.state, '')
+      } else if (appLocal()) {
+        // 📲 App instalada del local: no hay un inicio al cual ir. «Atrás» hace lo de siempre en una
+        // app: vuelve a la pantalla anterior o, si no hay, la cierra.
+        window.history.back()
       } else {
         navigate('/', { replace: true })
       }

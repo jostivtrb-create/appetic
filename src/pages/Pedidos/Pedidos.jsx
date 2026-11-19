@@ -1,3 +1,4 @@
+import { ruta } from '../../utils/appLocal'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getHistorial, borrarHistorial } from '../../services/historial'
@@ -69,7 +70,7 @@ export default function Pedidos() {
 
               <div className="pedido-acciones">
                 {p.pedidoId && Date.now() - p.fecha < VIVE_MS && (
-                  <Link className="pedido-seguir" to={`/p/${p.localSlug}/${p.pedidoId}`}>📍 Ver en qué va</Link>
+                  <Link className="pedido-seguir" to={ruta(`/p/${p.localSlug}/${p.pedidoId}`)}>📍 Ver en qué va</Link>
                 )}
                 <button className="pedido-repetir" onClick={() => navigate(`/${p.localSlug}`)}>
                   Volver a pedir ›

@@ -3,6 +3,7 @@ import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { useNavUI } from './contexts/NavUIContext.jsx'
 import { appThemeVars } from './utils/theme.js'
 import { slugDeRuta, ponerAppDe } from './utils/instalacion.js'
+import { ruta } from './utils/appLocal.js'
 import Home from './pages/Home/Home.jsx'
 import LocalPage from './pages/Local/LocalPage.jsx'
 import AdminPage from './pages/Admin/AdminPage.jsx'
@@ -31,7 +32,7 @@ const RUTA_TV = /^\/[^/]+\/tv\/?$/
 
 export default function App() {
   const { activeLocal } = useNavUI()
-  const { pathname } = useLocation()
+  const { pathname, search, hash } = useLocation()
 
   // 🌎 Toda la app se transforma con el mundo del local activo (fondo incluido).
   // En los paneles internos (admin del local, superadmin) no se aplica: son de
@@ -50,6 +51,12 @@ export default function App() {
   const slugRuta = slugDeRuta(pathname)
   const nombreRuta = activeLocal?.slug === slugRuta ? activeLocal.nombre : ''
   useEffect(() => { ponerAppDe(slugRuta, nombreRuta) }, [slugRuta, nombreRuta])
+
+  // 📲 En la app instalada de un local nada se abre fuera de su link (Android le pondría encima una
+  // barra con la dirección): si algo manda a /cuenta, /pedidos o al inicio, cae en su equivalente
+  // bajo el local. Los botones ya van directo (ruta()); esto es la red para lo que se escape.
+  const dentro = ruta(pathname)
+  if (dentro !== pathname) return <Navigate to={dentro + search + hash} replace />
 
   if (RUTA_TV.test(pathname)) {
     return (
@@ -108,6 +115,14 @@ export default function App() {
 
         {/* 🧾 «Mi pedido»: el cliente ve su pedido y en qué va; el mesero/admin lo confirma */}
         <Route path="/p/:slug/:pedidoId" element={<MiPedido />} />
+
+        {/* 📲 Las mismas pantallas bajo el link del local: así las abre la app instalada de un local
+            (utils/appLocal.js), para no salirse de lo que esa app abarca. */}
+        <Route path="/:slug/cuenta" element={<Cuenta />} />
+        <Route path="/:slug/pedidos" element={<Pedidos />} />
+        <Route path="/:slug/favoritos" element={<Favoritos />} />
+        <Route path="/:slug/datos" element={<Datos />} />
+        <Route path="/:slug/p/:pedidoId" element={<MiPedido />} />
 
         {/* Cada local vive en su propio slug: appetic.app/su-negocio */}
         <Route path="/:slug" element={<LocalPage />} />

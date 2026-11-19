@@ -8,6 +8,7 @@ import { useEsEscritorio } from '../../utils/useEsEscritorio'
 import logoAppetic from '../../assets/appetic-logo.png'
 import ConfirmSalirMenu from '../ConfirmSalirMenu/ConfirmSalirMenu'
 import { soloLocal } from '../../utils/soloLocal'
+import { ruta, rutaLogica } from '../../utils/appLocal'
 import PanelRail, { devSuper } from './PanelRail'
 import { esSuperadmin } from '../../config/roles'
 import './BottomNav.css'
@@ -28,7 +29,8 @@ export default function BottomNav() {
   const { esDueno, tienePanel, localSel, cargando: adminCargando } = useAdmin()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { pathname } = useLocation()
+  // La pantalla en la que se está, aunque viva bajo el link de un local (/<slug>/cuenta = /cuenta).
+  const pathname = rutaLogica(useLocation().pathname)
   const esPC = useEsEscritorio()
   // 🧲 Aviso amable al salir del menú hacia el buscador (solo tráfico de link directo).
   const [avisoSalir, setAvisoSalir] = useState(false)
@@ -113,7 +115,7 @@ export default function BottomNav() {
   function irACarrito() {
     if (live) return live.onCarrito()
     if (activeLocal) return navigate(`/${activeLocal.slug}?pedido=1`)
-    navigate('/')
+    navigate(encerrado ? `/${encerrado.slug}?pedido=1` : '/')
   }
   // 🧲 "Buscar" desde DENTRO del menú: si el cliente llegó por LINK DIRECTO (nunca ha
   // pisado el buscador en esta sesión — el buscador se marca al montarse), un aviso
@@ -150,7 +152,7 @@ export default function BottomNav() {
             <IconPanel /><span>Panel</span>
           </button>
         ) : (
-          <button className={`bnav-item bnav-item--cuenta ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate('/cuenta')}>
+          <button className={`bnav-item bnav-item--cuenta ${activa === 'cuenta' ? 'is-active' : ''}`} onClick={() => navigate(ruta('/cuenta'))}>
             <IconUser /><span>Cuenta</span>
           </button>
         )}
@@ -161,12 +163,12 @@ export default function BottomNav() {
           </span>
           <span className="bnav-cart-label">Pedido</span>
         </button>
-        <button className={`bnav-item bnav-item--favoritos ${activa === 'favoritos' ? 'is-active' : ''}`} onClick={() => navigate('/favoritos')}>
+        <button className={`bnav-item bnav-item--favoritos ${activa === 'favoritos' ? 'is-active' : ''}`} onClick={() => navigate(ruta('/favoritos'))}>
           <IconHeart /><span>Favoritos</span>
         </button>
         {/* Sin buscador, su lugar lo toma «Mis pedidos» (así el botón del pedido sigue al centro). */}
         {encerrado ? (
-          <button className={`bnav-item bnav-item--pedidos ${pathname.startsWith('/pedidos') ? 'is-active' : ''}`} onClick={() => navigate('/pedidos')}>
+          <button className={`bnav-item bnav-item--pedidos ${pathname.startsWith('/pedidos') ? 'is-active' : ''}`} onClick={() => navigate(ruta('/pedidos'))}>
             <IconRecibo /><span>Mis pedidos</span>
           </button>
         ) : (

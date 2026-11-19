@@ -1,3 +1,4 @@
+import { ruta } from '../../utils/appLocal'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
@@ -63,7 +64,7 @@ export default function Datos() {
   return (
     <div className="datos">
       <header className="datos-top">
-        <Link to="/cuenta" className="datos-volver" aria-label="Volver a mi cuenta">‹</Link>
+        <Link to={ruta('/cuenta')} className="datos-volver" aria-label="Volver a mi cuenta">‹</Link>
         <h1>Mis datos</h1>
       </header>
 

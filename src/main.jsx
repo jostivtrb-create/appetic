@@ -1,3 +1,5 @@
+// 📲 Lo primero: ¿es la app instalada de un local? (lee y quita la marca de la dirección)
+import './utils/appLocal.js'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'

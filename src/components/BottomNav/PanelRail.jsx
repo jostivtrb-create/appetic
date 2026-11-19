@@ -1,3 +1,4 @@
+import { ruta, rutaLogica } from '../../utils/appLocal'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAdmin } from '../../contexts/AdminContext'
@@ -82,8 +83,9 @@ export default function PanelRail({ esSuper, className = '', style, modo = 'rail
   const { user } = useAuth()
   const { panelCatalogo, activeLocal } = useNavUI()
   const navigate = useNavigate()
-  const ir = to => navigate(to, enCajon ? { replace: true } : undefined)
-  const { pathname, hash } = useLocation()
+  const ir = to => navigate(ruta(to), enCajon ? { replace: true } : undefined)
+  const { pathname: dondeEsta, hash } = useLocation()
+  const pathname = rutaLogica(dondeEsta)
 
   const [todos, setTodos] = useState([])
   useEffect(() => {
