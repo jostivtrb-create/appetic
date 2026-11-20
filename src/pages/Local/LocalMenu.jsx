@@ -24,6 +24,7 @@ import './LocalSkinJet.css'
 import './LocalSkinJuance.css'
 import './LocalSkinFruti.css'
 import './LocalSkinBon.css'
+import './LocalSkinLena.css'
 import { avisarDemo } from '../../components/Demo/eventosDemo'
 
 export default function LocalMenu({ local: localBase, productos: productosBase, cerrarCapaRef }) {

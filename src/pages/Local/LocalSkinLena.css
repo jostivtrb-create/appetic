@@ -1,0 +1,131 @@
+/* 🔥 SKIN "LENA" — piel a la medida de LEÑITA CASERA (Restaurante · Parrilla).
+   Se activa SOLO cuando el local trae tema.skin === 'lena' (LocalMenu añade .local-skin-lena).
+   Es 100% presentación y está TODO scopeado a .local-skin-lena: no afecta a ningún otro local.
+
+   ADN de ESTA marca (sacado de SU logo y SUS cartas, no calcado de otro local):
+   • Logo: un TRONCO de leña café con una LLAMA naranja-amarilla; letras gruesas café madera.
+   • Cartas: madera, papel, fogón. Comida de hogar hecha a la leña.
+   → De ahí: la cabecera es un muro de TABLONES de madera oscura con el resplandor de la brasa
+     abajo y el logo en su letrero; el fondo es PAPEL KRAFT (no crema); títulos en letra de
+     letrero (Alfa Slab One) café madera con una "brasa" debajo; precios en NARANJA LLAMA y la
+     acción (botones, barra inferior) en el mismo naranja. */
+
+.local-page.local-skin-lena {
+  --lena-madera: #5A2A12;
+  --lena-madera-honda: #3B1B0B;
+  --lena-llama: #E2621B;
+  --lena-brasa: #F4A62A;
+  --lena-kraft: #EFDFC5;
+  --lena-papel: #FFF8EC;
+  --font-display: 'Alfa Slab One', 'Oswald', Georgia, serif;
+
+  --border: #E2CFAF;
+  --surface-2: #FBF3E6;
+
+  /* El "mundo": papel kraft con un respiro cálido arriba (el calor del fogón) */
+  background:
+    radial-gradient(120% 40% at 50% 0%, rgba(226, 98, 27, 0.10), transparent 70%),
+    var(--lena-kraft);
+}
+
+/* ===== HERO: tablones de madera oscura + resplandor de brasa + el logo en su letrero ===== */
+.local-skin-lena .local-hero--logo {
+  padding-top: calc(52px + env(safe-area-inset-top));
+  padding-bottom: 26px;
+  background:
+    radial-gradient(90% 60% at 50% 115%, rgba(244, 166, 42, 0.45), rgba(226, 98, 27, 0.18) 45%, transparent 70%),
+    repeating-linear-gradient(180deg, transparent 0 58px, rgba(0, 0, 0, 0.28) 58px 61px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 9px, rgba(0, 0, 0, 0.05) 9px 11px, transparent 11px 23px),
+    linear-gradient(180deg, #6B3417 0%, var(--lena-madera) 45%, var(--lena-madera-honda) 100%);
+  border-bottom: 5px solid var(--lena-llama);
+  box-shadow: inset 0 -5px 0 var(--lena-brasa);
+}
+/* La placa crema con canto de brasa viene DENTRO de logo.webp; aquí solo la sombra del letrero. */
+.local-skin-lena .local-logo-full,
+.local-skin-lena .logo-epico {
+  max-width: 380px;
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.40));
+}
+.local-skin-lena .local-desc--ink {
+  color: #FFD9A8;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  font-size: 14px;
+  margin-top: 14px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+/* ===== CATEGORÍAS: chips papel, el activo en madera ===== */
+.local-skin-lena .catnav { background: color-mix(in srgb, var(--lena-kraft) 88%, transparent); }
+.local-skin-lena .catnav-tab {
+  font-weight: 700;
+  background: var(--lena-papel);
+  border-color: var(--border);
+  color: var(--lena-madera);
+}
+.local-skin-lena .catnav-tab-active {
+  background: var(--lena-madera);
+  border-color: var(--lena-madera);
+  color: #FFE6C2;
+  box-shadow: 0 4px 12px rgba(90, 42, 18, 0.30);
+}
+
+/* ===== TÍTULOS DE SECCIÓN: letra de letrero café, con la brasa debajo ===== */
+.local-skin-lena .menu-section-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 0.01em;
+  color: var(--lena-madera);
+  padding-bottom: 7px;
+  background:
+    linear-gradient(90deg, var(--lena-llama) 0 34px, var(--lena-brasa) 34px 58px, transparent 58px)
+    left bottom / 100% 4px no-repeat;
+}
+
+/* ===== TARJETAS: papel, nombre café, PRECIO EN NARANJA LLAMA ===== */
+.local-skin-lena .pcard {
+  background: var(--lena-papel);
+  border-color: var(--border);
+  box-shadow: 0 2px 10px rgba(59, 27, 11, 0.08);
+}
+.local-skin-lena .pcard-nombre {
+  font-weight: 800;
+  color: var(--lena-madera-honda);
+}
+.local-skin-lena .pcard-precio {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--lena-llama);
+}
+.local-skin-lena .pcard-add {
+  font-weight: 800;
+  color: #fff;
+  background: var(--lena-llama);
+}
+/* Nuestro fuerte: canto de brasa y sello madera */
+.local-skin-lena .pcard-destacado {
+  border: 1.5px solid var(--lena-llama);
+  background: linear-gradient(180deg, rgba(244, 166, 42, 0.16), var(--lena-papel) 70%);
+}
+.local-skin-lena .pcard-fuerte {
+  background: var(--lena-madera);
+  color: #FFE6C2;
+}
+
+/* ===== MODAL de opciones ===== */
+.local-skin-lena .pm-nombre {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--lena-madera);
+}
+.local-skin-lena .pm-opt-precio { color: var(--lena-llama); }
+
+/* ===== Buscador ===== */
+.local-skin-lena .local-search-box:focus-within {
+  border-color: var(--lena-llama);
+  box-shadow: 0 0 0 3px rgba(226, 98, 27, 0.18);
+}
+.local-skin-lena .local-search-box:focus-within .local-search-icon { color: var(--lena-llama); }
+.local-skin-lena .local-search-clear { background: var(--lena-madera); color: #fff; }
