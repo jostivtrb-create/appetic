@@ -17,8 +17,10 @@
 //    resplandor de brasa abajo y el logo en su letrero, fondo papel kraft (no crema), títulos en
 //    letra de letrero (Alfa Slab One) café, precios en naranja llama, botones naranja.
 //
-// 🖼️ LOGO: recortado de la primera carta (el más limpio de los tres), mejorado con Real-ESRGAN y
-//    puesto en su placa crema con canto de brasa (logo.webp). icono.webp = solo el tronco con la llama.
+// 🖼️ LOGO (24-nov-2026): generado en Gemini con /Generar_Imagen (prompt en
+//    .prompts-imagenes/lenita-casera-logo.md) sobre croma y recortado a transparente: troncos cruzados
+//    con llama + «LEÑITA CASERA» crema con contorno café + cinta «RESTAURANTE · PARRILLA».
+//    icono.webp = solo la llama con los troncos, sobre crema, 512 cuadrado.
 //
 // 📷 IMÁGENES: NO se generan aquí. `foto: ''` en todo; los prompts están en
 //    public/locales/lenita-casera/PROMPTS.md y el dueño sube cada foto desde su panel.
@@ -45,15 +47,15 @@ export const LENITA_LOCAL = {
   id: SLUG,
   slug: SLUG,
   nombre: 'Leñita Casera',
-  descripcion: 'Restaurante · Parrilla — sabor de hogar, hecho a la leña',
+  descripcion: 'Sabor de hogar, hecho a la leña',
   // 📱 POR DEFECTO (sus cartas no traen número): los pedidos llegan a NUESTRO número hasta que el
   //    dueño ponga el suyo en el panel (⚙️ Configuración → Datos del negocio). Es también el número
   //    del afiche de domicilios de la pestaña 📣 Difundir.
   whatsapp: '573208435143',
 
-  logo: '/locales/lenita-casera/logo.webp',    // wordmark en su placa crema con canto de brasa
-  icono: '/locales/lenita-casera/icono.webp',  // tronco con llama, cuadrado (inicio, superadmin)
-  logoAnim: 'lado',
+  logo: '/locales/lenita-casera/logo.webp',    // emblema vertical transparente (640 px = 2× la cabecera)
+  icono: '/locales/lenita-casera/icono.webp',  // llama con troncos, cuadrado (inicio, superadmin)
+  logoAnim: 'arriba',                          // emblema vertical: entra cayendo desde arriba
   banner: '',    // el dueño sube el banner desde su panel (prompt en PROMPTS.md)
   tema: {
     primary: '#E2621B',        // naranja llama (botones, chips, acción)
