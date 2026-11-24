@@ -10,6 +10,8 @@ import { avisarDemo } from '../../components/Demo/eventosDemo'
 import ImpresoraBoton, { useImpresora, ventanaSiHaceFalta } from './Impresora'
 import { comandaDe } from '../../utils/impresora/documento'
 import { motivoImpresora } from '../../utils/impresora/conexion'
+import { auth } from '../../config/firebase'
+import { menuUrl } from '../../utils/compartir'
 
 // 🖨️ Qué comandas ya imprimió ESTE aparato (id + versión del cambio): una recarga o una comanda
 // que vuelve a la lista no sale dos veces.
@@ -150,6 +152,7 @@ export default function AdminComandas({ local, demo, esAdmin, onUpdateLocal }) {
         </div>
         <div className="km-herr">
           <ImpresoraBoton local={local} uso="cocina" impresora={impresora} estilo={colores.vars} />
+          {esAdmin && <TVCocina local={local} demo={demo} />}
           {esAdmin && <AjusteTiempos local={local} onGuardar={cfg => onUpdateLocal({ comandasConfig: cfg })} />}
           {esAdmin && <AdminEquipo local={local} rol="cocina" demo={demo} />}
         </div>
@@ -377,6 +380,89 @@ function Entregadas({ api, recientes, cursor, ahora, onDeshacer }) {
         <p className="eq-error" role="alert">{errorMas}</p>
       )}
     </div>
+  )
+}
+
+// 📺 TV de COMANDAS (solo admin): el link fijo que se abre en el TV de la cocina (pages/TV/CocinaTV).
+// La clave la guarda el servidor (api/tv-cocina.js); «Cambiar link» deja por fuera al TV viejo.
+function TVCocina({ local, demo }) {
+  const [abierto, setAbierto] = useState(false)
+  const [clave, setClave] = useState(null)
+  const [cargando, setCargando] = useState(false)
+  const [errorT, setErrorT] = useState('')
+  const [copiado, setCopiado] = useState(false)
+  const [seguro, setSeguro] = useState(false) // «¿Cambiar el link?»
+  const base = demo || import.meta.env.DEV ? `${window.location.origin}/${local.slug}` : menuUrl(local.slug)
+  const link = demo ? `${base}/cocina?preview=1` : clave ? `${base}/cocina?k=${clave}` : ''
+
+  async function pedir(accion) {
+    setCargando(true); setErrorT('')
+    try {
+      const token = await auth.currentUser?.getIdToken()
+      const r = await fetch('/api/tv-cocina', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ accion, localId: local.id }),
+      })
+      const d = await r.json().catch(() => ({}))
+      if (!r.ok) throw new Error(d.error || 'No se pudo')
+      setClave(d.clave)
+      setSeguro(false)
+    } catch (e) { setErrorT(e.message === 'Failed to fetch' ? 'Revisa el internet e intenta de nuevo.' : e.message) }
+    finally { setCargando(false) }
+  }
+  function abrir() {
+    setAbierto(true)
+    if (!demo && !clave) pedir('link')
+  }
+  async function copiar() {
+    try { await navigator.clipboard.writeText(link) } catch {
+      const ta = document.createElement('textarea'); ta.value = link; document.body.appendChild(ta)
+      ta.select(); document.execCommand('copy'); ta.remove()
+    }
+    setCopiado(true)
+    setTimeout(() => setCopiado(false), 1800)
+  }
+
+  return (
+    <>
+      <button className="eq-abrir" onClick={abrir}>📺 TV de cocina</button>
+      {abierto && (
+        <div className="eq-velo" onClick={() => setAbierto(false)}>
+          <div className="eq-ventana" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
+            <header className="eq-cab">
+              <div>
+                <h2>TV de cocina</h2>
+                <p>Las comandas en grande, en orden de llegada, en el TV de la cocina. El TV solo muestra: se tacha y se entrega desde los celulares.</p>
+              </div>
+              <button className="eq-cerrar" onClick={() => setAbierto(false)} aria-label="Cerrar">✕</button>
+            </header>
+            {cargando && !link ? <p className="km-vacio">Preparando el link…</p> : link ? (
+              <div className="km-tvlink">
+                <code>{link.replace(/^https?:\/\//, '')}</code>
+                <div className="km-tvlink-acc">
+                  <button className="btn btn-ghost" onClick={copiar}>{copiado ? '✓ Copiado' : '📋 Copiar'}</button>
+                  <a className="btn btn-primary" href={link} target="_blank" rel="noreferrer">Abrir pantalla</a>
+                </div>
+                <p className="pp-ayuda">Ábrelo en el navegador del TV y déjalo en favoritos. Pulsa OK una vez para que suene cuando llegue una comanda.</p>
+                {demo ? <p className="pp-ayuda">En la vista previa muestra las comandas de prueba de este navegador.</p> : (
+                  seguro ? (
+                    <div className="km-tvlink-seguro">
+                      <p><b>¿Cambiar el link?</b> El TV que tenga el link de ahora deja de mostrar las comandas hasta que le abras el nuevo.</p>
+                      <button className="btn btn-ghost" onClick={() => setSeguro(false)}>No</button>
+                      <button className="btn btn-primary" disabled={cargando} onClick={() => pedir('cambiar')}>{cargando ? 'Cambiando…' : 'Sí, cambiarlo'}</button>
+                    </div>
+                  ) : (
+                    <button className="km-destachar" onClick={() => setSeguro(true)}>🔒 Cambiar link (si se lo pasaron a quien no debía)</button>
+                  )
+                )}
+              </div>
+            ) : null}
+            {errorT && <p className="eq-error" role="alert">{errorT}</p>}
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 

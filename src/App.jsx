@@ -28,7 +28,9 @@ import InvitarAvisos from './components/InvitarAvisos/InvitarAvisos.jsx'
 // 📺 La pantalla de TV va aparte: sin barra, sin avisos ni instalar, y en su propio archivo
 // para que el menú del cliente no cargue su código.
 const PantallaTV = lazy(() => import('./pages/TV/PantallaTV.jsx'))
-const RUTA_TV = /^\/[^/]+\/tv\/?$/
+// 🍳📺 La TV de COMANDAS (/<slug>/cocina) va igual: aparte y sin nada encima.
+const CocinaTV = lazy(() => import('./pages/TV/CocinaTV.jsx'))
+const RUTA_TV = /^\/[^/]+\/(tv|cocina)\/?$/
 
 export default function App() {
   const { activeLocal } = useNavUI()
@@ -65,6 +67,7 @@ export default function App() {
         <Recorrido />
         <Routes>
           <Route path="/:slug/tv" element={<PantallaTV />} />
+          <Route path="/:slug/cocina" element={<CocinaTV />} />
         </Routes>
       </Suspense>
     )

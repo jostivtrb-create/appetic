@@ -1,6 +1,9 @@
 rules_version = '2';
 
-// Última actualización: 2026-11-08 (HORARIOS y AVISOS a clientes: horarios/, suscriptores/, avisos/, avisosSemana/ · antes PAQUETES)
+// Última actualización: 2026-11-24 (TV de COMANDAS: el TV de cocina con sesión propia SOLO lee las
+//   comandas de su local — esTVCocina, sesión que entrega /api/tv-cocina con la clave del link ·
+//   locales/{id}/privado/ (la clave) sin regla: nadie la lee desde la app).
+// Anterior: 2026-11-08 (HORARIOS y AVISOS a clientes: horarios/, suscriptores/, avisos/, avisosSemana/ · antes PAQUETES)
 // Último cambio: locales/{id}/arqueos/ — conteos de la caja que crea SOLO el servidor (/api/arqueo);
 //   el dueño los lee y marca `revisado`; el cajero no los lee (cuenta a ciegas).
 // Anterior: 2026-11-04 (SOLICITUDES: guía «Propuesta web de Appetic»)
@@ -146,6 +149,17 @@ service cloud.firestore {
       return puedeAdministrar(localId) || equipoActivo(localId, 'mesero') || equipoActivo(localId, 'cocina') || esCajero(localId);
     }
 
+    // 🍳📺 TV de COMANDAS (api/tv-cocina.js): el TV entra con la clave de su link y recibe una sesión
+    // con { tvCocina: <localId>, tvVer: <versión del link> }. Solo LEE las comandas de su local, y solo
+    // mientras el dueño no haya cambiado el link (locales/{id}.tvCocina.ver), el local esté al día y su
+    // plan traiga cocina. Va PRIMERO en el «o» de la lectura: no tiene correo y esPersonal lo necesita.
+    function esTVCocina(localId) {
+      return request.auth != null
+        && request.auth.token.get('tvCocina', '') == localId
+        && request.auth.token.get('tvVer', -1) == get(/databases/$(database)/documents/locales/$(localId)).data.get('tvCocina', {}).get('ver', 0)
+        && localVivo(localId) && tienePaq(localId, 'cocina');
+    }
+
     // 🪑 Cuenta por mesa: solo Empresario (guía «Blindaje», 3-nov). Para llevar o domicilio, todos.
     function mesaEnPlan(localId) {
       return request.resource.data.get('destino', {}).get('tipo', '') != 'mesa' || tienePaq(localId, 'salon');
@@ -274,7 +288,7 @@ service cloud.firestore {
       // cocina). Solo el admin o un mesero las CREAN, y nacen activas. Nadie las borra desde la app
       // (quedan como historial).
       match /comandas/{comandaId} {
-        allow read: if esPersonal(localId);
+        allow read: if esTVCocina(localId) || esPersonal(localId);
         // Las del QR de la mesa (origen 'qr') las crea SOLO el servidor (/api/pedido), con los
         // precios del menú y el límite de envíos por celular (guía «Blindaje» D1, D4).
         // Nace activa; o entregada si la crea el personal de un local sin cocina (D13).

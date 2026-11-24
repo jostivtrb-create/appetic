@@ -171,3 +171,10 @@
 .km-item.quitado .km-item-nombre { text-decoration: line-through; }
 .km-item.quitado .km-item-check { border-color: #B3261E; color: #B3261E; background: transparent; }
 .km-quitado { font-size: 13px; font-weight: 900; color: #B3261E; letter-spacing: 0.06em; }
+
+/* 📺 TV de cocina: el link en su ventana */
+.km-tvlink { display: flex; flex-direction: column; gap: 10px; padding: 4px 0 2px; }
+.km-tvlink code { display: block; padding: 10px 12px; border-radius: 10px; background: var(--surface-2, #f4f1ec); font-size: 13px; word-break: break-all; }
+.km-tvlink-acc { display: flex; gap: 8px; flex-wrap: wrap; }
+.km-tvlink-seguro { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 10px 12px; border-radius: 10px; background: #FFF4E5; }
+.km-tvlink-seguro p { margin: 0; flex-basis: 100%; font-size: 14px; }

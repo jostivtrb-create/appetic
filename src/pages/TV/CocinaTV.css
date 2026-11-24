@@ -1,0 +1,158 @@
+/* 🍳📺 TV de comandas — se lee desde el fogón: letras grandes, alto contraste, colores de la cocina
+   (MESA / PARA LLEVAR / DOMICILIO, los mismos de la pantalla de Comandas) y el reloj verde/amarillo/rojo.
+   Todo se mide en --u como el TV del menú. Sin grid ni gap en flex: los TV viejos (Chrome 53) no los
+   entienden; las columnas (column-count) sí. */
+
+.ktv {
+  --u: 1vw;
+  --ktv-fondo: #14110F;
+  --ktv-tarjeta: #FFFDF8;
+  --ktv-tinta: #1E1712;
+  background: var(--ktv-fondo);
+  display: flex;
+  flex-direction: column;
+}
+@supports (width: min(1px, 2px)) { .ktv { --u: min(1vw, 1.78vh); } }
+.ktv-vertical { --u: 1.6vw; }
+
+/* ───────────── Encabezado ───────────── */
+.ktv-cab {
+  display: flex;
+  align-items: center;
+  padding: calc(var(--u) * 1) calc(var(--u) * 1.6);
+  border-bottom: 1px solid var(--tv-linea);
+  flex: 0 0 auto;
+}
+.ktv-logo {
+  width: calc(var(--u) * 4.2);
+  height: calc(var(--u) * 4.2);
+  object-fit: contain;
+  border-radius: calc(var(--u) * 0.8);
+  background: #fff;
+  margin-right: calc(var(--u) * 1.2);
+}
+.ktv-titulo { flex: 1; min-width: 0; }
+.ktv-titulo strong { display: block; font-size: calc(var(--u) * 2.2); line-height: 1.1; }
+.ktv-titulo span { color: var(--tv-suave); font-size: calc(var(--u) * 1.15); }
+.ktv-cuenta {
+  font-size: calc(var(--u) * 3.2);
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  margin-right: calc(var(--u) * 2);
+}
+.ktv-cuenta small { display: block; font-size: calc(var(--u) * 0.95); font-weight: 600; color: var(--tv-suave); }
+.ktv-hora { font-size: calc(var(--u) * 2.4); font-weight: 700; color: var(--tv-suave); }
+
+.ktv-aviso, .ktv-sonido {
+  text-align: center;
+  font-size: calc(var(--u) * 1.1);
+  padding: calc(var(--u) * 0.45);
+}
+.ktv-aviso { background: #B3261E; color: #fff; font-weight: 700; }
+.ktv-sonido { background: rgba(255, 255, 255, 0.08); color: var(--tv-suave); }
+
+/* ───────────── Las comandas: columnas de arriba a abajo, la más vieja arriba a la izquierda ───────────── */
+.ktv-cols {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: calc(var(--u) * 1.2) calc(var(--u) * 1.4) calc(var(--u) * 2.6);
+  -webkit-column-width: calc(var(--u) * 24);
+  column-width: calc(var(--u) * 24);
+  -webkit-column-gap: calc(var(--u) * 1.2);
+  column-gap: calc(var(--u) * 1.2);
+  -webkit-column-fill: auto;
+  column-fill: auto;
+}
+.ktv-vertical .ktv-cols { -webkit-column-width: calc(var(--u) * 28); column-width: calc(var(--u) * 28); }
+
+.ktv-com {
+  display: inline-block; /* Chrome viejo: no partir la tarjeta entre columnas */
+  width: 100%;
+  -webkit-column-break-inside: avoid;
+  break-inside: avoid;
+  margin-bottom: calc(var(--u) * 1.2);
+  background: var(--ktv-tarjeta);
+  color: var(--ktv-tinta);
+  border-radius: calc(var(--u) * 0.9);
+  overflow: hidden;
+  box-shadow: 0 calc(var(--u) * 0.3) calc(var(--u) * 1.2) rgba(0, 0, 0, 0.35);
+  border: calc(var(--u) * 0.22) solid transparent;
+}
+.ktv-com.t-amarillo { border-color: #F2B705; }
+.ktv-com.t-rojo { border-color: #E5352B; }
+.ktv-com.nueva { animation: ktv-llega 1.2s ease-in-out 4; }
+@keyframes ktv-llega {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  50% { box-shadow: 0 0 0 calc(var(--u) * 0.6) rgba(255, 255, 255, 0.55); }
+}
+
+.ktv-com-cab {
+  display: flex;
+  align-items: baseline;
+  padding: calc(var(--u) * 0.55) calc(var(--u) * 0.9);
+  background: var(--cm-mesa);
+  color: var(--cm-mesa-txt);
+}
+.ktv-com.llevar .ktv-com-cab { background: var(--cm-llevar); color: var(--cm-llevar-txt); }
+.ktv-com.domicilio .ktv-com-cab { background: var(--cm-domi); color: var(--cm-domi-txt); }
+.ktv-com-tipo { font-size: calc(var(--u) * 1.05); font-weight: 800; letter-spacing: 0.06em; margin-right: calc(var(--u) * 0.6); }
+.ktv-com-dest { flex: 1; min-width: 0; font-size: calc(var(--u) * 2.3); font-weight: 800; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ktv-com-turno, .ktv-com-n { font-size: calc(var(--u) * 1.1); font-weight: 700; opacity: 0.85; margin-left: calc(var(--u) * 0.6); }
+
+.ktv-com-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: calc(var(--u) * 0.5) calc(var(--u) * 0.9) 0;
+}
+.ktv-com-meta > * { margin-right: calc(var(--u) * 0.6); margin-bottom: calc(var(--u) * 0.2); }
+.ktv-reloj {
+  font-size: calc(var(--u) * 1.4);
+  font-weight: 800;
+  padding: calc(var(--u) * 0.1) calc(var(--u) * 0.55);
+  border-radius: calc(var(--u) * 0.5);
+  color: #fff;
+  background: #2E8B57;
+}
+.ktv-reloj.amarillo { background: #F2B705; color: #1E1712; }
+.ktv-reloj.rojo { background: #E5352B; }
+.ktv-prog { font-size: calc(var(--u) * 1.1); font-weight: 700; color: #2E8B57; }
+.ktv-cambio {
+  font-size: calc(var(--u) * 1.05);
+  font-weight: 800;
+  background: #FFE08A;
+  color: #6B4A00;
+  padding: calc(var(--u) * 0.1) calc(var(--u) * 0.5);
+  border-radius: calc(var(--u) * 0.5);
+}
+
+.ktv-items { list-style: none; margin: 0; padding: calc(var(--u) * 0.4) calc(var(--u) * 0.9) calc(var(--u) * 0.8); }
+.ktv-items li { padding: calc(var(--u) * 0.35) 0; border-top: 1px solid rgba(30, 23, 18, 0.1); }
+.ktv-items li:first-child { border-top: 0; }
+.ktv-item-nombre { display: block; font-size: calc(var(--u) * 1.8); font-weight: 700; line-height: 1.2; }
+.ktv-item-op { display: block; font-size: calc(var(--u) * 1.4); color: #5A4A3E; line-height: 1.25; }
+.ktv-item-com { display: block; font-size: calc(var(--u) * 1.4); font-weight: 700; color: #B4440C; line-height: 1.25; }
+/* Lo que ya salió: tachado y apagado, pero se sigue viendo (la mesa aún espera lo demás). */
+.ktv-items li.hecho { opacity: 0.38; }
+.ktv-items li.hecho .ktv-item-nombre { text-decoration: line-through; }
+
+/* ───────────── Vacío y «+N más» ───────────── */
+.ktv-vacio { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.ktv-vacio span { font-size: calc(var(--u) * 7); }
+.ktv-vacio p { font-size: calc(var(--u) * 2.6); font-weight: 800; margin: calc(var(--u) * 1) 0 calc(var(--u) * 0.4); }
+.ktv-vacio small { font-size: calc(var(--u) * 1.3); color: var(--tv-suave); }
+
+.ktv-mas {
+  position: absolute;
+  right: calc(var(--u) * 1.4);
+  bottom: calc(var(--u) * 1);
+  font-size: calc(var(--u) * 1.5);
+  font-weight: 800;
+  background: #E5352B;
+  color: #fff;
+  padding: calc(var(--u) * 0.35) calc(var(--u) * 1);
+  border-radius: 999px;
+}
+.ktv-marca { left: calc(var(--u) * 1.4); right: auto; }
