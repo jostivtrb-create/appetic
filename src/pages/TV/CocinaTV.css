@@ -1,158 +1,238 @@
-/* 🍳📺 TV de comandas — se lee desde el fogón: letras grandes, alto contraste, colores de la cocina
-   (MESA / PARA LLEVAR / DOMICILIO, los mismos de la pantalla de Comandas) y el reloj verde/amarillo/rojo.
-   Todo se mide en --u como el TV del menú. Sin grid ni gap en flex: los TV viejos (Chrome 53) no los
-   entienden; las columnas (column-count) sí. */
+/* 🍳📺 TV de comandas — una FILA por comanda, en orden de llegada, para leer desde el fogón:
+   a la izquierda el bloque de color del tipo (MESA / PARA LLEVAR / DOMICILIO, los colores de la
+   pantalla de Cocina) · el número · quién · los platos · el reloj · cómo va. Abajo el resumen.
+   Todo se mide en --u como el TV del menú. Sin grid ni gap en flex: los TV viejos (Chrome 53) no
+   los entienden; se usan márgenes. */
 
 .ktv {
   --u: 1vw;
-  --ktv-fondo: #14110F;
-  --ktv-tarjeta: #FFFDF8;
-  --ktv-tinta: #1E1712;
-  background: var(--ktv-fondo);
+  --ktv-fondo: #100D0B;
+  --ktv-fila: #1E1A17;
+  --ktv-borde: rgba(255, 255, 255, 0.09);
+  --ktv-suave: rgba(247, 239, 230, 0.62);
+  --ktv-verde: #1FA24A;
+  --ktv-amarillo: #F2B705;
+  --ktv-rojo: #D93025;
+  background:
+    radial-gradient(60% 45% at 100% 100%, rgba(226, 98, 27, 0.20), transparent 70%),
+    var(--ktv-fondo);
   display: flex;
   flex-direction: column;
 }
 @supports (width: min(1px, 2px)) { .ktv { --u: min(1vw, 1.78vh); } }
-.ktv-vertical { --u: 1.6vw; }
+.ktv-vertical { --u: 1.5vw; }
+.ktv-ico { width: 1.15em; height: 1.15em; flex: 0 0 auto; vertical-align: -0.18em; }
+.ktv-sep { width: 1px; align-self: stretch; background: var(--ktv-borde); margin: 0 calc(var(--u) * 1.4); flex: 0 0 auto; }
 
 /* ───────────── Encabezado ───────────── */
 .ktv-cab {
   display: flex;
   align-items: center;
-  padding: calc(var(--u) * 1) calc(var(--u) * 1.6);
-  border-bottom: 1px solid var(--tv-linea);
+  padding: calc(var(--u) * 0.9) calc(var(--u) * 1.6);
+  border-bottom: 1px solid var(--ktv-borde);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
   flex: 0 0 auto;
 }
-.ktv-logo {
-  width: calc(var(--u) * 4.2);
-  height: calc(var(--u) * 4.2);
-  object-fit: contain;
-  border-radius: calc(var(--u) * 0.8);
-  background: #fff;
-  margin-right: calc(var(--u) * 1.2);
-}
-.ktv-titulo { flex: 1; min-width: 0; }
-.ktv-titulo strong { display: block; font-size: calc(var(--u) * 2.2); line-height: 1.1; }
-.ktv-titulo span { color: var(--tv-suave); font-size: calc(var(--u) * 1.15); }
-.ktv-cuenta {
-  font-size: calc(var(--u) * 3.2);
+.ktv-marcaLocal { display: flex; align-items: center; min-width: 0; }
+.ktv-logo { height: calc(var(--u) * 4); width: auto; max-width: calc(var(--u) * 6); object-fit: contain; margin-right: calc(var(--u) * 1); }
+.ktv-nombre {
+  font-size: calc(var(--u) * 2.5);
   font-weight: 800;
-  line-height: 1;
-  text-align: center;
-  margin-right: calc(var(--u) * 2);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  padding-bottom: calc(var(--u) * 0.25);
+  background: linear-gradient(90deg, var(--cm-mesa), transparent) left bottom / 85% calc(var(--u) * 0.22) no-repeat;
 }
-.ktv-cuenta small { display: block; font-size: calc(var(--u) * 0.95); font-weight: 600; color: var(--tv-suave); }
-.ktv-hora { font-size: calc(var(--u) * 2.4); font-weight: 700; color: var(--tv-suave); }
-
-.ktv-aviso, .ktv-sonido {
-  text-align: center;
-  font-size: calc(var(--u) * 1.1);
-  padding: calc(var(--u) * 0.45);
+.ktv-titulo { flex: 1; font-size: calc(var(--u) * 2); font-weight: 600; color: var(--ktv-suave); white-space: nowrap; }
+.ktv-titulo .ktv-ico { margin-right: calc(var(--u) * 0.6); }
+.ktv-dia {
+  font-size: calc(var(--u) * 1.4);
+  font-weight: 600;
+  padding: calc(var(--u) * 0.5) calc(var(--u) * 1.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: calc(var(--u) * 0.7);
+  white-space: nowrap;
 }
-.ktv-aviso { background: #B3261E; color: #fff; font-weight: 700; }
-.ktv-sonido { background: rgba(255, 255, 255, 0.08); color: var(--tv-suave); }
+.ktv-dia .ktv-ico { margin-right: calc(var(--u) * 0.5); }
+.ktv-hora { font-size: calc(var(--u) * 3); font-weight: 800; white-space: nowrap; }
 
-/* ───────────── Las comandas: columnas de arriba a abajo, la más vieja arriba a la izquierda ───────────── */
-.ktv-cols {
+.ktv-aviso, .ktv-sonido { text-align: center; font-size: calc(var(--u) * 1.1); padding: calc(var(--u) * 0.4); }
+.ktv-aviso { background: var(--ktv-rojo); color: #fff; font-weight: 700; }
+.ktv-sonido { background: rgba(255, 255, 255, 0.06); color: var(--ktv-suave); }
+
+/* ───────────── Las filas ───────────── */
+.ktv-filas {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
-  padding: calc(var(--u) * 1.2) calc(var(--u) * 1.4) calc(var(--u) * 2.6);
-  -webkit-column-width: calc(var(--u) * 24);
-  column-width: calc(var(--u) * 24);
-  -webkit-column-gap: calc(var(--u) * 1.2);
-  column-gap: calc(var(--u) * 1.2);
-  -webkit-column-fill: auto;
-  column-fill: auto;
+  padding: calc(var(--u) * 0.9) calc(var(--u) * 1.2) 0;
+  position: relative;
+  z-index: 1;
 }
-.ktv-vertical .ktv-cols { -webkit-column-width: calc(var(--u) * 28); column-width: calc(var(--u) * 28); }
-
-.ktv-com {
-  display: inline-block; /* Chrome viejo: no partir la tarjeta entre columnas */
-  width: 100%;
-  -webkit-column-break-inside: avoid;
-  break-inside: avoid;
-  margin-bottom: calc(var(--u) * 1.2);
-  background: var(--ktv-tarjeta);
-  color: var(--ktv-tinta);
+.ktv-fila {
+  display: flex;
+  align-items: stretch;
+  min-height: calc(var(--u) * 4.8);
+  margin-bottom: calc(var(--u) * 0.6);
+  background: var(--ktv-fila);
+  border: 1px solid var(--ktv-borde);
   border-radius: calc(var(--u) * 0.9);
   overflow: hidden;
-  box-shadow: 0 calc(var(--u) * 0.3) calc(var(--u) * 1.2) rgba(0, 0, 0, 0.35);
-  border: calc(var(--u) * 0.22) solid transparent;
+  box-shadow: 0 calc(var(--u) * 0.2) calc(var(--u) * 0.8) rgba(0, 0, 0, 0.35);
 }
-.ktv-com.t-amarillo { border-color: #F2B705; }
-.ktv-com.t-rojo { border-color: #E5352B; }
-.ktv-com.nueva { animation: ktv-llega 1.2s ease-in-out 4; }
+.ktv-fila.nueva { animation: ktv-llega 1.2s ease-in-out 5; }
 @keyframes ktv-llega {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-  50% { box-shadow: 0 0 0 calc(var(--u) * 0.6) rgba(255, 255, 255, 0.55); }
+  50% { box-shadow: 0 0 0 calc(var(--u) * 0.35) rgba(255, 255, 255, 0.6); }
 }
 
-.ktv-com-cab {
-  display: flex;
-  align-items: baseline;
-  padding: calc(var(--u) * 0.55) calc(var(--u) * 0.9);
-  background: var(--cm-mesa);
-  color: var(--cm-mesa-txt);
-}
-.ktv-com.llevar .ktv-com-cab { background: var(--cm-llevar); color: var(--cm-llevar-txt); }
-.ktv-com.domicilio .ktv-com-cab { background: var(--cm-domi); color: var(--cm-domi-txt); }
-.ktv-com-tipo { font-size: calc(var(--u) * 1.05); font-weight: 800; letter-spacing: 0.06em; margin-right: calc(var(--u) * 0.6); }
-.ktv-com-dest { flex: 1; min-width: 0; font-size: calc(var(--u) * 2.3); font-weight: 800; line-height: 1.1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ktv-com-turno, .ktv-com-n { font-size: calc(var(--u) * 1.1); font-weight: 700; opacity: 0.85; margin-left: calc(var(--u) * 0.6); }
-
-.ktv-com-meta {
+/* El bloque del tipo: el color de la cocina, con su canto más claro a la izquierda */
+.ktv-tipo {
+  flex: 0 0 calc(var(--u) * 13.5);
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  padding: calc(var(--u) * 0.5) calc(var(--u) * 0.9) 0;
+  padding: 0 calc(var(--u) * 1.1);
+  color: var(--cm-mesa-txt);
+  background: linear-gradient(135deg, var(--cm-mesa), rgba(0, 0, 0, 0.35)) var(--cm-mesa);
+  border-left: calc(var(--u) * 0.45) solid rgba(255, 255, 255, 0.35);
 }
-.ktv-com-meta > * { margin-right: calc(var(--u) * 0.6); margin-bottom: calc(var(--u) * 0.2); }
+.ktv-fila.llevar .ktv-tipo { color: var(--cm-llevar-txt); background: linear-gradient(135deg, var(--cm-llevar), rgba(0, 0, 0, 0.35)) var(--cm-llevar); }
+.ktv-fila.domicilio .ktv-tipo { color: var(--cm-domi-txt); background: linear-gradient(135deg, var(--cm-domi), rgba(0, 0, 0, 0.35)) var(--cm-domi); }
+.ktv-tipo .ktv-ico { font-size: calc(var(--u) * 2); margin-right: calc(var(--u) * 0.6); }
+.ktv-tipo-txt { font-size: calc(var(--u) * 1.25); font-weight: 800; letter-spacing: 0.04em; line-height: 1.1; }
+.ktv-tipo-mesa { font-size: calc(var(--u) * 3.2); font-weight: 800; line-height: 1; margin-left: calc(var(--u) * 0.6); }
+
+.ktv-num {
+  flex: 0 0 calc(var(--u) * 5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--u) * 2.2);
+  font-weight: 800;
+  border-right: 1px solid var(--ktv-borde);
+}
+.ktv-num small { font-size: calc(var(--u) * 1); color: var(--ktv-suave); }
+
+.ktv-quien {
+  flex: 0 0 calc(var(--u) * 13);
+  display: flex;
+  align-items: center;
+  padding: 0 calc(var(--u) * 1);
+  font-size: calc(var(--u) * 1.9);
+  font-weight: 700;
+  line-height: 1.15;
+  overflow: hidden;
+  border-right: 1px solid var(--ktv-borde);
+}
+
+.ktv-platos {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: calc(var(--u) * 0.45) calc(var(--u) * 1);
+}
+.ktv-platos > .ktv-ico { font-size: calc(var(--u) * 2.2); color: var(--ktv-suave); margin-right: calc(var(--u) * 1.2); }
+.ktv-platos ul { list-style: none; margin: 0; padding: 0; min-width: 0; }
+.ktv-platos li { margin: calc(var(--u) * 0.05) 0; }
+.ktv-plato { display: block; font-size: calc(var(--u) * 1.85); font-weight: 800; line-height: 1.15; }
+.ktv-op { display: block; font-size: calc(var(--u) * 1.25); color: var(--ktv-suave); line-height: 1.25; margin-left: calc(var(--u) * 0.3); }
+.ktv-nota {
+  font-style: normal;
+  font-weight: 800;
+  color: #FFB27A;
+  margin-left: calc(var(--u) * 0.8);
+  white-space: nowrap;
+}
+/* Lo que ya salió: tachado y apagado, pero se sigue viendo (la mesa aún espera lo demás) */
+.ktv-platos li.hecho { opacity: 0.4; }
+.ktv-platos li.hecho .ktv-plato { text-decoration: line-through; }
+
 .ktv-reloj {
-  font-size: calc(var(--u) * 1.4);
+  flex: 0 0 auto;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  font-size: calc(var(--u) * 2);
   font-weight: 800;
-  padding: calc(var(--u) * 0.1) calc(var(--u) * 0.55);
-  border-radius: calc(var(--u) * 0.5);
   color: #fff;
-  background: #2E8B57;
+  background: var(--ktv-verde);
+  padding: calc(var(--u) * 0.35) calc(var(--u) * 1.1);
+  border-radius: 999px;
+  margin: 0 calc(var(--u) * 1);
+  min-width: calc(var(--u) * 8.5);
+  justify-content: center;
 }
-.ktv-reloj.amarillo { background: #F2B705; color: #1E1712; }
-.ktv-reloj.rojo { background: #E5352B; }
-.ktv-prog { font-size: calc(var(--u) * 1.1); font-weight: 700; color: #2E8B57; }
-.ktv-cambio {
-  font-size: calc(var(--u) * 1.05);
+.ktv-reloj .ktv-ico { margin-right: calc(var(--u) * 0.5); }
+.ktv-reloj.amarillo { background: var(--ktv-amarillo); color: #1E1712; }
+.ktv-reloj.rojo { background: var(--ktv-rojo); animation: ktv-late 1.6s ease-in-out infinite; }
+@keyframes ktv-late { 50% { opacity: 0.72; } }
+
+.ktv-estado {
+  flex: 0 0 calc(var(--u) * 12);
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--u) * 1.45);
   font-weight: 800;
-  background: #FFE08A;
-  color: #6B4A00;
-  padding: calc(var(--u) * 0.1) calc(var(--u) * 0.5);
-  border-radius: calc(var(--u) * 0.5);
+  padding: calc(var(--u) * 0.55) calc(var(--u) * 0.8);
+  border-radius: calc(var(--u) * 0.8);
+  margin-right: calc(var(--u) * 1);
+  white-space: nowrap;
 }
+.ktv-estado .ktv-ico { margin-right: calc(var(--u) * 0.5); }
+.ktv-estado.prep { background: rgba(31, 162, 74, 0.22); color: #7BE39B; border: 1px solid rgba(31, 162, 74, 0.6); }
+.ktv-estado.avance { border: 1px solid rgba(255, 255, 255, 0.28); color: #fff; }
+.ktv-estado.entregar { background: var(--ktv-amarillo); color: #1E1712; }
+.ktv-estado.cambio { background: var(--ktv-rojo); color: #fff; }
 
-.ktv-items { list-style: none; margin: 0; padding: calc(var(--u) * 0.4) calc(var(--u) * 0.9) calc(var(--u) * 0.8); }
-.ktv-items li { padding: calc(var(--u) * 0.35) 0; border-top: 1px solid rgba(30, 23, 18, 0.1); }
-.ktv-items li:first-child { border-top: 0; }
-.ktv-item-nombre { display: block; font-size: calc(var(--u) * 1.8); font-weight: 700; line-height: 1.2; }
-.ktv-item-op { display: block; font-size: calc(var(--u) * 1.4); color: #5A4A3E; line-height: 1.25; }
-.ktv-item-com { display: block; font-size: calc(var(--u) * 1.4); font-weight: 700; color: #B4440C; line-height: 1.25; }
-/* Lo que ya salió: tachado y apagado, pero se sigue viendo (la mesa aún espera lo demás). */
-.ktv-items li.hecho { opacity: 0.38; }
-.ktv-items li.hecho .ktv-item-nombre { text-decoration: line-through; }
-
-/* ───────────── Vacío y «+N más» ───────────── */
+/* ───────────── Vacío ───────────── */
 .ktv-vacio { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.ktv-vacio span { font-size: calc(var(--u) * 7); }
+.ktv-vacio .ktv-ico { font-size: calc(var(--u) * 7); color: var(--ktv-suave); }
 .ktv-vacio p { font-size: calc(var(--u) * 2.6); font-weight: 800; margin: calc(var(--u) * 1) 0 calc(var(--u) * 0.4); }
-.ktv-vacio small { font-size: calc(var(--u) * 1.3); color: var(--tv-suave); }
+.ktv-vacio small { font-size: calc(var(--u) * 1.3); color: var(--ktv-suave); }
 
+/* ───────────── Pie: el resumen ───────────── */
+.ktv-pie {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  margin: calc(var(--u) * 0.4) calc(var(--u) * 1.2) calc(var(--u) * 1.6);
+  padding: calc(var(--u) * 0.7) calc(var(--u) * 1.6);
+  background: rgba(30, 26, 23, 0.92);
+  border: 1px solid var(--ktv-borde);
+  border-radius: calc(var(--u) * 0.9);
+  font-size: calc(var(--u) * 1.4);
+  color: var(--ktv-suave);
+  position: relative;
+  z-index: 1;
+}
+.ktv-pie b { color: #fff; font-size: calc(var(--u) * 2); margin: 0 calc(var(--u) * 0.3); }
+.ktv-pie .ktv-ico { font-size: calc(var(--u) * 1.8); }
+.ktv-pie-total { color: #fff; font-weight: 700; }
+.ktv-pie-item { margin-right: calc(var(--u) * 2.4); white-space: nowrap; }
+.ktv-pie-item.entregar .ktv-ico { color: var(--ktv-amarillo); }
+.ktv-pie-item.prep .ktv-ico { color: #7BE39B; }
 .ktv-mas {
-  position: absolute;
-  right: calc(var(--u) * 1.4);
-  bottom: calc(var(--u) * 1);
-  font-size: calc(var(--u) * 1.5);
+  margin-left: auto;
   font-weight: 800;
-  background: #E5352B;
+  background: var(--ktv-rojo);
   color: #fff;
-  padding: calc(var(--u) * 0.35) calc(var(--u) * 1);
+  padding: calc(var(--u) * 0.3) calc(var(--u) * 1);
   border-radius: 999px;
 }
-.ktv-marca { left: calc(var(--u) * 1.4); right: auto; }
+
+/* La brasa del rincón: solo un resplandor, no tapa nada */
+.ktv-brasa {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: calc(var(--u) * 26);
+  height: calc(var(--u) * 10);
+  background: radial-gradient(60% 70% at 85% 100%, rgba(255, 140, 40, 0.38), rgba(226, 98, 27, 0.12) 50%, transparent 75%);
+  pointer-events: none;
+}
+.ktv .tv-marca { display: none; }

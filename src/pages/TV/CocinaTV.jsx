@@ -153,32 +153,39 @@ function Fila({ local, comandas, sinRed }) {
     vistas.current = ids
   }, [comandas, sonido])
 
-  // Las que no caben en la pantalla no se cortan a la mitad: se esconden y se cuentan («+3 en fila»).
+  // Las filas que no caben no se cortan a la mitad: se esconden y se cuentan («+3 más en fila»).
   const caja = useRef(null)
   const [ocultas, setOcultas] = useState(0)
   useLayoutEffect(() => {
     const el = caja.current
-    if (!el) return
-    const ancho = el.clientWidth
+    if (!el) { setOcultas(0); return }
+    const alto = el.clientHeight
     let n = 0
     for (const t of el.children) {
-      const fuera = t.offsetLeft >= ancho - 4
+      const fuera = t.offsetTop + t.offsetHeight > alto + 2
       t.style.visibility = fuera ? 'hidden' : ''
       if (fuera) n++
     }
     setOcultas(n)
   })
 
-  const hora = new Date(ahora).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' })
+  const estados = comandas.map(estadoDe)
+  const cuenta = k => estados.filter(e => e.k === k).length
+  const fecha = new Date(ahora)
+  const hora = fecha.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' })
+  const dia = fecha.toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '')
+  const logo = local.icono || local.logo
   return (
     <div className={`tv ktv ${vertical ? 'ktv-vertical' : ''}`} style={colores.vars}>
       <header className="ktv-cab">
-        {local.icono || local.logo ? <img className="ktv-logo" src={local.icono || local.logo} alt="" /> : null}
-        <div className="ktv-titulo">
-          <strong>{local.nombre}</strong>
-          <span>🍳 Comandas en orden de llegada</span>
+        <div className="ktv-marcaLocal">
+          {logo ? <img className="ktv-logo" src={logo} alt="" /> : null}
+          <strong className="ktv-nombre">{local.nombre}</strong>
         </div>
-        <div className="ktv-cuenta">{comandas.length}<small>en fila</small></div>
+        <span className="ktv-sep" />
+        <div className="ktv-titulo"><Ico n="campana" /> Comandas en cocina</div>
+        <div className="ktv-dia"><Ico n="calendario" /> {dia.charAt(0).toUpperCase() + dia.slice(1)}</div>
+        <span className="ktv-sep" />
         <div className="ktv-hora">{hora}</div>
       </header>
       {sinRed && <div className="ktv-aviso">⚠️ Sin conexión: puede que falten comandas. Se reconecta sola.</div>}
@@ -186,52 +193,92 @@ function Fila({ local, comandas, sinRed }) {
 
       {comandas.length === 0 ? (
         <div className="ktv-vacio">
-          <span aria-hidden="true">🍳</span>
+          <Ico n="campana" />
           <p>No hay comandas pendientes</p>
           <small>Las nuevas aparecen aquí solas, en orden de llegada.</small>
         </div>
       ) : (
-        <div className="ktv-cols" ref={caja}>
-          {comandas.map((c, i) => <Tarjeta key={c.id} c={c} n={i + 1} ahora={ahora} umbrales={umbrales} nueva={nuevas.has(c.id)} />)}
+        <div className="ktv-filas" ref={caja}>
+          {comandas.map((c, i) => <Comanda key={c.id} c={c} n={i + 1} estado={estados[i]} ahora={ahora} umbrales={umbrales} nueva={nuevas.has(c.id)} />)}
         </div>
       )}
-      {ocultas > 0 && <div className="ktv-mas">+{ocultas} más en fila</div>}
-      <span className="tv-marca ktv-marca">Hecho con <b>Appetic</b></span>
+
+      <footer className="ktv-pie">
+        <span className="ktv-pie-total"><Ico n="lista" /> <b>{comandas.length}</b> {comandas.length === 1 ? 'comanda activa' : 'comandas activas'}</span>
+        <span className="ktv-sep" />
+        <span className="ktv-pie-item entregar"><Ico n="campana" /> <b>{cuenta('entregar')}</b> por entregar</span>
+        <span className="ktv-pie-item prep"><Ico n="gorro" /> <b>{cuenta('prep')}</b> en preparación</span>
+        <span className="ktv-pie-item avance"><Ico n="reloj" /> <b>{cuenta('avance')}</b> a medias</span>
+        {ocultas > 0 && <span className="ktv-mas">+{ocultas} más en fila</span>}
+      </footer>
+      <div className="ktv-brasa" aria-hidden="true" />
     </div>
   )
 }
 
-function Tarjeta({ c, n, ahora, umbrales, nueva }) {
+// Cómo va la comanda, a la derecha de la fila (lo marca la cocina tachando desde el celular).
+function estadoDe(c) {
+  const vivos = (c.items || []).filter(i => !i.quitado)
+  const hechos = vivos.filter(i => i.hecho).length
+  if (c.cambioPendiente) return { k: 'cambio', txt: '⚠️ Cambió' }
+  if (vivos.length && hechos === vivos.length) return { k: 'entregar', txt: 'Por entregar' }
+  if (hechos > 0) return { k: 'avance', txt: `${hechos}/${vivos.length} ✓` }
+  return { k: 'prep', txt: 'En preparación' }
+}
+
+const ICONO_TIPO = { mesa: 'mesa', llevar: 'moto', domicilio: 'casa' }
+
+function Comanda({ c, n, estado, ahora, umbrales, nueva }) {
   const clase = claseDestino(c.destino)
   const seg = (ahora - (ms(c.creadaEn) || ahora)) / 1000
   const nivel = nivelTiempo(seg, umbrales)
   const vivos = (c.items || []).filter(i => !i.quitado)
-  const hechos = vivos.filter(i => i.hecho).length
-  const quien = clase === 'mesa' ? (c.destino?.mesa || c.destino?.nombre || '') : (c.destino?.nombre || '')
+  const mesa = clase === 'mesa' ? (c.destino?.mesa || '') : ''
+  const nombre = c.destino?.nombre || ''
   return (
-    <article className={`ktv-com ${clase} t-${nivel} ${nueva ? 'nueva' : ''}`}>
-      <div className="ktv-com-cab">
-        <span className="ktv-com-tipo">{palabraDestino(c.destino)}</span>
-        <span className="ktv-com-dest">{quien}</span>
-        {c.turno ? <span className="ktv-com-turno">T{c.turno}</span> : null}
-        <span className="ktv-com-n">#{n}</span>
+    <article className={`ktv-fila ${clase} ${nueva ? 'nueva' : ''}`}>
+      <div className="ktv-tipo">
+        <Ico n={ICONO_TIPO[clase]} />
+        <span className="ktv-tipo-txt">{palabraDestino(c.destino)}</span>
+        {mesa ? <span className="ktv-tipo-mesa">{mesa}</span> : null}
       </div>
-      <div className="ktv-com-meta">
-        <span className={`ktv-reloj ${nivel}`}>⏱ {minutosSeg(seg)}</span>
-        {hechos > 0 && <span className="ktv-prog">{hechos}/{vivos.length} ✓</span>}
-        {c.cambioPendiente && <span className="ktv-cambio">⚠️ CAMBIÓ</span>}
+      <div className="ktv-num">#{n}{c.turno ? <small>T{c.turno}</small> : null}</div>
+      <div className="ktv-quien">{nombre}</div>
+      <div className="ktv-platos">
+        <Ico n="campana" />
+        <ul>
+          {vivos.map(it => (
+            <li key={it.uid} className={it.hecho ? 'hecho' : ''}>
+              <span className="ktv-plato"><b>{it.cantidad}×</b> {it.nombre}</span>
+              {(it.opciones || it.comentario) && (
+                <span className="ktv-op">
+                  {it.opciones}
+                  {it.comentario && <em className="ktv-nota">💬 {it.comentario}</em>}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="ktv-items">
-        {vivos.map(it => (
-          <li key={it.uid} className={it.hecho ? 'hecho' : ''}>
-            <span className="ktv-item-nombre"><b>{it.cantidad}×</b> {it.nombre}</span>
-            {it.opciones && <span className="ktv-item-op">{it.opciones}</span>}
-            {it.comentario && <span className="ktv-item-com">💬 {it.comentario}</span>}
-          </li>
-        ))}
-      </ul>
+      <div className={`ktv-reloj ${nivel}`}><Ico n="reloj" /> {minutosSeg(seg)}</div>
+      <div className={`ktv-estado ${estado.k}`}>{estado.k === 'entregar' && <Ico n="campana" />}{estado.txt}</div>
     </article>
   )
+}
+
+// Íconos de línea (SVG, se ven igual en cualquier TV; los emojis cambian según el aparato).
+function Ico({ n }) {
+  const p = {
+    campana: <><path d="M3 18h18" /><path d="M5 18a7 7 0 0 1 14 0" /><path d="M12 9V7" /><path d="M10 7h4" /></>,
+    calendario: <><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 10h16M9 3v4M15 3v4" /></>,
+    reloj: <><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2.5 2M10 2h4" /></>,
+    mesa: <><path d="M3 8h18" /><path d="M6 8v11M18 8v11" /><path d="M6 13h12" /></>,
+    moto: <><circle cx="6" cy="17" r="3" /><circle cx="18" cy="17" r="3" /><path d="M9 17h6l-2-6h-3M15 11l3 6M13 11V7h3" /></>,
+    casa: <><path d="M3 11l9-7 9 7" /><path d="M5 10v10h14V10" /><path d="M10 20v-6h4v6" /></>,
+    lista: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 9h6M9 13h6M9 17h4" /></>,
+    gorro: <><path d="M7 14a4 4 0 1 1 1.5-7.7A4.5 4.5 0 0 1 16.5 6.3 4 4 0 1 1 17 14" /><path d="M7 14v5h10v-5" /></>,
+  }[n]
+  return <svg className="ktv-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{p}</svg>
 }
 
 function Mensaje({ titulo, texto }) {
