@@ -1,0 +1,216 @@
+/* 🐔 SKIN "CHICKEN" — piel a la medida de CHICKEN ZONE.
+   Se activa SOLO cuando el local trae tema.skin === 'chicken' (LocalMenu añade .local-skin-chicken).
+   100% presentación, TODO scopeado a .local-skin-chicken: no afecta a ningún otro local.
+
+   ADN de ESTA marca (sacado de SU carta, no calcado de otro local):
+   • Fondo NEGRO PURO con brochazos AMARILLO MOSTAZA (#EAAF28) en las esquinas.
+   • Títulos en letra condensada pesada amarilla ("BURGER Y SANDWICH", "CRISPY COMBOS").
+   • Nombres y precios en amarillo, descripciones en blanco, filete amarillo vertical.
+   • Íconos de línea: pierna de pollo y papas.
+   → Negro + mostaza, Anton, trazo de pincel. (Juance es noche violeta con lila; Pilotos
+     es vino+dorado stencil: aquí no se reusa nada de eso.) */
+
+.local-page.local-skin-chicken {
+  --surface: #151515;
+  --surface-2: #1C1C1C;
+  --border: #2A2A2A;
+  --text: #FFFFFF;
+  --text-soft: #C9C4B8;
+  --text-faint: #8C877C;
+  --bg: #0A0A0A;
+  --brand-orange-tint: rgba(234, 175, 40, 0.16);
+
+  background: #0A0A0A;
+  color: var(--text);
+
+  --font-display: 'Anton', 'Oswald', system-ui, sans-serif;
+  --font-cond: 'Oswald', 'Barlow Condensed', system-ui, sans-serif;
+  --cz-yellow: #EAAF28;
+
+  /* Pierna de pollo (el ícono de su carta): sustituye a los emojis de sección */
+  --cz-leg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='9.5' cy='9.5' rx='8.5' ry='6.3' transform='rotate(-45 9.5 9.5)'/%3E%3Crect x='13.6' y='14.6' width='2.8' height='5' rx='1.4' transform='rotate(-45 15 17.1)'/%3E%3Ccircle cx='19' cy='21.2' r='2.1'/%3E%3Ccircle cx='21.2' cy='19' r='2.1'/%3E%3C/svg%3E");
+  /* Brochazos amarillos (como las esquinas de su carta) */
+  --cz-brush: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200' fill='none' stroke='%23EAAF28' stroke-linecap='round'%3E%3Cpath d='M40 -10 C 90 40 150 90 215 120' stroke-width='14'/%3E%3Cpath d='M70 -10 C 115 30 160 70 215 92' stroke-width='6' opacity='.85'/%3E%3Cpath d='M20 -10 C 80 55 140 115 215 150' stroke-width='3' opacity='.7'/%3E%3Cpath d='M100 -10 C 140 25 175 50 215 66' stroke-width='9' opacity='.9'/%3E%3Cpath d='M55 -10 C 105 45 160 100 215 135' stroke-width='2' opacity='.6'/%3E%3Cpath d='M125 -10 C 155 15 185 35 215 45' stroke-width='4' opacity='.75'/%3E%3C/svg%3E");
+}
+
+/* ===== HERO: nombre gigante en amarillo sobre negro, brochazos en las esquinas ===== */
+.local-skin-chicken .local-hero {
+  min-height: 230px;
+  background:
+    var(--cz-brush) right -30px top -20px / 220px 220px no-repeat,
+    radial-gradient(90% 70% at 0% 100%, rgba(234, 175, 40, 0.14), transparent 60%),
+    #0A0A0A;
+  border-bottom: 2px solid var(--cz-yellow);
+}
+.local-skin-chicken .local-hero::after {
+  content: '';
+  position: absolute;
+  left: -60px; bottom: -70px;
+  width: 150px; height: 150px;
+  background: var(--cz-brush) center / contain no-repeat;
+  transform: rotate(180deg);
+  opacity: 0.55;
+  pointer-events: none;
+}
+.local-skin-chicken .local-hero-overlay {
+  background: linear-gradient(to top, rgba(10, 10, 10, 0.75), rgba(10, 10, 10, 0.1));
+}
+.local-skin-chicken .local-hero-content { z-index: 2; }
+.local-skin-chicken .local-name {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-size: clamp(44px, 12vw, 64px);
+  line-height: 0.95;
+  color: var(--cz-yellow);
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+}
+.local-skin-chicken .local-desc {
+  color: #fff;
+  font-family: var(--font-cond);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  font-size: 14px;
+  border-left: 3px solid var(--cz-yellow);
+  padding-left: 10px;
+  max-width: 340px;
+}
+/* Cuando llegue el logo (tema.hero:'logo') */
+.local-skin-chicken .local-hero--logo {
+  padding-top: calc(58px + env(safe-area-inset-top));
+}
+.local-skin-chicken .local-hero-content--logo { color: var(--text); }
+.local-skin-chicken .local-logo-full { filter: drop-shadow(0 6px 22px rgba(234, 175, 40, 0.28)); }
+.local-skin-chicken .local-desc--ink { border-left: 0; padding-left: 0; text-transform: uppercase; letter-spacing: 0.14em; font-size: 12.5px; color: var(--cz-yellow); }
+
+/* ===== BARRA DE CATEGORÍAS ===== */
+.local-skin-chicken .catnav {
+  background: color-mix(in srgb, #0A0A0A 86%, transparent);
+  border-bottom: 1px solid #2A2A2A;
+}
+.local-skin-chicken .catnav-tab {
+  font-family: var(--font-cond);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  font-size: 14px;
+  background: #151515;
+  border-color: #2A2A2A;
+  color: var(--text-soft);
+}
+.local-skin-chicken .catnav-tab-active {
+  background: var(--cz-yellow);
+  border-color: var(--cz-yellow);
+  color: #111;
+}
+
+/* ===== TÍTULOS DE SECCIÓN: Anton amarilla con trazo de pincel debajo ===== */
+.local-skin-chicken .menu-section-title {
+  position: relative;
+  width: fit-content;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  font-weight: 400; /* Anton ya es pesada */
+  letter-spacing: 0.02em;
+  font-size: 26px;
+  color: var(--cz-yellow);
+  padding-bottom: 10px;
+}
+.local-skin-chicken .menu-section-title > span:first-child { display: none; } /* emoji residual */
+.local-skin-chicken .menu-section-title::before {
+  content: '';
+  width: 22px; height: 22px;
+  flex-shrink: 0;
+  background: var(--cz-yellow);
+  -webkit-mask: var(--cz-leg) center / contain no-repeat;
+  mask: var(--cz-leg) center / contain no-repeat;
+}
+.local-skin-chicken .menu-section-title::after {
+  content: '';
+  position: absolute;
+  left: 0; right: -14px; bottom: 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--cz-yellow) 0%, var(--cz-yellow) 70%, transparent 100%);
+  clip-path: polygon(0 30%, 6% 0, 40% 20%, 75% 0, 100% 40%, 96% 100%, 50% 80%, 10% 100%);
+  border-radius: 2px;
+}
+
+/* ===== TARJETAS: nombre y precio amarillos, descripción blanca (como su carta) ===== */
+.local-skin-chicken .pcard {
+  background: #141414;
+  border-color: #262626;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+.local-skin-chicken .pcard-nombre {
+  font-family: var(--font-cond);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.01em;
+  color: var(--cz-yellow);
+}
+.local-skin-chicken .pcard-precio {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  color: var(--cz-yellow);
+}
+.local-skin-chicken .pcard-desde { color: var(--text-faint); font-weight: 600; }
+.local-skin-chicken .pcard-add {
+  font-family: var(--font-cond);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: #111;
+  background: var(--cz-yellow);
+}
+.local-skin-chicken .pcard-badge-agotado { background: rgba(10, 10, 10, 0.78); color: var(--cz-yellow); }
+
+/* Destacado: filete amarillo a la izquierda (la línea vertical de su carta) */
+.local-skin-chicken .pcard-destacado {
+  border: 1.5px solid rgba(234, 175, 40, 0.55);
+  box-shadow: inset 4px 0 0 var(--cz-yellow), 0 8px 26px rgba(0, 0, 0, 0.55);
+  background: linear-gradient(180deg, rgba(234, 175, 40, 0.10), #141414 70%);
+}
+.local-skin-chicken .pcard-fuerte {
+  font-family: var(--font-cond);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--cz-yellow);
+  color: #111;
+}
+
+/* ===== MODAL de opciones ===== */
+.local-skin-chicken .pm-nombre {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--cz-yellow);
+}
+.local-skin-chicken .pm-opt-precio { color: var(--cz-yellow); }
+
+/* ===== Buscador (más de 12 productos) ===== */
+.local-skin-chicken .local-search-box { background: #151515; border-color: #2A2A2A; }
+.local-skin-chicken .local-search-box:focus-within {
+  border-color: var(--cz-yellow);
+  box-shadow: 0 0 0 3px rgba(234, 175, 40, 0.2);
+}
+.local-skin-chicken .local-search-icon { color: #8C877C; }
+.local-skin-chicken .local-search-box:focus-within .local-search-icon { color: var(--cz-yellow); }
+.local-skin-chicken .local-search-input { font-family: var(--font-cond); font-size: 15.5px; }
+.local-skin-chicken .local-search-clear { background: var(--cz-yellow); color: #111; }
+
+/* ===== Checkout sobre negro ===== */
+.local-skin-chicken .co-toggle button.on {
+  background: rgba(234, 175, 40, 0.16);
+  border-color: var(--cz-yellow);
+  color: #fff;
+}
+.local-skin-chicken .co-pago.on {
+  background: rgba(234, 175, 40, 0.14);
+  border-color: var(--cz-yellow);
+}
+.local-skin-chicken .co-ubic-btn { border-color: var(--cz-yellow); background: rgba(234, 175, 40, 0.14); color: var(--cz-yellow); }
+.local-skin-chicken .co-ubic-ok { background: rgba(47, 174, 102, 0.16); }
+.local-skin-chicken .co-ubic-error { background: rgba(229, 72, 77, 0.16); }

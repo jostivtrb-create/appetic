@@ -62,6 +62,10 @@ export async function getPreviewLocal(slug) {
     const { LENITA_LOCAL, LENITA_PRODUCTOS } = await import('./dev/lenitaCasera')
     return { local: LENITA_LOCAL, productos: LENITA_PRODUCTOS }
   }
+  if (slug === 'chicken-zone') {
+    const { CHICKEN_LOCAL, CHICKEN_PRODUCTOS } = await import('./dev/chickenZone')
+    return { local: CHICKEN_LOCAL, productos: CHICKEN_PRODUCTOS }
+  }
   return null
 }
 
@@ -70,7 +74,7 @@ export async function getPreviewLocal(slug) {
 // destacadosHome al vuelo con el mismo helper de los seeds/panel (fuente única).
 const PREVIEW_SLUGS = [
   'perros-criollos', 'sabor-del-dia', 'pilotos', 'juance', 'jasbury',
-  'fruti-tentacion', 'la-comarca', 'el-monumento', 'bon-appetit', 'lenita-casera',
+  'fruti-tentacion', 'la-comarca', 'el-monumento', 'bon-appetit', 'lenita-casera', 'chicken-zone',
 ]
 export async function getPreviewLocales() {
   const { computeDestacadosHome } = await import('./utils/destacadosHome')
