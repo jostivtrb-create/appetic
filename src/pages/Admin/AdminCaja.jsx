@@ -34,6 +34,14 @@ const VISTAS = [
 ]
 const DIAS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
 
+// Rótulo corto y parejo para cada cuenta del resumen: los nombres largos ("Nequi / Daviplata")
+// desbordaban la tarjeta. El nombre completo queda en el title.
+function etiquetaCuenta(c) {
+  if (c.tipo === 'efectivo') return 'En caja'
+  const n = String(c.nombre || '').trim()
+  return n.length > 11 || n.includes('/') ? 'Transferencias' : (n || 'Transferencias')
+}
+
 export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) {
   // 🍲 El almuerzo de hoy también se vende aquí, con precio de mesa o para llevar (S21).
   const { local: localVenta, productos: productosVenta } = useConMenuDelDia(local, productos, 'personal')
@@ -76,9 +84,9 @@ export default function AdminCaja({ local, productos, demo, usuario, esAdmin }) 
         </div>
         <div className="pv-caja">
           {esAdmin && tiene(local, 'cuentas') && cuentasTop.map(c => (
-            <div key={c.id}><small>{c.tipo === 'efectivo' ? 'En caja' : c.nombre}</small><b>{cop(saldos[c.id] || 0)}</b></div>
+            <div key={c.id} className="pv-kpi" title={c.nombre}><small>{etiquetaCuenta(c)}</small><b>{cop(saldos[c.id] || 0)}</b></div>
           ))}
-          <div><small>Hoy · {dia?.nVentas || 0}</small><b>{cop(dia?.ventas || 0)}</b></div>
+          <div className="pv-kpi"><small>Hoy · {dia?.nVentas || 0} {(dia?.nVentas || 0) === 1 ? 'venta' : 'ventas'}</small><b>{cop(dia?.ventas || 0)}</b></div>
           <ImpresoraBoton local={local} uso="caja" impresora={impresora} estilo={coloresComanda(local).vars} />
           {tiene(local, 'arqueo') && <button type="button" className="pv-contar" onClick={() => setContando(true)} aria-label="Contar la caja" title="Contar la caja">🧮<span>Contar</span></button>}
         </div>

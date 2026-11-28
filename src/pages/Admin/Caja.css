@@ -18,14 +18,19 @@
 .pv-marca-logo img { width: 100%; height: 100%; object-fit: cover; }
 .pv-marca b { display: block; font-size: 18px; font-weight: 900; letter-spacing: .02em; color: var(--acc); line-height: 1.1; }
 .pv-marca small { display: block; font-size: 11.5px; color: var(--text-soft); letter-spacing: .05em; text-transform: uppercase; }
-.pv-caja { display: flex; gap: 6px; }
-.pv-caja > div { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 5px 10px; text-align: right; box-shadow: var(--shadow-sm); }
-.pv-caja small { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-soft); white-space: nowrap; }
-.pv-caja b { font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.pv-caja > div:first-child b { color: var(--acc); }
+/* Resumen de la caja: UNA franja simétrica (columnas iguales separadas por filetes), no tarjetas sueltas */
+.pv-caja {
+  display: flex; align-items: stretch; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.pv-caja > * + * { border-left: 1px solid var(--border); }
+.pv-kpi { flex: 1 1 0; min-width: 0; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.pv-caja small { display: block; font-size: 11px; font-weight: 600; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pv-caja b { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pv-kpi:first-child b { color: var(--acc); }
+@media (min-width: 481px) { .pv-kpi { min-width: 118px; } }
 @media (max-width: 480px) {
   .pv-caja { width: 100%; }
-  .pv-caja > div { flex: 1; text-align: left; }
 }
 
 /* Pestañas: barra fija abajo en el celular, segmentada arriba en el PC */
@@ -92,13 +97,27 @@
 .pv-buscar input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 16px; }
 .pv-buscar button { background: none; border: 0; color: var(--text-soft); cursor: pointer; font-size: 14px; }
 .pv-buscar:focus-within { border-color: var(--acc); box-shadow: 0 0 0 3px var(--acc-soft); }
-.pv-tabs { display: flex; gap: 6px; overflow-x: auto; margin: 10px 0 11px; padding-bottom: 2px; scrollbar-width: none; }
-.pv-tabs::-webkit-scrollbar { display: none; }
-.pv-tabs button {
-  flex: 0 0 auto; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer; white-space: nowrap;
-  padding: 8px 13px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-soft);
+/* Categorías: pestañas de barra (no burbujas). Columnas iguales si caben; si no, se deslizan.
+   La activa se marca con el color del local y una barra debajo. */
+.pv-tabs {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr);
+  overflow-x: auto; margin: 12px 0 12px; border-bottom: 1px solid var(--border); scrollbar-width: none;
+  scroll-snap-type: x proximity;
 }
-.pv-tabs button.on { color: var(--acc-txt); background: var(--acc); border-color: transparent; }
+.pv-tabs::-webkit-scrollbar { display: none; }
+/* En el celular, un leve desvanecido a la derecha avisa que hay más categorías */
+@media (max-width: 480px) { .pv-tabs { -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); } }
+.pv-tabs button {
+  position: relative; font: inherit; font-weight: 700; font-size: 14.5px; cursor: pointer; white-space: nowrap;
+  padding: 11px 16px 12px; border: 0; border-radius: 0; background: transparent; color: var(--text-soft);
+  scroll-snap-align: start; transition: color .15s;
+}
+.pv-tabs button::after {
+  content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0;
+  background: var(--acc); transform: scaleX(0); transition: transform .2s ease;
+}
+.pv-tabs button.on { color: var(--text); font-weight: 800; }
+.pv-tabs button.on::after { transform: scaleX(1); }
 .pv-buscar + .pv-grid, .pv-buscar + .pv-vacio { margin-top: 10px; }
 
 .pv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
@@ -330,9 +349,9 @@
 .pv-envio-acordado input:focus { outline: none; border-style: solid; border-color: var(--brand-orange); }
 
 /* 🧮 Contar la caja (guía «Mejoras frente a Loggro» D17/D18) */
-.pv-contar { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-width: 52px; background: var(--acc-soft); border: 1px solid var(--acc-line); border-radius: 12px; padding: 4px 8px; font: inherit; font-size: 17px; line-height: 1; color: var(--acc); cursor: pointer; box-shadow: var(--shadow-sm); transition: transform .12s; }
+.pv-contar { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-width: 56px; background: var(--acc-soft); border: 0; border-radius: 0; padding: 4px 8px; font: inherit; font-size: 17px; line-height: 1; color: var(--acc); cursor: pointer; transition: background .15s; }
 .pv-contar span { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
-.pv-contar:active { transform: scale(.95); }
+.pv-contar:active { background: var(--acc-line); }
 .ca-hoja { max-height: 92vh; overflow-y: auto; }
 .ca-hoja h2 { margin: 0 0 4px; }
 .ca-lista { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
@@ -357,8 +376,9 @@
 .ca-arqueo-acc { display: flex; gap: 14px; margin-top: 2px; }
 @media (max-width: 480px) { .ca-fila { grid-template-columns: minmax(0, 1fr) auto; } .ca-sub { display: none; } }
 @media (max-width: 480px) {
-  .pv-caja > div { min-width: 0; padding: 5px 8px; }
+  .pv-kpi { padding: 7px 9px; }
+  .pv-caja small { font-size: 10.5px; }
   .pv-caja b { font-size: 14.5px; }
-  .pv-contar { flex: 0 0 auto; min-width: 42px; padding: 4px 6px; }
+  .pv-contar { flex: 0 0 auto; min-width: 46px; padding: 4px 6px; }
   .pv-contar span { display: none; }
 }
