@@ -12,9 +12,9 @@
 // negro, brochazos amarillos en la cabecera, títulos Anton amarillos subrayados con un trazo
 // de pincel, botones amarillos con texto negro. Sin vino, sin lila, sin stencil: eso es de otros.
 //
-// ⚠️ LOGO PENDIENTE: el cliente aún no lo envía. Mientras tanto el hero muestra el nombre en
-//    grande sobre los brochazos. Cuando llegue: dejarlo transparente (/Quitar_Fondo_Mejorar_Calidad),
-//    guardarlo en public/locales/chicken-zone/logo.webp, poner `logo` y `tema.hero:'logo'`.
+// LOGO: insignia redonda (gallo con gafas y presa crispy, aro amarillo con "CHICKEN ZONE!" y
+// "BURGERS - WRAPS - TENDERS"), vectorial, exportada transparente. Protagoniza el hero y entra
+// cayendo en 3 bloques (texto de arriba · gallo · texto de abajo).
 
 export const SLUG = 'chicken-zone'
 
@@ -49,7 +49,9 @@ export const CHICKEN_LOCAL = {
   //    Chicken Zone da el suyo. El dueño lo cambia en ⚙️ Configuración → Datos del negocio
   //    (es también el número del afiche de domicilios).
   whatsapp: '573208435143',
-  logo: '',     // ⚠️ pendiente (ver arriba)
+  logo: '/locales/chicken-zone/logo.webp',    // insignia redonda transparente: FLOTA grande en el hero
+  icono: '/locales/chicken-zone/icono.webp',  // la misma insignia en pequeño para los cuadritos
+  logoAnim: 'arriba',                         // entra cayendo en 3 bloques: "pum… pum… pum"
   banner: '',   // el dueño lo sube desde su panel (prompt en public/locales/chicken-zone/PROMPTS.md)
   tema: {
     primary: '#EAAF28',        // amarillo mostaza de la carta (botones, chips activos, precios)
@@ -58,6 +60,7 @@ export const CHICKEN_LOCAL = {
     onPrimary: '#111111',      // texto negro sobre el amarillo (como en su carta)
     accent: '#F2C14E',         // brillo amarillo para precios sobre negro
     bg: '#0A0A0A',             // negro puro: el fondo de su carta
+    hero: 'logo',              // la insignia en GRANDE en el header
     skin: 'chicken',           // piel propia: src/pages/Local/LocalSkinChicken.css
   },
   // 24 horas (abre === cierra): útil para probar a cualquier hora. El dueño ajusta el real.

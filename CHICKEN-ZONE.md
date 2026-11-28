@@ -6,12 +6,12 @@
 - **Datos del menú:** `src/dev/chickenZone.js` · **Piel:** `src/pages/Local/LocalSkinChicken.css` (negro + amarillo mostaza de su carta)
 - **Alta en Firebase:** `node scripts/seed-chicken-zone.mjs` (desde el PC, con `scripts/serviceAccount.json`)
 
+- **Logo:** insignia redonda transparente (`public/locales/chicken-zone/logo.webp` + `icono.webp`); entra cayendo en 3 bloques. La animación se cambia en el panel → Configuración → Apariencia.
+
 ## ⚠️ Pendientes
-1. **Logo** — no ha llegado. Cuando llegue: quitarle el fondo (`/Quitar_Fondo_Mejorar_Calidad`), guardarlo en
-   `public/locales/chicken-zone/logo.webp`, poner `logo` y `tema.hero: 'logo'` en el archivo de datos.
-2. **WhatsApp** — está el número por defecto (320 843 5143): los pedidos llegan ahí, NO al local. El dueño
+1. **WhatsApp** — está el número por defecto (320 843 5143): los pedidos llegan ahí, NO al local. El dueño
    pone el suyo en ⚙️ Configuración → Datos del negocio (también sale en el afiche de domicilios).
-3. **Sabores Postobón** — la carta no los lista; quedaron Manzana, Colombiana, Uva, Naranja y Pepsi. Ajustar en el panel.
+2. **Sabores Postobón** — la carta no los lista; quedaron Manzana, Colombiana, Uva, Naranja y Pepsi. Ajustar en el panel.
 
 ## Menú (17 productos, precios de la carta)
 - **Burger y Sandwich:** Asada Burger, Crispy Burger, Crispy BBQ, Sándwich Crispy o BBQ (elige pollo), Sándwich XL (elige pollo).
