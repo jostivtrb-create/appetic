@@ -1,17 +1,28 @@
 /* ⚙️ Configuración: menú de secciones + contenido. */
 .aj { display: grid; gap: 14px; }
+/* En el celular: pestañas de barra (no burbujas). En el PC es la columna de la izquierda. */
+@media (max-width: 1023.98px) {
 .aj-nav {
-  display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
-  margin: -4px -2px 0; padding: 4px 2px;
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); gap: 0;
+  overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); background: transparent;
+  padding: 0; border-radius: 0; box-shadow: none;
 }
 .aj-nav::-webkit-scrollbar { display: none; }
-.aj-item {
-  flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px;
-  background: var(--surface); border: 1px solid var(--border); color: var(--text); font-size: 14px;
+.aj-nav > .aj-item, .aj-nav > a.aj-item {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; flex: none;
+  font: inherit; font-weight: 700; font-size: 14.5px; white-space: nowrap; cursor: pointer; text-decoration: none;
+  padding: 11px 16px 12px; border: 0; border-radius: 0; background: transparent; color: var(--text-soft); box-shadow: none;
+  transition: color .15s;
+}
+.aj-nav > .aj-item::after, .aj-nav > a.aj-item::after {
+  content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0;
+  background: var(--brand-orange); transform: scaleX(0); transition: transform .2s ease;
+}
+.aj-nav > .aj-item.on, .aj-nav > .aj-item[aria-selected="true"] { color: var(--text); font-weight: 800; background: transparent; box-shadow: none; }
+.aj-nav > .aj-item.on::after, .aj-nav > .aj-item[aria-selected="true"]::after { transform: scaleX(1); }
 }
 .aj-item small { display: none; }
 .aj-item strong { font-weight: 800; }
-.aj-item.on { background: var(--brand-orange); border-color: var(--brand-orange); color: #fff; }
 .aj-cab h2 { font-size: 20px; font-weight: 900; }
 .aj-cab p { font-size: 14px; color: var(--text-soft); margin-top: 2px; }
 .aj-cuerpo { display: grid; gap: 16px; min-width: 0; }

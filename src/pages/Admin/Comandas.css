@@ -4,9 +4,24 @@
 .km { max-width: 1400px; margin: 0 auto; }
 
 .km-barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
-.km-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; }
-.km-tabs button { padding: 10px 16px; border-radius: 11px; font-size: 16px; font-weight: 800; color: var(--text-soft); }
-.km-tabs button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+.km-tabs {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); gap: 0;
+  overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); background: transparent;
+  padding: 0; border-radius: 0; box-shadow: none;
+}
+.km-tabs::-webkit-scrollbar { display: none; }
+.km-tabs > button, .km-tabs > a {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; flex: none;
+  font: inherit; font-weight: 700; font-size: 16px; white-space: nowrap; cursor: pointer; text-decoration: none;
+  padding: 11px 16px 12px; border: 0; border-radius: 0; background: transparent; color: var(--text-soft); box-shadow: none;
+  transition: color .15s;
+}
+.km-tabs > button::after, .km-tabs > a::after {
+  content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0;
+  background: var(--cm-mesa, var(--brand-orange)); transform: scaleX(0); transition: transform .2s ease;
+}
+.km-tabs > button.on, .km-tabs > button[aria-selected="true"] { color: var(--text); font-weight: 800; background: transparent; box-shadow: none; }
+.km-tabs > button.on::after, .km-tabs > button[aria-selected="true"]::after { transform: scaleX(1); }
 .km-n { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 7px; margin-left: 4px; border-radius: 999px; background: var(--text); color: var(--surface); font-size: 14px; }
 .km-herr { display: flex; gap: 8px; }
 

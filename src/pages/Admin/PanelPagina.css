@@ -13,12 +13,20 @@
 .pp-hero-ico { width: 52px; height: 52px; flex: none; display: grid; place-items: center; border-radius: 16px; font-size: 28px; background: linear-gradient(135deg, #FFB067, var(--brand-orange)); box-shadow: 0 10px 22px rgba(237, 125, 43, .32); }
 .pp-hero-tit h2 { font-size: 24px; font-weight: 900; line-height: 1.1; }
 .pp-hero-tit p { font-size: 14.5px; color: var(--text-soft); margin-top: 3px; }
-.pp-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
-.pp-chips li { font-size: 13px; font-weight: 700; color: var(--text-soft); padding: 5px 11px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); }
-.pp-chips li.t-ok { color: #1E8A4C; background: #E7F7EE; border-color: #C9EBD7; }
-.pp-chips li.t-aviso { color: #9A5A0E; background: #FFF4E5; border-color: #F6D9B0; }
+.pp-chips {
+  list-style: none; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-sm); overflow: hidden;
+}
+.pp-chips li {
+  display: flex; align-items: center; justify-content: center; text-align: center; min-width: 0; min-height: 44px;
+  padding: 7px 10px; font-size: 13px; font-weight: 700; color: var(--text-soft); line-height: 1.25; overflow-wrap: anywhere;
+}
+.pp-chips li + li { border-left: 1px solid var(--border); }
+.pp-chips li.t-ok { color: #1E8A4C; background: #F1FAF4; }
+.pp-chips li.t-aviso { color: #9A5A0E; background: #FFF8EE; }
 .pp-chips li.t-off { color: var(--text-faint); }
-.pp-chips li.t-info { color: #2D5BA8; background: #EAF1FF; border-color: #CFDDF7; }
+.pp-chips li.t-info { color: #2D5BA8; background: #F3F7FF; }
+@media (min-width: 1024px) { .pp-chips { justify-self: start; grid-auto-columns: minmax(150px, max-content); } .pp-chips li { padding: 7px 18px; } }
 .pp-hero-der { position: relative; z-index: 1; }
 
 /* ── Cuerpo: lado + trabajo ── */

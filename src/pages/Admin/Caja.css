@@ -57,25 +57,31 @@
   .pv-vistas button.on .pv-vistas-ico { transform: translateY(-1px) scale(1.08); transition: transform .15s; }
 }
 @media (min-width: 1024px) {
-  .pv-vistas { margin-top: 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px; padding: 4px; max-width: 480px; }
-  .pv-vistas button { border-radius: 11px; padding: 9px 12px; gap: 14px; }
-  .pv-vistas button:hover:not(.on) { color: var(--text); background: var(--surface); }
-  .pv-vistas button.on { background: var(--acc); color: var(--acc-txt); box-shadow: 0 6px 16px -8px var(--acc); }
-  .pv-vistas button.on .pv-vistas-ico i { background: var(--acc-txt); color: var(--acc); }
+  /* En el PC: pestañas de barra, igual que las categorías (sin burbujas) */
+  .pv-vistas { margin-top: 12px; border-bottom: 1px solid var(--border); gap: 0; max-width: 520px; }
+  .pv-vistas button { position: relative; padding: 11px 12px 12px; gap: 10px; }
+  .pv-vistas button::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--acc); transform: scaleX(0); transition: transform .2s ease; }
+  .pv-vistas button:hover:not(.on) { color: var(--text); }
+  .pv-vistas button.on { color: var(--text); }
+  .pv-vistas button.on::after { transform: scaleX(1); }
 }
 
 /* Fichas de cuentas abiertas */
 .pv-vender { --sel: var(--acc); }
-.pv-cuentas { display: flex; gap: 7px; overflow-x: auto; padding: 12px 2px 3px; scrollbar-width: none; }
+.pv-cuentas {
+  display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 16px) / 3); gap: 8px;
+  overflow-x: auto; padding: 12px 2px 3px; scrollbar-width: none; scroll-snap-type: x proximity;
+}
+@media (min-width: 1024px) { .pv-cuentas { grid-auto-columns: 150px; } }
 .pv-cuentas::-webkit-scrollbar { display: none; }
 .pv-cuenta {
-  flex: 0 0 auto; text-align: left; font: inherit; cursor: pointer; padding: 8px 12px; border-radius: 13px;
+  min-width: 0; text-align: left; font: inherit; cursor: pointer; padding: 9px 12px; border-radius: 12px; scroll-snap-align: start;
   background: var(--surface); border: 1.5px solid var(--border); color: var(--text); box-shadow: var(--shadow-sm);
   transition: transform .08s, border-color .15s, background .15s; user-select: none; -webkit-tap-highlight-color: transparent;
 }
 .pv-cuenta:active { transform: scale(.97); }
 .pv-cuenta b { display: flex; align-items: center; gap: 6px; font-size: 14.5px; font-weight: 800; white-space: nowrap; }
-.pv-cuenta small { display: block; font-size: 12px; color: var(--text-soft); white-space: nowrap; max-width: 10rem; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.pv-cuenta small { display: block; font-size: 12px; color: var(--text-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 .pv-cuenta.on { border-color: var(--acc); background: var(--acc-soft); box-shadow: 0 0 0 1px var(--acc) inset; }
 .pv-cuenta.on b { color: var(--acc); }
 .pv-cuenta.nueva { border-style: dashed; border-color: var(--acc-line); box-shadow: none; }
@@ -105,8 +111,8 @@
   scroll-snap-type: x proximity;
 }
 .pv-tabs::-webkit-scrollbar { display: none; }
-/* En el celular, un leve desvanecido a la derecha avisa que hay más categorías */
-@media (max-width: 480px) { .pv-tabs { -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); } }
+/* Un leve desvanecido a la derecha avisa que hay más categorías (en el PC la columna también se queda corta) */
+.pv-tabs { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent); }
 .pv-tabs button {
   position: relative; font: inherit; font-weight: 700; font-size: 14.5px; cursor: pointer; white-space: nowrap;
   padding: 11px 16px 12px; border: 0; border-radius: 0; background: transparent; color: var(--text-soft);

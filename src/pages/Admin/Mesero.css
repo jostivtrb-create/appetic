@@ -21,11 +21,24 @@
 
 /* Nuevo pedido / En curso */
 .ms-seg {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 14px;
-  background: var(--surface-2); border: 1px solid var(--border); border-radius: 14px;
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); gap: 0;
+  overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); background: transparent;
+  padding: 0; border-radius: 0; box-shadow: none;
+  grid-auto-columns: 1fr; margin-bottom: 14px;
 }
-.ms-seg button { padding: 11px 8px; border-radius: 11px; font-size: 15px; font-weight: 800; color: var(--text-soft); }
-.ms-seg button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow-sm); }
+.ms-seg::-webkit-scrollbar { display: none; }
+.ms-seg > button, .ms-seg > a {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; flex: none;
+  font: inherit; font-weight: 700; font-size: 15px; white-space: nowrap; cursor: pointer; text-decoration: none;
+  padding: 11px 16px 12px; border: 0; border-radius: 0; background: transparent; color: var(--text-soft); box-shadow: none;
+  transition: color .15s;
+}
+.ms-seg > button::after, .ms-seg > a::after {
+  content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0;
+  background: var(--brand-orange); transform: scaleX(0); transition: transform .2s ease;
+}
+.ms-seg > button.on, .ms-seg > button[aria-selected="true"] { color: var(--text); font-weight: 800; background: transparent; box-shadow: none; }
+.ms-seg > button.on::after, .ms-seg > button[aria-selected="true"]::after { transform: scaleX(1); }
 .ms-seg-n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; margin-left: 4px; border-radius: 999px; background: var(--brand-orange); color: #fff; font-size: 12.5px; }
 .ms-aviso-red { background: #FDECEC; color: #B3261E; padding: 10px 12px; border-radius: 12px; font-size: 14px; margin-bottom: 12px; }
 
@@ -38,9 +51,26 @@
 .ms-buscar input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 16px; color: var(--text); outline: none; }
 .ms-buscar input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
 .ms-buscar button { width: 28px; height: 28px; border-radius: 50%; background: var(--surface-2); font-size: 12px; }
-.ms-cats { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 6px; scrollbar-width: none; }
+.ms-cats {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(max-content, 1fr); gap: 0;
+  overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border); background: transparent;
+  padding: 0; border-radius: 0; box-shadow: none;
+  margin-bottom: 6px;
+}
 .ms-cats::-webkit-scrollbar { display: none; }
-.ms-cats a { flex-shrink: 0; padding: 8px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); font-size: 13.5px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.ms-cats > button, .ms-cats > a {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; flex: none;
+  font: inherit; font-weight: 700; font-size: 14.5px; white-space: nowrap; cursor: pointer; text-decoration: none;
+  padding: 11px 16px 12px; border: 0; border-radius: 0; background: transparent; color: var(--text-soft); box-shadow: none;
+  transition: color .15s;
+}
+.ms-cats > button::after, .ms-cats > a::after {
+  content: ''; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0;
+  background: var(--brand-orange); transform: scaleX(0); transition: transform .2s ease;
+}
+.ms-cats > button.on, .ms-cats > button[aria-selected="true"] { color: var(--text); font-weight: 800; background: transparent; box-shadow: none; }
+.ms-cats > button.on::after, .ms-cats > button[aria-selected="true"]::after { transform: scaleX(1); }
+.ms-cats > a:active { color: var(--text); }
 .ms-cat { scroll-margin-top: 70px; margin-top: 14px; }
 .ms-cat h3 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-soft); margin: 0 4px 6px; }
 

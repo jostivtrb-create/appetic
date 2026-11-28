@@ -13,6 +13,7 @@ import { devSuper } from '../../components/BottomNav/PanelRail'
 import DemoTarjeta from './DemoTarjeta'
 import Solicitudes from './Solicitudes'
 import Barberias from './Barberias'
+import '../Admin/Admin.css'
 import '../Admin/EditorProducto.css'
 import './Superadmin.css'
 
@@ -224,8 +225,25 @@ export default function Superadmin() {
   const localAbierto = locales.find(x => x.id === abierto)
 
   return (
+    <>
+    {/* Misma cabecera que el panel de los locales: ☰ · «Appetic · Superadmin» · título · tu foto */}
+    <header className="admin-top sa2-top">
+      <div className="admin-top-izq">
+        <PanelMenuBoton />
+        <div>
+          <span className="admin-top-eyebrow">Appetic · Superadmin</span>
+          <h1 className="admin-top-nombre">{navegar.abierto ? actual.nombre : 'Locales y planes'}</h1>
+        </div>
+      </div>
+      {user && (
+        <Link to="/cuenta" className="admin-perfil" title="Mi perfil" aria-label="Mi perfil">
+          {user.photoURL
+            ? <img className="admin-perfil-avatar" src={user.photoURL} alt="" referrerPolicy="no-referrer" />
+            : <span className="admin-perfil-avatar admin-perfil-avatar-fb">{(user.displayName || user.email || '?')[0]?.toUpperCase()}</span>}
+        </Link>
+      )}
+    </header>
     <div className={`sa sa2${navegar.abierto ? ' pp-dentro' : ''}`}>
-      <div className="sa2-menu"><PanelMenuBoton /></div>
       <PanelHero miga="👑 Superadmin" icono="🏪" titulo="Locales y planes" sub="Todos los locales de Appetic, sus dueños, sus planes y lo que entra" chips={[
         { t: `🏪 ${locales.length} locales` },
         { t: `🔎 ${enBuscador} en el buscador` },
@@ -378,5 +396,6 @@ export default function Superadmin() {
       </>}
       </PanelCuerpo>
     </div>
+    </>
   )
 }
