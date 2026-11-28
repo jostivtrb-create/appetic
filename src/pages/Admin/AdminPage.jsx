@@ -109,7 +109,6 @@ export default function AdminPage() {
     || (seccion === 'cocina' && rolesEquipo.includes('cocina'))
     || (seccion === 'domicilios' && rolesEquipo.includes('domiciliario'))
     || (seccion === 'horario' && rolesEquipo.length > 0)
-  const entraComoSuperadmin = !demo && esSuperadmin(usuario?.email) && !local?.admins?.includes(usuario?.email)
 
   useEffect(() => {
     let activo = true
@@ -484,13 +483,6 @@ export default function AdminPage() {
         {(demo || vitrina) && <span className="admin-demo-badge">DEMO</span>}
       </header>
 
-      {/* Soporte: dejar claro que NO eres el dueño de este local, para no editar el equivocado. */}
-      {entraComoSuperadmin && (
-        <div className="admin-super-aviso">
-          👑 Entraste como <strong>superadmin</strong>, no como el dueño. Los cambios que guardes aquí
-          los verá <strong>{local.nombre}</strong>.
-        </div>
-      )}
 
       {esAdmin && <AvisoPago local={local} />}
 

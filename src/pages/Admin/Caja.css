@@ -69,10 +69,10 @@
 /* Fichas de cuentas abiertas */
 .pv-vender { --sel: var(--acc); }
 .pv-cuentas {
-  display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 16px) / 3); gap: 8px;
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(calc((100% - 16px) / 3), 1fr); gap: 8px;
   overflow-x: auto; padding: 12px 2px 3px; scrollbar-width: none; scroll-snap-type: x proximity;
 }
-@media (min-width: 1024px) { .pv-cuentas { grid-auto-columns: 150px; } }
+@media (min-width: 1024px) { .pv-cuentas { grid-auto-columns: minmax(150px, 220px); } }
 .pv-cuentas::-webkit-scrollbar { display: none; }
 .pv-cuenta {
   min-width: 0; text-align: left; font: inherit; cursor: pointer; padding: 9px 12px; border-radius: 12px; scroll-snap-align: start;

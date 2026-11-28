@@ -1,6 +1,7 @@
 /* 🧑‍🍳 Pantalla del MESERO — rápida, con el pulgar, sin fotos. */
 .ms { max-width: 760px; margin: 0 auto; padding-bottom: 96px; }
-.ms-admin { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+.ms-admin { display: grid; margin-bottom: 2px; }
+.ms-admin .eq-abrir { width: 100%; }
 
 /* Aviso de «pedido listo»: parpadea hasta que el mesero lo toca. */
 .ms-listo {
@@ -291,3 +292,4 @@
   .ms-curso { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
   .ms-curso > .ms-sub, .ms-curso > .ms-entregadas, .ms-curso > .ms-vacio { grid-column: 1 / -1; }
 }
+@media (min-width: 1024px) { .ms-admin { justify-items: end; } .ms-admin .eq-abrir { width: auto; min-width: 160px; } }

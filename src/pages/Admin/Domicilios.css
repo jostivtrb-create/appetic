@@ -1,6 +1,7 @@
 /* 🛵 Panel de Domicilios — para el celular del domiciliario: grande y directo. */
 .dm { max-width: 1100px; margin: 0 auto; display: grid; gap: 12px; }
-.dm-admin { display: flex; justify-content: flex-end; }
+.dm-admin { display: grid; }
+.dm-admin .eq-abrir { width: 100%; }
 .dm-error { background: #FDECEC; color: #8E1B14; padding: 12px 14px; border-radius: 14px; font-weight: 700; }
 .dm-vacio { color: var(--text-soft); padding: 20px 4px; }
 .dm-vacio--grande { text-align: center; padding: 60px 10px; }
@@ -44,3 +45,4 @@
 .dm-confirma-cod { font-size: 26px; font-weight: 900; }
 .dm-confirma h2 { font-size: 24px; font-weight: 900; margin: 6px 0; }
 .dm-confirma > p:not(.dm-confirma-cod) { font-size: 17px; color: var(--text-soft); margin-bottom: 18px; }
+@media (min-width: 1024px) { .dm-admin { justify-items: end; } .dm-admin .eq-abrir { width: auto; min-width: 160px; } }

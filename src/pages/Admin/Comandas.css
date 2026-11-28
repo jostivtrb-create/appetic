@@ -23,7 +23,8 @@
 .km-tabs > button.on, .km-tabs > button[aria-selected="true"] { color: var(--text); font-weight: 800; background: transparent; box-shadow: none; }
 .km-tabs > button.on::after, .km-tabs > button[aria-selected="true"]::after { transform: scaleX(1); }
 .km-n { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 7px; margin-left: 4px; border-radius: 999px; background: var(--text); color: var(--surface); font-size: 14px; }
-.km-herr { display: flex; gap: 8px; }
+.km-herr { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+@media (max-width: 640px) { .km-barra > .km-tabs, .km-herr { width: 100%; } .km-herr > * { width: 100%; } }
 
 .km-turno {
   width: 100%; display: flex; align-items: center; gap: 14px; text-align: left;
