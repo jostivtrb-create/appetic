@@ -81,8 +81,8 @@ export const CHICKEN_LOCAL = {
   // 🗂️ Etiquetas del INICIO (catálogo en src/config/categoriasLocales.js).
   etiquetas: ['pollo', 'hamburguesas', 'comida-rapida'],
   admins: [ADMIN_EMAIL],
-  // 💳 Plan completo = Empresario. Nace EN MONTAJE (7 días, el seed pone el reloj) y fuera del buscador.
-  suscripcion: { plan: 'empresario', estado: 'montaje' },
+  // 💳 Plan completo = Empresario, en CORTESÍA: sin vencimiento ni cobro (decisión del dueño de Appetic).
+  suscripcion: { plan: 'empresario', estado: 'cortesia' },
   enBuscador: false,
   menuVersion: 1,
 }

@@ -2,7 +2,7 @@
 
 - **Link:** `/chicken-zone` · vista previa sin base de datos: `/chicken-zone?preview=1`
 - **Panel del dueño:** `/chicken-zone/admin` → entra con Google **gabrielandrescv25@gmail.com**
-- **Plan:** Empresario (nace en montaje 7 días; registrar el primer pago en `/superadmin`).
+- **Plan:** Empresario en **cortesía** (sin vencimiento ni cobro).
 - **Datos del menú:** `src/dev/chickenZone.js` · **Piel:** `src/pages/Local/LocalSkinChicken.css` (negro + amarillo mostaza de su carta)
 - **Alta en Firebase:** `node scripts/seed-chicken-zone.mjs` (desde el PC, con `scripts/serviceAccount.json`)
 
